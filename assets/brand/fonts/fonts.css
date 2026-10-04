@@ -1,0 +1,8 @@
+@font-face {
+  font-family: "Geologica";
+  src: url("./Geologica-Variable.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-feature-settings: "ss01" 1;
+  font-display: swap;
+}

@@ -1,0 +1,12 @@
+:root {
+  --raicho-charcoal: #202122;
+  --raicho-vermilion: #fd1b1b;
+  --raicho-snow: #ffffff;
+  --raicho-mist: #d9dadd;
+  --raicho-font-family: "Geologica", system-ui, sans-serif;
+  --raicho-font-feature-settings: "ss01" 1;
+  --raicho-font-variation-settings: "CRSV" 0, "SHRP" 0, "slnt" 0;
+  --raicho-font-weight-body: 400;
+  --raicho-font-weight-heading: 700;
+  --raicho-font-weight-display: 580;
+}
