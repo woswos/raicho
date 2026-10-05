@@ -1,0 +1,41 @@
+@media (max-width: 1200px) {
+ .app-body { grid-template-columns: 185px 320px minmax(0,1fr); }
+ .app-brand { flex-basis: 136px; }.app-header { gap: 18px; }
+ .sidebar { padding-inline: 10px; }.compose-button { margin-inline: 4px; }
+ .list-header { padding-inline: 18px; }.message-row { padding-inline: 18px; }
+ #message-detail { padding: 26px 26px 0; }.reader-actions { padding-inline: 26px; }
+ .message-subject { font-size: 24px; }.sender-info span { display: block; margin-left: 0; }
+ .connection { display: none; }.profile { margin-left: auto; }
+ .preview-controls { padding-inline: 24px; }
+}
+@media (max-width: 900px) {
+ .app-body { grid-template-columns: 190px minmax(0,1fr); }.reading-pane { display: none; }
+ .mail-app[data-reading="true"] .message-column { display: none; }
+ .mail-app[data-reading="true"] .reading-pane { display: block; }.mobile-back { display: grid; }
+ .app-brand { flex-basis: 141px; }.message-column { border-right: 0; }
+ .reader-toolbar { padding-inline: 18px; }.list-sort { font-size: 11px; }
+ .message-row { padding: 20px 24px; }.row-sender,.row-subject { font-size: 14px; }.row-snippet { font-size: 12px; }
+ .row-time,.row-meta { font-size: 11px; }.message-body { font-size: 14px; }
+}
+@media (max-width: 600px) {
+ .mail-app { width: calc(100% - 24px); height: 800px; border-radius: 10px; }
+ .preview-controls { align-items: flex-start; flex-direction: column; padding-inline: 16px; gap: 9px; }
+ .app-header { padding: 14px 16px; gap: 12px; height: 116px; flex-wrap: wrap; }
+ .app-brand { flex: 1; }.app-brand img { width: 108px; }.profile { order: 1; }
+ .mail-search { flex-basis: 100%; order: 2; padding: 9px 12px; }.mail-search input { font-size: 16px; }.search-hint { display: none; }
+ .app-body { grid-template-columns: 1fr; height: calc(100% - 116px); grid-template-rows: 62px minmax(0,1fr); }
+ .sidebar { padding: 9px 12px; display: flex; flex-direction: row; gap: 8px; align-items: center; border-right: 0; border-bottom: 1px solid var(--line); }
+ .compose-button { margin: 0; padding: 10px; font-size: 0; border-radius: 6px; }.compose-button .icon { width: 19px; }
+ .sidebar-label, .account-list, .sidebar-bottom { display: none; }.folder-nav { display: flex; flex-direction: row; }
+ .sidebar .folder-nav { display: none; }
+ .mobile-folders { display: block; flex: 1; min-width: 0; color: var(--ink); background: var(--raised); border: 1px solid var(--line); border-radius: 6px; padding: 10px; font-size: 16px; }
+ .folder-nav button { font-size: 11px; padding: 10px; gap: 6px; min-height: 42px; }.folder-nav button b { display: none; }
+ .folder-nav button[data-folder="drafts"],.folder-nav button[data-folder="sent"],.folder-nav button[data-folder="starred"] { display: none; }
+ .folder-nav .icon { width: 17px; }.list-header { height: 87px; padding: 17px 22px; }.list-header h1 { font-size: 22px; }
+ .list-footer { font-size: 11px; }.message-row { padding: 18px 22px; }
+ #message-detail { padding: 24px 22px 0; }.message-subject { font-size: 25px; }
+ .sender-block { margin-bottom: 24px; }.sender-info { font-size: 12px; }.sender-info small { font-size: 11px; }
+ .message-category { font-size: 11px; }.reader-toolbar { gap: 18px; }.toolbar-button { font-size: 12px; }
+ .reader-actions { padding: 28px 22px; }.reader-actions button { min-height: 44px; font-size: 12px; }
+ #composer form { padding: 18px; }#composer input { font-size: 16px; }#composer footer { align-items: flex-start; flex-direction: column; }
+}

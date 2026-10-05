@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Raicho — inbox concept</title><link rel="icon" href="../icons/favicon.svg"><link rel="stylesheet" href="showcase.css"><link rel="stylesheet" href="inbox.css"><link rel="stylesheet" href="inbox-responsive.css"><script src="messages.js" defer></script><script src="inbox.js" defer></script></head>
+<body>
+<nav class="page-nav" aria-label="Brand showcase"><a href="identity-board.html">Raicho / brand studio</a><div><a href="identity-board.html">Identity</a><a class="current" href="inbox.html" aria-current="page">Inbox concept</a><a href="launch.html">Launch materials</a></div></nav>
+<div class="preview-controls"><span>Interface concept · fictional messages</span><div><button type="button" id="density-toggle" aria-pressed="false">Compact view</button><button type="button" id="theme-toggle" aria-pressed="false">Dark theme</button></div></div>
+<svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+<symbol id="search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+<symbol id="write" viewBox="0 0 24 24"><path d="m15 5 4 4M4 20l5-1L21 7a2.8 2.8 0 0 0-4-4L5 15z"/></symbol>
+<symbol id="inbox" viewBox="0 0 24 24"><path d="m4 4-2 11v5h20v-5L20 4zM2 15h6l2 3h4l2-3h6"/></symbol>
+<symbol id="star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.7 6.3.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.3-.9z"/></symbol>
+<symbol id="draft" viewBox="0 0 24 24"><path d="M14 2H5v20h14V7zM14 2v5h5M8 12h8M8 16h5"/></symbol>
+<symbol id="send" viewBox="0 0 24 24"><path d="m3 3 19 9-19 9 4-9zM7 12h15"/></symbol>
+<symbol id="archive" viewBox="0 0 24 24"><path d="M3 3h18v5H3zM5 8v13h14V8M10 12h4"/></symbol>
+<symbol id="folder" viewBox="0 0 24 24"><path d="M3 6V4h7l2 3h9v14H3z"/></symbol>
+<symbol id="reply" viewBox="0 0 24 24"><path d="m9 5-6 6 6 6M3 11h9a8 8 0 0 1 8 8"/></symbol>
+<symbol id="arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+<symbol id="close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+<symbol id="back" viewBox="0 0 24 24"><path d="M20 12H4m6-6-6 6 6 6"/></symbol>
+</defs></svg>
+<main class="mail-app" id="mail-app" data-theme="light" aria-label="Raicho inbox design concept">
+<header class="app-header"><a class="app-brand" href="identity-board.html" aria-label="Raicho brand identity"><img class="light-logo" src="../logos/horizontal.svg" alt="Raicho"><img class="dark-logo" src="../logos/horizontal-dark.svg" alt="Raicho"></a><label class="mail-search"><svg class="icon" aria-hidden="true"><use href="#search"/></svg><input id="mail-search" type="search" placeholder="Search your mail" aria-label="Search sample messages"><span class="search-hint">⌘ K</span></label><span class="connection"><span></span>Connected</span><div class="profile" aria-label="Demo user Alex">A</div></header>
+<div class="app-body">
+<aside class="sidebar" aria-label="Mail folders"><button class="compose-button" type="button" id="compose-button"><svg class="icon" aria-hidden="true"><use href="#write"/></svg>Compose</button><select class="mobile-folders" id="mobile-folders" aria-label="Choose mail folder"><option value="inbox">All inboxes</option><option value="starred">Starred</option><option value="drafts">Drafts</option><option value="sent">Sent</option><option value="archive">Local archive</option></select>
+<div class="sidebar-label">Mail</div><nav class="folder-nav" aria-label="Folders">
+<button type="button" data-folder="inbox" class="active" aria-pressed="true"><svg class="icon" aria-hidden="true"><use href="#inbox"/></svg><span>All inboxes</span><b id="inbox-count">6</b></button>
+<button type="button" data-folder="starred" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#star"/></svg><span>Starred</span></button>
+<button type="button" data-folder="drafts" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#draft"/></svg><span>Drafts</span></button>
+<button type="button" data-folder="sent" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#send"/></svg><span>Sent</span></button>
+</nav><div class="sidebar-label account-label">Accounts</div><div class="account-list"><div><span class="account-dot"></span><span>Personal<small>alex@example.com</small></span></div><div><span class="account-dot work-dot"></span><span>Work<small>alex@studio.example</small></span></div></div>
+<div class="sidebar-label archive-label">Local folders</div><nav class="folder-nav" aria-label="Local folders"><button type="button" data-folder="archive" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#archive"/></svg><span>Archive</span></button></nav>
+<div class="sidebar-bottom"><img class="light-logo" src="../logos/mark.svg" alt=""><img class="dark-logo" src="../logos/mark-dark.svg" alt=""><span>Your Thunderbird,<br>anywhere.</span></div></aside>
+<section class="message-column" aria-label="Message list"><header class="list-header"><div><h1 id="folder-title">All inboxes</h1><p id="list-summary">6 messages · 3 unread</p></div><span class="list-sort">Newest first</span></header><div class="message-list" id="message-list"></div><div class="list-footer">All caught up with Thunderbird</div></section>
+<section class="reading-pane" id="reading-pane" aria-label="Selected message"><div class="reader-toolbar"><button id="back-button" class="icon-button mobile-back" type="button" aria-label="Back to messages"><svg class="icon" aria-hidden="true"><use href="#back"/></svg></button><button id="archive-button" class="toolbar-button" type="button"><svg class="icon" aria-hidden="true"><use href="#archive"/></svg>Archive</button><button id="star-button" class="toolbar-button" type="button" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#star"/></svg>Star</button><span id="message-position">1 of 6</span></div><article id="message-detail"></article><div class="reader-actions" id="reader-actions"><button id="reply-button" type="button"><svg class="icon" aria-hidden="true"><use href="#reply"/></svg>Reply</button><button id="forward-button" type="button"><svg class="icon" aria-hidden="true"><use href="#arrow"/></svg>Forward</button></div></section>
+</div><div class="app-status" id="app-status" role="status" aria-live="polite"></div>
+<dialog id="composer"><form method="dialog"><header><h2 id="composer-title">New message</h2><button class="icon-button" aria-label="Close message preview"><svg class="icon" aria-hidden="true"><use href="#close"/></svg></button></header><label>To<input id="compose-to" type="text" placeholder="name@example.com"></label><label>Subject<input id="compose-subject" type="text" placeholder="Subject"></label><textarea aria-label="Message body" placeholder="Write your message…"></textarea><footer><span>Design preview · no mail is sent</span><button class="draft-button" value="close">Close preview</button></footer></form></dialog>
+</main>
+<footer class="page-footer">Try the theme, density, search, folders, and message controls. Changes stay in this preview and reset on reload.</footer>
+</body></html>

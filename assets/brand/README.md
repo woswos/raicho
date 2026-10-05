@@ -4,6 +4,14 @@ Your Thunderbird, anywhere.
 
 ![Raicho horizontal logo](logos/horizontal.png)
 
+## Brand showcase
+
+- [Updated identity board](showcase/identity-board.html) / [PNG](previews/identity-board.png)
+- [Interactive inbox concept](showcase/inbox.html): light/dark themes and mobile layout
+- [Launch materials](showcase/launch.html): repository card, README banner, introduction, avatar
+- [Writing guide](voice.md): tagline, product description, tone, and interface copy
+- [Preview and export instructions](showcase/README.md)
+
 ## Logos
 
 The SVGs contain editable vector paths with outlined lettering. They have no
@@ -16,16 +24,21 @@ exported from its matching SVG with a transparent outer canvas.
 | Wordmark | [SVG](logos/wordmark.svg) / [PNG](logos/wordmark.png) | [SVG](logos/wordmark-dark.svg) / [PNG](logos/wordmark-dark.png) | 1024 px |
 | Stacked | [SVG](logos/stacked.svg) / [PNG](logos/stacked.png) | [SVG](logos/stacked-dark.svg) / [PNG](logos/stacked-dark.png) | 1024 px |
 | Horizontal | [SVG](logos/horizontal.svg) / [PNG](logos/horizontal.png) | [SVG](logos/horizontal-dark.svg) / [PNG](logos/horizontal-dark.png) | 1600 px |
+| One-color bird | [Black SVG](logos/mark-mono.svg) / [PNG](logos/mark-mono.png) | [White SVG](logos/mark-mono-white.svg) / [PNG](logos/mark-mono-white.png) | 1024 px |
 
 Use the SVG for new sizes. All bird variants share the same geometry, including
-the two short, thick legs. The white eye, belly, and lightning remain opaque
-white on a transparent canvas. Dark variants add an exterior white keyline and
-use white lettering; place them on charcoal or another dark background.
+the two short, thick legs. Full-color variants keep the eye, belly, and lightning
+opaque white on a transparent canvas. Dark variants add an exterior white
+keyline and white lettering; place them on a dark background. One-color variants
+use transparent eye, brow, belly, and lightning cutouts with a single black or
+white ink. Their SVG masks preserve the original path geometry.
 
 Keep proportions unchanged and leave at least one eye diameter of clear space
 around the visible logo. As a starting point, use the complete logo at 128 px
-wide or larger and the bird at 24 px or larger. Check legibility in the actual
-placement, especially when the mark appears smaller.
+wide or larger and the bird at 32 px or larger. Prefer 48 px when the brow,
+lightning, and leg details need to read clearly, especially with the dark keyline.
+At 16–24 px the symbol reads mainly as a silhouette. See the
+[actual-size comparison](previews/symbol-legibility.png) and check the final placement.
 
 ## Icons
 
