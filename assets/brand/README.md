@@ -126,7 +126,7 @@ body {
 - [Font sources and checksums](fonts/SOURCES.md): pinned upstream URLs,
   Google Fonts URLs, web font conversion details, and SHA-256 checksums.
 
-The repository's [MIT license](../../LICENSE) covers the Raicho materials.
-The bundled Geologica font files retain their separate
+The repository's [MIT license](../../LICENSE) covers the Raicho materials and
+excludes the bundled Geologica font files. Those files retain their separate
 [SIL Open Font License 1.1](fonts/OFL.txt); include that license when redistributing
 the fonts. The font license does not change the license of artwork made with it.

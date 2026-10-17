@@ -19,3 +19,15 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+The Geologica font files listed below are not part of the Software and are
+not licensed under the MIT license above. They are licensed solely under the
+SIL Open Font License, Version 1.1, in assets/brand/fonts/OFL.txt. Include
+that license when redistributing them.
+
+- assets/brand/fonts/Geologica-Variable.ttf
+- assets/brand/fonts/Geologica-Variable.woff2
+- assets/brand/fonts/OFL.txt
+
+Documents and artwork created with the font, including outlined wordmarks,
+are part of the Software.
