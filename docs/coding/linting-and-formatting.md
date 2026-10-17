@@ -6,6 +6,8 @@ Run the shared tooling image using the commands in
 [build, test, and generate](../reference/build-test-generate.md). The
 [code-quality decision](../decisions/20261018-containerized-code-quality.md)
 records the selected tools and their boundary.
+The [Compose and SQL decision](../decisions/20261018-compose-layout-and-sql-quality.md)
+extends that tooling to SQLite source.
 
 | Language or check | Configuration |
 | --- | --- |
@@ -15,6 +17,7 @@ records the selected tools and their boundary.
 | JavaScript | ESLint recommended rules with `eslint.config.mjs`, Prettier with `.prettierrc.json` |
 | TypeScript | typescript-eslint typed rules, Prettier, and `tsc --noEmit` with project configuration |
 | Rust | Clippy for Cargo targets, rustfmt with edition 2024 from `rustfmt.toml` |
+| SQL | SQLFluff lint and format using the root `.sqlfluff` configuration |
 
 Ruff checks `E4`, `E7`, `E9`, `F`, `I`, `UP`, and `B`, targeting Python 3.13.
 Its formatter uses 88 columns and single quotes. Prettier also uses single
@@ -29,13 +32,22 @@ targets under their active configuration, not
 unreferenced `.rs` files or every conditional feature combination. Formatting
 checks cover Cargo projects and each discovered owned `.rs` file independently.
 
+SQLFluff uses the SQLite dialect and raw templater, four-space indentation,
+88-column lines, uppercase keywords/functions/literals/types, and lowercase
+unquoted identifiers. The lint rules cover layout, capitalization, ambiguous
+result columns (`AM04`), and NULL comparison (`CV05`). Formatting applies only
+SQLFluff's formatting rules. Both commands force the repository configuration,
+ignore personal/nested configurations, and fail on parsing errors. Checks do
+not connect to a database. SQLFluff syntax checks complement SQLite behavior
+tests rather than proving query execution or migration safety.
+
 ## Scope and enforcement
 
 Check and format commands discover tracked and non-ignored untracked source
 through Git. Disposable fixture directories use filesystem discovery. Scope
 includes Bash (`.bash`, `.sh`, and shell shebangs), Python (`.py`, `.pyi`),
 JavaScript (`.js`, `.mjs`, `.cjs`), TypeScript (`.ts`, `.tsx`, `.mts`, `.cts`),
-and Rust (`.rs` and Cargo projects).
+Rust (`.rs` and Cargo projects), and SQL (`.sql`).
 
 Prettier also covers `package.json`, `.prettierrc.json`, `compose/compose.tools.yaml`,
 `compose/compose.ci.yaml`, the runtime/admin/test Compose files, browser package and
@@ -56,6 +68,13 @@ replace application tests or runtime verification.
 
 `format-check` never rewrites sources. `format` is an explicit writable command
 using the caller's UID/GID. CI runs checks without automatic fixes.
+SQL format checks parse and format temporary copies with the original relative
+paths, then compare bytes. Missing SQL tools or configuration fail even when no
+SQL files exist. An empty valid SQL scope reports an explicit skip. SQL strings
+inside Rust or Python are outside SQLFluff's file scope. Production queries live
+in `server/queries/`, while intentionally invalid test fixtures remain inline.
+Follow the [migration immutability rule](../reference/runtime.md#sqlite-initialization-and-migrations)
+before formatting migration files.
 
 ## Versions and updates
 
@@ -72,6 +91,13 @@ image by digest. It installs Debian Bookworm support packages from the
 | Ruff | 0.16.8 |
 | ShellCheck | 0.11.0 |
 | shfmt | 3.14.1 |
+| SQLFluff | 4.4.0 |
+
+Python tooling dependencies and their wheel hashes are locked in
+`containers/tooling/requirements.txt`, currently for Python 3.13 on Linux amd64.
+The image installs them with `pip --require-hashes --only-binary=:all:`.
+Refresh this lock inside Docker when upgrading SQLFluff, review all dependency
+changes, and rebuild the image. The entrypoint detects a stale requirements file.
 
 JavaScript tools use exact versions in `package.json` and resolved dependencies
 in `package-lock.json`:

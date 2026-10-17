@@ -3,12 +3,11 @@ use sqlx::{SqlitePool, migrate::Migrator};
 use crate::error::{Error, Result};
 
 pub(super) async fn initialize(pool: &SqlitePool, migrations: &Migrator) -> Result<String> {
-    let tables: Vec<String> = sqlx::query_scalar(
-        "SELECT name FROM sqlite_schema WHERE type = 'table' AND name NOT GLOB 'sqlite_*'",
-    )
-    .fetch_all(pool)
-    .await
-    .map_err(|error| Error::new("Cannot inspect application database schema", error))?;
+    let tables: Vec<String> =
+        sqlx::query_scalar(include_str!("../../queries/list-application-tables.sql"))
+            .fetch_all(pool)
+            .await
+            .map_err(|error| Error::new("Cannot inspect application database schema", error))?;
     if !tables.is_empty() && !tables.iter().any(|table| table == "_sqlx_migrations") {
         return Err(Error::message(
             "Existing database has an unrecognized schema",
@@ -19,11 +18,11 @@ pub(super) async fn initialize(pool: &SqlitePool, migrations: &Migrator) -> Resu
         .await
         .map_err(|error| Error::new("Application database migration failed", error))?;
     // An unchanged migration history can succeed on SQLite's read-only fallback.
-    sqlx::query("UPDATE _sqlx_migrations SET version = version WHERE 0")
+    sqlx::query(include_str!("../../queries/verify-database-writable.sql"))
         .execute(pool)
         .await
         .map_err(|error| Error::new("Application database is not writable", error))?;
-    sqlx::query_scalar("SELECT sqlite_version()")
+    sqlx::query_scalar(include_str!("../../queries/read-sqlite-version.sql"))
         .fetch_one(pool)
         .await
         .map_err(|error| Error::new("Cannot read application database version", error))

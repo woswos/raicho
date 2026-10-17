@@ -2,6 +2,7 @@
 !containers/
 !containers/tooling/
 !containers/tooling/Dockerfile
+!containers/tooling/requirements.txt
 !devbin/
 !devbin/raicho_tooling_entrypoint.bash
 !package.json

@@ -10,7 +10,7 @@ AGENTS.md          Always-loaded instructions and pointers to task-specific docs
 assets/brand/      Production identity masters, fonts, guides, and prototypes
 containers/        Tooling, Rust application, and independent Thunderbird images
 compose/           Runtime, administration, test, tooling, and CI Compose files
-server/            Rust diagnostics, SQLite initialization, migrations, and tests
+server/            Rust diagnostics, SQLite queries, migrations, and tests
 web/               TypeScript diagnostics, public files, and behavioral tests
 devbin/            Repository guards, language runners, and tooling tests
 docs/contributing/ Contribution workflow and working agreements

@@ -1,7 +1,8 @@
 # Thunderbird-first foundation
 
-Status: stage 1 implementation approved on 2026-10-18, including its Docker
-validation. Later stages and publication require their own authorization.
+Status: stage 1 implementation and Docker validation are complete. Publication
+with the Compose/SQL follow-up was authorized on 2026-10-18. Later foundation
+stages require their own authorization.
 
 The accepted constraints are recorded in the
 [foundation decision](../../decisions/20261017-thunderbird-first-foundation.md) and
@@ -171,4 +172,4 @@ Repository integrity checks never skip because of a label.
 - Deployment references: [jlesage image](https://github.com/jlesage/docker-thunderbird), [LinuxServer image](https://docs.linuxserver.io/images/docker-thunderbird/), [profile ownership/backups](https://support.mozilla.org/en-US/kb/profiles-where-thunderbird-stores-user-data), [Compose networking](https://docs.docker.com/compose/how-tos/networking/), and [multi-stage builds](https://docs.docker.com/build/building/multi-stage/).
 - Design references: [Axum](https://docs.rs/axum/latest/axum/), [Tokio](https://tokio.rs/tokio/tutorial), [JMAP core](https://www.rfc-editor.org/rfc/rfc8620.html), and [JMAP mail](https://www.rfc-editor.org/rfc/rfc8621.html). These guide the proposed implementation and do not select a frontend framework or require full JMAP support.
 - SQLite references: [deployment suitability](https://sqlite.org/whentouse.html), [consistent backups](https://sqlite.org/backup.html), and [filesystem and journal requirements](https://sqlite.org/howtocorrupt.html). The selected Rust integration must preserve these guarantees.
-- Stage 1 approval includes source checks, application tests, Docker builds, disposable startup/recreation, and browser inspection. Later stages and publication still require authorization under the delivery workflow. No publication PR exists yet.
+- Stage 1 approval includes source checks, application tests, Docker builds, disposable startup/recreation, and browser inspection. The maintainer authorized publication with the Compose/SQL follow-up. Later foundation stages remain subject to stage-specific approval.

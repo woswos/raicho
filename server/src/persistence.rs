@@ -63,7 +63,7 @@ impl Database {
     }
 
     pub async fn check(&self) -> Result<()> {
-        sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM _sqlx_migrations")
+        sqlx::query_scalar::<_, i64>(include_str!("../queries/count-migrations.sql"))
             .fetch_one(&self.pool)
             .await
             .map_err(|error| Error::new("Application database is unavailable", error))?;

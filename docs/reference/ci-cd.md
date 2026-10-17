@@ -27,7 +27,11 @@ Docker and Compose, while language tools come from the image. Exact commands
 and pins are in [build, test, and generate](build-test-generate.md) and
 [linting and formatting](../coding/linting-and-formatting.md).
 
-Rust and TypeScript checks cover the application sources. Disposable runner
+Rust, TypeScript, and SQL checks cover the application sources. SQL linting and
+format checks run in the existing `lint` job through the aggregate Make targets,
+including SQL failure/formatting fixtures under `test-tooling`. They require no
+database service and run even when application jobs are skipped.
+Disposable runner
 fixtures still verify discovery and failure behavior independently. Missing
 project configuration fails rather than silently skipping application checks.
 Automated checks do not claim visual verification of the administrative desktop.

@@ -28,6 +28,7 @@ SOURCE_SUFFIXES = (
         '.rs',
         '.sh',
         '.bash',
+        '.sql',
     }
 )
 

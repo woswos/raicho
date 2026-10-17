@@ -57,6 +57,10 @@ Rust uses edition 2024, snake_case functions/modules, and PascalCase types.
 Propagate failures with context rather than panicking in application paths.
 Keep SQLite operations inside persistence modules and HTTP payloads separate
 from database implementation details. Use temporary fixture databases in tests.
+Production SQL belongs in `server/queries/*.sql` and is embedded at compile
+time with `include_str!`. Keep migration SQL in `server/migrations/` and preserve
+the [migration invariants](../reference/runtime.md#sqlite-initialization-and-migrations).
+Use the [SQL tooling conventions](linting-and-formatting.md) for style.
 
 Browser TypeScript uses strict checking and explicit `.js` imports for emitted
 ES modules. Validate JSON at the boundary, render status with DOM text APIs,

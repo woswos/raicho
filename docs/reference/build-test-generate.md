@@ -14,8 +14,9 @@ toolchains are not required. Build after changing the image or dependency pins:
 docker compose -f compose/compose.tools.yaml build
 ```
 
-The entrypoint also compares `package.json`, `package-lock.json`, and
-`eslint.config.mjs` with the image copies. A mismatch stops the command with a
+The entrypoint also compares `package.json`, `package-lock.json`,
+`eslint.config.mjs`, and `containers/tooling/requirements.txt` with the image
+copies. A mismatch stops the command with a
 rebuild instruction, preventing stale installed dependencies or lint rules.
 
 The `check` service mounts the repository read-only. Tool caches and temporary
@@ -46,13 +47,16 @@ docker compose -f compose/compose.tools.yaml run --rm check make test-tooling
 
 | Target | Behavior |
 | --- | --- |
-| `lint` | Repository integrity, guard tests, and Bash/Python/JavaScript/TypeScript/Rust linters |
+| `lint` | Repository integrity, guard tests, and Bash/Python/JavaScript/TypeScript/Rust/SQL linters |
 | `lint-repo` | Repository integrity guards and their regression tests |
 | `format-check` | Check selected source and configuration formatting without edits |
 | `typecheck` | TypeScript compiler with no emitted output |
-| `test-tooling` | Disposable passing/failing Rust and TypeScript projects exercising the runners |
+| `test-tooling` | Disposable passing/failing Rust, TypeScript, and SQL fixtures exercising the runners |
 | `lint-pr` | PR metadata and design/decision policy guard |
 | `format` | Rewrite files in the documented formatting scope |
+| `lint-sql` | Check owned SQLite source for syntax and configured lint rules |
+| `format-check-sql` | Compare formatted temporary copies with SQL sources without editing them |
+| `format-sql` | Rewrite owned SQL sources using formatting rules only |
 
 The `devbin/raicho_check_*.py` guards are direct Python entry points. Their
 optional repository-root argument defaults to the repository containing the
@@ -73,6 +77,11 @@ explicitly so rewritten files retain the caller's ownership:
 LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)" \
 docker compose -f compose/compose.tools.yaml run --rm format make format
 ```
+
+For SQL alone, use `check make lint-sql format-check-sql` or
+`format make format-sql` with the same Compose command and ownership settings.
+SQL checks need no database connection. Applied migration files must retain
+their original bytes, as explained in the [runtime reference](runtime.md#sqlite-initialization-and-migrations).
 
 The exact scope and pins are in
 [linting and formatting](../coding/linting-and-formatting.md). CI never runs

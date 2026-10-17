@@ -22,6 +22,9 @@ The [runtime reference](runtime.md) describes endpoints, storage, migrations,
 image packaging, and configuration. The existing showcase in `assets/brand/`
 remains a separate static concept with fictional in-memory messages. Shared
 Docker tooling runs language, application, and repository checks.
+SQLFluff checks standalone production SQL embedded into the Rust executable,
+using the same tooling image locally and in CI. See the
+[Compose and SQL decision](../decisions/20261018-compose-layout-and-sql-quality.md).
 
 ```mermaid
 flowchart LR

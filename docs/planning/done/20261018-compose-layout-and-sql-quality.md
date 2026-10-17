@@ -37,7 +37,7 @@ outside this work.
   Debrief: all five files moved, references updated, and six configuration
   renderings passed, including the explicit project override. No volume
   compatibility or migration was introduced, as requested.
-- [ ] Stage 2: Add SQL linting and formatting.
+- [x] Stage 2: Add SQL linting and formatting.
   Add locked SQLFluff dependencies, a stale-image dependency check, SQLite
   configuration, direct Python runner, Make targets, and regression fixtures.
   Extract production queries without changing behavior. Update conventions,
@@ -45,6 +45,12 @@ outside this work.
   Verify parser/lint failures, formatting idempotence and nonmutation, discovery
   exclusions, symlinks, missing tools/configuration, and absent SQL reporting.
   Run the commands below, review the diff, and commit this stage separately.
+  Debrief: SQLFluff and its dependencies are pinned, all four production queries
+  are checked, and Docker validation passed 43 repository tests, 27 tooling
+  fixtures, and 16 server tests, plus lint, format, and type checks. Both runtime
+  images built, disposable HTTP/persistence checks passed, and all test resources
+  were removed. The stale-image guard rejected a modified dependency fixture.
+  Independent review found no correctness issues. No schema changes were made.
 
 ## Validation
 
@@ -68,7 +74,7 @@ test project's resources. The CI lint job uses the same aggregate targets.
 
 ## Notes
 
-- [Foundation plan](20261017-thunderbird-first-foundation.md): prerequisite runtime.
+- [Foundation plan](../active/20261017-thunderbird-first-foundation.md): prerequisite runtime.
 - [Compose and SQL decision](../../decisions/20261018-compose-layout-and-sql-quality.md): accepted choices.
 - [SQLFluff](https://pypi.org/project/sqlfluff/4.4.0/): selected release.
 - [SQLFluff CLI](https://docs.sqlfluff.com/en/stable/reference/cli/): check and format behavior.
