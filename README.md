@@ -1,6 +1,6 @@
 # Raicho
 
-Your Thunderbird, anywhere.
+![Raicho: Your Thunderbird, anywhere. A browser interface for Thunderbird.](assets/brand/social/readme-banner.png)
 
 Raicho is a browser interface for Thunderbird. This repository currently holds
 the brand kit, a static showcase, and containerized development tooling. It does
