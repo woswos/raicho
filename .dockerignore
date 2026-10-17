@@ -1,0 +1,9 @@
+**
+!containers/
+!containers/tooling/
+!containers/tooling/Dockerfile
+!devbin/
+!devbin/raicho_tooling_entrypoint.bash
+!package.json
+!package-lock.json
+!eslint.config.mjs

@@ -1,0 +1,10 @@
+**/.git/
+**/node_modules/
+**/target/
+**/dist/
+**/package-lock.json
+assets/brand/fonts/
+assets/brand/logos/
+assets/brand/previews/
+assets/brand/references/
+assets/brand/social/

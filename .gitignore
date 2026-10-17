@@ -1,0 +1,8 @@
+# Local Python bytecode from development helpers.
+__pycache__/
+*.py[cod]
+
+# Dependency and compilation output stays outside source control.
+node_modules/
+target/
+dist/

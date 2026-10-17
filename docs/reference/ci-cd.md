@@ -1,0 +1,89 @@
+# Continuous integration
+
+[repository-checks.yml](../../.github/workflows/repository-checks.yml) runs on
+pushes to `main` and PR activity: opened, synchronized, reopened, edited,
+labeled, unlabeled, and ready for review. Body and label edits rerun the guard.
+The workflow uses a read-only token and does not retain checkout credentials.
+
+## Jobs
+
+- `lint`: repository integrity, guard regression tests, language linting,
+  formatting checks, TypeScript type checking, and runner fixture tests on
+  pushes and PRs, including designs.
+- `pr-guards`: PR context checks on PR events only.
+
+There are no application build, test, coverage, release, or deployment jobs yet.
+Add real jobs with their tooling. Do not add empty jobs to simulate a pipeline.
+
+Each job builds the same pinned image from `compose.tools.yaml` used locally.
+Checks run in its `check` service with read-only sources and separate cache/temp
+storage. No formatter writes or lint fixes run in CI. The hosted runner provides
+Docker and Compose, while language tools come from the image. Exact commands
+and pins are in [build, test, and generate](build-test-generate.md) and
+[linting and formatting](../coding/linting-and-formatting.md).
+
+Rust and TypeScript checks report not applicable while their sources are absent.
+Their disposable fixture checks still run. Missing project configuration fails
+as soon as owned sources appear, so future application checks cannot silently
+skip. Real application tests and builds remain foundation work.
+
+## Repository integrity
+
+`make lint-repo` checks the AGENTS document references, canonical skills
+directory, documentation filenames, and skill metadata/example paths, then
+runs the guard tests. It includes tracked and untracked non-ignored
+documentation, including tracked paths missing from the worktree. `AGENTS.md`
+must `@`-load the working agreement, workflow, key conventions, and
+architecture documents, and every Markdown path it cites must be a regular
+file. Dated plans must be directly in `docs/planning/active/` or
+`docs/planning/done/`. Dated decision records must be directly in
+`docs/decisions/`. A missing cited instruction file or malformed configuration
+fails the job.
+
+## PR context guards
+
+`make lint-pr` reads PR metadata from GitHub's event JSON as data. It uses explicit
+base/head commit hashes, not the synthetic merge commit at `GITHUB_SHA`.
+A full checkout supplies those objects, including fork history. The
+`compose.ci.yaml` override mounts the event JSON read-only at
+`/tmp/github-event.json`. Body, labels, and commit IDs are parsed as data and
+never interpolated into shell commands. The changed-path
+comparison uses `base...head`, disables rename detection to inspect both sides
+of moves, and includes deletions. Missing or invalid context fails closed.
+
+The description must contain exactly one standalone `Design:` or `Decision:`
+line when a reference is required. Fenced examples and HTML comments are ignored.
+
+- `Design: docs/planning/active/YYYYMMDD-slug.md` must name a regular Markdown
+  file already present at the base commit. A `done/` path is also valid when that
+  path already exists at the base. This verifies prior presence, not human approval.
+- `Decision: docs/decisions/YYYYMMDD-slug.md` must name a regular Markdown file
+  at the PR head commit. It may be introduced in the same PR.
+
+A design PR can change only dated Markdown files directly in
+`docs/planning/active/`. All changed paths must meet that rule. A local run with
+no comparison base cannot claim this exemption.
+
+For other PRs, a reference is unnecessary when every changed path is a
+regular file whose name ends in `.md`. A symlink, script, or non-Markdown
+path is not exempt.
+
+## Labels
+
+| Label | Effect |
+| --- | --- |
+| `design` | Validates planning-only changes and exempts the reference check. |
+| `skip-design-check` | Bypasses the design-link requirement. Does not bypass planning-only enforcement on a `design` PR. |
+
+Repository integrity checks never skip because of a label. GitHub labels must
+exist before using them. Workflow files do not create labels, enable required
+checks, or enforce review approval. These are repository settings to configure
+when publication is authorized. PRs can change their own workflow files, so this
+is a contributor workflow check rather than a tamper-proof governance boundary.
+
+Future build, test, and coverage labels belong to the
+[foundation plan](../planning/active/20261017-thunderbird-first-foundation.md#future-ci-jobs)
+and are not part of the current workflow.
+
+See [GitHub events](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request)
+and [delivery workflow](../contributing/workflow.md) for context.
