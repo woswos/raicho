@@ -28,12 +28,15 @@ outside this work.
 
 ## Stages
 
-- [ ] Stage 1: Group Compose files.
+- [x] Stage 1: Group Compose files.
   Move runtime, admin, test, tooling, and CI configurations into `compose/`.
   Update commands, CI environment paths, formatter scope, and affected docs.
   Validate every configuration combination, including resolved source paths,
   named volumes, profile selection, and published ports. Use a disposable JSON
   event fixture for the CI override. Review the diff before its separate commit.
+  Debrief: all five files moved, references updated, and six configuration
+  renderings passed, including the explicit project override. No volume
+  compatibility or migration was introduced, as requested.
 - [ ] Stage 2: Add SQL linting and formatting.
   Add locked SQLFluff dependencies, a stale-image dependency check, SQLite
   configuration, direct Python runner, Make targets, and regression fixtures.

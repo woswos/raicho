@@ -7,7 +7,7 @@ QUALITY = python3 -B "$(TOOLING_ROOT)devbin/raicho_quality.py" --root "$(QUALITY
 
 .PHONY: tooling
 tooling:
-	@test -f /opt/quality/package-lock.json || { echo 'Run Make through docker compose -f compose.tools.yaml run --rm check' >&2; exit 1; }
+	@test -f /opt/quality/package-lock.json || { echo 'Run Make through docker compose -f compose/compose.tools.yaml run --rm check' >&2; exit 1; }
 
 lint lint-repo lint-pr lint-bash lint-python lint-javascript lint-typescript lint-rust format format-check format-check-rust format-check-javascript typecheck test-tooling: | tooling
 

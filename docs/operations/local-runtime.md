@@ -5,14 +5,23 @@ integration and remote authenticated use are not implemented. See the
 [runtime reference](../reference/runtime.md) for configuration and storage.
 Docker Compose 2.24 or newer is needed for the test override's reset syntax.
 
+Compose files live in `compose/`, separate from image recipes in `containers/`.
+Run the commands below from the repository root. Configuration may come from
+shell variables. If using a repository-root `.env` file, pass `--env-file .env`
+explicitly to Compose, for example:
+
+```bash
+docker compose --env-file .env -f compose/compose.yaml config --quiet
+```
+
 ## Start and inspect
 
 From the repository root:
 
 ```bash
-docker compose -f compose.yaml config --quiet
-docker compose -f compose.yaml build
-docker compose -f compose.yaml up -d --wait
+docker compose -f compose/compose.yaml config --quiet
+docker compose -f compose/compose.yaml build
+docker compose -f compose/compose.yaml up -d --wait
 ```
 
 Open <http://127.0.0.1:8080>. Expect a ready application and an unconfigured
@@ -21,7 +30,7 @@ Thunderbird connector. No viewer is needed to start Thunderbird.
 For explicit administration:
 
 ```bash
-docker compose -f compose.yaml -f compose.admin.yaml up -d --wait
+docker compose -f compose/compose.yaml -f compose/compose.admin.yaml up -d --wait
 ```
 
 Open <http://127.0.0.1:6080/vnc.html?autoconnect=true&resize=remote>. This is the
@@ -29,14 +38,24 @@ native Thunderbird desktop for setup and recovery. Foundation checks use empty
 profiles and no provider credentials. To disable the administrative listener:
 
 ```bash
-docker compose -f compose.yaml up -d --force-recreate thunderbird
+docker compose -f compose/compose.yaml up -d --force-recreate thunderbird
 ```
 
-Inspect failures with `docker compose -f compose.yaml logs` and
-`docker compose -f compose.yaml ps`. To stop while retaining both volumes:
+Inspect failures with `docker compose -f compose/compose.yaml logs` and
+`docker compose -f compose/compose.yaml ps`. To stop while retaining both volumes:
 
 ```bash
-docker compose -f compose.yaml down
+docker compose -f compose/compose.yaml down
+```
+
+For another deployment, choose its own project name and host ports. Exporting
+`COMPOSE_PROJECT_NAME` keeps subsequent startup, inspection, and shutdown commands
+on the same project. The equivalent `-p` option must be included on every command.
+For example, in a separate shell:
+
+```bash
+export COMPOSE_PROJECT_NAME=raicho-second RAICHO_PORT=8081 RAICHO_ADMIN_PORT=6081
+docker compose -f compose/compose.yaml up -d --wait
 ```
 
 ## Disposable automated checks
@@ -49,7 +68,7 @@ record and Thunderbird preference, not production tables or account data.
 ```bash
 (
   export COMPOSE_PROJECT_NAME="raicho-check-$(date +%s)-$$"
-  export COMPOSE_FILE=compose.yaml:compose.test.yaml
+  export COMPOSE_FILE=compose/compose.yaml:compose/compose.test.yaml
   set -eu
   trap 'docker compose down --volumes --remove-orphans' EXIT
   docker compose --profile test build

@@ -1,9 +1,11 @@
+name: raicho
+
 services:
   raicho:
     image: raicho-server:local
     platform: linux/amd64
     build:
-      context: .
+      context: ..
       dockerfile: containers/raicho/Dockerfile
     read_only: true
     tmpfs:
@@ -23,7 +25,7 @@ services:
     image: raicho-thunderbird:local
     platform: linux/amd64
     build:
-      context: containers/thunderbird
+      context: ../containers/thunderbird
     read_only: true
     tmpfs:
       - /tmp:mode=1777

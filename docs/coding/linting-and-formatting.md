@@ -37,8 +37,8 @@ includes Bash (`.bash`, `.sh`, and shell shebangs), Python (`.py`, `.pyi`),
 JavaScript (`.js`, `.mjs`, `.cjs`), TypeScript (`.ts`, `.tsx`, `.mts`, `.cts`),
 and Rust (`.rs` and Cargo projects).
 
-Prettier also covers `package.json`, `.prettierrc.json`, `compose.tools.yaml`,
-`compose.ci.yaml`, the runtime/admin/test Compose files, browser package and
+Prettier also covers `package.json`, `.prettierrc.json`, `compose/compose.tools.yaml`,
+`compose/compose.ci.yaml`, the runtime/admin/test Compose files, browser package and
 TypeScript configuration, Thunderbird policy JSON, and
 `.github/workflows/repository-checks.yml`.
 Do not broaden it to Markdown, HTML, CSS, SVG, exported previews, historical

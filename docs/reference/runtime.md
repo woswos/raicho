@@ -30,9 +30,11 @@ in `/opt/raicho/packages.tsv` inside each image. Runtime support is Linux amd64.
 | `raicho` | `raicho-data` | `/var/lib/raicho` |
 | `thunderbird` | `thunderbird-data` | `/config`, with profile at `/config/profile` |
 
-Compose prefixes volume names with its project name. Neither service mounts the
-other's data. Both run as UID/GID 10001, with read-only roots and temporary storage
-in `/tmp`. New named volumes inherit the image directory ownership. SQLite and
+The runtime Compose project defaults to `raicho`. Override it with `-p` or
+`COMPOSE_PROJECT_NAME` for each additional deployment, along with distinct host
+ports. Compose prefixes volume names with the project name. Neither service
+mounts the other's data. Both run as UID/GID 10001, with read-only roots and
+temporary storage in `/tmp`. New named volumes inherit the image directory ownership. SQLite and
 Thunderbird profiles require local filesystems and exclusive instance ownership.
 
 For bind mounts, prepare separate empty directories owned by UID/GID 10001 and
@@ -59,7 +61,7 @@ connector readiness. Stopping Thunderbird does not make Raicho unready.
 `RAICHO_PORT`, default 8080. The browser page is diagnostics only and has no login.
 
 `RAICHO_ADMIN_ENABLED=true` starts remote desktop support. Only
-`compose.admin.yaml` enables it and publishes loopback port `RAICHO_ADMIN_PORT`,
+`compose/compose.admin.yaml` enables it and publishes loopback port `RAICHO_ADMIN_PORT`,
 default 6080. This administrative interface has no application authentication.
 Keep it local, close it by recreating Thunderbird without the override, and use
 the Raicho page for diagnostics. Remote deployment and browser login are stage 3.

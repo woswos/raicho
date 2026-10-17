@@ -54,8 +54,8 @@ Install Git and Docker with Compose, then clone the repository. On Linux amd64,
 build and start the foundation from the repository root:
 
 ```bash
-docker compose -f compose.yaml build
-docker compose -f compose.yaml up -d --wait
+docker compose -f compose/compose.yaml build
+docker compose -f compose/compose.yaml up -d --wait
 ```
 
 Open <http://127.0.0.1:8080> for diagnostics. Thunderbird starts without a viewer,
@@ -67,8 +67,8 @@ administration, disposable profiles, persistence checks, and stopping services.
 Build the tooling image and run development checks separately:
 
 ```bash
-docker compose -f compose.tools.yaml build
-docker compose -f compose.tools.yaml run --rm check make lint format-check typecheck
+docker compose -f compose/compose.tools.yaml build
+docker compose -f compose/compose.tools.yaml run --rm check make lint format-check typecheck
 ```
 
 The tooling image provides the language tools, so host language toolchains are

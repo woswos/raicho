@@ -9,13 +9,9 @@ AGENTS.md          Always-loaded instructions and pointers to task-specific docs
 .github/           Pull request templates and GitHub Actions workflows
 assets/brand/      Production identity masters, fonts, guides, and prototypes
 containers/        Tooling, Rust application, and independent Thunderbird images
+compose/           Runtime, administration, test, tooling, and CI Compose files
 server/            Rust diagnostics, SQLite initialization, migrations, and tests
 web/               TypeScript diagnostics, public files, and behavioral tests
-compose.yaml       Application and Thunderbird services with separate volumes
-compose.admin.yaml Explicit local remote-desktop support
-compose.test.yaml  Isolated runtime fixture driver, without host application ports
-compose.tools.yaml Read-only checks and explicit writable formatting
-compose.ci.yaml    Read-only GitHub event mount for PR checks
 devbin/            Repository guards, language runners, and tooling tests
 docs/contributing/ Contribution workflow and working agreements
 docs/reference/    Current structure, tooling, CI, and architecture
@@ -23,6 +19,13 @@ docs/coding/       Concrete coding and formatting conventions
 docs/decisions/    Decision records and their template
 docs/planning/     Active and completed staged plans
 ```
+
+`compose/compose.yaml` runs the application and Thunderbird with separate volumes.
+`compose.admin.yaml` adds local desktop administration, and `compose.test.yaml`
+adds the isolated runtime fixture driver. `compose.tools.yaml` provides checks
+and formatting, with `compose.ci.yaml` adding the GitHub event mount. All five
+files live in `compose/`. The [runtime guide](../operations/local-runtime.md) and
+[tooling commands](build-test-generate.md) show their combinations.
 
 The [brand guide](../../assets/brand/README.md) describes asset locations and
 [showcase guide](../../assets/brand/showcase/README.md) describes editable pages.

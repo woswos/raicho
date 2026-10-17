@@ -50,7 +50,7 @@ fails the job.
 `make lint-pr` reads PR metadata from GitHub's event JSON as data. It uses explicit
 base/head commit hashes, not the synthetic merge commit at `GITHUB_SHA`.
 A full checkout supplies those objects, including fork history. The
-`compose.ci.yaml` override mounts the event JSON read-only at
+`compose/compose.ci.yaml` override mounts the event JSON read-only at
 `/tmp/github-event.json`. Body, labels, and commit IDs are parsed as data and
 never interpolated into shell commands. The changed-path
 comparison uses `base...head`, disables rename detection to inspect both sides

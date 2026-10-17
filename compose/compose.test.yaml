@@ -7,7 +7,7 @@ services:
   smoke:
     image: raicho-tools:local
     build:
-      context: .
+      context: ..
       dockerfile: containers/tooling/Dockerfile
     profiles: [test]
     working_dir: /workspace
@@ -17,7 +17,7 @@ services:
     tmpfs:
       - /tmp:mode=1777
     volumes:
-      - .:/workspace:ro
+      - ..:/workspace:ro
       - raicho-data:/fixture/raicho
       - thunderbird-data:/fixture/thunderbird
     cap_drop:
