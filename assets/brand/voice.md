@@ -6,13 +6,14 @@
 
 **Short description:** A browser interface for Thunderbird.
 
-**Project introduction:** Raicho brings Thunderbird to your browser through a
-companion extension. Keep Thunderbird running on the computer you connect to,
-then access its interface from another browser.
+**Project introduction:** Raicho brings Thunderbird to your browser. Run Raicho
+and Thunderbird together in Docker, then open Raicho from your other computers.
+Your mail and filters stay in Thunderbird.
 
-The introduction describes the project direction. In release materials, describe
-what that release actually supports. Browser access alone does not establish
-independent mail retention or backup.
+The introduction describes the planned product, not a released application.
+In release materials, describe what that release actually supports. Deployment
+and storage boundaries are defined in the [architecture](../../docs/reference/architecture.md).
+Keep implementation details out of interface copy unless they help the user act.
 
 ## Tone
 
@@ -40,8 +41,8 @@ support the action described.
 
 **Title:** Your Thunderbird, anywhere.
 
-**Body:** Use Thunderbird through your browser. Keep Thunderbird running on the
-computer you connect to, then connect the Raicho extension.
+**Body:** Use Thunderbird through your browser. Connect to the Thunderbird
+running in your Raicho deployment.
 
 **Action:** Connect Thunderbird
 
