@@ -38,7 +38,9 @@ JavaScript (`.js`, `.mjs`, `.cjs`), TypeScript (`.ts`, `.tsx`, `.mts`, `.cts`),
 and Rust (`.rs` and Cargo projects).
 
 Prettier also covers `package.json`, `.prettierrc.json`, `compose.tools.yaml`,
-`compose.ci.yaml`, and `.github/workflows/repository-checks.yml`.
+`compose.ci.yaml`, the runtime/admin/test Compose files, browser package and
+TypeScript configuration, Thunderbird policy JSON, and
+`.github/workflows/repository-checks.yml`.
 Do not broaden it to Markdown, HTML, CSS, SVG, exported previews, historical
 references, fonts, or vendor artifacts. Dependency directories, build output,
 and generated lockfile formatting are excluded. Preserve the approved artwork
@@ -47,12 +49,10 @@ and showcase behavior when applying the source formatting baseline.
 Discovery excludes `.git`, `node_modules`, `target`, `dist`, `vendor`,
 `__pycache__`, and `assets/brand/references`.
 
-There are no Rust or TypeScript application sources yet. The runners report
-that absence explicitly, and `test-tooling` exercises real passing/failing
-projects in temporary storage. Once owned sources exist, missing project
-configuration or tools must fail. Add manifests and TypeScript configuration
-with the first application sources. Fixture success is not evidence of a
-working application.
+The Rust workspace and browser TypeScript project are checked directly.
+`test-tooling` also exercises real passing/failing projects in temporary storage.
+Missing project configuration or tools fail. Runner fixture success does not
+replace application tests or runtime verification.
 
 `format-check` never rewrites sources. `format` is an explicit writable command
 using the caller's UID/GID. CI runs checks without automatic fixes.

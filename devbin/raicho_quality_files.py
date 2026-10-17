@@ -9,6 +9,12 @@ CONFIGURATION_FILES = {
     '.prettierrc.json',
     'compose.tools.yaml',
     'compose.ci.yaml',
+    'compose.yaml',
+    'compose.admin.yaml',
+    'compose.test.yaml',
+    'web/package.json',
+    'web/tsconfig.json',
+    'containers/thunderbird/policies.json',
     '.github/workflows/repository-checks.yml',
 }
 JAVASCRIPT_SUFFIXES = {'.js', '.mjs', '.cjs'}

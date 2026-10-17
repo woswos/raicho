@@ -11,19 +11,25 @@ from that target.
 
 ## Current state
 
-The repository contains static visual prototypes. A local HTTP server serves
-HTML, CSS, JavaScript, fonts, and SVGs from `assets/brand/`. Inbox interactions
-operate on fictional in-memory messages. There is no production server, extension,
-live Thunderbird connection, authentication service, or application Compose
-deployment yet. Docker Compose already runs repository checks and language tools
-through a shared tooling image, as recorded in the
-[code-quality decision](../decisions/20261018-containerized-code-quality.md).
+Docker Compose runs a Rust diagnostics server and an independently built
+Thunderbird container. The server serves the TypeScript diagnostics page and
+initializes SQLite, currently with migration metadata only. Thunderbird owns a
+separate profile volume. Its internal display starts without a viewer, and a
+local override enables browser administration. There is no extension, live mail
+connection to Raicho, or browser login yet.
+
+The [runtime reference](runtime.md) describes endpoints, storage, migrations,
+image packaging, and configuration. The existing showcase in `assets/brand/`
+remains a separate static concept with fictional in-memory messages. Shared
+Docker tooling runs language, application, and repository checks.
 
 ```mermaid
 flowchart LR
-    Browser[Browser prototype] --> Pages[Static HTML and CSS]
-    Browser --> Demo[JavaScript and fictional messages]
-    Pages --> Identity[Local SVG logos and Geologica fonts]
+    Browser[TypeScript diagnostics] --> Server[Rust HTTP server]
+    Server --> State[(SQLite metadata)]
+    Admin[Optional local browser desktop] -.-> Display[Internal display]
+    Display --> Thunderbird[Thunderbird]
+    Thunderbird --> Profile[(Thunderbird profile)]
 ```
 
 ## Target architecture
@@ -39,18 +45,20 @@ Raicho keeps login, preferences, and connector credentials in SQLite, and does
 not persist mail or run a second filter engine. The browser talks to a Raicho mail
 contract. Thunderbird-specific objects stay in the extension adapter.
 
-The foundation plan holds the component diagram, storage rules, migrations,
-backup requirements, container behavior, and stage gates. Application stages
-remain pending. Their shared tooling was brought forward independently.
+The foundation plan holds the target component diagram, storage rules, backup
+requirements, and stage gates. Mail integration starts with the stage 2 extension
+lifecycle experiment. Runtime diagnostics never infer connector status from a
+profile file or desktop listener.
 
 ## Status
 
 Language choice, Docker deployment, single-user scope, Thunderbird ownership,
-and SQLite application storage are accepted decisions. Axum, Tokio, WebSocket,
-the UI framework, authentication details, SQLite library/configuration, and
-application dependency/image pins remain the plan's open implementation gates.
-Development tool versions are already pinned. The static
-showcase remains a design reference.
+and SQLite application storage are accepted decisions. The
+[runtime stack decision](../decisions/20261018-foundation-runtime-stack.md)
+selects Axum, Tokio, SQLx, the initial SQLite configuration, and the independently
+built Thunderbird image. WebSocket lifecycle, the eventual UI framework, and
+authentication details remain later implementation gates. The static showcase
+remains a design reference.
 
 Current tooling commands and planned application commands are distinguished in
 [build, test, and generate](build-test-generate.md).

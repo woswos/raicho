@@ -1,10 +1,10 @@
 # Coding standards
 
-These rules apply to the current static showcase and repository tooling.
+These rules apply to the application, static showcase, and repository tooling.
 The [foundation decision](../decisions/20261017-thunderbird-first-foundation.md)
 selects Rust for the server and TypeScript for the browser client and Thunderbird
-extension. Application-specific conventions will be documented with their
-implementation. Framework choices remain open. See
+extension. The diagnostics server uses Axum/Tokio and SQLx, while the browser
+uses ordinary TypeScript ES modules. See
 [architecture](../reference/architecture.md) for the accepted direction and
 implementation status.
 
@@ -52,6 +52,16 @@ aggregating failures.
 
 Each guard prints `FAIL:` diagnostics to stderr and exits nonzero on failure.
 Report actionable messages identifying the path or condition.
+
+Rust uses edition 2024, snake_case functions/modules, and PascalCase types.
+Propagate failures with context rather than panicking in application paths.
+Keep SQLite operations inside persistence modules and HTTP payloads separate
+from database implementation details. Use temporary fixture databases in tests.
+
+Browser TypeScript uses strict checking and explicit `.js` imports for emitted
+ES modules. Validate JSON at the boundary, render status with DOM text APIs,
+and bound asynchronous polling. Test pure behavior with Node's built-in runner.
+Select a UI framework only with the stage that requires it.
 
 ## Error messages
 

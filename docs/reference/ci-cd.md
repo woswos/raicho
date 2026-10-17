@@ -11,21 +11,26 @@ The workflow uses a read-only token and does not retain checkout credentials.
   formatting checks, TypeScript type checking, and runner fixture tests on
   pushes and PRs, including designs.
 - `pr-guards`: PR context checks on PR events only.
+- `application-build`: runtime Compose validation and both application images.
+- `application-test`: Rust and browser builds/tests, plus process supervision tests.
+- `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
+  and application readiness while Thunderbird is stopped, in a disposable project.
 
-There are no application build, test, coverage, release, or deployment jobs yet.
-Add real jobs with their tooling. Do not add empty jobs to simulate a pipeline.
+There are no coverage, release, publication, or deployment jobs. Runtime tests
+use no accounts and remove only their job-specific containers and volumes.
 
-Each job builds the same pinned image from `compose.tools.yaml` used locally.
-Checks run in its `check` service with read-only sources and separate cache/temp
-storage. No formatter writes or lint fixes run in CI. The hosted runner provides
+Language jobs build the same pinned tooling image used locally. Runtime jobs
+build the application images and use that tooling image for the smoke driver.
+Sources remain read-only, with separate cache/temp storage. No formatter writes
+or lint fixes run in CI. The hosted runner provides
 Docker and Compose, while language tools come from the image. Exact commands
 and pins are in [build, test, and generate](build-test-generate.md) and
 [linting and formatting](../coding/linting-and-formatting.md).
 
-Rust and TypeScript checks report not applicable while their sources are absent.
-Their disposable fixture checks still run. Missing project configuration fails
-as soon as owned sources appear, so future application checks cannot silently
-skip. Real application tests and builds remain foundation work.
+Rust and TypeScript checks cover the application sources. Disposable runner
+fixtures still verify discovery and failure behavior independently. Missing
+project configuration fails rather than silently skipping application checks.
+Automated checks do not claim visual verification of the administrative desktop.
 
 ## Repository integrity
 
@@ -74,6 +79,13 @@ path is not exempt.
 | --- | --- |
 | `design` | Validates planning-only changes and exempts the reference check. |
 | `skip-design-check` | Bypasses the design-link requirement. Does not bypass planning-only enforcement on a `design` PR. |
+| `skip-build` | Skips the dedicated application image build job. |
+| `skip-test` | Skips application and runtime test jobs. |
+
+The `design` label also skips all three application jobs. Jobs are independent,
+so a skipped build does not leave invalid test dependencies. Test jobs still
+compile/build their test prerequisites when `skip-build` is present. The labels
+do not bypass language linting, guard regression tests, or runner fixtures.
 
 Repository integrity checks never skip because of a label. GitHub labels must
 exist before using them. Workflow files do not create labels, enable required
@@ -81,7 +93,7 @@ checks, or enforce review approval. These are repository settings to configure
 when publication is authorized. PRs can change their own workflow files, so this
 is a contributor workflow check rather than a tamper-proof governance boundary.
 
-Future build, test, and coverage labels belong to the
+Future coverage and release checks belong to the
 [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md#future-ci-jobs)
 and are not part of the current workflow.
 

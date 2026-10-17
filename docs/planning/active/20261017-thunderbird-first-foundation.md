@@ -1,7 +1,7 @@
 # Thunderbird-first foundation
 
-Status: draft implementation plan. Product constraints below are accepted.
-Writing this plan does not authorize implementation, container startup, or publication.
+Status: stage 1 implementation approved on 2026-10-18, including its Docker
+validation. Later stages and publication require their own authorization.
 
 The accepted constraints are recorded in the
 [foundation decision](../../decisions/20261017-thunderbird-first-foundation.md) and
@@ -19,7 +19,7 @@ Build a browser mail client for one person with multiple accounts, using a Rust 
 - Rust powers the application server, with embedded SQLite for Raicho's operational state. Both the browser client and extension use TypeScript. Docker covers runtime, builds, development tooling, and validation from the beginning.
 - Thunderbird is the primary and foreseeable mail backend. It owns its local stores and communication with upstream providers. Raicho does not become an SMTP/IMAP server or connect independently to those same accounts.
 - Thunderbird owns filters and their execution. Raicho does not copy rule definitions, run a second filter engine, or edit Thunderbird's profile files directly.
-- The repository currently contains branding, a static fictional-mail showcase, documentation, repository guards, and containerized code-quality tooling. There is no application runtime to migrate. Reuse the approved identity assets without treating showcase behavior as mail functionality.
+- The repository began with branding, a static fictional-mail showcase, documentation, repository guards, and containerized code-quality tooling. Stage 1 adds the diagnostics runtime and independent Thunderbird image. Reuse the approved identity assets without treating showcase behavior as mail functionality.
 
 Shared tooling was brought forward under the [code-quality decision](../../decisions/20261018-containerized-code-quality.md). Its [current commands](../../reference/build-test-generate.md) and [pins](../../coding/linting-and-formatting.md) are implemented independently. This does not complete application stage 1 or any later stage below.
 
@@ -39,7 +39,7 @@ flowchart LR
     Backend -. future adapters .-> Other[Other backends]
 ```
 
-Recommend Axum and Tokio for one server process serving browser assets, APIs, and connector traffic. The extension initiates an outbound connection to the server's Compose service hostname. WebSocket is the first transport candidate, subject to the lifecycle experiment in stage 2. The server remains available when Thunderbird is disconnected and reports backend status separately from its own readiness.
+Use Axum and Tokio for one server process serving browser assets, APIs, and future connector traffic. The extension initiates an outbound connection to the server's Compose service hostname. WebSocket is the first transport candidate, subject to the lifecycle experiment in stage 2. The server remains available when Thunderbird is disconnected and reports backend status separately from its own readiness.
 
 Keep browser APIs independent of Thunderbird. Define a versioned, language-neutral connector schema with runtime validation and generated or mechanically checked Rust/TypeScript types. Implement the Thunderbird adapter and a small mock backend first. Use ordinary Rust modules/traits for bundled adapters and the protocol for external connectors. A dynamic plugin loader, additional production backends, and full JMAP implementation are outside this foundation.
 
@@ -74,7 +74,7 @@ Serve sensitive responses with `Cache-Control: no-store`. Do not persist mail in
 
 Compose starts two core services: `raicho` and `thunderbird`. SQLite is embedded in `raicho` and needs no separate database service. Build the browser and XPI in a Node stage and the server in a Rust stage, then ship only required runtime artifacts. Reuse the pinned development toolchains and pin application dependency lockfiles, SQLite dependency/version, base-image digests, and the tested Thunderbird/extension combination. Contributors need Docker and Compose for the documented commands, without host Rust, Node, SQLite, or Thunderbird installations.
 
-Evaluate jlesage and LinuxServer as Thunderbird image candidates. Both run graphical Thunderbird with an internal display runtime, allowing unattended operation without a connected viewer. Keep the browser desktop for account setup, OAuth prompts, filter editing, and recovery. Publish its port only through an explicit local/admin override. The default user interface is Raicho. Package the extension in a derived image and verify policy-based installation rather than assuming that copying an XPI activates it.
+Build our own Thunderbird image directly from Debian with the official ESR archive, Xvfb, Openbox, and opt-in noVNC administration. The maintainer chose independent packaging after the image comparison. Pin the base digest, package snapshot, and downloaded archives. Keep the browser desktop for account setup, OAuth prompts, filter editing, and recovery. Publish its port only through an explicit local/admin override. The default user interface is Raicho. Package the extension in this image during stage 2 and verify policy-based installation rather than assuming that copying an XPI activates it.
 
 Use a Compose bridge network with provider internet access and service DNS. Authenticate connector sessions independently of browser login, even on that network. Stage 1 exposes only diagnostics on loopback. Before mail access, implement a single-user login, protected session cookies, mutation CSRF/origin checks, and connector credential provisioning. Document HTTPS through a reverse proxy for remote use. Internal health checks must not depend on Thunderbird being connected.
 
@@ -84,12 +84,33 @@ Back up Raicho's SQLite state separately using a database-supported consistent b
 
 ### Proposed source layout
 
-Add `server/` for the Rust application, including persistence and versioned migrations, `web/` for the TypeScript client, `extension/` for Thunderbird integration, and `protocol/` for connector schemas. These application paths do not exist yet. Extend the existing `containers/` tooling recipes with application images. Add runtime Compose files and an opt-in administrative override alongside the current tooling Compose files. Keep `assets/brand/` as the identity source. Update reference/coding docs, Make targets, CI, and ADRs with the stages that introduce actual behavior.
+Stage 1 introduces `server/` for the Rust application, persistence and migrations, `web/` for TypeScript diagnostics, application recipes under `containers/`, runtime Compose files, and an opt-in administrative override. Stage 2 adds `extension/` for Thunderbird integration and `protocol/` for connector schemas. Keep `assets/brand/` as the identity source. Update reference/coding docs, Make targets, CI, and ADRs with the stages that introduce actual behavior.
+
+### Approved stage 1 implementation
+
+The [runtime stack decision](../../decisions/20261018-foundation-runtime-stack.md)
+records Axum/Tokio, SQLx with bundled SQLite, Linux amd64, and independent
+Thunderbird packaging. The approved implementation sequence is:
+
+1. Rust configuration, health/status routes, process lock, SQLite initialization,
+   and migration failure tests. Add executable build/test targets with sources.
+2. Framework-neutral TypeScript diagnostics, branded assets, runtime response
+   validation, and bounded polling tests.
+3. Separate application and Thunderbird images, persistence volumes, local
+   administration, nonroot operation, and bounded process shutdown.
+4. Containerized application and runtime CI checks, preserving repository guards.
+5. Disposable HTTP/profile/database recreation checks, browser inspection, and
+   documentation reconciliation before the stage 2 review checkpoint.
+
+Exact commands and runtime settings live in
+[build commands](../../reference/build-test-generate.md) and
+[local operation](../../operations/local-runtime.md). Tests use no personal
+profiles, credentials, or provider sends. No commit or push is authorized by
+the stage implementation approval.
 
 ## Open questions
 
-- Before stage 1: select an image/version, supported CPU platforms, and Axum/Tokio versions compatible with the pinned development toolchains. The image choice remains provisional until stage 2 passes. Evaluate candidate releases against required APIs rather than assuming their latest tags match current documentation.
-- Before stage 1: select the Rust SQLite library, engine version/build strategy, migration tooling, and journaling/connection settings. SQLite itself is accepted. Keep these choices compatible with containerized builds and the backup requirements above.
+- Stage 1 stack choices are resolved in the runtime decision above. Extension compatibility with the selected Thunderbird release remains a stage 2 gate. ARM64 requires a separately validated packaging route.
 - Before stage 2 acceptance: prove extension installation/upgrade, background lifetime, reconnect behavior, and secure connector credential provisioning. Choose a supported manifest/lifecycle strategy from the results. WebSocket availability alone does not guarantee an always-running background context.
 - Before stage 3: settle browser login/bootstrap, HTTPS deployment details, and the UI framework. Before stage 4: select the safe message-rendering approach. Ground these choices in the diagnostic client and brand assets.
 - Before stages 4 and 6: record supported search, draft, and send semantics for the pinned Thunderbird version, including attachment limits and any native compose interaction. Do not claim the newest background-send API exists in an older container image.
@@ -99,10 +120,11 @@ Add `server/` for the Rust application, including persistence and versioned migr
 
 Each stage includes focused behavioral tests where applicable and ends with a review checkpoint before the next stage. Application commands below remain proposed until their services exist. Use the existing tooling services for language and repository checks, and add application checks to CI in the stage that introduces them. Future build, test, and coverage labels are listed under [Future CI jobs](#future-ci-jobs). Keep test profiles and local mail fixtures isolated from personal accounts.
 
-- [ ] Stage 1: Boot the containerized foundation.
+- [x] Stage 1: Boot the containerized foundation.
   Add the Rust health/status server, framework-neutral TypeScript diagnostic page, multi-stage images, application Compose services, separate volumes, and administrative override. Extend the existing developer commands and CI with application build/test checks. Add the Cargo and TypeScript project configuration with the first sources so the existing language runners become active. Initialize SQLite through the persistence module with versioned migrations and schema readiness checks. Pin application dependencies/images and document current versus target architecture.
   Verification: validate Compose, build/start a disposable deployment, open diagnostics, inspect Thunderbird through the administrative endpoint, and recreate containers to check profile and SQLite persistence and startup without a viewer. Exercise fresh database initialization, migration success/failure, and rejection of unsupported schemas without data loss.
   Quality gate: `docker compose config --quiet`, `docker compose build`, and Rust format/Clippy, TypeScript type/build, repository checks, and focused persistence/migration tests inside tooling containers. Record image/version/platform evidence. Stop for review of the runnable foundation and stage 2 experiment.
+  Debrief (2026-10-18): implemented Rust/SQLite diagnostics, the TypeScript page, and our own Debian-based Thunderbird image as explicitly requested. All 88 repository/tooling/application/supervisor tests and quality checks passed in Docker. Disposable recreation preserved SQLite contents and Thunderbird preferences, Raicho remained ready with Thunderbird stopped, and browser inspection confirmed desktop/mobile diagnostics and the native administrative desktop. No extension or mail workflow is claimed. Stage 2 awaits review.
 - [ ] Stage 2: Prove the extension lifecycle and connector.
   Package/install the extension, authenticate its outbound connection, define the minimal versioned handshake/capability schema, and report connection state in diagnostics. Add migrations for Raicho-owned connector configuration and pairing state in SQLite. Keep mail APIs unavailable to the browser. Exercise the selected version's draft/send APIs against local test infrastructure to identify incompatibilities early.
   Verification: extension activation without a viewer, invalid credentials/protocol rejection, idle-background behavior, restart either container, network interruption, bounded backoff, credential persistence/rotation, draft save/reopen/edit/resave, and queued versus sent outcomes. Record limitations and resolve the lifecycle/transport gate.
@@ -130,9 +152,9 @@ Each stage includes focused behavioral tests where applicable and ends with a re
 
 ## Future CI jobs
 
-These checks do not exist yet. Add each one in the stage that introduces the
-real job, using the same command locally and in CI. Do not add the labels or
-empty jobs early.
+Stage 1 implements application build and test jobs with the label behavior
+below. Coverage and release checks remain future work. Use the same commands
+locally and in CI, and do not add empty jobs.
 
 - `design` pull requests skip future application build, test, coverage, and release jobs. Repository integrity checks still run.
 - `skip-build` skips the application build job when the diff cannot affect it.
@@ -149,4 +171,4 @@ Repository integrity checks never skip because of a label.
 - Deployment references: [jlesage image](https://github.com/jlesage/docker-thunderbird), [LinuxServer image](https://docs.linuxserver.io/images/docker-thunderbird/), [profile ownership/backups](https://support.mozilla.org/en-US/kb/profiles-where-thunderbird-stores-user-data), [Compose networking](https://docs.docker.com/compose/how-tos/networking/), and [multi-stage builds](https://docs.docker.com/build/building/multi-stage/).
 - Design references: [Axum](https://docs.rs/axum/latest/axum/), [Tokio](https://tokio.rs/tokio/tutorial), [JMAP core](https://www.rfc-editor.org/rfc/rfc8620.html), and [JMAP mail](https://www.rfc-editor.org/rfc/rfc8621.html). These guide the proposed implementation and do not select a frontend framework or require full JMAP support.
 - SQLite references: [deployment suitability](https://sqlite.org/whentouse.html), [consistent backups](https://sqlite.org/backup.html), and [filesystem and journal requirements](https://sqlite.org/howtocorrupt.html). The selected Rust integration must preserve these guarantees.
-- Documentation validation authorized for this draft: containerized `make lint-repo` and `git diff --check`. Application tests, image builds, and container startup need stage-specific approval under the delivery workflow. No application implementation or publication PR exists yet.
+- Stage 1 approval includes source checks, application tests, Docker builds, disposable startup/recreation, and browser inspection. Later stages and publication still require authorization under the delivery workflow. No publication PR exists yet.

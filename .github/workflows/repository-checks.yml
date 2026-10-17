@@ -44,3 +44,76 @@ jobs:
         run: docker compose -f compose.tools.yaml build
       - name: Check pull request policy
         run: docker compose -f compose.tools.yaml -f compose.ci.yaml run --rm check make lint-pr
+
+  application-build:
+    if: >-
+      !contains(github.event.pull_request.labels.*.name, 'design') &&
+      !contains(github.event.pull_request.labels.*.name, 'skip-build')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate runtime configuration
+        run: |
+          docker compose -f compose.yaml config --quiet
+          docker compose -f compose.yaml -f compose.admin.yaml config --quiet
+      - name: Build application images
+        run: docker compose -f compose.yaml build
+
+  application-test:
+    if: >-
+      !contains(github.event.pull_request.labels.*.name, 'design') &&
+      !contains(github.event.pull_request.labels.*.name, 'skip-test')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build tooling image
+        run: docker compose -f compose.tools.yaml build
+      - name: Build and test application sources
+        run: docker compose -f compose.tools.yaml run --rm check make build-app test-app
+      - name: Test Thunderbird process supervision
+        run: >-
+          docker compose -f compose.tools.yaml run --rm check
+          python3 -B -m unittest discover -s containers/thunderbird -p '*_tests.py'
+
+  runtime-test:
+    if: >-
+      !contains(github.event.pull_request.labels.*.name, 'design') &&
+      !contains(github.event.pull_request.labels.*.name, 'skip-test')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      COMPOSE_PROJECT_NAME: raicho-ci-${{ github.run_id }}-${{ github.run_attempt }}
+      COMPOSE_FILE: compose.yaml:compose.test.yaml
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build disposable runtime and test driver
+        run: docker compose --profile test build
+      - name: Verify unattended startup
+        run: |
+          docker compose up -d --wait --wait-timeout 120 raicho thunderbird
+          docker compose run --rm smoke http
+      - name: Verify persistence across recreation
+        run: |
+          docker compose stop raicho thunderbird
+          docker compose run --rm smoke seed
+          docker compose up -d --force-recreate --wait --wait-timeout 120 raicho thunderbird
+          docker compose run --rm smoke http
+          docker compose run --rm smoke persistence
+      - name: Verify independent application readiness
+        run: |
+          docker compose stop thunderbird
+          docker compose run --rm smoke http
+      - name: Show runtime diagnostics on failure
+        if: failure()
+        run: docker compose logs --no-color
+      - name: Remove this job's disposable resources
+        if: always()
+        run: docker compose down --volumes --remove-orphans

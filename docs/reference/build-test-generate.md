@@ -111,17 +111,29 @@ docker compose -f compose.tools.yaml -f compose.ci.yaml run --rm check make lint
 
 ## Application tooling
 
-Application build, integration test, and deployment commands are not configured.
-The [foundation decision](../decisions/20261017-thunderbird-first-foundation.md)
-selects a Rust server and TypeScript browser client and Thunderbird extension.
-The [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md)
-introduces Docker application services from stage 1. Its shared development
-tooling was brought forward through the
-[code-quality decision](../decisions/20261018-containerized-code-quality.md).
-There is no application or Thunderbird service to start with `compose.tools.yaml`.
+Run source builds and behavioral tests through the same tooling container:
 
-Framework choices and application image pins remain open as described in
-[architecture](architecture.md). Do not use no-op commands to imply checks exist.
-When checks and deployments may run is defined in
-[workflow](../contributing/workflow.md). The guard's acceptance rules are in
-[CI](ci-cd.md).
+```bash
+docker compose -f compose.tools.yaml run --rm check make build-app test-app
+docker compose -f compose.tools.yaml run --rm check \
+  python3 -B -m unittest discover -s containers/thunderbird -p '*_tests.py'
+```
+
+`build-app` combines `build-server` and `build-web`. `test-app` combines
+`test-server` and `test-web`. Rust uses `--workspace --all-targets --locked` and
+temporary Cargo output. The browser build uses `tsc`, copies public files and
+the selected identity assets, then runs Node's built-in tests against compiled
+modules. All temporary build output stays outside the source mount.
+
+Build runtime images with `docker compose -f compose.yaml build`. This compiles
+release artifacts and installs the independently packaged Thunderbird runtime.
+The image recipes pin base digests and downloaded artifacts. No XPI or connector
+is built yet. See [local runtime](../operations/local-runtime.md) for Compose
+startup, administration, persistence checks, and cleanup.
+
+`compose.tools.yaml` remains a development-only configuration and does not start
+the application. Application state belongs to the runtime volumes, not the
+checkout. No mail schema or API code generation exists in this stage.
+
+Authorization follows [workflow](../contributing/workflow.md). CI behavior is
+documented in [CI](ci-cd.md), and runtime details in [runtime](runtime.md).

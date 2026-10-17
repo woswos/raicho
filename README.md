@@ -20,9 +20,9 @@ mail from other computers while Thunderbird keeps your accounts, messages,
 and filters. The goal is to run Raicho and Thunderbird together on your own
 machine and open your mail in a browser wherever you work.
 
-> **In development.** This repository currently contains the brand kit, a static
-> interface concept, and containerized development tooling. The application
-> server, browser mail client, and Thunderbird extension are not implemented yet.
+> **In development.** The containerized foundation runs a Rust/SQLite diagnostics
+> server, a TypeScript status page, and our own Thunderbird image. The browser
+> mail client, login, and Thunderbird extension are not implemented yet.
 
 ## Why Raicho
 
@@ -50,17 +50,29 @@ The [brand guide](assets/brand/README.md) covers the logo, colors, and typograph
 
 ## Getting started
 
-You can explore the showcase and contribute to the repository tooling today.
-Install Git and Docker with Compose, then clone the repository. From its root,
-build the tooling image and run the development checks:
+Install Git and Docker with Compose, then clone the repository. On Linux amd64,
+build and start the foundation from the repository root:
+
+```bash
+docker compose -f compose.yaml build
+docker compose -f compose.yaml up -d --wait
+```
+
+Open <http://127.0.0.1:8080> for diagnostics. Thunderbird starts without a viewer,
+with its profile in a separate persistent volume. The connector remains
+unconfigured until the extension stage. The
+[local runtime guide](docs/operations/local-runtime.md) covers optional browser
+administration, disposable profiles, persistence checks, and stopping services.
+
+Build the tooling image and run development checks separately:
 
 ```bash
 docker compose -f compose.tools.yaml build
 docker compose -f compose.tools.yaml run --rm check make lint format-check typecheck
 ```
 
-These commands run repository checks, not a mail application. The image provides
-the language tools, so host language toolchains are not required.
+The tooling image provides the language tools, so host language toolchains are
+not required. It does not start runtime services.
 
 See [build, test, and generate](docs/reference/build-test-generate.md) for
 formatting, additional checks, and Git worktree setup.
@@ -75,8 +87,8 @@ The planned application has three components:
 - A **TypeScript extension inside Thunderbird** that connects to the server.
   Thunderbird owns mail, drafts, account credentials, and filters.
 
-Docker Compose will run the server and Thunderbird as separate services with
-persistent volumes. Each deployment serves one person. The backend boundary
+Docker Compose runs the server and Thunderbird as separate services with
+persistent volumes. Each deployment serves one person. The planned backend boundary
 allows other implementations later, with Thunderbird as the initial focus.
 
 The [architecture guide](docs/reference/architecture.md) explains the current

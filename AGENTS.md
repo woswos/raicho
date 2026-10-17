@@ -1,7 +1,8 @@
 # Raicho agent instructions
 
-Raicho is a browser interface for Thunderbird, currently represented by a brand
-kit and a static HTML/CSS/JavaScript showcase.
+Raicho is a browser interface for Thunderbird. Its containerized foundation
+provides Rust/SQLite diagnostics and a TypeScript page alongside Thunderbird.
+The mail connector and browser mail workflows are still planned.
 
 Read the documents below before working in this repository. The `@` lines are
 file references. If your agent does not expand them automatically, open each
