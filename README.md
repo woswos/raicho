@@ -1,23 +1,100 @@
-# Raicho
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/logos/mark-dark.svg">
+    <img src="assets/brand/logos/mark.svg" alt="Raicho bird" width="120">
+  </picture>
+</p>
 
-![Raicho: Your Thunderbird, anywhere. A browser interface for Thunderbird.](assets/brand/social/readme-banner.png)
+<h1 align="center">Raicho</h1>
 
-Raicho is a browser interface for Thunderbird. This repository currently holds
-the brand kit, a static showcase, and containerized development tooling. It does
-not yet contain a mail client, extension, or server.
+<p align="center">Your Thunderbird, anywhere.</p>
 
-The showcase is a visual reference with fictional mail. Do not treat it as
-application behavior, and do not add `server/`, `web/`, `extension/`,
-or `protocol/` until the
+<p align="center">
+  <a href="#getting-started">Getting started</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="#contributing">Contributing</a>
+</p>
+
+Raicho is a browser interface for Thunderbird, designed to let you use your
+mail from other computers while Thunderbird keeps your accounts, messages,
+and filters. The goal is to run Raicho and Thunderbird together on your own
+machine and open your mail in a browser wherever you work.
+
+> **In development.** This repository currently contains the brand kit, a static
+> interface concept, and containerized development tooling. The application
+> server, browser mail client, and Thunderbird extension are not implemented yet.
+
+## Why Raicho
+
+Thunderbird brings your email accounts and local mail together in one place.
+Accessing that setup from another computer currently means using a remote
+desktop or maintaining another mail client.
+
+Raicho aims to give that same Thunderbird instance a browser interface.
+Thunderbird remains responsible for your mail and filters, so your existing
+setup stays at the center of the experience.
+
+## What it looks like
+
+The inbox below is an **interface concept with fictional messages**. Its
+interactions use sample data, and it does not connect to an email account.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/previews/inbox-dark.png">
+  <img src="assets/brand/previews/inbox-light.png" alt="Raicho inbox concept showing folders, fictional messages, and a reading pane">
+</picture>
+
+The [showcase guide](assets/brand/showcase/README.md) explains how to preview
+the concept locally, including light and dark themes and the mobile layout.
+The [brand guide](assets/brand/README.md) covers the logo, colors, and typography.
+
+## Getting started
+
+You can explore the showcase and contribute to the repository tooling today.
+Install Git and Docker with Compose, then clone the repository. From its root,
+build the tooling image and run the development checks:
+
+```bash
+docker compose -f compose.tools.yaml build
+docker compose -f compose.tools.yaml run --rm check make lint format-check typecheck
+```
+
+These commands run repository checks, not a mail application. The image provides
+the language tools, so host language toolchains are not required.
+
+See [build, test, and generate](docs/reference/build-test-generate.md) for
+formatting, additional checks, and Git worktree setup.
+
+## Architecture
+
+The planned application has three components:
+
+- A **TypeScript browser client** for reading and managing mail.
+- A **Rust server** that serves the client and connects it to a mail backend.
+  Embedded SQLite stores Raicho's login, preferences, and connector state.
+- A **TypeScript extension inside Thunderbird** that connects to the server.
+  Thunderbird owns mail, drafts, account credentials, and filters.
+
+Docker Compose will run the server and Thunderbird as separate services with
+persistent volumes. Each deployment serves one person. The backend boundary
+allows other implementations later, with Thunderbird as the initial focus.
+
+The [architecture guide](docs/reference/architecture.md) explains the current
+and planned systems. The
 [foundation plan](docs/planning/active/20261017-thunderbird-first-foundation.md)
-introduces them.
+records the implementation stages and open choices.
 
-The tooling image and Compose commands are documented in
-[build, test, and generate](docs/reference/build-test-generate.md).
+## Contributing
 
-A product change goes through a design pull request before implementation.
-The [delivery workflow](docs/contributing/workflow.md) is the rule for that.
+Anyone can contribute. Start with the
+[contributor guide](docs/contributing/getting-started.md) and
+[delivery workflow](docs/contributing/workflow.md). Substantial changes begin
+with a design pull request before implementation.
 
-- [Architecture](docs/reference/architecture.md) describes what exists and the accepted direction.
-- [Getting started](docs/contributing/getting-started.md) covers contributor and agent setup.
-- [Brand guide](assets/brand/README.md) covers logos, color, and type.
+[AGENTS.md](AGENTS.md) is the entry point for AI-assisted work, and
+[decision records](docs/decisions/README.md) explain the project's choices.
+
+## License
+
+[MIT](LICENSE). The bundled Geologica font files are licensed separately under
+the [SIL Open Font License 1.1](assets/brand/fonts/OFL.txt).
