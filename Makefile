@@ -30,3 +30,11 @@ format format-check format-check-rust format-check-javascript typecheck:
 
 test-tooling:
 	@python3 -B -m unittest discover -s devbin -p 'raicho_tooling_checks.py'
+
+.PHONY: build-app build-server build-web test-app test-server test-web
+build-app: build-server build-web
+test-app: test-server test-web
+build-server build-web test-server test-web: | tooling
+
+build-server build-web test-server test-web:
+	@python3 -B devbin/raicho_application.py $@
