@@ -136,6 +136,12 @@ temporary Cargo output. The browser build uses `tsc`, copies public files and
 the selected identity assets, then runs Node's built-in tests against compiled
 modules. All temporary build output stays outside the source mount.
 
+Tooling defaults to no Rust debug symbols or incremental output, keeping the
+complete workspace build within the temporary filesystem on CI runners. These
+settings affect check containers, not release images. Set
+`CARGO_PROFILE_DEV_DEBUG=2`, `CARGO_PROFILE_TEST_DEBUG=2`, or `CARGO_INCREMENTAL=1`
+before the Compose command when that output is needed for local debugging.
+
 Build runtime images with `docker compose -f compose/compose.yaml build`. This
 compiles release artifacts and installs the independently packaged Thunderbird runtime.
 The image recipes pin base digests and downloaded artifacts. The Thunderbird

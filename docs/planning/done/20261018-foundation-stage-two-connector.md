@@ -346,6 +346,9 @@ implementation slices additionally ran the source and runtime checks above.
   Production and probe defaults now follow the declared product version 0.1.0.
   Historical experiment versions remain identified in their evidence records.
   Diagnostics retain both connector state and product/build provenance.
+- CI resource follow-up: a constrained Docker build reproduced linker failure
+  with its 3 GiB temporary filesystem full. Check containers now default to no
+  Rust debug symbols or incremental output, with explicit local overrides.
 - Current [architecture](../../reference/architecture.md), [runtime](../../reference/runtime.md),
   [build commands](../../reference/build-test-generate.md), and [runtime stack ADR](../../decisions/20261018-foundation-runtime-stack.md).
 - [Thunderbird 153.5.0 ESR release](https://www.thunderbird.net/en-US/thunderbird/153.5.0esr/releasenotes/),
