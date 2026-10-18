@@ -59,9 +59,10 @@ python3 -B devbin/raicho_cut_release.py --write
 
 `--write` dates `CHANGELOG.md` and stores the new version in `Cargo.toml`,
 `Cargo.lock`, and any extension manifests. It leaves the changes uncommitted.
-On a push to `main`, the auto-release workflow does the same thing and then commits, tags,
-and pushes, but only when `RELEASE_TOKEN` is set. Without that token the
-workflow reports that nothing was released.
+On a push to `main`, the auto-release workflow does the same thing and then
+commits, tags, and pushes, but only when `RELEASE_TOKEN` is set. The release commit and tag
+are pushed atomically: if either ref is rejected, neither advances. Without
+that token the workflow reports that nothing was released.
 
 The tag push runs the release workflow, which publishes the matching changelog
 section as GitHub release notes. It does not build or publish images. Pushing
