@@ -66,6 +66,22 @@ default 6080. This administrative interface has no application authentication.
 Keep it local, close it by recreating Thunderbird without the override, and use
 the Raicho page for diagnostics. Remote deployment and browser login are stage 3.
 
+## Network isolation
+
+Raicho and the smoke driver use the project-scoped `application` bridge network.
+Thunderbird uses a separate `thunderbird` bridge network. Both use Docker's
+default NAT isolation and retain internet egress, but Raicho cannot reach
+Thunderbird's container IP or administrative listener. Do not join the two
+services to a shared network or enable direct routing around this boundary.
+Stage 2 must introduce a connector route that preserves this isolation.
+
+The administrative override publishes only on host loopback. Use Docker Engine
+28 or newer, since older versions have a
+[localhost publication limitation](https://docs.docker.com/engine/network/port-publishing/).
+The [disposable checks](../operations/local-runtime.md#disposable-automated-checks)
+verify loopback access, denial from Raicho to the actual Thunderbird IP, and
+listener closure after removing the override.
+
 ## SQLite initialization and migrations
 
 The application opens `raicho.sqlite3`, with its WAL and shared-memory files in

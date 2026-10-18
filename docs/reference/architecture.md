@@ -15,7 +15,9 @@ Docker Compose runs a Rust diagnostics server and an independently built
 Thunderbird container. The server serves the TypeScript diagnostics page and
 initializes SQLite, currently with migration metadata only. Thunderbird owns a
 separate profile volume. Its internal display starts without a viewer, and a
-local override enables browser administration. There is no extension, live mail
+local override enables browser administration. Separate Compose networks prevent
+Raicho from reaching Thunderbird's administrative listener. Both retain provider
+internet access. There is no extension, live mail
 connection to Raicho, or browser login yet.
 
 The [runtime reference](runtime.md) describes endpoints, storage, migrations,
@@ -51,7 +53,8 @@ contract. Thunderbird-specific objects stay in the extension adapter.
 The foundation plan holds the target component diagram, storage rules, backup
 requirements, and stage gates. Mail integration starts with the stage 2 extension
 lifecycle experiment. Runtime diagnostics never infer connector status from a
-profile file or desktop listener.
+profile file or desktop listener. Stage 2 must establish an outbound connector
+route while preserving the administrative network isolation.
 
 ## Status
 

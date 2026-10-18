@@ -14,7 +14,8 @@ The workflow uses a read-only token and does not retain checkout credentials.
 - `application-build`: runtime Compose validation and both application images.
 - `application-test`: Rust and browser builds/tests, plus process supervision tests.
 - `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
-  and application readiness while Thunderbird is stopped, in a disposable project.
+  administrative network isolation and listener closure, and application readiness
+  while Thunderbird is stopped, in a disposable project.
 
 There are no coverage, release, publication, or deployment jobs. Runtime tests
 use no accounts and remove only their job-specific containers and volumes.

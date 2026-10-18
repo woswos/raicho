@@ -59,6 +59,8 @@ jobs:
         run: |
           docker compose -f compose/compose.yaml config --quiet
           docker compose -f compose/compose.yaml -f compose/compose.admin.yaml config --quiet
+          docker compose -f compose/compose.yaml -f compose/compose.test.yaml config --quiet
+          docker compose -f compose/compose.yaml -f compose/compose.test.yaml -f compose/compose.admin.yaml config --quiet
       - name: Build application images
         run: docker compose -f compose/compose.yaml build
 
@@ -107,6 +109,8 @@ jobs:
           docker compose up -d --force-recreate --wait --wait-timeout 120 raicho thunderbird
           docker compose run --rm smoke http
           docker compose run --rm smoke persistence
+      - name: Verify administrative network isolation
+        run: bash devbin/raicho_check_admin_isolation.bash
       - name: Verify independent application readiness
         run: |
           docker compose stop thunderbird

@@ -4,6 +4,8 @@ Use this procedure for diagnostics or disposable development profiles. Mail
 integration and remote authenticated use are not implemented. See the
 [runtime reference](../reference/runtime.md) for configuration and storage.
 Docker Compose 2.24 or newer is needed for the test override's reset syntax.
+Use Docker Engine 28 or newer for the
+[administrative network boundary](../reference/runtime.md#network-isolation).
 
 Compose files live in `compose/`, separate from image recipes in `containers/`.
 Run the commands below from the repository root. Configuration may come from
@@ -64,6 +66,9 @@ These commands create their own project, build the same images as CI, and remove
 only that project's resources. Test overrides publish no application host port.
 Fixture seeding requires both services stopped. Fixtures add a test-only SQLite
 record and Thunderbird preference, not production tables or account data.
+Run them on a Linux Docker host. The administration check temporarily publishes
+an ephemeral loopback port and uses containerized probes in the host network.
+It restores Thunderbird without administration before returning.
 
 ```bash
 (
@@ -79,6 +84,7 @@ record and Thunderbird preference, not production tables or account data.
   docker compose up -d --force-recreate --wait --wait-timeout 120 raicho thunderbird
   docker compose run --rm smoke http
   docker compose run --rm smoke persistence
+  bash devbin/raicho_check_admin_isolation.bash
   docker compose stop thunderbird
   docker compose run --rm smoke http
 )
@@ -86,6 +92,8 @@ record and Thunderbird preference, not production tables or account data.
 
 Expected evidence: HTTP/asset isolation passes, SQLite contents and actual
 Thunderbird preferences survive recreation, and Raicho stays ready with
-Thunderbird stopped. Process supervision tests and migration failure cases run
+Thunderbird stopped. Administration is reachable on host loopback, inaccessible
+from Raicho by container IP, and closed after removing the override.
+Process supervision tests and migration failure cases run
 through the [application test commands](../reference/build-test-generate.md).
 Visual administration verification is separate from these automated checks.

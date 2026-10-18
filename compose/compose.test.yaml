@@ -10,6 +10,7 @@ services:
       context: ..
       dockerfile: containers/tooling/Dockerfile
     profiles: [test]
+    networks: [application]
     working_dir: /workspace
     entrypoint: [python3, -B, devbin/raicho_runtime_checks.py]
     user: '10001:10001'

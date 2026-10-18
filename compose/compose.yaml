@@ -12,6 +12,7 @@ services:
       - /tmp:mode=1777
     volumes:
       - raicho-data:/var/lib/raicho
+    networks: [application]
     ports:
       - '127.0.0.1:${RAICHO_PORT:-8080}:8080'
     cap_drop:
@@ -31,6 +32,7 @@ services:
       - /tmp:mode=1777
     volumes:
       - thunderbird-data:/config
+    networks: [thunderbird]
     shm_size: 1gb
     cap_drop:
       - ALL
@@ -38,6 +40,10 @@ services:
       - no-new-privileges:true
     stop_grace_period: 30s
     restart: unless-stopped
+
+networks:
+  application:
+  thunderbird:
 
 volumes:
   raicho-data:
