@@ -26,14 +26,14 @@ export function createStatusView() {
   function finish(state: string, message: string) {
     summary.dataset['state'] = state;
     summaryText.textContent = message;
-    refreshButton.disabled = false;
+    refreshButton.setAttribute('aria-disabled', 'false');
     refreshButton.textContent = 'Refresh status';
     if (announcement.textContent !== message)
       announcement.textContent = message;
   }
 
   function onLoading() {
-    refreshButton.disabled = true;
+    refreshButton.setAttribute('aria-disabled', 'true');
     refreshButton.textContent = 'Checking…';
   }
 

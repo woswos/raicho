@@ -58,8 +58,8 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-o
   font-weight: 580;
   cursor: pointer;
 }
-#refresh:hover:not(:disabled) { background: var(--subtle); }
-#refresh:disabled { color: var(--muted); cursor: wait; }
+#refresh:hover:not([aria-disabled="true"]) { background: var(--subtle); }
+#refresh[aria-disabled="true"] { color: var(--muted); cursor: wait; }
 
 .status-card { min-width: 0; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
 .card-description { margin-top: 9px; color: var(--muted); font-size: 13px; }
