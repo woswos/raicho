@@ -38,6 +38,10 @@ def check_http():
             }
             assert payload['database']['engine'] == 'sqlite'
             assert payload['database']['version'] == '3.51.3'
+            if not isinstance(payload.get('version'), str) or not payload['version']:
+                raise AssertionError('/api/status: missing product version')
+            if not isinstance(payload.get('commit'), str) or not payload['commit']:
+                raise AssertionError('/api/status: missing build commit')
     headers, body = response('/')
     assert 'text/html' in headers['Content-Type']
     assert b'Raicho' in body

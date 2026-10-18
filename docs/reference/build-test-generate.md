@@ -48,11 +48,11 @@ docker compose -f compose/compose.tools.yaml run --rm check make test-tooling
 | Target | Behavior |
 | --- | --- |
 | `lint` | Repository integrity, guard tests, language linters, and protocol generation drift |
-| `lint-repo` | Agent, documentation, source filename, and skill guards with regression tests |
+| `lint-repo` | Agent, documentation, source filename, skill, and product version guards with regression tests |
 | `format-check` | Check selected source and configuration formatting without edits |
 | `typecheck` | TypeScript compiler with no emitted output |
 | `test-tooling` | Disposable passing/failing Rust, TypeScript, and SQL fixtures exercising the runners |
-| `lint-pr` | PR metadata and design/decision policy guard |
+| `lint-pr` | PR metadata, design/decision policy, and changelog guard |
 | `format` | Rewrite files in the documented formatting scope |
 | `lint-sql` | Check owned SQLite source for syntax and configured lint rules |
 | `format-check-sql` | Compare formatted temporary copies with SQL sources without editing them |
@@ -233,6 +233,15 @@ The lifecycle fixture unit tests use the Thunderbird image because its pinned
 websockify package provides the WebSocket server. The lifecycle runner runs those
 tests before starting the fixture. CI's `compatibility-test` job runs the same
 command. The production ten-minute check is separate from this historical fixture.
+
+## Releases
+
+Product versions are cut from the changelog. The commands and the bump rules
+are in [versioning](versioning.md). A dry run writes nothing:
+
+```bash
+python3 -B devbin/raicho_cut_release.py
+```
 
 Authorization follows [workflow](../contributing/workflow.md). CI behavior is
 documented in [CI](ci-cd.md), and runtime details in [runtime](runtime.md).

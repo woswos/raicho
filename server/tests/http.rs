@@ -33,7 +33,8 @@ async fn diagnostics_report_database_readiness_independently_of_thunderbird() {
                         "status": "unconfigured", "kind": "thunderbird",
                         "generation": null, "last_error": null, "heartbeat_count": 0
                     },
-                    "version": env!("CARGO_PKG_VERSION")
+                    "version": raicho_server::version::version(),
+                    "commit": raicho_server::version::commit()
                 })
             );
         }

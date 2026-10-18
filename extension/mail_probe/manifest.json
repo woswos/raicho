@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Raicho Mail API Probe",
   "description": "Disposable fictional-mail compatibility experiment only.",
-  "version": "0.1.2",
+  "version": "0.1.0",
   "browser_specific_settings": {
     "gecko": {
       "id": "connector@raicho",

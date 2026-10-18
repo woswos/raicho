@@ -13,7 +13,8 @@ WORKDIR /source
 COPY Cargo.toml Cargo.lock ./
 COPY server/ server/
 COPY protocol/ protocol/
-RUN cargo build --release --locked --package raicho-server
+ARG RAICHO_COMMIT=unknown
+RUN RAICHO_COMMIT="$RAICHO_COMMIT" cargo build --release --locked --package raicho-server
 
 FROM debian:bookworm-slim@sha256:7c7b2c966bc9ee8cedfeef67e0e279108992c77681fa595db4a9d65c06ccc587
 RUN rm /etc/apt/sources.list.d/debian.sources && \

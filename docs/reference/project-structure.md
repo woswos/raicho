@@ -5,6 +5,7 @@ image, brand assets, and the shared workflow. Mail integration is still planned.
 
 ```text
 AGENTS.md          Always-loaded instructions and pointers to task-specific docs
+CHANGELOG.md       Product changelog used to cut semantic versions
 .agents/skills/    Canonical shared workflow skills
 .github/           Pull request templates and GitHub Actions workflows
 assets/brand/      Production identity masters, fonts, guides, and prototypes

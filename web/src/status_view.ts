@@ -49,7 +49,10 @@ export function createStatusView() {
     serverStatus.dataset['state'] = 'ready';
     databaseStatus.textContent = 'Ready';
     databaseVersion.textContent = `SQLite ${status.database.version}`;
-    applicationVersion.textContent = status.version;
+    applicationVersion.textContent =
+      status.commit === 'unknown'
+        ? status.version
+        : `${status.version} (${status.commit})`;
     backendStatus.textContent = backend.label;
     backendStatus.dataset['state'] = backend.state;
     backendDescription.textContent = backend.description;

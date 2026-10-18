@@ -54,7 +54,7 @@ External Thunderbird mail directories require their own explicit mounts.
 | --- | --- |
 | `/health/live` | HTTP process responds |
 | `/health/ready` | Initialization succeeded and the application database responds |
-| `/api/status` | Application/database status, versions, and connector diagnostics |
+| `/api/status` | Readiness, product version, build commit, database status, and connector diagnostics |
 | `/` | Static diagnostics page |
 
 Diagnostics use `Cache-Control: no-store`. Unknown API paths and missing assets
@@ -64,6 +64,11 @@ not make Raicho unready. Backend status is `unconfigured`, `disconnected`,
 generation, accepted heartbeat count, and a fixed error code, never a token or
 raw socket error. The browser retains only the status and allowlisted error code
 and explains that mail is not yet available.
+
+`version` is the declared product version. `commit` is `RAICHO_COMMIT` when the
+image was built with that argument, and `unknown` otherwise. The diagnostics
+page shows the version alone when the commit is unknown. See
+[versioning](versioning.md).
 
 `RAICHO_BIND` defaults to `0.0.0.0:8080` inside the container,
 `RAICHO_DATA_DIR` to `/var/lib/raicho`, and `RAICHO_WEB_DIR` to
@@ -101,7 +106,8 @@ Managed policy is read at startup. Thunderbird does not support managed-storage
 change events, so policy changes and terminal authentication failures require
 restarting Thunderbird. The credential wrapper force-recreates it.
 
-The production MV2 extension is version 0.2.0 and uses only the `storage`
+The production MV2 extension shares the [declared product version](versioning.md)
+and uses only the `storage`
 permission. Its persistent background authenticates and answers heartbeat.
 The old lifecycle protocol is separately packaged from `extension/lifecycle_probe/`.
 Its disposable network has no external egress or published ports, and its listener

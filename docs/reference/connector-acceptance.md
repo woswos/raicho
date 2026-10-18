@@ -7,11 +7,18 @@ See the [contract](connector-contract.md), [build commands](build-test-generate.
 
 ## Versions and scope
 
-The 2026-10-18 run uses Linux amd64, Thunderbird 153.5.0 ESR, build
+The pre-integration 2026-10-18 run uses Linux amd64, Thunderbird 153.5.0 ESR, build
 `20261013011825`, source stamp `9d5971ae648b0d17ab57509dcdcb0a06d3fdbe14`,
 and production extension 0.2.0. The image-packaged XPI SHA-256 is
 `a79470ab63de7d277cec9cf9ba655062294f72c7f26a3278ca240678550154b2`.
 The proxy uses the digest-pinned Nginx version in its Dockerfile.
+
+Before publication, Stage 2 integrated the product-versioning work from PR #3.
+Default production and probe manifests now share the declared product version,
+currently 0.1.0. Versions 0.2.0 and 0.1.2 and the XPI checksum above identify the
+earlier local artifacts. The implementation PR's CI repeats unattended acceptance
+against the product-aligned builds. Explicit lifecycle upgrade versions remain
+test overrides.
 
 Every runner uses a uniquely named disposable project, fresh Thunderbird
 profile, and generated fixture credentials. Production checks use control traffic

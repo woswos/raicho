@@ -30,6 +30,7 @@ export interface ApplicationStatus {
   database: { status: 'ready'; engine: 'sqlite'; version: string };
   backend: BackendStatus;
   version: string;
+  commit: string;
 }
 
 export class StatusResponseError extends Error {
@@ -94,5 +95,6 @@ export function parseStatus(value: unknown): ApplicationStatus {
       last_error: backendError,
     },
     version: readVersion(response['version']),
+    commit: readVersion(response['commit']),
   };
 }

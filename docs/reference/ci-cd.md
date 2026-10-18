@@ -10,7 +10,8 @@ The workflow uses a read-only token and does not retain checkout credentials.
 - `lint`: repository integrity, guard regression tests, language linting,
   formatting checks, TypeScript type checking, and runner fixture tests on
   pushes and PRs, including designs. `make lint` also checks protocol generation drift.
-- `pr-guards`: PR context checks on PR events only.
+- `pr-guards`: PR context checks on PR events only, including the changelog
+  entry required for user-visible changes.
 - `application-build`: runtime Compose validation and all runtime images.
 - `application-test`: Rust, browser, and extension builds/tests, plus Thunderbird
   process supervision, generated-policy tests, and separate mail probe source tests.
@@ -23,7 +24,8 @@ The workflow uses a read-only token and does not retain checkout credentials.
 - `compatibility-test`: separate lifecycle installation/idle/restart/upgrade
   fixture and unattended GreenMail draft/restart experiment.
 
-There are no coverage, release, publication, or deployment jobs. Runtime tests
+There are no coverage, image publication, or deployment jobs. Changelog
+releases are separate workflows described below. Runtime tests
 use no accounts and remove only their job-specific containers and volumes.
 
 Language jobs build the same pinned tooling image used locally. Runtime jobs
@@ -64,8 +66,8 @@ observations. See [acceptance evidence](connector-acceptance.md) for scope and l
 ## Repository integrity
 
 `make lint-repo` checks the AGENTS document references, canonical skills
-directory, documentation and source filenames, and skill metadata/example
-paths, then runs the guard tests. The
+directory, documentation and source filenames, skill metadata/example
+paths, and the declared product version, then runs the guard tests. The
 [source naming guard](../coding/linting-and-formatting.md#scope-and-enforcement)
 runs in the existing `lint` job and is not bypassed by skip labels.
 Documentation checks include tracked and untracked non-ignored
@@ -105,6 +107,11 @@ For other PRs, a reference is unnecessary when every changed path is a
 regular file whose name ends in `.md`. A symlink, script, or non-Markdown
 path is not exempt.
 
+User-visible changes also need a changelog entry in the description or in
+`CHANGELOG.md`. The paths and the entry format are in
+[versioning](versioning.md). Without a comparison base the local guard skips
+that check and says so.
+
 ## Labels
 
 | Label | Effect |
@@ -113,6 +120,7 @@ path is not exempt.
 | `skip-design-check` | Bypasses the design-link requirement. Does not bypass planning-only enforcement on a `design` PR. |
 | `skip-build` | Skips the dedicated application image build job. |
 | `skip-test` | Skips application, runtime, connector, and compatibility test jobs. |
+| `no changelog` | Skips the changelog entry check. Does not skip design, build, or test checks. |
 
 The `design` label also skips all five application jobs. Jobs are independent,
 so a skipped build does not leave invalid test dependencies. Test jobs still
@@ -125,9 +133,31 @@ checks, or enforce review approval. These are repository settings to configure
 when publication is authorized. PRs can change their own workflow files, so this
 is a contributor workflow check rather than a tamper-proof governance boundary.
 
-Future coverage and release checks belong to the
+Future coverage and image-publication checks belong to the
 [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md#future-ci-jobs)
 and are not part of the current workflow.
+
+## Releases
+
+[auto-release.yml](../../.github/workflows/auto-release.yml) runs on pushes to
+`main`. When `RELEASE_TOKEN` is set and the changelog has something to
+release, it commits the dated changelog, product version, and updated Cargo
+lockfile, and pushes an annotated `v*` tag. Without that token it records that nothing was
+released. The token must be allowed to push to `main` and to push tags,
+because a push made with the default token does not start another workflow.
+
+[major-release.yml](../../.github/workflows/major-release.yml) is manual. The
+confirmation text is `MAJOR`, supplied as data through an environment variable.
+The job accepts only dispatches targeting `main` and explicitly checks out `main`.
+
+[release.yml](../../.github/workflows/release.yml) runs on `v*` tags and
+publishes that version's changelog section as GitHub release notes. It does
+not build or publish images. Publication concurrency is scoped to each tag, so
+a newer tag cannot cancel another tag's pending publication. Release behavior
+is specified in [versioning](versioning.md).
+
+These workflows do not run on pull requests. A `design` pull request therefore
+does not cut a release. The repository-checks workflow stays read-only.
 
 See [GitHub events](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request)
 and [delivery workflow](../contributing/workflow.md) for context.

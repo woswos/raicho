@@ -15,6 +15,7 @@ function response(backend) {
     database: { status: 'ready', engine: 'sqlite', version: '3.51.3' },
     backend: { kind: 'thunderbird', last_error: null, ...backend },
     version: '0.1.0',
+    commit: 'unknown',
   };
 }
 

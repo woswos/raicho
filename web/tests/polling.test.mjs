@@ -46,6 +46,7 @@ test('keeps one request in flight and schedules only after it finishes', async (
           last_error: null,
         },
         version: '0.1.0',
+        commit: 'unknown',
       }),
   });
   await pending;

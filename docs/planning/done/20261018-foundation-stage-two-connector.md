@@ -2,7 +2,7 @@
 
 Status: approved design [PR #2](https://github.com/woswos/raicho/pull/2) merged on
 2026-10-18. All six implementation slices and local Docker acceptance are complete.
-CI runs the same unattended commands. Hosted CI has not run for the final slice.
+CI runs the same unattended commands. Hosted results are tracked on the implementation PR.
 Mail compatibility limitations remain gates before dependent compose work. See
 [acceptance evidence](../../reference/connector-acceptance.md).
 
@@ -342,6 +342,10 @@ implementation slices additionally ran the source and runtime checks above.
 
 ## Notes
 
+- Publication integration: merged main's product-versioning work from PR #3.
+  Production and probe defaults now follow the declared product version 0.1.0.
+  Historical experiment versions remain identified in their evidence records.
+  Diagnostics retain both connector state and product/build provenance.
 - Current [architecture](../../reference/architecture.md), [runtime](../../reference/runtime.md),
   [build commands](../../reference/build-test-generate.md), and [runtime stack ADR](../../decisions/20261018-foundation-runtime-stack.md).
 - [Thunderbird 153.5.0 ESR release](https://www.thunderbird.net/en-US/thunderbird/153.5.0esr/releasenotes/),
