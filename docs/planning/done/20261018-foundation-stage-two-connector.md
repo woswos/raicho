@@ -349,6 +349,11 @@ implementation slices additionally ran the source and runtime checks above.
 - CI resource follow-up: a constrained Docker build reproduced linker failure
   with its 3 GiB temporary filesystem full. Check containers now default to no
   Rust debug symbols or incremental output, with explicit local overrides.
+- CI network follow-up: the changed-IP fixture precreates its disposable
+  application network with an explicit, Docker-selected subnet. Older Docker
+  engines reject address reservation on automatically configured networks.
+  Compose adopts and removes this project-labeled network. Production network
+  configuration is unchanged.
 - Current [architecture](../../reference/architecture.md), [runtime](../../reference/runtime.md),
   [build commands](../../reference/build-test-generate.md), and [runtime stack ADR](../../decisions/20261018-foundation-runtime-stack.md).
 - [Thunderbird 153.5.0 ESR release](https://www.thunderbird.net/en-US/thunderbird/153.5.0esr/releasenotes/),

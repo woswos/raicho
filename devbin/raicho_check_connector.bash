@@ -43,6 +43,17 @@ privacy() {
         --entrypoint python3 raicho-tools:local -B /checks/raicho_connector_privacy.py "${1}"
 }
 
+prepare_network() {
+    local NETWORK="${RAICHO_PROJECT}_application"
+    local SUBNET
+    local LABELS=(--label "com.docker.compose.project=${RAICHO_PROJECT}"
+        --label com.docker.compose.network=application)
+    docker network create "${LABELS[@]}" "${NETWORK}" >/dev/null
+    SUBNET="$(docker network inspect --format '{{(index .IPAM.Config 0).Subnet}}' "${NETWORK}")"
+    docker network rm "${NETWORK}" >/dev/null
+    docker network create --subnet "${SUBNET}" "${LABELS[@]}" "${NETWORK}" >/dev/null
+}
+
 cleanup() {
     local RESULT="${?}"
     trap - EXIT
@@ -68,6 +79,7 @@ connected() {
 
 docker compose -f compose/compose.tools.yaml build
 "${COMPOSE[@]}" build raicho thunderbird connector_proxy
+prepare_network
 bash devbin/raicho_connector.bash init
 connected
 SERVER="$("${COMPOSE[@]}" ps -q raicho)"
