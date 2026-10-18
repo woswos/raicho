@@ -1,10 +1,11 @@
 """Keep first-party source filenames consistent across language boundaries."""
 
 import re
-import shlex
 import subprocess
 import sys
 from pathlib import Path
+
+from raicho_shell_shebang import shell_header
 
 EXCLUDED = {'.git', 'node_modules', 'target', 'dist', 'vendor', '__pycache__'}
 JAVASCRIPT_SUFFIXES = {'.js', '.mjs', '.cjs', '.jsx'}
@@ -51,20 +52,6 @@ def valid_filename(path):
             return True
         return qualifier == 'd' and path.suffix in {'.ts', '.mts', '.cts'}
     return qualifier == 'module' and path.suffix == '.css'
-
-
-def shell_header(line):
-    if not line.startswith(b'#!'):
-        return False
-    try:
-        arguments = shlex.split(line[2:].decode())
-    except (UnicodeError, ValueError):
-        return False
-    if arguments and Path(arguments[0]).name == 'env':
-        arguments = arguments[1:]
-        if arguments and arguments[0] in {'-S', '--split-string'}:
-            arguments = arguments[1:]
-    return bool(arguments) and Path(arguments[0]).name in {'sh', 'bash'}
 
 
 def is_source(root, path):
