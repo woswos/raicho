@@ -64,8 +64,7 @@ jobs:
           fi
           git commit -m "chore(release): ${{ steps.cut.outputs.tag }}"
           git tag -a "${{ steps.cut.outputs.tag }}" -m "${{ steps.cut.outputs.tag }}"
-          git push origin HEAD:main
-          git push origin "${{ steps.cut.outputs.tag }}"
+          git push --atomic origin HEAD:main "${{ steps.cut.outputs.tag }}"
 
       - name: Say what happened
         run: |
