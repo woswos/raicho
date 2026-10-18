@@ -1,8 +1,8 @@
 # Foundation runtime
 
-Raicho currently provides diagnostics and persistent application initialization.
-The Thunderbird container runs independently with a packaged lifecycle extension.
-No production connector connects it to Raicho yet.
+Raicho provides diagnostics, persistent application initialization, and an
+authenticated control connection to the packaged Thunderbird extension.
+The connector carries no mail operations yet.
 
 See [architecture](architecture.md) for ownership,
 [runtime decision](../decisions/20261018-foundation-runtime-stack.md) for choices,
@@ -24,7 +24,12 @@ processes and the internal display. A desktop HTTP response alone is insufficien
 
 Base images use digests, support packages use the 20261018 Debian snapshot, and
 downloaded application assets use checksums. Installed OS packages are recorded
-in `/opt/raicho/packages.tsv` inside each image. Runtime support is Linux amd64.
+in `/opt/raicho/packages.tsv` inside the Raicho and Thunderbird images. Runtime
+support is Linux amd64.
+
+`containers/connector_proxy/Dockerfile` pins Nginx 1.30.6 Alpine by digest.
+The proxy runs as UID/GID 10001 with a read-only root, bounded temporary storage,
+no data or secret mounts, and no published port.
 
 | Service | Named volume | Container path |
 | --- | --- | --- |
@@ -49,17 +54,25 @@ External Thunderbird mail directories require their own explicit mounts.
 | --- | --- |
 | `/health/live` | HTTP process responds |
 | `/health/ready` | Initialization succeeded and the application database responds |
-| `/api/status` | Application/database status, versions, and unconfigured backend |
+| `/api/status` | Application/database status, versions, and connector diagnostics |
 | `/` | Static diagnostics page |
 
 Diagnostics use `Cache-Control: no-store`. Unknown API paths and missing assets
-return 404. The status response does not inspect a Thunderbird profile or claim
-connector readiness. Stopping Thunderbird does not make Raicho unready.
+return 404, including `/connector/v1` on this listener. Stopping Thunderbird does
+not make Raicho unready. Backend status is `unconfigured`, `disconnected`,
+`connected`, `revoked`, or `unavailable`. Diagnostics include the current session
+generation, accepted heartbeat count, and a fixed error code, never a token or
+raw socket error. The browser retains only the status and allowlisted error code
+and explains that mail is not yet available.
 
 `RAICHO_BIND` defaults to `0.0.0.0:8080` inside the container,
 `RAICHO_DATA_DIR` to `/var/lib/raicho`, and `RAICHO_WEB_DIR` to
 `/usr/share/raicho/web`. Compose publishes Raicho on host loopback using
 `RAICHO_PORT`, default 8080. The browser page is diagnostics only and has no login.
+
+`RAICHO_CONNECTOR_BIND` defaults to `0.0.0.0:8082` and serves only the internal
+WebSocket route `/connector/v1`. Compose never publishes it. Authentication and
+transport bounds are defined in the [connector contract](connector-contract.md).
 
 `RAICHO_ADMIN_ENABLED=true` starts remote desktop support. Only
 `compose/compose.admin.yaml` enables it and publishes loopback port `RAICHO_ADMIN_PORT`,
@@ -76,20 +89,24 @@ generates `/tmp/raicho-runtime/policies.json` atomically with mode 0600 under a
 The policy preserves `DisableAppUpdate`, uses `force_installed`, and disables
 extension background updates. Image updates own the XPI version.
 
-Without connector configuration the extension is inactive. The lifecycle fixture
+Without connector configuration the extension is inactive. The credentials override
 sets `RAICHO_CONNECTOR_ENDPOINT` and `RAICHO_CONNECTOR_TOKEN_FILE` together.
 The runtime reads a 64-character lowercase hexadecimal token from that file and
 provides endpoint/token through managed storage. Partial or invalid configuration
 fails before Thunderbird starts. Neither value is baked into an image or XPI.
 The [credential procedure](../operations/connector-credentials.md) provisions
 the production token and SQLite digest. The credentials override mounts the
-file into Thunderbird without activating an endpoint. Production protocol
-integration remains a later slice.
+file into Thunderbird and selects `ws://connector-proxy:8081/connector/v1`.
+Managed policy is read at startup. Thunderbird does not support managed-storage
+change events, so policy changes and terminal authentication failures require
+restarting Thunderbird. The credential wrapper force-recreates it.
 
-The MV2 persistent background currently emits only lifecycle metadata to the
-test listener. Its only permission is `storage`. The disposable test network has
-no external egress or published ports. The listener uses the existing pinned
-websockify installation and is never part of production Compose or the XPI.
+The production MV2 extension is version 0.2.0 and uses only the `storage`
+permission. Its persistent background authenticates and answers heartbeat.
+The old lifecycle protocol is separately packaged from `extension/lifecycle_probe/`.
+Its disposable network has no external egress or published ports, and its listener
+uses the pinned websockify installation. Neither probe code nor listener enters
+the production XPI.
 See [extension checks](build-test-generate.md#extension-lifecycle) for the command
 and [lifecycle evidence](extension-lifecycle.md) for measured behavior.
 
@@ -100,7 +117,10 @@ Thunderbird uses a separate `thunderbird` bridge network. Both use Docker's
 default NAT isolation and retain internet egress, but Raicho cannot reach
 Thunderbird's container IP or administrative listener. Do not join the two
 services to a shared network or enable direct routing around this boundary.
-Stage 2 must introduce a connector route that preserves this isolation.
+Only `connector_proxy` joins both networks. It accepts an exact WebSocket upgrade
+at `/connector/v1` and forwards to `raicho:8082`. Alternate paths, queries, methods,
+and arbitrary destinations are rejected. Docker DNS is re-resolved so a changed
+Raicho IP requires no proxy recreation. HTTP access logs are disabled.
 
 The administrative override publishes only on host loopback. Use Docker Engine
 28 or newer, since older versions have a

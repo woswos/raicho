@@ -7,7 +7,11 @@ and the [runtime reference](runtime.md#extension-installation) owns configuratio
 
 ## Scope
 
-The packaged MV2 extension has a persistent background page and only the
+This historical experiment now lives in `extension/lifecycle_probe/`, packaged
+separately from the production connector. Its results below describe the original
+fixture versions. The production XPI uses the [control contract](connector-contract.md).
+
+The fixture MV2 extension has a persistent background page and only the
 `storage` permission. Its temporary lifecycle messages carry version, session,
 and sequence metadata. They are a fixture protocol, not the production connector
 contract. No mail commands, provider credentials, mail accounts, or mail data
@@ -52,7 +56,8 @@ formatting, repository guards, and runtime Compose configuration were checked.
 
 ## Remaining acceptance
 
-Production protocol negotiation, connector credentials in SQLite, proxy routing,
-network-failure recovery, and draft/send behavior belong to later slices.
-The final connector acceptance also requires a ten-minute idle run and CI
-integration. This document must retain that distinction when results are added.
+Subsequent slices have implemented credentials, production protocol, proxy routing, and
+network recovery separately. Draft/send findings are in the
+[mail compatibility matrix](mail-api-compatibility.md). The final connector
+acceptance still requires a ten-minute idle run and CI integration. This document
+records the lifecycle fixture, not that final acceptance.

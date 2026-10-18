@@ -9,6 +9,7 @@ use serde::Serialize;
 use tower_http::services::ServeDir;
 use tower_http::set_header::SetResponseHeaderLayer;
 
+use crate::connector::{BackendStatus, Connector};
 use crate::persistence::Database;
 
 #[derive(Serialize)]
@@ -23,10 +24,10 @@ struct DatabaseStatus {
     version: String,
 }
 
-#[derive(Serialize)]
-struct BackendStatus {
-    status: &'static str,
-    kind: &'static str,
+#[derive(Clone)]
+struct ApplicationState {
+    database: Arc<Database>,
+    connector: Arc<Connector>,
 }
 
 #[derive(Serialize)]
@@ -38,6 +39,15 @@ struct Status {
 }
 
 pub fn router(database: Arc<Database>, web_dir: &Path) -> Router {
+    let connector = Connector::new(Arc::clone(&database));
+    router_with_connector(database, web_dir, connector)
+}
+
+pub fn router_with_connector(
+    database: Arc<Database>,
+    web_dir: &Path,
+    connector: Arc<Connector>,
+) -> Router {
     let health = Router::new()
         .route("/live", get(live))
         .route("/ready", get(ready))
@@ -48,8 +58,12 @@ pub fn router(database: Arc<Database>, web_dir: &Path) -> Router {
     Router::new()
         .nest("/health", health)
         .nest("/api", api)
+        .nest("/connector", Router::new().fallback(not_found))
         .fallback_service(ServeDir::new(web_dir))
-        .with_state(database)
+        .with_state(ApplicationState {
+            database,
+            connector,
+        })
         .layer(SetResponseHeaderLayer::overriding(
             CACHE_CONTROL,
             HeaderValue::from_static("no-store"),
@@ -68,13 +82,14 @@ async fn readiness(database: &Database) -> (StatusCode, &'static str) {
     }
 }
 
-async fn ready(State(database): State<Arc<Database>>) -> (StatusCode, Json<Health>) {
-    let (code, status) = readiness(&database).await;
+async fn ready(State(state): State<ApplicationState>) -> (StatusCode, Json<Health>) {
+    let (code, status) = readiness(&state.database).await;
     (code, Json(Health { status }))
 }
 
-async fn status(State(database): State<Arc<Database>>) -> (StatusCode, Json<Status>) {
-    let (code, status) = readiness(&database).await;
+async fn status(State(state): State<ApplicationState>) -> (StatusCode, Json<Status>) {
+    let database = &state.database;
+    let (code, status) = readiness(database).await;
     (
         code,
         Json(Status {
@@ -84,10 +99,7 @@ async fn status(State(database): State<Arc<Database>>) -> (StatusCode, Json<Stat
                 engine: "sqlite",
                 version: database.version().into(),
             },
-            backend: BackendStatus {
-                status: "unconfigured",
-                kind: "thunderbird",
-            },
+            backend: state.connector.snapshot().await,
             version: env!("CARGO_PKG_VERSION"),
         }),
     )

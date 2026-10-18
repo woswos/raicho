@@ -1,0 +1,4 @@
+**
+!containers/
+!containers/connector_proxy/
+!containers/connector_proxy/nginx.conf

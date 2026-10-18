@@ -29,7 +29,10 @@ async fn diagnostics_report_database_readiness_independently_of_thunderbird() {
                 json!({
                     "status": "ready",
                     "database": {"status": "ready", "engine": "sqlite", "version": "3.51.3"},
-                    "backend": {"status": "unconfigured", "kind": "thunderbird"},
+                    "backend": {
+                        "status": "unconfigured", "kind": "thunderbird",
+                        "generation": null, "last_error": null, "heartbeat_count": 0
+                    },
                     "version": env!("CARGO_PKG_VERSION")
                 })
             );
@@ -70,6 +73,12 @@ async fn static_files_are_served_without_api_or_path_traversal_fallbacks() {
     fs::write(web.join("api/missing"), "must not shadow API routes").unwrap();
     fs::create_dir(web.join("health")).unwrap();
     fs::write(web.join("health/missing"), "must not shadow health routes").unwrap();
+    fs::create_dir(web.join("connector")).unwrap();
+    fs::write(
+        web.join("connector/v1"),
+        "must not expose the internal connector",
+    )
+    .unwrap();
     fs::write(directory.path().join("private.txt"), "not public").unwrap();
     let database = Arc::new(Database::open(directory.path()).await.unwrap());
     let application = router(Arc::clone(&database), &web);
@@ -84,6 +93,7 @@ async fn static_files_are_served_without_api_or_path_traversal_fallbacks() {
     for path in [
         "/api/missing",
         "/health/missing",
+        "/connector/v1",
         "/missing.js",
         "/%2e%2e/private.txt",
     ] {

@@ -4,6 +4,8 @@ services:
     restart: 'no'
   thunderbird:
     restart: 'no'
+  connector_proxy:
+    restart: 'no'
   smoke:
     image: raicho-tools:local
     build:

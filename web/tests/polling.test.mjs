@@ -40,7 +40,11 @@ test('keeps one request in flight and schedules only after it finishes', async (
       Promise.resolve({
         status: 'ready',
         database: { status: 'ready', engine: 'sqlite', version: '3.51.3' },
-        backend: { status: 'unconfigured', kind: 'thunderbird' },
+        backend: {
+          status: 'unconfigured',
+          kind: 'thunderbird',
+          last_error: null,
+        },
         version: '0.1.0',
       }),
   });

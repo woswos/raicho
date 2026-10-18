@@ -31,7 +31,7 @@ Thunderbird connector. No viewer is needed to start Thunderbird.
 
 Use the [credential procedure](connector-credentials.md) to provision persistent
 connector configuration. Its commands manage the matching Compose override and
-restart sequence. The production transport remains a separate implementation slice.
+restart sequence, then verify an authenticated heartbeat.
 
 For explicit administration:
 
@@ -46,6 +46,11 @@ profiles and no provider credentials. To disable the administrative listener:
 ```bash
 docker compose -f compose/compose.yaml up -d --force-recreate thunderbird
 ```
+
+For an enrolled deployment, include `compose/compose.credentials.yaml` in both
+administration commands and set `RAICHO_CREDENTIAL_DIRECTORY` to that deployment's
+absolute `credentials/` directory. Omitting the credentials override when
+recreating Thunderbird disables its connector configuration.
 
 Inspect failures with `docker compose -f compose/compose.yaml logs` and
 `docker compose -f compose/compose.yaml ps`. To stop while retaining both volumes:

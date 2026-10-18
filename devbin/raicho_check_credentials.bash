@@ -73,7 +73,7 @@ expect_failure() {
 }
 
 docker compose -f compose/compose.tools.yaml build
-"${COMPOSE[@]}" build raicho thunderbird
+"${COMPOSE[@]}" build raicho connector_proxy thunderbird
 operate init
 fixture database --revision 1
 "${COMPOSE[@]}" logs --no-color raicho thunderbird | fixture logs

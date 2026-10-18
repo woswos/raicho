@@ -11,7 +11,7 @@ The workflow uses a read-only token and does not retain checkout credentials.
   formatting checks, TypeScript type checking, and runner fixture tests on
   pushes and PRs, including designs. `make lint` also checks protocol generation drift.
 - `pr-guards`: PR context checks on PR events only.
-- `application-build`: runtime Compose validation and both application images.
+- `application-build`: runtime Compose validation and all runtime images.
 - `application-test`: Rust, browser, and extension builds/tests, plus Thunderbird
   process supervision and generated-policy tests.
 - `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
@@ -39,13 +39,16 @@ project configuration fails rather than silently skipping application checks.
 Automated checks do not claim visual verification of the administrative desktop.
 Extension packaging regressions also run in `lint` through `lint-repo`.
 The Rust workspace and extension application tests exercise the same
-[connector contract fixtures](connector-contract.md). No live connector
-authentication or heartbeat timing is implied by these source tests.
+[connector contract fixtures](connector-contract.md). Source tests also exercise
+authentication, session replacement, heartbeat timeouts, extension retries, and
+diagnostics. The separate lifecycle artifact is included in extension unit tests.
 Credential persistence and CLI tests run in `application-test`, while secret-file
 and wrapper regressions run in `lint-repo`. The disposable
 [credential runner](build-test-generate.md#credential-persistence) currently runs
 locally. Adding the complete connector acceptance suite to CI remains the final
 slice of the connector plan.
+The [production connector runner](build-test-generate.md#production-connector)
+also runs locally until that final slice wires it into CI.
 The separate [extension lifecycle runner](build-test-generate.md#extension-lifecycle)
 currently runs locally. Full connector lifecycle coverage in CI is planned for
 the connector plan's integration slice.

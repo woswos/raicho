@@ -38,6 +38,7 @@ for VERSION in 0.1.0 0.1.1; do
         IMAGE="${UPGRADE_IMAGE}"
     fi
     docker build --platform linux/amd64 -f containers/thunderbird/Dockerfile \
+        --build-arg RAICHO_EXTENSION_SOURCE=extension/lifecycle_probe \
         --build-arg "RAICHO_EXTENSION_VERSION=${VERSION}" -t "${IMAGE}" .
 done
 

@@ -3,13 +3,12 @@
 Use these commands to enroll, rotate, verify, or revoke the local Thunderbird
 connector credential. They operate on the selected deployment's SQLite database
 while both core services are stopped. See the [runtime reference](../reference/runtime.md)
-for storage and [connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
-for the remaining transport work.
+for storage and [connector contract](../reference/connector-contract.md) for transport.
 
 ## Setup and commands
 
 Run from the repository root on a Linux Docker host with Bash and `flock`.
-Build both runtime images and the tooling image before provisioning:
+Build all runtime images and the tooling image before provisioning:
 
 ```bash
 docker compose -f compose/compose.yaml build
@@ -34,7 +33,8 @@ bash devbin/raicho_connector.bash reactivate
 ```
 
 Every command stops Raicho and Thunderbird. Successful `init`, `rotate`,
-`reactivate`, and `verify` recreate both services and wait for their health checks.
+`reactivate`, and `verify` recreate both services and the connector proxy, wait for
+their health checks, and require an authenticated heartbeat within 90 seconds.
 `status` and
 `revoke` leave them stopped. Failures also leave services stopped unless service
 recreation itself has already begun. Fix the reported failure before restarting.
@@ -42,11 +42,11 @@ The helper holds a deployment operation lock for the entire sequence. SQLite's
 instance lock independently rejects provisioning while another process owns it.
 
 `compose/compose.credentials.yaml` adds offline provisioning services and mounts
-the secret read-only into Thunderbird. It does not configure the extension's
-endpoint yet. Verification checks the SQLite digest, file permissions, UID 10001
-access, and service health. It does not claim a live authenticated connector.
-The diagnostics page continues to report an unconfigured backend until the
-production transport is integrated.
+the secret read-only into Thunderbird. It configures the fixed internal proxy
+endpoint. Verification checks the SQLite digest, file permissions, UID 10001
+access, service health, and the live authenticated connection. The diagnostics
+page should report `Connected`. This confirms the control connection, not mail
+availability. A failed connection check retains recovery files.
 
 ## Secret ownership
 
@@ -79,7 +79,8 @@ rename, and removal is synchronized to disk. Only one digest is valid in SQLite.
 Rotation prepares `connector.pending`, commits its digest in SQLite, renames
 the old token to `connector.previous`, and publishes the pending token. It then
 verifies the new file against SQLite and force-recreates services so a file bind
-mount cannot retain an old inode. Only after successful checks is the previous
+mount cannot retain an old inode. Thunderbird reloads managed policy only at
+startup. Only after a verified authenticated heartbeat is the previous
 file removed. Retaining that file supports diagnosis and recovery, but does not
 keep its credential valid after the database commit.
 

@@ -9,7 +9,9 @@ rust-version = "1.99.1"
 license = "MIT"
 
 [workspace.dependencies]
-axum = { version = "=0.8.9", default-features = false, features = ["http1", "json", "tokio"] }
+axum = { version = "=0.8.9", default-features = false, features = ["http1", "json", "tokio", "ws"] }
+futures-util = { version = "=0.3.34", features = ["sink"] }
+getrandom = "=0.4.3"
 jsonschema = { version = "=0.59.0", default-features = false }
 libc = "=0.2.191"
 libsqlite3-sys = { version = "=0.37.0", default-features = false }
@@ -24,6 +26,7 @@ subtle = "=2.6.1"
 syn = { version = "=3.0.9", features = ["full", "visit-mut"] }
 tempfile = "=3.27.0"
 tokio = { version = "=1.53.3", features = ["macros", "rt-multi-thread", "signal", "net", "time", "sync"] }
+tokio-tungstenite = { version = "=0.29.0", default-features = false, features = ["connect", "handshake"] }
 tower = { version = "=0.5.3", features = ["util"] }
 tower-http = { version = "=0.7.1", features = ["fs", "set-header"] }
 typify = { version = "=0.8.0", default-features = false }

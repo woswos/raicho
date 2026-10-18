@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "Raicho Connector",
-  "description": "Raicho Thunderbird connector lifecycle diagnostics.",
-  "version": "0.1.0",
+  "description": "Raicho authenticated Thunderbird connector.",
+  "version": "0.2.0",
   "browser_specific_settings": {
     "gecko": {
       "id": "connector@raicho",

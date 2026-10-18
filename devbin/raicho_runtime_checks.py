@@ -32,6 +32,9 @@ def check_http():
             assert payload['backend'] == {
                 'status': 'unconfigured',
                 'kind': 'thunderbird',
+                'generation': None,
+                'last_error': None,
+                'heartbeat_count': 0,
             }
             assert payload['database']['engine'] == 'sqlite'
             assert payload['database']['version'] == '3.51.3'
@@ -42,6 +45,7 @@ def check_http():
         response(asset)
     response('/missing-asset.js', 404)
     response('/api/missing', 404)
+    response('/connector/v1', 404)
     response('/../Cargo.toml', 404)
     response('/.git/config', 404)
     print('HTTP diagnostics, cache headers, assets, and route isolation passed')

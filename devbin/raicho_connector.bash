@@ -17,8 +17,8 @@ if [[ ! ${PROJECT} =~ ^[a-z0-9][a-z0-9_-]*$ || ${STATE_DIRECTORY} != /* || -L ${
     echo 'FAIL: use a valid Compose project and an absolute, non-symlink state directory' >&2
     exit 1
 fi
-if [[ ${RAICHO_COMPOSE_TEST:-0} != 0 && ${PROJECT} != raicho-credentials-* ]]; then
-    echo 'FAIL: the test override requires a disposable raicho-credentials- project' >&2
+if [[ ${RAICHO_COMPOSE_TEST:-0} != 0 && ${PROJECT} != raicho-credentials-* && ${PROJECT} != raicho-connector-* ]]; then
+    echo 'FAIL: the test override requires a disposable raicho-credentials- or raicho-connector- project' >&2
     exit 1
 fi
 umask 077
@@ -108,7 +108,8 @@ case "${OPERATION}" in
         ;;
 esac
 database verify --token-file /credentials/connector.token
-"${COMPOSE[@]}" up -d --no-deps --force-recreate --wait --wait-timeout 120 raicho thunderbird
+"${COMPOSE[@]}" up -d --no-deps --force-recreate --wait --wait-timeout 120 raicho connector_proxy thunderbird
 "${COMPOSE[@]}" exec -T thunderbird test -r /run/secrets/raicho_connector_token
+"${COMPOSE[@]}" run --rm --no-deps -T credential_check
 files finish >/dev/null
-echo 'Credential digest and Thunderbird file access verified. Services recreated.'
+echo 'Credential digest, Thunderbird connection, and heartbeat verified. Services recreated.'

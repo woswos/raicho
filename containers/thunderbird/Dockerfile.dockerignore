@@ -8,6 +8,8 @@
 !extension/manifest.json
 !extension/package.json
 !extension/tsconfig.json
+!extension/lifecycle_probe/
+!extension/lifecycle_probe/**
 !devbin/
 !devbin/raicho_build_extension.py
 !containers/

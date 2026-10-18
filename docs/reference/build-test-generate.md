@@ -175,8 +175,23 @@ The source checks cover credential state transitions and host-file recovery.
 The host runner owns a disposable Docker deployment and checks the actual
 provisioning, rotation, revocation, restart, file permissions, and mount boundary.
 The [credential runbook](../operations/connector-credentials.md) documents the
-operator commands and recovery states. Production connector authentication is
-tested with the later transport integration.
+operator commands and recovery states. Successful provisioning now requires a
+live authenticated heartbeat before removing the previous token file.
+
+## Production connector
+
+```bash
+docker compose -f compose/compose.tools.yaml run --rm check make test-server test-extension test-web
+bash devbin/raicho_check_connector.bash
+```
+
+The host runner owns a fresh `raicho-connector-...` deployment and credentials.
+It tests authenticated heartbeat, restart and recreation of all three services,
+network interruption, changed server IP without proxy recreation, rejected tokens,
+proxy route restrictions, the separate browser listener, and administrative
+isolation by actual container IP. It checks logs, database contents, and mount
+boundaries before removing its resources. It uses the production XPI and no
+provider accounts. Full CI acceptance remains the final connector slice.
 
 ## Extension lifecycle
 
@@ -190,6 +205,8 @@ docker compose -f compose/compose.tools.yaml run --rm check \
 bash devbin/raicho_check_extension_lifecycle.bash
 ```
 
+The separate artifact comes from `extension/lifecycle_probe/`, never the production
+XPI. `test-extension` runs both production and lifecycle unit suites.
 The host Bash runner orchestrates Docker only. It creates a unique
 `raicho-lifecycle-...` project, builds extension versions 0.1.0 and 0.1.1 into
 separate temporary Thunderbird images, and uses an internal network and fresh

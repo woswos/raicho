@@ -19,8 +19,10 @@ local override enables browser administration. Separate Compose networks prevent
 Raicho from reaching Thunderbird's administrative listener. Both retain provider
 internet access. The image now includes a TypeScript extension with a persistent
 background page and generated enterprise policy. It is inactive without managed
-configuration. A separate disposable fixture exercises its lifecycle over
-WebSocket. There is no production connection to Raicho or browser login yet.
+configuration. With provisioned credentials it connects outbound through a fixed
+Nginx proxy to a separate Rust WebSocket listener. Only the proxy joins both
+networks. The browser displays authenticated connection status.
+Browser login and mail operations remain planned.
 
 A separate test-only extension and disposable GreenMail deployment exercise
 mail API compatibility. A fixed SMTP/IMAP fault proxy and test controller run
@@ -30,9 +32,9 @@ no mail permissions or probe commands. See the
 and the native consent and draft-editing gates.
 
 The [connector contract](connector-contract.md) now provides a shared control
-schema, generated Rust/TypeScript bindings, and bounded decoders. These modules
-are tested independently. The server listener and production extension transport
-have not adopted them yet.
+schema, generated Rust/TypeScript bindings, and bounded decoders used by the
+server and production extension. It carries authentication and heartbeat only.
+Separate lifecycle and mail probes remain test artifacts.
 
 Offline credential commands acquire the database's exclusive instance lock.
 A separate Docker helper owns host secret generation and file rotation, with
@@ -60,7 +62,10 @@ flowchart LR
     Display --> Thunderbird[Thunderbird]
     Thunderbird --> Profile[(Thunderbird profile)]
     Thunderbird --> Extension[Packaged extension]
-    Extension -.->|Disposable lifecycle deployment only| Probe[Test listener]
+    Extension -->|WebSocket| Proxy[Fixed internal connector proxy]
+    Proxy --> Listener[Rust connector listener]
+    Listener --> State
+    Listener -->|Connection diagnostics| Server
 ```
 
 ## Target architecture
@@ -74,13 +79,13 @@ Rust process and store application state in the Raicho volume.
 Thunderbird owns messages, accounts, provider credentials, drafts, and filters.
 Raicho keeps login, preferences, and connector credentials in SQLite, and does
 not persist mail or run a second filter engine. The browser talks to a Raicho mail
-contract. Thunderbird-specific objects stay in the extension adapter.
+contract. Thunderbird-specific objects stay in the extension adapter. The current
+proxy and control transport provide the connection boundary for those future operations.
 
 The foundation plan holds the target component diagram, storage rules, backup
-requirements, and stage gates. Mail integration starts with the stage 2 extension
-lifecycle experiment. Runtime diagnostics never infer connector status from a
-profile file or desktop listener. Stage 2 must establish an outbound connector
-route while preserving the administrative network isolation.
+requirements, and stage gates. The stage 2 experiments record mail API limitations.
+Runtime diagnostics derive connector status from authenticated sessions and
+heartbeats, never from a profile file or desktop listener.
 
 ## Status
 
@@ -93,9 +98,9 @@ built Thunderbird image. The
 selects MV2 packaging, managed configuration, a fixed internal proxy, and a
 versioned authenticated protocol. The lifecycle fixture is implemented first.
 The mail compatibility fixture and control contract are implemented separately.
-Credential persistence and offline provisioning are implemented. Production
-protocol integration and the proxy remain later slices. The static showcase
-remains a design reference.
+Credential persistence, offline provisioning, production control transport, proxy,
+and connection diagnostics are implemented. The final connector CI acceptance
+slice remains open. The static showcase remains a design reference.
 
 Current tooling commands and planned application commands are distinguished in
 [build, test, and generate](build-test-generate.md).

@@ -1,9 +1,8 @@
 # Connector contract
 
-The first connector contract defines connection control only. Its schema,
-generated Rust/TypeScript bindings, and boundary decoders exist. The production
-server and extension do not use them yet. Socket authentication, registration,
-timers, and proxy integration remain later slices of the
+The first connector contract defines connection control only. The production
+Rust listener and TypeScript extension use its generated bindings and boundary
+decoders for authentication and heartbeat. Full CI acceptance remains in the
 [connector plan](../planning/active/20261018-foundation-stage-two-connector.md).
 
 See [architecture](architecture.md) for component boundaries and
@@ -15,15 +14,15 @@ Offline [credential provisioning](../operations/connector-credentials.md) now
 persists one active digest or a revoked record. The Rust `Credential::parse`
 boundary hashes the canonical 64-byte lowercase hexadecimal text with SHA-256,
 and `CredentialStore::verify` compares digests in constant time while rejecting
-revoked records. The future transport should reuse these boundaries after
-decoding an authentication frame. It must not enroll a token from that frame.
+revoked records. The transport reuses these boundaries after decoding an
+authentication frame. An incoming frame never enrolls a token.
 
 ## Sources and generated outputs
 
 - [Schema](../../protocol/schema/connector.schema.json): Draft 7, closed tagged
   objects and local definitions only. The generation guard restricts its vocabulary.
 - [Limits](../../protocol/limits.json): shared constants, including frame sizes,
-  authentication deadline, heartbeat timing, nesting, and future connection budgets.
+  authentication deadline, heartbeat timing, nesting, and connection budgets.
 - [Shared fixtures](../../protocol/fixtures/): the same accepted/rejected frames,
   phases, expected generations, and error codes run in both languages.
 - [Rust crate](../../protocol/rust/src/lib.rs): generated types and limits,
@@ -59,8 +58,9 @@ are defined in the schema, rather than accepted as arbitrary strings.
 
 ## Integration semantics
 
-These requirements describe the later transport implementation. Pure decoding
-does not establish that they are running in the current application.
+The internal listener accepts only the exact connector path, a single canonical
+`moz-extension://<UUID>` Origin, and no WebSocket subprotocol. Origin is an
+additional boundary check, not a substitute for the credential.
 
 ```mermaid
 sequenceDiagram
@@ -77,19 +77,33 @@ The server accepts one authentication frame within the shared deadline. It verif
 the credential digest before issuing a fresh random 128-bit generation and
 registering the connection. The generation belongs to this connection, is never a
 durable backend identity, and changes on replacement. Fencing and stale cleanup
-must compare it. Startup begins disconnected.
+compare it. Startup with an active credential begins disconnected. An authenticated
+replacement fences the prior session, whose cleanup cannot clear the new state.
 
 The server initiates heartbeat after welcome, with at most one outstanding ping.
-Only its matching pong satisfies that ping. Use the shared interval and timeout,
-reconnect before sequence overflow, and never wrap a sequence in the same
-generation. The decoder checks the generation and sequence range. The transport
-must check the outstanding sequence and elapsed time.
+Only its matching pong satisfies that ping. It uses the shared 15-second interval
+and 45-second timeout and reconnects before sequence overflow. The decoder checks
+generation and range, while the transport checks the outstanding sequence and
+elapsed time.
 
 An error is terminal for the connection. Authentication or protocol-version
-rejection stops reconnect attempts until configuration changes or the extension
-restarts. Transient disconnects use the plan's bounded backoff. No pending command
-or mail operation is replayed. The fixed connection/queue budgets in `limits.json`
-must be enforced by the transport before claiming them as runtime protections.
+rejection stops reconnect attempts until the extension restarts. Session replacement
+also stops retries to avoid competing reconnect loops. Transient disconnects use
+exponential backoff with jitter capped at 30 seconds, reset after a valid heartbeat.
+Managed policy changes require Thunderbird restart. No command or mail operation
+is replayed.
+
+The internal listener caps accepted TCP connections at nine. The initial HTTP
+headers must fit 8 KiB and arrive within five seconds, and non-upgrade responses
+close their connection. The server allows four pending authentications and one
+active session, with five
+total upgraded sockets including sessions being closed. Authentication has a
+five-second deadline and a 4 KiB decoded-frame limit. The WebSocket allocation
+limit is 64 KiB even before authentication, and control frames have the same
+64 KiB limit. Writes are bounded to five seconds. Neither endpoint maintains an
+application send queue, which is stricter than the shared eight-envelope ceiling.
+The extension retries if its browser socket already has buffered data. Server
+shutdown closes sessions before releasing database ownership.
 
 ## Parsing and limits
 
@@ -97,6 +111,10 @@ Frame budgets count UTF-8 bytes, including whitespace, before JSON decoding.
 The authentication phase uses its smaller budget. Every object key and string
 value must be printable ASCII. These are control envelopes, so this restriction
 does not define the encoding of future mail content.
+
+Native WebSocket Ping/Pong frames are handled separately. They neither
+authenticate a connection nor satisfy or extend the application heartbeat.
+Binary application frames are rejected.
 
 Reject duplicate object members, including keys spelled with equivalent JSON
 escapes. Reject nesting deeper than the shared limit, measured with the root at

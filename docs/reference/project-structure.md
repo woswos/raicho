@@ -8,11 +8,11 @@ AGENTS.md          Always-loaded instructions and pointers to task-specific docs
 .agents/skills/    Canonical shared workflow skills
 .github/           Pull request templates and GitHub Actions workflows
 assets/brand/      Production identity masters, fonts, guides, and prototypes
-containers/        Tooling, Rust application, and independent Thunderbird images
+containers/        Tooling, Rust application, Thunderbird, and connector proxy images
 compose/           Runtime, administration, test, tooling, and CI Compose files
 server/            Rust diagnostics, SQLite queries, migrations, and tests
 web/               TypeScript diagnostics, public files, and behavioral tests
-extension/         Production lifecycle extension and separate mail API test probe
+extension/         Production connector and separate lifecycle/mail API test probes
 protocol/          Control schema, limits, shared fixtures, Rust bindings/generator
 devbin/            Repository guards, language runners, and tooling tests
 docs/contributing/ Contribution workflow and working agreements
@@ -22,12 +22,14 @@ docs/decisions/    Decision records and their template
 docs/planning/     Active and completed staged plans
 ```
 
-`compose/compose.yaml` runs the application and Thunderbird with separate volumes.
+`compose/compose.yaml` runs the application and Thunderbird with separate volumes
+and the fixed connector proxy between their networks.
 `compose.admin.yaml` adds local desktop administration, and `compose.test.yaml`
 adds the isolated runtime fixture driver. `compose.tools.yaml` provides checks
 and formatting, with `compose.ci.yaml` adding the GitHub event mount.
 `compose.credentials.yaml` supplies offline provisioning and the Thunderbird
-secret mount through the [credential commands](../operations/connector-credentials.md).
+secret mount, endpoint, and live verification through the
+[credential commands](../operations/connector-credentials.md).
 `compose.extension_test.yaml` is a standalone disposable extension lifecycle
 fixture. `compose.mail_test.yaml` runs the separate fictional mail experiment,
 with `compose.mail_admin.yaml` enabling its native UI checks. All Compose files

@@ -7,9 +7,13 @@ license.workspace = true
 
 [dependencies]
 axum.workspace = true
+futures-util.workspace = true
+getrandom.workspace = true
 libc.workspace = true
 libsqlite3-sys.workspace = true
 serde.workspace = true
+serde_json.workspace = true
+raicho-protocol = { path = "../protocol/rust" }
 sha2.workspace = true
 sqlx.workspace = true
 subtle.workspace = true
@@ -17,6 +21,7 @@ tokio.workspace = true
 tower-http.workspace = true
 
 [dev-dependencies]
-serde_json.workspace = true
+tokio = { workspace = true, features = ["test-util"] }
+tokio-tungstenite.workspace = true
 tempfile.workspace = true
 tower.workspace = true

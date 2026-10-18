@@ -48,6 +48,9 @@ mode `0600` in its private runtime tmpfs directory. Preserve existing policies.
 A baked symlink at the normal policy path points to this generated file. Policy
 loading through the symlink and permanent unsigned installation are explicit
 tests against the pinned image. Credentials never enter image layers or XPIs.
+Managed storage does not provide change events in Thunderbird. Reload policy by
+restarting Thunderbird, as the credential procedure does, rather than relying
+on a dynamic configuration notification.
 
 ### Connector route
 
@@ -90,8 +93,8 @@ The implemented [control contract](../../reference/connector-contract.md) uses
 Draft 7, empty capabilities, strict duplicate-member rejection, bounded JSON
 depth, printable ASCII control fields, and phase/generation validation. Its Ajv
 standalone output is bundled with build-only esbuild so Thunderbird needs no
-runtime imports or dynamic code generation. These source modules do not activate
-the production transport or verify credentials.
+runtime imports or dynamic code generation. The production listener and extension
+now call these decoders, with separate credential verification before registration.
 
 Define authentication, protocol negotiation, capabilities, heartbeat, connection
 generation, and error messages. Advertise only implemented capabilities. Keep
@@ -257,7 +260,7 @@ with their corresponding slice, and run through Docker locally and in CI.
   missing-secret recovery, UID access, mount isolation, and token exclusion from
   SQLite and service logs. Its containers, volumes, networks, and host state were
   removed. Live authentication remains Stage 5.
-- [ ] Stage 5: Connect production services and diagnostics.
+- [x] Stage 5: Connect production services and diagnostics.
   Add the internal Rust listener, fixed proxy, extension transport, and connection
   status in the existing web diagnostics. Test authentication expiry/rejection,
   malformed and oversized input, slow peers, bounded retries, duplicate sessions,
@@ -267,6 +270,23 @@ with their corresponding slice, and run through Docker locally and in CI.
   restrictions and absence of the connector on the browser HTTP listener.
   Quality gate: focused server/extension/web tests and disposable recovery and
   isolation runs. Review actual connection evidence and diagnostic behavior.
+  Debrief (2026-10-18): added the bounded internal Rust listener, fixed nonroot
+  Nginx proxy, production extension 0.2.0, and browser connection diagnostics.
+  Provisioning now verifies an authenticated heartbeat before deleting the previous
+  credential file. The lifecycle probe is a separate artifact. Red/green tests
+  covered diagnostics, transport/packaging, authentication, slow peers, and native
+  WebSocket control frames. All 48 server tests, 8 protocol/generator tests,
+  124 extension/lifecycle tests, 17 browser tests, and 93 repository tests passed,
+  along with lint, formatting, type checks, protocol generation drift, and links.
+  The final production Docker run passed all service restart/recreation cases,
+  network interruption, changed server IP without proxy recreation, invalid-token
+  rejection without displacement, real-IP administrative isolation, and secret
+  exclusion. The credential regression and separate lifecycle run also passed.
+  Disposable resources were removed. An earlier run reported an unclassified
+  rejection and another failed network recovery. Valid native Ping/Pong rejection
+  was reproduced in source tests and corrected, but those earlier failures lacked
+  enough evidence to establish their cause. Neither recurred in the final suites.
+  Managed policy reload requires Thunderbird restart. CI acceptance remains Stage 6.
 - [ ] Stage 6: Integrate CI and record acceptance evidence.
   Extend the existing Docker source and runtime jobs using the same local commands.
   Include a ten-minute idle test, production-XPI inspection, and checks that logs,

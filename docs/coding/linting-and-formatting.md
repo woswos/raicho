@@ -137,6 +137,12 @@ syn 3.0.9 for generated syntax. Exact direct dependencies live in `Cargo.toml`,
 with the graph locked in `Cargo.lock`. Ajv and esbuild run only during generation,
 producing a self-contained extension validator with no runtime compiler.
 
+The production listener enables Axum 0.8.9's WebSocket support, uses futures-util
+0.3.34 for socket writes, and getrandom 0.4.3 for session generations.
+Socket tests pin tokio-tungstenite 0.29.0, matching
+Axum's resolved implementation. The runtime proxy pins Nginx 1.30.6 Alpine by
+digest in `containers/connector_proxy/Dockerfile`.
+
 GitHub checkout stays at v7.0.1, pinned to
 `3d3c42e5aac5ba805825da76410c181273ba90b1`. The `ubuntu-24.04` hosted runner
 provides Docker and Compose, not the language-tool versions. Rebuild the tooling
