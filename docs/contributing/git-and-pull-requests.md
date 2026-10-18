@@ -38,6 +38,11 @@ cause, fix, relevant validation, and limitations. Keep them concise and follow
 reference required by [workflow](workflow.md). Review the description before
 publication. Body and label edits retrigger the relevant CI guards.
 
+A change an operator can notice also needs a changelog entry. Put it in the
+description's Changelog section, or under `## [Unreleased]` in `CHANGELOG.md`.
+The kinds, the `no changelog` label, and the version bump rules are in
+[versioning](../reference/versioning.md).
+
 When a merge and branch deletion are authorized, use `gh pr merge --delete-branch`.
 Repository-wide automatic branch deletion and required checks are separate
 GitHub settings. Creating workflow files does not enable those settings.

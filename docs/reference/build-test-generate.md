@@ -48,11 +48,11 @@ docker compose -f compose/compose.tools.yaml run --rm check make test-tooling
 | Target | Behavior |
 | --- | --- |
 | `lint` | Repository integrity, guard tests, and Bash/Python/JavaScript/TypeScript/Rust/SQL linters |
-| `lint-repo` | Agent, documentation, source filename, and skill guards with regression tests |
+| `lint-repo` | Agent, documentation, source filename, skill, and product version guards with regression tests |
 | `format-check` | Check selected source and configuration formatting without edits |
 | `typecheck` | TypeScript compiler with no emitted output |
 | `test-tooling` | Disposable passing/failing Rust, TypeScript, and SQL fixtures exercising the runners |
-| `lint-pr` | PR metadata and design/decision policy guard |
+| `lint-pr` | PR metadata, design/decision policy, and changelog guard |
 | `format` | Rewrite files in the documented formatting scope |
 | `lint-sql` | Check owned SQLite source for syntax and configured lint rules |
 | `format-check-sql` | Compare formatted temporary copies with SQL sources without editing them |
@@ -144,6 +144,15 @@ startup, administration, persistence checks, and cleanup.
 `compose/compose.tools.yaml` remains a development-only configuration and does
 not start the application. Application state belongs to the runtime volumes, not the
 checkout. No mail schema or API code generation exists in this stage.
+
+## Releases
+
+Product versions are cut from the changelog. The commands and the bump rules
+are in [versioning](versioning.md). A dry run writes nothing:
+
+```bash
+python3 -B devbin/raicho_cut_release.py
+```
 
 Authorization follows [workflow](../contributing/workflow.md). CI behavior is
 documented in [CI](ci-cd.md), and runtime details in [runtime](runtime.md).

@@ -76,7 +76,23 @@ test('success makes the refresh control available again', (context) => {
     database: { status: 'ready', engine: 'sqlite', version: '3.51.3' },
     backend: { status: 'unconfigured', kind: 'thunderbird' },
     version: '0.1.0',
+    commit: 'unknown',
   });
+  assert.equal(
+    globalThis.document.getElementById('application-version').textContent,
+    '0.1.0',
+  );
+  view.onStatus({
+    status: 'ready',
+    database: { status: 'ready', engine: 'sqlite', version: '3.51.3' },
+    backend: { status: 'unconfigured', kind: 'thunderbird' },
+    version: '0.1.0',
+    commit: '0123456789abcdef0123456789abcdef01234567',
+  });
+  assert.equal(
+    globalThis.document.getElementById('application-version').textContent,
+    '0.1.0 (0123456789abcdef0123456789abcdef01234567)',
+  );
   assert.equal(view.refreshButton.disabled, false);
   assert.equal(view.refreshButton.getAttribute('aria-disabled'), 'false');
   assert.equal(view.refreshButton.textContent, 'Refresh status');

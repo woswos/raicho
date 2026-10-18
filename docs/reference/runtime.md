@@ -48,12 +48,17 @@ External Thunderbird mail directories require their own explicit mounts.
 | --- | --- |
 | `/health/live` | HTTP process responds |
 | `/health/ready` | Initialization succeeded and the application database responds |
-| `/api/status` | Application/database status, versions, and unconfigured backend |
+| `/api/status` | Readiness, product version, build commit, database status, and unconfigured backend |
 | `/` | Static diagnostics page |
 
 Diagnostics use `Cache-Control: no-store`. Unknown API paths and missing assets
 return 404. The status response does not inspect a Thunderbird profile or claim
 connector readiness. Stopping Thunderbird does not make Raicho unready.
+
+`version` is the declared product version. `commit` is `RAICHO_COMMIT` when the
+image was built with that argument, and `unknown` otherwise. The diagnostics
+page shows the version alone when the commit is unknown. See
+[versioning](versioning.md).
 
 `RAICHO_BIND` defaults to `0.0.0.0:8080` inside the container,
 `RAICHO_DATA_DIR` to `/var/lib/raicho`, and `RAICHO_WEB_DIR` to

@@ -35,6 +35,7 @@ struct Status {
     database: DatabaseStatus,
     backend: BackendStatus,
     version: &'static str,
+    commit: &'static str,
 }
 
 pub fn router(database: Arc<Database>, web_dir: &Path) -> Router {
@@ -88,7 +89,8 @@ async fn status(State(database): State<Arc<Database>>) -> (StatusCode, Json<Stat
                 status: "unconfigured",
                 kind: "thunderbird",
             },
-            version: env!("CARGO_PKG_VERSION"),
+            version: crate::version::version(),
+            commit: crate::version::commit(),
         }),
     )
 }

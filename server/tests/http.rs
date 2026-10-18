@@ -30,7 +30,8 @@ async fn diagnostics_report_database_readiness_independently_of_thunderbird() {
                     "status": "ready",
                     "database": {"status": "ready", "engine": "sqlite", "version": "3.51.3"},
                     "backend": {"status": "unconfigured", "kind": "thunderbird"},
-                    "version": env!("CARGO_PKG_VERSION")
+                    "version": raicho_server::version::version(),
+                    "commit": raicho_server::version::commit()
                 })
             );
         }
