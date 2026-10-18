@@ -20,8 +20,8 @@ def prepare_directory(directory):
     directory.mkdir(parents=True, exist_ok=True)
 
 
-def extension_manifest(version):
-    manifest = json.loads((EXTENSION_ROOT / 'manifest.json').read_text())
+def extension_manifest(version, source_root):
+    manifest = json.loads((source_root / 'manifest.json').read_text())
     if not isinstance(manifest, dict):
         raise ValueError('The extension manifest must be an object.')
     selected_version = manifest.get('version') if version is None else version
@@ -41,23 +41,36 @@ def extension_manifest(version):
     return manifest
 
 
-def compile_extension(directory, manifest):
+def compile_extension(directory, manifest, source_root):
     subprocess.run(
         [
             'tsc',
             '--project',
-            str(EXTENSION_ROOT / 'tsconfig.json'),
+            str(source_root / 'tsconfig.json'),
             '--outDir',
             str(directory),
         ],
         check=True,
     )
     (directory / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
-    shutil.copyfile(EXTENSION_ROOT / 'background.html', directory / 'background.html')
+    shutil.copyfile(source_root / 'background.html', directory / 'background.html')
+    options_page = manifest.get('options_ui', {}).get('page')
+    if options_page is not None:
+        if not isinstance(options_page, str) or not re.fullmatch(
+            r'[a-z_]+\.html', options_page
+        ):
+            raise ValueError('The options page must be a root-level HTML file.')
+        shutil.copyfile(source_root / options_page, directory / options_page)
 
 
-def build(output=None, version=None, directory=None, output_directory=None):
-    manifest = extension_manifest(version)
+def build(
+    output=None,
+    version=None,
+    directory=None,
+    output_directory=None,
+    source_root=EXTENSION_ROOT,
+):
+    manifest = extension_manifest(version, source_root)
     if (output is None) == (output_directory is None):
         raise ValueError('Choose exactly one extension output mode.')
     if output_directory is not None:
@@ -78,7 +91,7 @@ def build(output=None, version=None, directory=None, output_directory=None):
             raise ValueError('The XPI must be outside the compiled output directory.')
     with tempfile.TemporaryDirectory(prefix='raicho-extension-') as temporary:
         compiled = Path(temporary)
-        compile_extension(compiled, manifest)
+        compile_extension(compiled, manifest, source_root)
         output.parent.mkdir(parents=True, exist_ok=True)
         with zipfile.ZipFile(output, 'x', compression=zipfile.ZIP_STORED) as archive:
             for source in sorted(compiled.rglob('*')):
@@ -103,6 +116,7 @@ def main():
     outputs.add_argument('--output-directory', type=Path)
     parser.add_argument('--version')
     parser.add_argument('--directory', type=Path)
+    parser.add_argument('--source-root', type=Path, default=EXTENSION_ROOT)
     arguments = parser.parse_args()
     try:
         build(
@@ -110,6 +124,7 @@ def main():
             arguments.version,
             arguments.directory,
             arguments.output_directory,
+            arguments.source_root.resolve(),
         )
     except (OSError, ValueError, subprocess.CalledProcessError) as error:
         print(f'FAIL: Could not build the extension: {error}', file=sys.stderr)

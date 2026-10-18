@@ -1,0 +1,4 @@
+services:
+  thunderbird:
+    environment:
+      RAICHO_ADMIN_ENABLED: 'true'

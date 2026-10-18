@@ -1,7 +1,8 @@
 # Foundation Stage 2: Thunderbird connector
 
 Status: approved design [PR #2](https://github.com/woswos/raicho/pull/2) merged on
-2026-10-18. The packaging and lifecycle slice is implemented and awaits review.
+2026-10-18. The packaging and lifecycle slice is committed. The mail API
+experiment is implemented and awaits review of its compatibility limitations.
 
 ## Goal
 
@@ -137,6 +138,13 @@ documented since Thunderbird 153.0. The published ESR API pages currently name
 explicit `sendLater` and `sendNow` modes. Sent means submission to the outgoing
 server, not proof of delivery to a recipient.
 
+The experiment established that `messages.send` is optional-only and needs
+native consent on the pinned runtime. Keep unattended draft checks separate
+from the interactive sending checks. Record native-tab selection when needed
+to make IMAP drafts queryable after restart. Neither behavior establishes a
+production permission or folder-initialization strategy. See the
+[compatibility matrix](../../reference/mail-api-compatibility.md).
+
 Draft creation does not establish draft replacement. `compose.beginNew(id)`
 documents editing as a new message. Test reopening and resaving explicitly for
 duplicates and stale identities. A native UI reopen/edit/resave check proves
@@ -183,7 +191,7 @@ with their corresponding slice, and run through Docker locally and in CI.
   preserving the profile. Recorded the test listener's text-frame adapter and
   observed Origin in [lifecycle evidence](../../reference/extension-lifecycle.md).
   Production transport, mail APIs, and the ten-minute acceptance remain later slices.
-- [ ] Stage 2: Run the mail API compatibility experiment.
+- [x] Stage 2: Run the mail API compatibility experiment.
   Add the isolated GreenMail deployment and separate probe artifact. Test plain
   text, HTML, selected identity, a small attachment, and draft rediscovery after
   Thunderbird restart. Check reopen/edit/resave and duplicate behavior, including
@@ -193,6 +201,14 @@ with their corresponding slice, and run through Docker locally and in CI.
   Investigate SMTP acceptance followed by Sent-copy failure with fault injection.
   Quality gate: containerized probe tests and a versioned compatibility matrix.
   Review supported operations and limitations before dependent compose work.
+  Debrief (2026-10-18): isolated GreenMail, separate probe, source checks, and
+  native draft editing passed. Recorded optional send consent, empty successful
+  save/send results, duplicate background saves, changing numeric IDs, and
+  folder selection needed for unattended restart discovery. Injected rejection,
+  lost acknowledgments, and Sent-copy failure without automatic resend. Native
+  draft replacement works, but a standard programmatic replacement operation
+  remains unproven. Sent-copy failure returned API success, and uncertain sends
+  remain `unknown`. Evidence and limits are in the compatibility matrix.
 - [ ] Stage 3: Define the minimal connector contract.
   Add schemas, generated bindings, validators, and Docker generation commands.
   Cover protocol/authentication negotiation, capabilities, generations, heartbeat,

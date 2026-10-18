@@ -20,13 +20,17 @@ def main():
             'test-server',
             'test-web',
             'test-extension',
+            'test-mail-probe',
         ),
     )
     target = parser.parse_args().target
     if target.endswith('server'):
         action = 'build' if target == 'build-server' else 'test'
         run(['cargo', action, '--workspace', '--all-targets', '--locked'])
-    elif target.endswith('extension'):
+    elif target.endswith('extension') or target == 'test-mail-probe':
+        source_root = Path(
+            'extension/mail_probe' if target == 'test-mail-probe' else 'extension'
+        )
         with tempfile.TemporaryDirectory(prefix='raicho-extension-') as directory:
             output = Path(directory)
             run(
@@ -34,18 +38,23 @@ def main():
                     'python3',
                     '-B',
                     'devbin/raicho_build_extension.py',
+                    '--source-root',
+                    str(source_root),
                     '--output',
                     str(output / 'raicho.xpi'),
                     '--directory',
                     str(output / 'modules'),
                 ]
             )
-            if target == 'test-extension':
-                environment = os.environ | {
-                    'RAICHO_EXTENSION_BUILD_DIR': str(output / 'modules')
-                }
+            if target.startswith('test-'):
+                variable = (
+                    'RAICHO_MAIL_PROBE_BUILD_DIR'
+                    if target == 'test-mail-probe'
+                    else 'RAICHO_EXTENSION_BUILD_DIR'
+                )
+                environment = os.environ | {variable: str(output / 'modules')}
                 tests = sorted(
-                    str(path) for path in Path('extension/tests').glob('*.test.mjs')
+                    str(path) for path in (source_root / 'tests').glob('*.test.mjs')
                 )
                 if not tests:
                     raise ValueError('No extension tests were found.')

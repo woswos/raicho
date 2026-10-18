@@ -1,0 +1,100 @@
+name: raicho-mail-test
+
+x-runtime: &runtime
+  image: ${RAICHO_MAIL_BASE_IMAGE:?Set the disposable base image}
+  platform: linux/amd64
+  user: '10001:10001'
+  read_only: true
+  tmpfs: [/tmp:mode=1777]
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  restart: 'no'
+  networks: [mail-test]
+
+x-code: &code
+  - ../containers/mail_probe:/mail_probe:ro
+  - ../containers/mail_test:/mail_test:ro
+  - ../containers/extension_test:/lifecycle:ro
+  - fixture:/config
+
+services:
+  greenmail:
+    image: greenmail/standalone:2.1.14@sha256:2bcd0470f569af3c8b98509421b23f1ad11ebb2d58c3648f4233bf450f3b5e2b
+    platform: linux/amd64
+    read_only: true
+    tmpfs: [/tmp:mode=1777]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      GREENMAIL_OPTS: >-
+        -Dgreenmail.setup.test.smtp -Dgreenmail.setup.test.imap
+        -Dgreenmail.hostname=0.0.0.0
+        -Dgreenmail.users=sender:fixture@raicho.test,recipient:fixture@raicho.test
+    networks: [mail-test]
+
+  probe:
+    <<: *runtime
+    entrypoint: [python3, -B, /mail_probe/control_server.py]
+    environment:
+      PYTHONPATH: /lifecycle:/mail_test:/mail_probe
+    volumes: *code
+    healthcheck:
+      test:
+        [
+          CMD,
+          python3,
+          -c,
+          "from pathlib import Path; assert Path('/config/control_ready').is_file()",
+        ]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  mail-proxy:
+    <<: *runtime
+    entrypoint: [python3, -B, /mail_test/fault_server.py, --directory, /config]
+    volumes: *code
+    healthcheck:
+      test:
+        [
+          CMD,
+          python3,
+          -c,
+          "from pathlib import Path; assert Path('/config/mail_proxy_ready').is_file()",
+        ]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  thunderbird:
+    <<: *runtime
+    image: ${RAICHO_MAIL_PROBE_IMAGE:?Set the disposable probe image}
+    depends_on:
+      probe: { condition: service_healthy }
+      mail-proxy: { condition: service_healthy }
+    environment:
+      RAICHO_ADMIN_ENABLED: 'false'
+      RAICHO_CONNECTOR_ENDPOINT: ws://probe:8765/connector/v1
+      RAICHO_CONNECTOR_TOKEN_FILE: /fixture/token
+    volumes:
+      - profile:/config
+      - fixture:/fixture:ro
+    shm_size: 1gb
+    stop_grace_period: 30s
+
+  driver:
+    <<: *runtime
+    profiles: [test]
+    entrypoint: [python3, -B, /mail_probe/driver.py]
+    environment:
+      PYTHONPATH: /lifecycle:/mail_test:/mail_probe
+    volumes: *code
+    healthcheck: { disable: true }
+
+networks:
+  mail-test:
+    internal: true
+
+volumes:
+  fixture:
+  profile:

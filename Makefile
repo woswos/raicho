@@ -32,10 +32,10 @@ format format-sql format-check format-check-rust format-check-javascript format-
 test-tooling:
 	@python3 -B -m unittest discover -s devbin -p 'raicho_*tooling_checks.py'
 
-.PHONY: build-app build-server build-web build-extension test-app test-server test-web test-extension
+.PHONY: build-app build-server build-web build-extension test-app test-server test-web test-extension test-mail-probe
 build-app: build-server build-web build-extension
 test-app: test-server test-web test-extension
-build-server build-web build-extension test-server test-web test-extension: | tooling
+build-server build-web build-extension test-server test-web test-extension test-mail-probe: | tooling
 
-build-server build-web build-extension test-server test-web test-extension:
+build-server build-web build-extension test-server test-web test-extension test-mail-probe:
 	@python3 -B devbin/raicho_application.py $@

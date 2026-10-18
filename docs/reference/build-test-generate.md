@@ -182,3 +182,21 @@ job belong to the later integration slice.
 
 Authorization follows [workflow](../contributing/workflow.md). CI behavior is
 documented in [CI](ci-cd.md), and runtime details in [runtime](runtime.md).
+
+## Mail API compatibility
+
+```bash
+docker compose -f compose/compose.tools.yaml run --rm check make test-mail-probe
+bash devbin/raicho_check_mail_compatibility.bash
+bash devbin/raicho_check_mail_compatibility.bash --native
+```
+
+The separate `test-mail-probe` target compiles and tests the fixture extension.
+It does not change `build-app` or the production XPI. The host runner builds
+temporary Docker images, runs fixture unit tests, and starts a fresh isolated
+mail deployment. It cleans up its own images, containers, networks, and volumes.
+The default run covers drafts and restart. `--native` also requires a browser
+on the Linux Docker host for the sending permission and native draft checkpoints.
+Sending and native checks are explicitly skipped in unattended mode. Full CI
+acceptance remains a later slice. The
+[compatibility matrix](mail-api-compatibility.md) records limits and results.

@@ -1,0 +1,24 @@
+{
+  "manifest_version": 2,
+  "name": "Raicho Mail API Probe",
+  "description": "Disposable fictional-mail compatibility experiment only.",
+  "version": "0.1.2",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "connector@raicho",
+      "strict_min_version": "153.0"
+    }
+  },
+  "permissions": [
+    "storage",
+    "accountsRead",
+    "messagesRead",
+    "messages.save",
+    "compose",
+    "compose.save"
+  ],
+  "optional_permissions": ["messages.send"],
+  "options_ui": { "page": "permission.html", "open_in_tab": true },
+  "background": { "page": "background.html", "persistent": true },
+  "content_security_policy": "script-src 'self'; object-src 'none'; connect-src ws: wss:"
+}

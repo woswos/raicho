@@ -22,6 +22,13 @@ background page and generated enterprise policy. It is inactive without managed
 configuration. A separate disposable fixture exercises its lifecycle over
 WebSocket. There is no production connection to Raicho or browser login yet.
 
+A separate test-only extension and disposable GreenMail deployment exercise
+mail API compatibility. A fixed SMTP/IMAP fault proxy and test controller run
+on an internal network with a fresh fictional profile. The production XPI has
+no mail permissions or probe commands. See the
+[versioned compatibility matrix](mail-api-compatibility.md) for observed behavior
+and the native consent and draft-editing gates.
+
 The [runtime reference](runtime.md) describes endpoints, storage, migrations,
 image packaging, and configuration. The existing showcase in `assets/brand/`
 remains a separate static concept with fictional in-memory messages. Shared
@@ -70,8 +77,9 @@ built Thunderbird image. The
 [connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
 selects MV2 packaging, managed configuration, a fixed internal proxy, and a
 versioned authenticated protocol. The lifecycle fixture is implemented first.
-The production protocol, proxy, credential persistence, and mail compatibility
-experiment remain later slices. The static showcase remains a design reference.
+The mail compatibility fixture is implemented separately. The production
+protocol, proxy, and credential persistence remain later slices. The static
+showcase remains a design reference.
 
 Current tooling commands and planned application commands are distinguished in
 [build, test, and generate](build-test-generate.md).

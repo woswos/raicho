@@ -12,7 +12,7 @@ containers/        Tooling, Rust application, and independent Thunderbird images
 compose/           Runtime, administration, test, tooling, and CI Compose files
 server/            Rust diagnostics, SQLite queries, migrations, and tests
 web/               TypeScript diagnostics, public files, and behavioral tests
-extension/         Thunderbird lifecycle extension, manifest, and behavioral tests
+extension/         Production lifecycle extension and separate mail API test probe
 devbin/            Repository guards, language runners, and tooling tests
 docs/contributing/ Contribution workflow and working agreements
 docs/reference/    Current structure, tooling, CI, and architecture
@@ -26,7 +26,9 @@ docs/planning/     Active and completed staged plans
 adds the isolated runtime fixture driver. `compose.tools.yaml` provides checks
 and formatting, with `compose.ci.yaml` adding the GitHub event mount.
 `compose.extension_test.yaml` is a standalone disposable extension lifecycle
-fixture. All Compose files live in `compose/`. The [runtime guide](../operations/local-runtime.md) and
+fixture. `compose.mail_test.yaml` runs the separate fictional mail experiment,
+with `compose.mail_admin.yaml` enabling its native UI checks. All Compose files
+live in `compose/`. The [runtime guide](../operations/local-runtime.md) and
 [tooling commands](build-test-generate.md) show their combinations.
 
 The [brand guide](../../assets/brand/README.md) describes asset locations and

@@ -1,0 +1,12 @@
+**
+!extension/
+!extension/mail_probe/
+!extension/mail_probe/**
+!devbin/
+!devbin/raicho_build_extension.py
+!containers/
+!containers/mail_profile/
+!containers/mail_profile/**
+**/node_modules
+**/dist
+**/__pycache__
