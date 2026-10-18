@@ -117,18 +117,20 @@ and are not part of the current workflow.
 
 [auto-release.yml](../../.github/workflows/auto-release.yml) runs on pushes to
 `main`. When `RELEASE_TOKEN` is set and the changelog has something to
-release, it commits the dated changelog, stores the new product version, and
-pushes an annotated `v*` tag. Without that token it records that nothing was
+release, it commits the dated changelog, product version, and updated Cargo
+lockfile, and pushes an annotated `v*` tag. Without that token it records that nothing was
 released. The token must be allowed to push to `main` and to push tags,
 because a push made with the default token does not start another workflow.
 
 [major-release.yml](../../.github/workflows/major-release.yml) is manual. The
-confirmation text is `MAJOR`.
+confirmation text is `MAJOR`, supplied as data through an environment variable.
+The job accepts only dispatches targeting `main` and explicitly checks out `main`.
 
 [release.yml](../../.github/workflows/release.yml) runs on `v*` tags and
 publishes that version's changelog section as GitHub release notes. It does
-not build or publish images. Release behavior is specified in
-[versioning](versioning.md).
+not build or publish images. Publication concurrency is scoped to each tag, so
+a newer tag cannot cancel another tag's pending publication. Release behavior
+is specified in [versioning](versioning.md).
 
 These workflows do not run on pull requests. A `design` pull request therefore
 does not cut a release. The repository-checks workflow stays read-only.

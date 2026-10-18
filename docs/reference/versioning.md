@@ -45,7 +45,7 @@ Any update to `CHANGELOG.md` in the same pull request also satisfies the check.
 Added or Removed selects the next minor version. Every other kind selects the
 next patch. A major bump is never inferred. Ask for it with
 `devbin/raicho_cut_release.py --major` or the major-release workflow, which
-requires the confirmation text `MAJOR`.
+requires the confirmation text `MAJOR` and must be dispatched on `main`.
 
 ## Cutting a release
 
@@ -57,9 +57,9 @@ python3 -B devbin/raicho_cut_release.py
 python3 -B devbin/raicho_cut_release.py --write
 ```
 
-`--write` dates `CHANGELOG.md` and stores the new version in `Cargo.toml` and
-any extension manifests. It leaves the changes uncommitted. On a push to
-`main`, the auto-release workflow does the same thing and then commits, tags,
+`--write` dates `CHANGELOG.md` and stores the new version in `Cargo.toml`,
+`Cargo.lock`, and any extension manifests. It leaves the changes uncommitted.
+On a push to `main`, the auto-release workflow does the same thing and then commits, tags,
 and pushes, but only when `RELEASE_TOKEN` is set. Without that token the
 workflow reports that nothing was released.
 
@@ -69,7 +69,11 @@ a `v*` tag by hand uses that same notes path.
 
 Pull request descriptions are read only when `GITHUB_REPOSITORY` and a token
 are present and `gh` is installed. A local dry run otherwise uses only the
-Unreleased section, and it says so.
+Unreleased section, and it says so. When collecting descriptions, an API error
+or incomplete metadata stops the cut before release files are changed. An HTTP
+404 skips a commit reference that does not identify a pull request. Each response
+provides both the description and labels, so a failed label read cannot silently
+ignore `no changelog`.
 
 ```bash
 python3 -B devbin/raicho_release_notes.py 0.1.0

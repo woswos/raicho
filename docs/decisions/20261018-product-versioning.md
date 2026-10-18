@@ -29,7 +29,8 @@ entries select the next minor version. Any other entry selects the next patch.
 `0.1.0` while no version tag exists.
 
 `devbin/raicho_cut_release.py` calculates that version and, with `--write`,
-dates the changelog and stores the version. It does not commit, tag, or push.
+dates the changelog and stores the version in the manifests and Cargo lockfile.
+It does not commit, tag, or push.
 GitHub Actions workflows do those steps when `RELEASE_TOKEN` is configured.
 A tag push publishes GitHub release notes from the changelog. These workflows
 do not publish container images or binaries.
