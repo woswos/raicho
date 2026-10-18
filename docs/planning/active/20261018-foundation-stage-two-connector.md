@@ -123,6 +123,13 @@ and SQLite changes are separate operations. Define fail-closed repair steps for
 interruption or mismatch, preserving the last committed configuration until
 verification. Never silently accept both old and new credentials.
 
+An explicit `connector reactivate` recovery operation may enroll a different
+token after revocation. Normal initialization and rotation retries cannot clear
+revocation. Preserve the previous host configuration separately while preparing
+the replacement, and verify the fresh token before recreating services. The
+[credential runbook](../../operations/connector-credentials.md) defines the
+implemented file states and interruption recovery.
+
 Persist backend configuration and credential digests/revocation state, without
 mail data. Keep active connections and generations in memory. Each authenticated
 replacement fences the previous connection, and stale cleanup cannot clear the
@@ -231,7 +238,7 @@ with their corresponding slice, and run through Docker locally and in CI.
   tests, generation drift, lint/format/type checks, packaging boundaries, and the
   server Docker build stage passed. Runtime credential checks, registration,
   generation fencing, and heartbeat timing remain later integration work.
-- [ ] Stage 4: Implement credential provisioning and persistence.
+- [x] Stage 4: Implement credential provisioning and persistence.
   Add migrations and standalone SQL queries for backend and credential state.
   Provide containerized setup, rotation, revocation, and recovery commands. Test
   first install, existing database, lock contention, missing secrets, UID access,
@@ -239,6 +246,17 @@ with their corresponding slice, and run through Docker locally and in CI.
   restart. Verify the raw token is absent from SQLite and ordinary server mounts.
   Quality gate: migration/credential tests, SQL lint/format checks, and a disposable
   provisioning/rotation run. Review the operational recovery procedure.
+  Debrief (2026-10-18): added the backend/digest migration, offline credential
+  commands, private host-file setup, serialized rotation/recovery, and the
+  operational runbook. Explicit reactivation uses a fresh token after revocation
+  and preserves the revoked configuration. Red/green regressions covered
+  persistence, reactivation, and lock-file hardening. All 28 server tests,
+  86 repository tests, Clippy, language/SQL lint, formatting, and documentation
+  links passed. The disposable Docker run verified both rotation interruption
+  points, revocation across startup, interrupted-operation reactivation,
+  missing-secret recovery, UID access, mount isolation, and token exclusion from
+  SQLite and service logs. Its containers, volumes, networks, and host state were
+  removed. Live authentication remains Stage 5.
 - [ ] Stage 5: Connect production services and diagnostics.
   Add the internal Rust listener, fixed proxy, extension transport, and connection
   status in the existing web diagnostics. Test authentication expiry/rejection,

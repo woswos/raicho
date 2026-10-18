@@ -1,3 +1,4 @@
+mod connector_cli;
 mod shutdown;
 
 use std::process::ExitCode;
@@ -21,6 +22,10 @@ async fn main() -> ExitCode {
 }
 
 async fn run() -> Result<()> {
+    let arguments: Vec<_> = std::env::args_os().skip(1).collect();
+    if !arguments.is_empty() {
+        return connector_cli::run(&arguments).await;
+    }
     let configuration = Config::from_environment()?;
     configuration.validate_web_assets()?;
     let database = Arc::new(Database::open(&configuration.data_dir).await?);

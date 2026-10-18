@@ -52,7 +52,9 @@ async fn failed_migration_rolls_back_schema_and_history() {
             .await
             .is_err()
     );
-    let database = Database::open(directory.path()).await.unwrap();
+    let database = Database::open_with_migrations(directory.path(), &migrations(&[]))
+        .await
+        .unwrap();
     let tables: Vec<String> =
         sqlx::query_scalar("SELECT name FROM sqlite_schema WHERE type='table'")
             .fetch_all(database.pool())

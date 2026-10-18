@@ -56,7 +56,7 @@ JavaScript (`.js`, `.mjs`, `.cjs`), TypeScript (`.ts`, `.tsx`, `.mts`, `.cts`),
 Rust (`.rs` and Cargo projects), and SQL (`.sql`).
 
 Prettier also covers `package.json`, `.prettierrc.json`, `compose/compose.tools.yaml`,
-`compose/compose.ci.yaml`, the runtime/admin/test Compose files, browser package and
+`compose/compose.ci.yaml`, the runtime/admin/test/credential Compose files, browser package and
 TypeScript configuration, extension manifest/package/TypeScript configuration,
 the extension lifecycle and mail fixture Compose files, separate mail probe
 manifest/package/TypeScript configuration, and

@@ -6,7 +6,7 @@ use sqlx::Connection;
 use tempfile::tempdir;
 
 #[tokio::test]
-async fn fresh_database_has_only_migration_metadata_and_survives_reopening() {
+async fn fresh_database_has_connector_schema_and_survives_reopening() {
     let directory = tempdir().unwrap();
     let database = Database::open(directory.path()).await.unwrap();
     assert_eq!(database.version(), "3.51.3");
@@ -16,7 +16,7 @@ async fn fresh_database_has_only_migration_metadata_and_survives_reopening() {
     .fetch_all(database.pool())
     .await
     .unwrap();
-    assert_eq!(tables, ["_sqlx_migrations"]);
+    assert_eq!(tables, ["_sqlx_migrations", "connector_credentials"]);
     database.close().await;
     drop(database);
     let reopened = Database::open(directory.path()).await.unwrap();

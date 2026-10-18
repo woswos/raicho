@@ -81,7 +81,10 @@ sets `RAICHO_CONNECTOR_ENDPOINT` and `RAICHO_CONNECTOR_TOKEN_FILE` together.
 The runtime reads a 64-character lowercase hexadecimal token from that file and
 provides endpoint/token through managed storage. Partial or invalid configuration
 fails before Thunderbird starts. Neither value is baked into an image or XPI.
-Production provisioning and its protocol are still later slices.
+The [credential procedure](../operations/connector-credentials.md) provisions
+the production token and SQLite digest. The credentials override mounts the
+file into Thunderbird without activating an endpoint. Production protocol
+integration remains a later slice.
 
 The MV2 persistent background currently emits only lifecycle metadata to the
 test listener. Its only permission is `storage`. The disposable test network has
@@ -114,7 +117,8 @@ foreign keys, and five-second busy/acquire timeouts. These waits do not establis
 a general SQL execution deadline. Never hold a connection while awaiting a mail
 backend. The instance lock stays held for the process lifetime.
 
-Only SQLx migration metadata exists initially. Add versioned SQL files under
+The connector migration records backend configuration and credential state.
+No mail data is stored. Add versioned SQL files under
 `server/migrations/` with the feature that uses them. Embedded migration changes
 trigger recompilation. Do not change an applied migration, including formatting
 or whitespace, because SQLx checksums its bytes. Format new migrations before

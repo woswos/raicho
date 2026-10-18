@@ -41,6 +41,11 @@ Extension packaging regressions also run in `lint` through `lint-repo`.
 The Rust workspace and extension application tests exercise the same
 [connector contract fixtures](connector-contract.md). No live connector
 authentication or heartbeat timing is implied by these source tests.
+Credential persistence and CLI tests run in `application-test`, while secret-file
+and wrapper regressions run in `lint-repo`. The disposable
+[credential runner](build-test-generate.md#credential-persistence) currently runs
+locally. Adding the complete connector acceptance suite to CI remains the final
+slice of the connector plan.
 The separate [extension lifecycle runner](build-test-generate.md#extension-lifecycle)
 currently runs locally. Full connector lifecycle coverage in CI is planned for
 the connector plan's integration slice.

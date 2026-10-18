@@ -6,3 +6,6 @@ __pycache__/
 node_modules/
 target/
 dist/
+
+# Deployment-local connector secrets and operation locks.
+.raicho/

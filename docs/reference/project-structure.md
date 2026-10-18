@@ -26,6 +26,8 @@ docs/planning/     Active and completed staged plans
 `compose.admin.yaml` adds local desktop administration, and `compose.test.yaml`
 adds the isolated runtime fixture driver. `compose.tools.yaml` provides checks
 and formatting, with `compose.ci.yaml` adding the GitHub event mount.
+`compose.credentials.yaml` supplies offline provisioning and the Thunderbird
+secret mount through the [credential commands](../operations/connector-credentials.md).
 `compose.extension_test.yaml` is a standalone disposable extension lifecycle
 fixture. `compose.mail_test.yaml` runs the separate fictional mail experiment,
 with `compose.mail_admin.yaml` enabling its native UI checks. All Compose files

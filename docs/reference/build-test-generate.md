@@ -163,6 +163,21 @@ Rust contract/generator and compiled production extension tests. The same tests
 also run through `test-app`. See the [contract reference](connector-contract.md)
 for sources, parsing rules, and integration responsibilities.
 
+## Credential persistence
+
+```bash
+docker compose -f compose/compose.tools.yaml run --rm check \
+  make test-server lint-repo lint-sql format-check-sql
+bash devbin/raicho_check_credentials.bash
+```
+
+The source checks cover credential state transitions and host-file recovery.
+The host runner owns a disposable Docker deployment and checks the actual
+provisioning, rotation, revocation, restart, file permissions, and mount boundary.
+The [credential runbook](../operations/connector-credentials.md) documents the
+operator commands and recovery states. Production connector authentication is
+tested with the later transport integration.
+
 ## Extension lifecycle
 
 Run the focused source checks through the tooling image:

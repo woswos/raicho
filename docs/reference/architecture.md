@@ -13,7 +13,7 @@ from that target.
 
 Docker Compose runs a Rust diagnostics server and an independently built
 Thunderbird container. The server serves the TypeScript diagnostics page and
-initializes SQLite, currently with migration metadata only. Thunderbird owns a
+initializes SQLite with backend configuration and credential digests. Thunderbird owns a
 separate profile volume. Its internal display starts without a viewer, and a
 local override enables browser administration. Separate Compose networks prevent
 Raicho from reaching Thunderbird's administrative listener. Both retain provider
@@ -34,6 +34,13 @@ schema, generated Rust/TypeScript bindings, and bounded decoders. These modules
 are tested independently. The server listener and production extension transport
 have not adopted them yet.
 
+Offline credential commands acquire the database's exclusive instance lock.
+A separate Docker helper owns host secret generation and file rotation, with
+one operation lock spanning database and file updates. Only the one-off
+provisioner and Thunderbird receive read-only raw credentials. Ordinary server
+startup never imports tokens. See the
+[credential procedure](../operations/connector-credentials.md) for recovery.
+
 The [runtime reference](runtime.md) describes endpoints, storage, migrations,
 image packaging, and configuration. The existing showcase in `assets/brand/`
 remains a separate static concept with fictional in-memory messages. Shared
@@ -46,6 +53,9 @@ using the same tooling image locally and in CI. See the
 flowchart LR
     Browser[TypeScript diagnostics] --> Server[Rust HTTP server]
     Server --> State[(SQLite metadata)]
+    Provisioner[Offline credential command] --> State
+    Secret[Private host secret] --> Provisioner
+    Secret --> Thunderbird
     Admin[Optional local browser desktop] -.-> Display[Internal display]
     Display --> Thunderbird[Thunderbird]
     Thunderbird --> Profile[(Thunderbird profile)]
@@ -83,8 +93,9 @@ built Thunderbird image. The
 selects MV2 packaging, managed configuration, a fixed internal proxy, and a
 versioned authenticated protocol. The lifecycle fixture is implemented first.
 The mail compatibility fixture and control contract are implemented separately.
-Production protocol integration, the proxy, and credential persistence remain
-later slices. The static showcase remains a design reference.
+Credential persistence and offline provisioning are implemented. Production
+protocol integration and the proxy remain later slices. The static showcase
+remains a design reference.
 
 Current tooling commands and planned application commands are distinguished in
 [build, test, and generate](build-test-generate.md).

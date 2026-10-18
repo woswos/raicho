@@ -2,14 +2,21 @@
 
 The first connector contract defines connection control only. Its schema,
 generated Rust/TypeScript bindings, and boundary decoders exist. The production
-server and extension do not use them yet. Credential verification, socket
-registration, timers, and proxy integration remain later slices of the
+server and extension do not use them yet. Socket authentication, registration,
+timers, and proxy integration remain later slices of the
 [connector plan](../planning/active/20261018-foundation-stage-two-connector.md).
 
 See [architecture](architecture.md) for component boundaries and
 [mail API compatibility](mail-api-compatibility.md) for the separate experiment.
 No fixture command, account identity, message handle, or mail content belongs in
 this contract. The backend kind is an identifier, not a Thunderbird-specific type.
+
+Offline [credential provisioning](../operations/connector-credentials.md) now
+persists one active digest or a revoked record. The Rust `Credential::parse`
+boundary hashes the canonical 64-byte lowercase hexadecimal text with SHA-256,
+and `CredentialStore::verify` compares digests in constant time while rejecting
+revoked records. The future transport should reuse these boundaries after
+decoding an authentication frame. It must not enroll a token from that frame.
 
 ## Sources and generated outputs
 

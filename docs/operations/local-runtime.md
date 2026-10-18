@@ -29,6 +29,10 @@ docker compose -f compose/compose.yaml up -d --wait
 Open <http://127.0.0.1:8080>. Expect a ready application and an unconfigured
 Thunderbird connector. No viewer is needed to start Thunderbird.
 
+Use the [credential procedure](connector-credentials.md) to provision persistent
+connector configuration. Its commands manage the matching Compose override and
+restart sequence. The production transport remains a separate implementation slice.
+
 For explicit administration:
 
 ```bash
