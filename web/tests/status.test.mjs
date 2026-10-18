@@ -15,6 +15,7 @@ function readyStatus() {
     database: { status: 'ready', engine: 'sqlite', version: '3.51.3' },
     backend: { status: 'unconfigured', kind: 'thunderbird' },
     version: '0.1.0',
+    commit: 'unknown',
   };
 }
 
@@ -61,7 +62,13 @@ test('rejects absent, malformed, and incompatible status fields', () => {
     { ...readyStatus(), version: '' },
     { ...readyStatus(), version: '   ' },
     { ...readyStatus(), version: 'a'.repeat(81) },
+    { ...readyStatus(), commit: '' },
+    { ...readyStatus(), commit: 1 },
+    { ...readyStatus(), commit: 'a'.repeat(81) },
   ];
+  const missingCommit = readyStatus();
+  delete missingCommit.commit;
+  invalidResponses.push(missingCommit);
 
   for (const response of invalidResponses) {
     assert.throws(() => parseStatus(response), StatusResponseError);

@@ -43,7 +43,10 @@ export function createStatusView() {
     serverStatus.dataset['state'] = 'ready';
     databaseStatus.textContent = 'Ready';
     databaseVersion.textContent = `SQLite ${status.database.version}`;
-    applicationVersion.textContent = status.version;
+    applicationVersion.textContent =
+      status.commit === 'unknown'
+        ? status.version
+        : `${status.version} (${status.commit})`;
     backendStatus.textContent = 'Not configured';
     backendDescription.textContent =
       'The Thunderbird connection is not configured yet. Mail is not available in this interface.';

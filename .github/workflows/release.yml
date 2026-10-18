@@ -1,0 +1,41 @@
+name: Release
+
+# Publishes the changelog section for a version tag. Image and binary
+# publication are separate future work.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Publish release notes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Collect the release notes
+        run: |
+          version="${GITHUB_REF#refs/tags/v}"
+          python3 -B devbin/raicho_release_notes.py "$version" > release-notes.md
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+        id: notes
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ steps.notes.outputs.version }}" \
+            --title "v${{ steps.notes.outputs.version }}" \
+            --notes-file release-notes.md

@@ -3,6 +3,7 @@ export interface ApplicationStatus {
   database: { status: 'ready'; engine: 'sqlite'; version: string };
   backend: { status: 'unconfigured'; kind: 'thunderbird' };
   version: string;
+  commit: string;
 }
 
 export class StatusResponseError extends Error {
@@ -53,5 +54,6 @@ export function parseStatus(value: unknown): ApplicationStatus {
     },
     backend: { status: 'unconfigured', kind: 'thunderbird' },
     version: readVersion(response['version']),
+    commit: readVersion(response['commit']),
   };
 }

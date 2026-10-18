@@ -13,7 +13,8 @@ from that target.
 
 Docker Compose runs a Rust diagnostics server and an independently built
 Thunderbird container. The server serves the TypeScript diagnostics page and
-initializes SQLite, currently with migration metadata only. Thunderbird owns a
+initializes SQLite, currently with migration metadata only. Its status reports
+the [product version](versioning.md) and the build commit. Thunderbird owns a
 separate profile volume. Its internal display starts without a viewer, and a
 local override enables browser administration. Separate Compose networks prevent
 Raicho from reaching Thunderbird's administrative listener. Both retain provider
@@ -59,7 +60,9 @@ route while preserving the administrative network isolation.
 ## Status
 
 Language choice, Docker deployment, single-user scope, Thunderbird ownership,
-and SQLite application storage are accepted decisions. The
+SQLite application storage, and
+[product versioning](../decisions/20261018-product-versioning.md) are accepted
+decisions. The
 [runtime stack decision](../decisions/20261018-foundation-runtime-stack.md)
 selects Axum, Tokio, SQLx, the initial SQLite configuration, and the independently
 built Thunderbird image. WebSocket lifecycle, the eventual UI framework, and

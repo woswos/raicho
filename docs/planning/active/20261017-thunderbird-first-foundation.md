@@ -154,8 +154,9 @@ Each stage includes focused behavioral tests where applicable and ends with a re
 ## Future CI jobs
 
 Stage 1 implements application build and test jobs with the label behavior
-below. Coverage and release checks remain future work. Use the same commands
-locally and in CI, and do not add empty jobs.
+below. Coverage and image publication remain future work. Changelog releases
+are specified in the [versioning reference](../../reference/versioning.md).
+Use the same commands locally and in CI, and do not add empty jobs.
 
 - `design` pull requests skip future application build, test, coverage, and release jobs. Repository integrity checks still run.
 - `skip-build` skips the application build job when the diff cannot affect it.

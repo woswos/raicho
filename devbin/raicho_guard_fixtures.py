@@ -88,8 +88,10 @@ class GuardTestCase(unittest.TestCase):
         directory.mkdir(exist_ok=True)
         for source in (
             *DEVBIN.glob('raicho_check_*.py'),
+            DEVBIN / 'raicho_changelog.py',
             DEVBIN / 'raicho_pr_context.py',
             DEVBIN / 'raicho_shell_shebang.py',
+            DEVBIN / 'raicho_version.py',
         ):
             shutil.copy2(source, directory / source.name)
 

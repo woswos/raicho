@@ -3,6 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from raicho_check_changelog import check_pull_request_changelog
 from raicho_check_design_link import check_design_reference
 from raicho_pr_context import changed_paths, load_context, regular_file_in_change
 
@@ -46,6 +47,7 @@ def evaluate_pr(root):
     else:
         path = check_design_reference(context, root)
         print(f'design-link check passed: {path}')
+    check_pull_request_changelog(context, paths)
 
 
 def main():

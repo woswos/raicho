@@ -7,6 +7,8 @@ services:
     build:
       context: ..
       dockerfile: containers/raicho/Dockerfile
+      args:
+        RAICHO_COMMIT: ${RAICHO_COMMIT:-unknown}
     read_only: true
     tmpfs:
       - /tmp:mode=1777

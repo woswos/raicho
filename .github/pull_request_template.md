@@ -6,6 +6,14 @@ Design: docs/planning/active/YYYYMMDD-slug.md
 
 <!-- Describe the problem, resulting behavior, cause, and fix. Keep reference lines outside comments and code fences. -->
 
+## Changelog
+
+<!-- One real bullet under one heading. The pipe heading and the TODO line do not count. Use the "no changelog" label when an operator would notice nothing. -->
+
+### Added | Changed | Deprecated | Removed | Fixed | Security
+
+- TODO: replace with what an operator can notice.
+
 ## Validation
 
 <!-- State what was actually checked and what was not run. -->
