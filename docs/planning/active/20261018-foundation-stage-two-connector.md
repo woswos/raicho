@@ -1,7 +1,7 @@
 # Foundation Stage 2: Thunderbird connector
 
-Status: the maintainer approved this plan for a design PR on 2026-10-18.
-Implementation has not started. Merge the design before its implementation PR.
+Status: approved design [PR #2](https://github.com/woswos/raicho/pull/2) merged on
+2026-10-18. The packaging and lifecycle slice is implemented and awaits review.
 
 ## Goal
 
@@ -169,7 +169,7 @@ tree, and a review checkpoint. Follow the [delivery workflow](../../contributing
 for commit and continuation authorization. Proposed targets below become real
 with their corresponding slice, and run through Docker locally and in CI.
 
-- [ ] Stage 1: Prove packaging and lifecycle.
+- [x] Stage 1: Prove packaging and lifecycle.
   Add the extension TypeScript project, deterministic XPI build, policy generation,
   and a minimal test connection. Keep the initial test listener outside production.
   Test clean installation, managed settings, nonroot/read-only startup, viewer-free
@@ -177,6 +177,12 @@ with their corresponding slice, and run through Docker locally and in CI.
   Quality gate: focused extension and policy tests, TypeScript checks, image build,
   and a disposable lifecycle run. Review the installation/lifecycle evidence
   before building the complete protocol toolchain.
+  Debrief (2026-10-18): added deterministic MV2 packaging, atomic managed policy,
+  and the isolated lifecycle fixture. Docker checks and the real 153.5.0 image
+  passed unattended install, 90-second idle, restart, and 0.1.0-to-0.1.1 upgrade
+  preserving the profile. Recorded the test listener's text-frame adapter and
+  observed Origin in [lifecycle evidence](../../reference/extension-lifecycle.md).
+  Production transport, mail APIs, and the ten-minute acceptance remain later slices.
 - [ ] Stage 2: Run the mail API compatibility experiment.
   Add the isolated GreenMail deployment and separate probe artifact. Test plain
   text, HTML, selected identity, a small attachment, and draft rediscovery after

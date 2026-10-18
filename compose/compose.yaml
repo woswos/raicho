@@ -26,7 +26,8 @@ services:
     image: raicho-thunderbird:local
     platform: linux/amd64
     build:
-      context: ../containers/thunderbird
+      context: ..
+      dockerfile: containers/thunderbird/Dockerfile
     read_only: true
     tmpfs:
       - /tmp:mode=1777

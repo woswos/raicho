@@ -1,3 +1,24 @@
+FROM node:24.22.0-bookworm-slim@sha256:a5f4366e834695d5f363b920c104953a535d3a9864d1bdf74566a0ebe01daee5 AS extension
+
+RUN rm /etc/apt/sources.list.d/debian.sources && \
+    printf '%s\n' \
+      'deb [check-valid-until=no] http://snapshot.debian.org/archive/debian/20261018T000000Z/ bookworm main' \
+      'deb [check-valid-until=no] http://snapshot.debian.org/archive/debian-security/20261018T000000Z/ bookworm-security main' \
+      > /etc/apt/sources.list && \
+    apt-get update && apt-get install -y --no-install-recommends python3 && \
+    rm -rf /var/lib/apt/lists/*
+WORKDIR /build
+COPY package.json package-lock.json ./
+RUN npm ci --ignore-scripts --no-audit --no-fund
+ENV PATH="/build/node_modules/.bin:${PATH}"
+COPY extension/ extension/
+COPY devbin/raicho_build_extension.py devbin/raicho_build_extension.py
+ARG RAICHO_EXTENSION_VERSION
+RUN if [ -n "${RAICHO_EXTENSION_VERSION}" ]; then \
+      set -- --version "${RAICHO_EXTENSION_VERSION}"; \
+    else set --; fi && \
+    python3 -B devbin/raicho_build_extension.py --output-directory /artifact "${@}"
+
 FROM debian:bookworm-slim@sha256:7c7b2c966bc9ee8cedfeef67e0e279108992c77681fa595db4a9d65c06ccc587 AS download
 
 RUN rm /etc/apt/sources.list.d/debian.sources && \
@@ -43,8 +64,11 @@ RUN rm /etc/apt/sources.list.d/debian.sources && \
 
 COPY --from=download /opt/thunderbird /opt/thunderbird
 COPY --from=download /opt/novnc /usr/share/novnc
-COPY policies.json /opt/thunderbird/distribution/policies.json
-COPY runtime.py supervisor.py healthcheck.py /opt/raicho/
+COPY --from=extension /artifact/ /opt/raicho/extension/
+COPY containers/thunderbird/runtime.py containers/thunderbird/supervisor.py \
+    containers/thunderbird/healthcheck.py containers/thunderbird/policy.py /opt/raicho/
+RUN mkdir -p /opt/thunderbird/distribution && \
+    ln -s /tmp/raicho-runtime/policies.json /opt/thunderbird/distribution/policies.json
 
 ENV HOME=/config DISPLAY=:99 XDG_RUNTIME_DIR=/tmp/raicho-runtime \
     DBUS_SESSION_BUS_ADDRESS=unix:path=/tmp/raicho-runtime/bus \

@@ -57,7 +57,8 @@ Rust (`.rs` and Cargo projects), and SQL (`.sql`).
 
 Prettier also covers `package.json`, `.prettierrc.json`, `compose/compose.tools.yaml`,
 `compose/compose.ci.yaml`, the runtime/admin/test Compose files, browser package and
-TypeScript configuration, Thunderbird policy JSON, and
+TypeScript configuration, extension manifest/package/TypeScript configuration,
+the extension lifecycle Compose file, and
 `.github/workflows/repository-checks.yml`.
 Do not broaden it to Markdown, HTML, CSS, SVG, exported previews, historical
 references, fonts, or vendor artifacts. Dependency directories, build output,

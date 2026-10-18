@@ -1,7 +1,8 @@
 # Foundation runtime
 
 Raicho currently provides diagnostics and persistent application initialization.
-The Thunderbird container runs independently. No extension connects them yet.
+The Thunderbird container runs independently with a packaged lifecycle extension.
+No production connector connects it to Raicho yet.
 
 See [architecture](architecture.md) for ownership,
 [runtime decision](../decisions/20261018-foundation-runtime-stack.md) for choices,
@@ -65,6 +66,29 @@ connector readiness. Stopping Thunderbird does not make Raicho unready.
 default 6080. This administrative interface has no application authentication.
 Keep it local, close it by recreating Thunderbird without the override, and use
 the Raicho page for diagnostics. Remote deployment and browser login are stage 3.
+
+## Extension installation
+
+The image builds the extension from `extension/` and installs its versioned XPI
+through `ExtensionSettings`. The stable ID is `connector@raicho`. Runtime startup
+generates `/tmp/raicho-runtime/policies.json` atomically with mode 0600 under a
+0700 directory. The normal Thunderbird policy path is a baked symlink to it.
+The policy preserves `DisableAppUpdate`, uses `force_installed`, and disables
+extension background updates. Image updates own the XPI version.
+
+Without connector configuration the extension is inactive. The lifecycle fixture
+sets `RAICHO_CONNECTOR_ENDPOINT` and `RAICHO_CONNECTOR_TOKEN_FILE` together.
+The runtime reads a 64-character lowercase hexadecimal token from that file and
+provides endpoint/token through managed storage. Partial or invalid configuration
+fails before Thunderbird starts. Neither value is baked into an image or XPI.
+Production provisioning and its protocol are still later slices.
+
+The MV2 persistent background currently emits only lifecycle metadata to the
+test listener. Its only permission is `storage`. The disposable test network has
+no external egress or published ports. The listener uses the existing pinned
+websockify installation and is never part of production Compose or the XPI.
+See [extension checks](build-test-generate.md#extension-lifecycle) for the command
+and [lifecycle evidence](extension-lifecycle.md) for measured behavior.
 
 ## Network isolation
 

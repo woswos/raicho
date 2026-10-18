@@ -12,9 +12,12 @@ CONFIGURATION_FILES = {
     'compose/compose.yaml',
     'compose/compose.admin.yaml',
     'compose/compose.test.yaml',
+    'compose/compose.extension_test.yaml',
+    'extension/manifest.json',
+    'extension/package.json',
+    'extension/tsconfig.json',
     'web/package.json',
     'web/tsconfig.json',
-    'containers/thunderbird/policies.json',
     '.github/workflows/repository-checks.yml',
 }
 JAVASCRIPT_SUFFIXES = {'.js', '.mjs', '.cjs'}

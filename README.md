@@ -22,7 +22,8 @@ machine and open your mail in a browser wherever you work.
 
 > **In development.** The containerized foundation runs a Rust/SQLite diagnostics
 > server, a TypeScript status page, and our own Thunderbird image. The browser
-> mail client, login, and Thunderbird extension are not implemented yet.
+> mail client and login are not implemented yet. The packaged extension has
+> passed initial lifecycle checks.
 
 ## Why Raicho
 
@@ -60,7 +61,7 @@ docker compose -f compose/compose.yaml up -d --wait
 
 Open <http://127.0.0.1:8080> for diagnostics. Thunderbird starts without a viewer,
 with its profile in a separate persistent volume. The connector remains
-unconfigured until the extension stage. The
+unconfigured while production connector work continues. The
 [local runtime guide](docs/operations/local-runtime.md) covers optional browser
 administration, disposable profiles, persistence checks, and stopping services.
 

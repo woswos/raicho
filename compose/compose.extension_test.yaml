@@ -1,0 +1,68 @@
+name: raicho-extension-test
+
+x-runtime: &runtime
+  image: ${RAICHO_EXTENSION_TEST_IMAGE:?Set the disposable test image}
+  platform: linux/amd64
+  user: '10001:10001'
+  read_only: true
+  tmpfs:
+    - /tmp:mode=1777
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  restart: 'no'
+
+services:
+  probe:
+    <<: *runtime
+    entrypoint: [python3, -B, /test/probe_server.py, --directory, /config]
+    volumes:
+      - ../containers/extension_test:/test:ro
+      - fixture:/config
+    networks: [lifecycle]
+    healthcheck:
+      test:
+        [
+          CMD,
+          python3,
+          -c,
+          "from pathlib import Path; assert Path('/config/ready').is_file()",
+        ]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  thunderbird:
+    <<: *runtime
+    depends_on:
+      probe:
+        condition: service_healthy
+    environment:
+      RAICHO_ADMIN_ENABLED: 'false'
+      RAICHO_CONNECTOR_ENDPOINT: ws://probe:8765/connector/v1
+      RAICHO_CONNECTOR_TOKEN_FILE: /fixture/token
+    volumes:
+      - profile:/config
+      - fixture:/fixture:ro
+      - ../devbin/raicho_extension_runtime_check.py:/test/runtime_check.py:ro
+    networks: [lifecycle]
+    shm_size: 1gb
+    stop_grace_period: 30s
+
+  check:
+    <<: *runtime
+    profiles: [test]
+    entrypoint: [python3, -B, /test/probe_check.py, --directory, /config]
+    healthcheck:
+      disable: true
+    volumes:
+      - ../containers/extension_test:/test:ro
+      - fixture:/config
+    network_mode: none
+
+networks:
+  lifecycle:
+    internal: true
+
+volumes:
+  fixture:
+  profile:

@@ -12,7 +12,8 @@ The workflow uses a read-only token and does not retain checkout credentials.
   pushes and PRs, including designs.
 - `pr-guards`: PR context checks on PR events only.
 - `application-build`: runtime Compose validation and both application images.
-- `application-test`: Rust and browser builds/tests, plus process supervision tests.
+- `application-test`: Rust, browser, and extension builds/tests, plus Thunderbird
+  process supervision and generated-policy tests.
 - `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
   administrative network isolation and listener closure, and application readiness
   while Thunderbird is stopped, in a disposable project.
@@ -36,6 +37,10 @@ Disposable runner
 fixtures still verify discovery and failure behavior independently. Missing
 project configuration fails rather than silently skipping application checks.
 Automated checks do not claim visual verification of the administrative desktop.
+Extension packaging regressions also run in `lint` through `lint-repo`.
+The separate [extension lifecycle runner](build-test-generate.md#extension-lifecycle)
+currently runs locally. Full connector lifecycle coverage in CI is planned for
+the connector plan's integration slice.
 
 ## Repository integrity
 

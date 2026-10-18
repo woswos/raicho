@@ -17,8 +17,10 @@ initializes SQLite, currently with migration metadata only. Thunderbird owns a
 separate profile volume. Its internal display starts without a viewer, and a
 local override enables browser administration. Separate Compose networks prevent
 Raicho from reaching Thunderbird's administrative listener. Both retain provider
-internet access. There is no extension, live mail
-connection to Raicho, or browser login yet.
+internet access. The image now includes a TypeScript extension with a persistent
+background page and generated enterprise policy. It is inactive without managed
+configuration. A separate disposable fixture exercises its lifecycle over
+WebSocket. There is no production connection to Raicho or browser login yet.
 
 The [runtime reference](runtime.md) describes endpoints, storage, migrations,
 image packaging, and configuration. The existing showcase in `assets/brand/`
@@ -35,6 +37,8 @@ flowchart LR
     Admin[Optional local browser desktop] -.-> Display[Internal display]
     Display --> Thunderbird[Thunderbird]
     Thunderbird --> Profile[(Thunderbird profile)]
+    Thunderbird --> Extension[Packaged extension]
+    Extension -.->|Disposable lifecycle deployment only| Probe[Test listener]
 ```
 
 ## Target architecture
@@ -62,9 +66,12 @@ Language choice, Docker deployment, single-user scope, Thunderbird ownership,
 and SQLite application storage are accepted decisions. The
 [runtime stack decision](../decisions/20261018-foundation-runtime-stack.md)
 selects Axum, Tokio, SQLx, the initial SQLite configuration, and the independently
-built Thunderbird image. WebSocket lifecycle, the eventual UI framework, and
-authentication details remain later implementation gates. The static showcase
-remains a design reference.
+built Thunderbird image. The
+[connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
+selects MV2 packaging, managed configuration, a fixed internal proxy, and a
+versioned authenticated protocol. The lifecycle fixture is implemented first.
+The production protocol, proxy, credential persistence, and mail compatibility
+experiment remain later slices. The static showcase remains a design reference.
 
 Current tooling commands and planned application commands are distinguished in
 [build, test, and generate](build-test-generate.md).

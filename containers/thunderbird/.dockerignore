@@ -1,6 +1,0 @@
-**
-!Dockerfile
-!runtime.py
-!supervisor.py
-!healthcheck.py
-!policies.json

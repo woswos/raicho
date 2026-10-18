@@ -4,6 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from policy import write_policies
 from supervisor import Supervisor
 
 
@@ -68,13 +69,13 @@ def display_ready():
 
 def main():
     runtime_directory = Path('/tmp/raicho-runtime')
-    runtime_directory.mkdir(mode=0o700, exist_ok=True)
     supervisor = Supervisor(runtime_directory / 'processes.json')
-    supervisor.state_path.unlink(missing_ok=True)
-    (runtime_directory / 'bus').unlink(missing_ok=True)
     for signal_number in (signal.SIGTERM, signal.SIGINT):
         signal.signal(signal_number, supervisor.request_stop)
     try:
+        write_policies(runtime_directory, Path('/opt/raicho/extension'), os.environ)
+        supervisor.state_path.unlink(missing_ok=True)
+        (runtime_directory / 'bus').unlink(missing_ok=True)
         selected = commands(
             admin_enabled(os.environ.get('RAICHO_ADMIN_ENABLED', 'false'))
         )

@@ -129,21 +129,56 @@ docker compose -f compose/compose.tools.yaml run --rm check \
   python3 -B -m unittest discover -s containers/thunderbird -p '*_tests.py'
 ```
 
-`build-app` combines `build-server` and `build-web`. `test-app` combines
-`test-server` and `test-web`. Rust uses `--workspace --all-targets --locked` and
+`build-app` combines `build-server`, `build-web`, and `build-extension`. `test-app`
+combines `test-server`, `test-web`, and `test-extension`.
+Rust uses `--workspace --all-targets --locked` and
 temporary Cargo output. The browser build uses `tsc`, copies public files and
 the selected identity assets, then runs Node's built-in tests against compiled
 modules. All temporary build output stays outside the source mount.
 
 Build runtime images with `docker compose -f compose/compose.yaml build`. This
 compiles release artifacts and installs the independently packaged Thunderbird runtime.
-The image recipes pin base digests and downloaded artifacts. No XPI or connector
-is built yet. See [local runtime](../operations/local-runtime.md) for Compose
+The image recipes pin base digests and downloaded artifacts. The Thunderbird
+image also builds the XPI with TypeScript and the deterministic Python packager.
+See [local runtime](../operations/local-runtime.md) for Compose
 startup, administration, persistence checks, and cleanup.
 
 `compose/compose.tools.yaml` remains a development-only configuration and does
 not start the application. Application state belongs to the runtime volumes, not the
 checkout. No mail schema or API code generation exists in this stage.
+
+## Extension lifecycle
+
+Run the focused source checks through the tooling image:
+
+```bash
+docker compose -f compose/compose.tools.yaml run --rm check \
+  make build-extension test-extension typecheck
+docker compose -f compose/compose.tools.yaml run --rm check \
+  python3 -B -m unittest discover -s containers/thunderbird -p '*_tests.py'
+bash devbin/raicho_check_extension_lifecycle.bash
+```
+
+The host Bash runner orchestrates Docker only. It creates a unique
+`raicho-lifecycle-...` project, builds extension versions 0.1.0 and 0.1.1 into
+separate temporary Thunderbird images, and uses an internal network and fresh
+profile/credential volumes. It verifies installation without a viewer, managed
+configuration, a 90-second idle session, restart, and image upgrade preserving
+the profile. `RAICHO_EXTENSION_IDLE_SECONDS` accepts 60 through 3600 seconds.
+The runner removes its own containers, volumes, and image tags on exit. It never
+uses the default deployment or a personal profile.
+
+The packager stores sorted archive entries with fixed timestamps and modes.
+Its reproducibility and version tests run under `lint-repo`. `build-extension`
+uses disposable output. To export an XPI, mount an empty output directory into
+the tooling container and run `python3 -B devbin/raicho_build_extension.py
+--output /output/raicho.xpi`; `--version` selects the version for an upgrade test.
+No test modules or credentials enter the archive.
+
+The lifecycle fixture unit tests use the Thunderbird image because its pinned
+websockify package provides the WebSocket server. The lifecycle runner runs those
+tests before starting the fixture. Full connector acceptance and its CI runtime
+job belong to the later integration slice.
 
 Authorization follows [workflow](../contributing/workflow.md). CI behavior is
 documented in [CI](ci-cd.md), and runtime details in [runtime](runtime.md).
