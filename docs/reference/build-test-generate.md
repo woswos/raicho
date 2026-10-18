@@ -48,7 +48,7 @@ docker compose -f compose/compose.tools.yaml run --rm check make test-tooling
 | Target | Behavior |
 | --- | --- |
 | `lint` | Repository integrity, guard tests, and Bash/Python/JavaScript/TypeScript/Rust/SQL linters |
-| `lint-repo` | Repository integrity guards and their regression tests |
+| `lint-repo` | Agent, documentation, source filename, and skill guards with regression tests |
 | `format-check` | Check selected source and configuration formatting without edits |
 | `typecheck` | TypeScript compiler with no emitted output |
 | `test-tooling` | Disposable passing/failing Rust, TypeScript, and SQL fixtures exercising the runners |

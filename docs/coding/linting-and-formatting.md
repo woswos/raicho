@@ -11,7 +11,7 @@ extends that tooling to SQLite source.
 
 | Language or check | Configuration |
 | --- | --- |
-| Repository guards | Five direct Python entry points and standard-library helpers in `devbin/`, with regression tests |
+| Repository guards | Direct Python entry points and standard-library helpers in `devbin/`, with regression tests |
 | Bash | `bash -n`, ShellCheck with `.shellcheckrc`, `shfmt -ln bash -i 4 -ci` |
 | Python | Ruff lint and format with `pyproject.toml` |
 | JavaScript | ESLint recommended rules with `eslint.config.mjs`, Prettier with `.prettierrc.json` |
@@ -42,6 +42,12 @@ not connect to a database. SQLFluff syntax checks complement SQLite behavior
 tests rather than proving query execution or migration safety.
 
 ## Scope and enforcement
+
+`make lint-repo` runs `devbin/raicho_check_source_naming.py` and its regression
+tests locally and in CI. It checks the
+[source filename convention](coding-standards.md#source-filenames), including
+HTML and CSS names without adding them to the formatting scope. Renames are
+explicit edits, never formatter fixes.
 
 Check and format commands discover tracked and non-ignored untracked source
 through Git. Disposable fixture directories use filesystem discovery. Scope

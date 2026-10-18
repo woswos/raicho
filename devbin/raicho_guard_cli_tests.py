@@ -3,7 +3,7 @@ import os
 
 from raicho_guard_fixtures import GuardTestCase
 
-GUARDS = ('agent_config', 'doc_naming', 'skills', 'design_link', 'pr')
+GUARDS = ('agent_config', 'doc_naming', 'source_naming', 'skills', 'design_link', 'pr')
 DECISION = 'docs/decisions/20261018-test-decision.md'
 
 
@@ -48,6 +48,7 @@ class GuardCliTests(GuardTestCase):
         failures = {
             'agent_config': ('AGENTS.md', '# Missing instructions\n'),
             'doc_naming': ('docs/Bad Name.md', '# Invalid\n'),
+            'source_naming': ('bad-name.py', ''),
             'skills': ('.agents/skills/test/SKILL.md', '# Missing frontmatter\n'),
             'design_link': None,
             'pr': None,

@@ -16,6 +16,7 @@ lint: lint-repo lint-bash lint-python lint-javascript lint-typescript lint-rust 
 lint-repo:
 	@python3 -B devbin/raicho_check_agent_config.py
 	@python3 -B devbin/raicho_check_doc_naming.py
+	@python3 -B devbin/raicho_check_source_naming.py
 	@python3 -B devbin/raicho_check_skills.py
 	@python3 -B -m unittest discover -s devbin -p 'raicho_*_tests.py'
 

@@ -39,8 +39,11 @@ Automated checks do not claim visual verification of the administrative desktop.
 ## Repository integrity
 
 `make lint-repo` checks the AGENTS document references, canonical skills
-directory, documentation filenames, and skill metadata/example paths, then
-runs the guard tests. It includes tracked and untracked non-ignored
+directory, documentation and source filenames, and skill metadata/example
+paths, then runs the guard tests. The
+[source naming guard](../coding/linting-and-formatting.md#scope-and-enforcement)
+runs in the existing `lint` job and is not bypassed by skip labels.
+Documentation checks include tracked and untracked non-ignored
 documentation, including tracked paths missing from the worktree. `AGENTS.md`
 must `@`-load the working agreement, workflow, key conventions, and
 architecture documents, and every Markdown path it cites must be a regular

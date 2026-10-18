@@ -27,6 +27,34 @@ Keep files focused on one concern. Split them by functionality at approximately
 150 lines or when they hold multiple concerns, unless stronger existing
 conventions apply. Keep search, navigation, and review mapped to one concern.
 
+## Source filenames
+
+Use lowercase `snake_case` source filenames across languages, such as
+`status_poller.ts` and `count_migrations.sql`. Separate words with one underscore.
+Numeric prefixes, including SQL migration timestamps, are allowed.
+
+The naming guard covers Rust (`.rs`), Python (`.py`, `.pyi`), Bash (`.sh`, `.bash`
+and extensionless shell scripts), JavaScript (`.js`, `.mjs`, `.cjs`, `.jsx`),
+TypeScript (`.ts`, `.tsx`, `.mts`, `.cts`), SQL (`.sql`), HTML (`.html`), and
+CSS (`.css`). Extensions must also be lowercase.
+
+Conventional suffixes are allowed after a snake_case stem: `.test` and `.spec`
+for JavaScript/TypeScript, `.d` for TypeScript declarations, `.config` for
+JavaScript/TypeScript tool configuration, and `.module` for CSS. Preserve
+Python's `__init__` and `__main__` module names, `.eslintrc.js`, `.eslintrc.cjs`,
+`.prettierrc.js`, `.prettierrc.cjs`, and `.prettierrc.mjs`. Additional tool-required
+exceptions belong in the guard and its tests, rather than a general exemption
+for dotted filenames.
+
+The guard checks tracked and non-ignored untracked paths. Tracked names with
+source extensions are checked even when missing from the worktree. Extensionless
+scripts require a readable shell shebang. Stage a rename to remove its old name
+from the index before running it. Dependency/build directories and historical
+references use the [tooling exclusions](linting-and-formatting.md#scope-and-enforcement).
+Directory names, documentation, configuration data, and artwork retain their
+existing naming conventions. See the
+[decision](../decisions/20261018-source-filename-convention.md) for rationale.
+
 ## Comments and prose
 
 Default to no comments. Explain only a non-obvious reason, not the code itself,
