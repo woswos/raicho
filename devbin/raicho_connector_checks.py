@@ -5,6 +5,7 @@ import sys
 import urllib.error
 import urllib.request
 
+from raicho_connector_idle import observe_idle
 from raicho_connector_status import snapshot, wait_for_status
 
 
@@ -73,7 +74,7 @@ def deployment():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        'mode', choices=('wait', 'routes', 'browser', 'deployment', 'snapshot')
+        'mode', choices=('wait', 'routes', 'browser', 'deployment', 'snapshot', 'idle')
     )
     parser.add_argument('--status', default='connected')
     parser.add_argument('--previous-generation')
@@ -88,6 +89,7 @@ def main():
             'browser': browser_route,
             'deployment': deployment,
             'snapshot': snapshot,
+            'idle': observe_idle,
         }[arguments.mode]()
 
 

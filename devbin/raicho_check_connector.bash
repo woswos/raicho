@@ -34,6 +34,15 @@ check() {
         raicho-tools:local -B /checks/raicho_connector_checks.py "${@}"
 }
 
+privacy() {
+    local NETWORK=none
+    if [[ ${1} == diagnostics ]]; then NETWORK="${RAICHO_PROJECT}_application"; fi
+    "${PROBE[@]}" --network "${NETWORK}" \
+        --mount "type=bind,source=${RAICHO_CREDENTIAL_DIRECTORY}/connector.token,target=/fixture/credentials/connector.token,readonly" \
+        --mount "type=volume,source=${RAICHO_PROJECT}_raicho-data,target=/database,readonly" \
+        --entrypoint python3 raicho-tools:local -B /checks/raicho_connector_privacy.py "${1}"
+}
+
 cleanup() {
     local RESULT="${?}"
     trap - EXIT
@@ -68,6 +77,8 @@ docker inspect --format '{{.Name}} {{.Image}}' "${SERVER}" "${THUNDERBIRD}" "${P
 docker inspect "${SERVER}" "${THUNDERBIRD}" "${PROXY}" | check deployment
 docker inspect "${SERVER}" "${THUNDERBIRD}" | fixture mounts
 fixture database --revision 1
+"${COMPOSE[@]}" exec -T thunderbird python3 -B - <"${SCRIPT_DIRECTORY}/raicho_inspect_connector_xpi.py"
+check idle
 check browser
 "${PROBE[@]}" --network "${RAICHO_PROJECT}_thunderbird" --entrypoint python3 \
     raicho-tools:local -B /checks/raicho_connector_checks.py routes
@@ -115,4 +126,7 @@ COMPOSE_PROJECT_NAME="${RAICHO_PROJECT}" bash devbin/raicho_check_admin_isolatio
 connected
 "${COMPOSE[@]}" logs --no-color raicho thunderbird connector_proxy | fixture logs
 fixture database --revision 1
-echo 'Connector passed: authentication, heartbeats, recovery, DNS refresh, and isolation'
+"${COMPOSE[@]}" logs --no-color raicho thunderbird connector_proxy | privacy logs
+privacy diagnostics
+privacy database
+echo 'Connector passed: ten-minute idle, authentication, recovery, DNS refresh, isolation, and privacy'

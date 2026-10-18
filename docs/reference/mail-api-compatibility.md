@@ -1,7 +1,7 @@
 # Mail API compatibility experiment
 
 This records the second slice of the
-[Stage 2 connector plan](../planning/active/20261018-foundation-stage-two-connector.md).
+[Stage 2 connector plan](../planning/done/20261018-foundation-stage-two-connector.md).
 Results apply to the versions below, not supported product capabilities.
 Browser compose and production mail commands
 remain outside this experiment.
@@ -122,6 +122,14 @@ settlement. The complete default runner then passed on probe 0.1.2 with the
 folder-selection follow-up. Containerized validation also passed 51 fixture
 Python tests, 15 probe TypeScript tests, and 65 repository tests including the
 production/probe packaging boundary. These local results are not a CI run.
+CI now runs probe source tests and the default unattended runner. It explicitly
+skips consent-dependent delivery, native editing, and interactive fault checks.
+Their observations above remain the separately recorded manual evidence.
+
+The final acceptance rerun also passed unattended drafts and restart with probe
+0.1.2. All three restart queries found their draft before the folder-selection
+fallback, unlike the earlier run. This does not remove the previously observed
+synchronization dependency or establish a general background discovery strategy.
 
 The controller stores observations only in the disposable fixture volume. Review
 its evidence before cleanup and update this matrix with actual results. A timeout

@@ -94,13 +94,14 @@ and SQLite application storage are accepted decisions. The
 [runtime stack decision](../decisions/20261018-foundation-runtime-stack.md)
 selects Axum, Tokio, SQLx, the initial SQLite configuration, and the independently
 built Thunderbird image. The
-[connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
+[connector plan](../planning/done/20261018-foundation-stage-two-connector.md)
 selects MV2 packaging, managed configuration, a fixed internal proxy, and a
-versioned authenticated protocol. The lifecycle fixture is implemented first.
-The mail compatibility fixture and control contract are implemented separately.
+versioned authenticated protocol. The lifecycle fixture, mail compatibility
+fixture, and control contract have separate implementations.
 Credential persistence, offline provisioning, production control transport, proxy,
-and connection diagnostics are implemented. The final connector CI acceptance
-slice remains open. The static showcase remains a design reference.
+and connection diagnostics are implemented. Dedicated CI jobs run the source and
+unattended acceptance commands described in the
+[acceptance record](connector-acceptance.md). The static showcase remains a design reference.
 
 Current tooling commands and planned application commands are distinguished in
 [build, test, and generate](build-test-generate.md).

@@ -1,13 +1,14 @@
 # Foundation Stage 2: Thunderbird connector
 
 Status: approved design [PR #2](https://github.com/woswos/raicho/pull/2) merged on
-2026-10-18. Packaging/lifecycle and the mail API experiment are committed. The
-minimal connector contract is implemented and awaits review. Mail compatibility
-limitations remain gates before dependent compose work.
+2026-10-18. All six implementation slices and local Docker acceptance are complete.
+CI runs the same unattended commands. Hosted CI has not run for the final slice.
+Mail compatibility limitations remain gates before dependent compose work. See
+[acceptance evidence](../../reference/connector-acceptance.md).
 
 ## Goal
 
-Complete Stage 2 of the [foundation plan](20261017-thunderbird-first-foundation.md)
+Complete Stage 2 of the [foundation plan](../active/20261017-thunderbird-first-foundation.md)
 with an unattended, authenticated connection between the packaged Thunderbird
 extension and Raicho. Demonstrate installation, upgrades, bounded recovery,
 credential management, and diagnostic status against the pinned Thunderbird
@@ -172,21 +173,23 @@ dependent compose work. Do not silently substitute save-new/delete-old behavior.
 
 ## Open questions
 
-These are bounded experiment gates, not reopened product choices:
+These experiment gates have the following bounded outcomes:
 
-- Does the exact image load generated policy, permanently activate the XPI
-  without a viewer, and upgrade it on an existing profile?
-- What Origin does the extension send, and does the selected background context
-  remain available through idle periods, process failure, and reconnection?
-- Can standard APIs reopen and update an existing draft without duplicates?
-  Native interoperability and programmatic editing must have separate results.
-- How do sending errors behave after SMTP acceptance, including Sent-copy
-  failure? Where the observer lacks a definitive result, retain `unknown`.
+- The pinned image loads generated policy, activates the XPI without a viewer,
+  and upgrades it on an existing profile. See [lifecycle evidence](../../reference/extension-lifecycle.md).
+- Origin is `moz-extension://<profile-specific UUID>`. The persistent MV2
+  background passes idle and reconnection checks. See
+  [production acceptance](../../reference/connector-acceptance.md).
+- Native draft reopen/edit/resave works. Standard programmatic replacement
+  remains unproven, and background saves can duplicate drafts. This remains a
+  design gate before dependent compose work, not an implemented capability.
+- SMTP submission and Sent-copy success are separate. The API returned success
+  despite an injected copy failure. Lost results retain `unknown` and are never
+  automatically replayed. See the [compatibility matrix](../../reference/mail-api-compatibility.md).
 
-Resolve each gate before its dependent implementation. Stop and revise the design
-if it requires a mail replica, privileged Experiment, host daemon, or a wider
-trust boundary. Do not mark Stage 2 complete until its compatibility matrix and
-limitations have been reviewed.
+Future dependent work must resolve the recorded API limitations. Stop and revise
+its design if it requires a mail replica, privileged Experiment, host daemon,
+or a wider trust boundary.
 
 ## Stages
 
@@ -287,7 +290,7 @@ with their corresponding slice, and run through Docker locally and in CI.
   was reproduced in source tests and corrected, but those earlier failures lacked
   enough evidence to establish their cause. Neither recurred in the final suites.
   Managed policy reload requires Thunderbird restart. CI acceptance remains Stage 6.
-- [ ] Stage 6: Integrate CI and record acceptance evidence.
+- [x] Stage 6: Integrate CI and record acceptance evidence.
   Extend the existing Docker source and runtime jobs using the same local commands.
   Include a ten-minute idle test, production-XPI inspection, and checks that logs,
   diagnostics, and SQLite contain neither mail content nor raw credentials.
@@ -297,6 +300,18 @@ with their corresponding slice, and run through Docker locally and in CI.
   the compatibility matrix, and manual native-draft evidence. Review remaining
   limitations before marking foundation Stage 2 complete and moving this plan to
   `done/`. The parent foundation plan remains active for later stages.
+  Debrief (2026-10-18): added dedicated connector and compatibility CI jobs,
+  mail-probe source coverage, and credential Compose validation. The production
+  XPI passed inspection, then one generation remained connected for 600 seconds
+  with heartbeat count advancing from 1 to 41. Service restart/recreation,
+  network interruption, changed-IP DNS refresh, administrative isolation, and
+  token/mail-canary exclusion from logs, diagnostics, and SQLite all passed.
+  The credential, separate lifecycle, unattended mail, and basic runtime suites
+  passed and removed their disposable resources. Full source/build/tooling checks,
+  107 repository tests, 26 supervisor/policy tests, and formatting passed.
+  Reviewed the earlier native consent, draft-editing, and send-fault evidence
+  separately from unattended checks. Recorded the accepted connector decision
+  and remaining compose gates. No hosted CI run or publication is claimed.
 
 ## Validation
 
@@ -305,21 +320,25 @@ The existing implementation checks are:
 ```bash
 docker compose -f compose/compose.tools.yaml build
 docker compose -f compose/compose.tools.yaml run --rm check \
-  make lint format-check typecheck test-tooling build-app test-app
+  make lint format-check typecheck test-tooling build-app test-app test-mail-probe
+docker compose -f compose/compose.tools.yaml run --rm check \
+  python3 -B -m unittest discover -s containers/thunderbird -p '*_tests.py'
+bash devbin/raicho_check_connector.bash
+bash devbin/raicho_check_credentials.bash
+bash devbin/raicho_check_extension_lifecycle.bash
+bash devbin/raicho_check_mail_compatibility.bash
 ```
 
-Extend `build-app` and `test-app` to include the extension. Add a Docker-based
-protocol generation/drift check and an integration runner for the scenarios
-above. The runner owns a uniquely named disposable Compose project, refuses
-the normal project name, and cleans up only its own containers and volumes.
-It must not mount personal profiles or use provider credentials. Keep orchestration
-outside the read-only tooling container, which has no Docker socket. Preserve
-the existing CI label policy and independent application readiness when the
-connector is unavailable. Publish the exact new commands with their implementation.
+The extension is included in `build-app` and `test-app`, while protocol drift runs
+under `lint`. Host runners orchestrate Docker outside the read-only tooling
+container, which has no Docker socket. They own uniquely named disposable
+projects, never use personal profiles or provider credentials, and clean up
+only their own resources. The existing CI labels and independent readiness
+are preserved. The [acceptance record](../../reference/connector-acceptance.md)
+separates local results, configured CI coverage, and earlier manual evidence.
 
-This design-only change needs documentation naming, local-link, whitespace, and
-PR-policy validation. Application builds and runtime experiments belong to the
-implementation slices, not the planning PR.
+The original design PR needed documentation and PR-policy checks only. The
+implementation slices additionally ran the source and runtime checks above.
 
 ## Notes
 

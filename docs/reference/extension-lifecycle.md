@@ -1,7 +1,7 @@
 # Extension lifecycle evidence
 
 This records the packaging experiment for the first slice of the
-[Stage 2 connector plan](../planning/active/20261018-foundation-stage-two-connector.md).
+[Stage 2 connector plan](../planning/done/20261018-foundation-stage-two-connector.md).
 The [build reference](build-test-generate.md#extension-lifecycle) owns commands,
 and the [runtime reference](runtime.md#extension-installation) owns configuration.
 
@@ -54,10 +54,11 @@ Packaging tests compare exact archive bytes and verify that the image artifacts
 derive their default version from the manifest. TypeScript, language linting,
 formatting, repository guards, and runtime Compose configuration were checked.
 
-## Remaining acceptance
+## Production acceptance
 
 Subsequent slices have implemented credentials, production protocol, proxy routing, and
 network recovery separately. Draft/send findings are in the
-[mail compatibility matrix](mail-api-compatibility.md). The final connector
-acceptance still requires a ten-minute idle run and CI integration. This document
-records the lifecycle fixture, not that final acceptance.
+[mail compatibility matrix](mail-api-compatibility.md). The
+[production acceptance record](connector-acceptance.md) covers the ten-minute
+idle run, recovery, privacy checks, and CI integration. This document records the
+separate lifecycle fixture.

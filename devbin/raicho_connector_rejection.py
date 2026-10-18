@@ -5,6 +5,8 @@ import secrets
 import socket
 import struct
 
+from raicho_connector_privacy import MAIL_CANARIES
+
 
 def receive(connection, length):
     output = bytearray()
@@ -36,7 +38,7 @@ def send(connection, opcode, contents):
     connection.sendall(header + mask + masked)
 
 
-def reject():
+def reject(mail=False):
     with socket.create_connection(('connector-proxy', 8081), timeout=8) as connection:
         key = base64.b64encode(secrets.token_bytes(16)).decode()
         request = (
@@ -63,32 +65,42 @@ def reject():
             )
         }
         assert headers[b'sec-websocket-accept'] == accept
+        payload = {
+            'type': 'authenticate',
+            'protocol_version': 1,
+            'token': '0' * 64,
+            'backend_kind': 'thunderbird',
+            'backend_version': 'fixture',
+            'connector_version': 'fixture',
+            'capabilities': [],
+        }
+        if mail:
+            payload |= dict(
+                zip(
+                    ('subject', 'body', 'sender'),
+                    (value.decode() for value in MAIL_CANARIES),
+                    strict=True,
+                )
+            )
         send(
             connection,
             1,
-            json.dumps(
-                {
-                    'type': 'authenticate',
-                    'protocol_version': 1,
-                    'token': '0' * 64,
-                    'backend_kind': 'thunderbird',
-                    'backend_version': 'fixture',
-                    'connector_version': 'fixture',
-                    'capabilities': [],
-                }
-            ).encode(),
+            json.dumps(payload).encode(),
         )
         opcode, contents = frame(connection)
         assert opcode == 1
         message = json.loads(contents)
         assert message['type'] == 'error'
-        assert message['code'] == 'authentication_failed'
+        assert message['code'] == (
+            'invalid_message' if mail else 'authentication_failed'
+        )
         opcode, contents = frame(connection)
         assert opcode == 8
-        assert struct.unpack('!H', contents[:2])[0] == 4001
+        assert struct.unpack('!H', contents[:2])[0] == (4002 if mail else 4001)
         send(connection, 8, contents)
-    print('Proxy forwarded the bounded authentication rejection')
+    print('Proxy forwarded the bounded rejection without reflecting input')
 
 
 if __name__ == '__main__':
     reject()
+    reject(mail=True)

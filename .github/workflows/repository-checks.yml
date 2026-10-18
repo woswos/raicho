@@ -56,11 +56,15 @@ jobs:
         with:
           persist-credentials: false
       - name: Validate runtime configuration
+        env:
+          RAICHO_CREDENTIAL_DIRECTORY: /tmp/raicho-ci-credentials
         run: |
           docker compose -f compose/compose.yaml config --quiet
           docker compose -f compose/compose.yaml -f compose/compose.admin.yaml config --quiet
           docker compose -f compose/compose.yaml -f compose/compose.test.yaml config --quiet
           docker compose -f compose/compose.yaml -f compose/compose.test.yaml -f compose/compose.admin.yaml config --quiet
+          docker compose -f compose/compose.yaml -f compose/compose.credentials.yaml config --quiet
+          docker compose -f compose/compose.yaml -f compose/compose.test.yaml -f compose/compose.admin.yaml -f compose/compose.credentials.yaml config --quiet
       - name: Build application images
         run: docker compose -f compose/compose.yaml build
 
@@ -77,7 +81,7 @@ jobs:
       - name: Build tooling image
         run: docker compose -f compose/compose.tools.yaml build
       - name: Build and test application sources
-        run: docker compose -f compose/compose.tools.yaml run --rm check make build-app test-app
+        run: docker compose -f compose/compose.tools.yaml run --rm check make build-app test-app test-mail-probe
       - name: Test Thunderbird process supervision
         run: >-
           docker compose -f compose/compose.tools.yaml run --rm check
@@ -121,3 +125,33 @@ jobs:
       - name: Remove this job's disposable resources
         if: always()
         run: docker compose down --volumes --remove-orphans
+
+  connector-test:
+    if: >-
+      !contains(github.event.pull_request.labels.*.name, 'design') &&
+      !contains(github.event.pull_request.labels.*.name, 'skip-test')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify production connector and ten-minute idle acceptance
+        run: bash devbin/raicho_check_connector.bash
+      - name: Verify credential rotation, recovery, and revocation
+        run: bash devbin/raicho_check_credentials.bash
+
+  compatibility-test:
+    if: >-
+      !contains(github.event.pull_request.labels.*.name, 'design') &&
+      !contains(github.event.pull_request.labels.*.name, 'skip-test')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify extension installation, idle, restart, and upgrade
+        run: bash devbin/raicho_check_extension_lifecycle.bash
+      - name: Verify unattended mail API compatibility
+        run: bash devbin/raicho_check_mail_compatibility.bash

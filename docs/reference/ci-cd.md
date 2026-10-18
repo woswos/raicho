@@ -13,10 +13,15 @@ The workflow uses a read-only token and does not retain checkout credentials.
 - `pr-guards`: PR context checks on PR events only.
 - `application-build`: runtime Compose validation and all runtime images.
 - `application-test`: Rust, browser, and extension builds/tests, plus Thunderbird
-  process supervision and generated-policy tests.
+  process supervision, generated-policy tests, and separate mail probe source tests.
 - `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
   administrative network isolation and listener closure, and application readiness
   while Thunderbird is stopped, in a disposable project.
+- `connector-test`: production XPI inspection, ten minutes of uninterrupted
+  authenticated heartbeat, service/network recovery, DNS refresh, administrative
+  isolation, privacy canaries, and credential rotation/revocation recovery.
+- `compatibility-test`: separate lifecycle installation/idle/restart/upgrade
+  fixture and unattended GreenMail draft/restart experiment.
 
 There are no coverage, release, publication, or deployment jobs. Runtime tests
 use no accounts and remove only their job-specific containers and volumes.
@@ -42,16 +47,19 @@ The Rust workspace and extension application tests exercise the same
 [connector contract fixtures](connector-contract.md). Source tests also exercise
 authentication, session replacement, heartbeat timeouts, extension retries, and
 diagnostics. The separate lifecycle artifact is included in extension unit tests.
-Credential persistence and CLI tests run in `application-test`, while secret-file
-and wrapper regressions run in `lint-repo`. The disposable
-[credential runner](build-test-generate.md#credential-persistence) currently runs
-locally. Adding the complete connector acceptance suite to CI remains the final
-slice of the connector plan.
-The [production connector runner](build-test-generate.md#production-connector)
-also runs locally until that final slice wires it into CI.
-The separate [extension lifecycle runner](build-test-generate.md#extension-lifecycle)
-currently runs locally. Full connector lifecycle coverage in CI is planned for
-the connector plan's integration slice.
+Credential persistence and CLI tests run in `application-test`, while secret-file,
+wrapper, idle-observer, privacy, and CI coverage regressions run in `lint-repo`.
+The [credential](build-test-generate.md#credential-persistence),
+[production connector](build-test-generate.md#production-connector),
+[lifecycle](build-test-generate.md#extension-lifecycle), and
+[mail compatibility](build-test-generate.md#mail-api-compatibility) runners use
+the same commands locally and in their dedicated jobs. Each owns its disposable
+project and traps exit, including failures, to remove its resources.
+The connector job allows 60 minutes and compatibility allows 45 minutes for cold
+builds and runtime checks. They have no dependencies on the optional build job.
+Native send permission, native draft editing, and interactive sending faults
+remain manual checks. CI does not grant native consent or claim to repeat those
+observations. See [acceptance evidence](connector-acceptance.md) for scope and limits.
 
 ## Repository integrity
 
@@ -104,9 +112,9 @@ path is not exempt.
 | `design` | Validates planning-only changes and exempts the reference check. |
 | `skip-design-check` | Bypasses the design-link requirement. Does not bypass planning-only enforcement on a `design` PR. |
 | `skip-build` | Skips the dedicated application image build job. |
-| `skip-test` | Skips application and runtime test jobs. |
+| `skip-test` | Skips application, runtime, connector, and compatibility test jobs. |
 
-The `design` label also skips all three application jobs. Jobs are independent,
+The `design` label also skips all five application jobs. Jobs are independent,
 so a skipped build does not leave invalid test dependencies. Test jobs still
 compile/build their test prerequisites when `skip-build` is present. The labels
 do not bypass language linting, guard regression tests, or runner fixtures.

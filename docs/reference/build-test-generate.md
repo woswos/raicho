@@ -191,7 +191,13 @@ network interruption, changed server IP without proxy recreation, rejected token
 proxy route restrictions, the separate browser listener, and administrative
 isolation by actual container IP. It checks logs, database contents, and mount
 boundaries before removing its resources. It uses the production XPI and no
-provider accounts. Full CI acceptance remains the final connector slice.
+provider accounts. Before recovery tests it inspects the actual packaged XPI and
+observes one authenticated generation for at least 600 seconds, requiring ongoing
+heartbeat progress. A reconnect, counter reset, or heartbeat stall fails the check.
+Rejected payloads carry fictional mail canaries. The runner checks that those
+canaries and the raw token are absent from logs, diagnostics, and SQLite, and
+rejects unexpected application tables. It runs unchanged in CI's `connector-test`
+job alongside the credential runner. See [acceptance evidence](connector-acceptance.md).
 
 ## Extension lifecycle
 
@@ -225,8 +231,8 @@ No test modules or credentials enter the archive.
 
 The lifecycle fixture unit tests use the Thunderbird image because its pinned
 websockify package provides the WebSocket server. The lifecycle runner runs those
-tests before starting the fixture. Full connector acceptance and its CI runtime
-job belong to the later integration slice.
+tests before starting the fixture. CI's `compatibility-test` job runs the same
+command. The production ten-minute check is separate from this historical fixture.
 
 Authorization follows [workflow](../contributing/workflow.md). CI behavior is
 documented in [CI](ci-cd.md), and runtime details in [runtime](runtime.md).
@@ -245,6 +251,7 @@ temporary Docker images, runs fixture unit tests, and starts a fresh isolated
 mail deployment. It cleans up its own images, containers, networks, and volumes.
 The default run covers drafts and restart. `--native` also requires a browser
 on the Linux Docker host for the sending permission and native draft checkpoints.
-Sending and native checks are explicitly skipped in unattended mode. Full CI
-acceptance remains a later slice. The
+Sending and native checks are explicitly skipped in unattended mode. CI's
+`application-test` job tests the probe sources, and `compatibility-test` runs the
+unattended experiment. The
 [compatibility matrix](mail-api-compatibility.md) records limits and results.
