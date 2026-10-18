@@ -15,6 +15,9 @@ def env_command(arguments):
             break
         if argument in ENV_FLAGS or argument in {'-S', '--split-string'}:
             continue
+        if len(argument) > 2 and argument[:2] in {'-i', '-v'}:
+            arguments.insert(0, f'-{argument[2:]}')
+            continue
         if argument.startswith('--split-string='):
             arguments[:0] = shlex.split(argument.partition('=')[2])
             continue

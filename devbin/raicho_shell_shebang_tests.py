@@ -13,6 +13,14 @@ class ShellShebangTests(GuardTestCase):
             '#!/usr/bin/env --split-string -i bash',
             '#!/usr/bin/env --split-string=-i bash -e',
             '#!/usr/bin/env -Sbash -e',
+            '#!/usr/bin/env -vS bash',
+            '#!/usr/bin/env -ivS bash',
+            '#!/usr/bin/env -vSbash -e',
+            '#!/usr/bin/env -S -vi bash',
+            '#!/usr/bin/env -S -vu HOME bash',
+            '#!/usr/bin/env -S -viC/tmp bash',
+            '#!/usr/bin/env -S -va script bash',
+            '#!/usr/bin/env -S -vaiv bash',
             '#!/usr/bin/env -S -v -u HOME -C /tmp -a script bash',
             '#!/usr/bin/env -S --debug --unset=HOME --chdir=/tmp sh',
             '#!/usr/bin/env -S --argv0=script /bin/bash',
@@ -36,6 +44,13 @@ class ShellShebangTests(GuardTestCase):
             '#!/usr/bin/env -S MODE=test -- bash',
             '#!/usr/bin/env -S -- -i bash',
             '#!/usr/bin/env -S ${INTERPRETER}',
+            '#!/usr/bin/env -vS -vu bash python3',
+            '#!/usr/bin/env -vS -viubash python3',
+            '#!/usr/bin/env -vS -vC bash python3',
+            '#!/usr/bin/env -vS -vabash python3',
+            '#!/usr/bin/env -vS python3 bash',
+            '#!/usr/bin/env -S -- -vS bash',
+            '#!/usr/bin/env -S MODE=test -vS bash',
         ]
         for header in headers:
             with self.subTest(header=header):
@@ -54,6 +69,10 @@ class ShellShebangTests(GuardTestCase):
             b'#!/usr/bin/env -S --unset=HOME',
             b'#!/usr/bin/env -S "bash',
             b'#!/usr/bin/env -S \xff bash',
+            b'#!/usr/bin/env -vS',
+            b'#!/usr/bin/env -S -vu',
+            b'#!/usr/bin/env -S -vx bash',
+            b'#!/usr/bin/env -vxS bash',
         ]
         for header in headers:
             with self.subTest(header=header):
@@ -71,3 +90,20 @@ class ShellShebangTests(GuardTestCase):
         self.assertNotIn('valid_name', result.stderr)
         self.assertNotIn('python-file', result.stderr)
         self.assertFalse((repo.root / 'should_not_exist').exists())
+
+    def test_bundled_env_options_cannot_bypass_source_filename_guard(self):
+        for options in ('-vS bash', '-ivS bash', '-vSbash'):
+            with self.subTest(options=options):
+                repo = self.repo()
+                header = f'#!/usr/bin/env {options}\ntouch should_not_exist\n'
+                repo.write('bad-name', header)
+                repo.write('valid_name', header)
+                repo.write('python-file', '#!/usr/bin/env -vS -vu bash python3\n')
+                result = self.run_guard(repo, 'raicho_check_source_naming.py', {})
+                self.assertEqual(result.returncode, 1)
+                self.assertIn(
+                    'FAIL: bad-name must use lowercase snake_case', result.stderr
+                )
+                self.assertNotIn('valid_name', result.stderr)
+                self.assertNotIn('python-file', result.stderr)
+                self.assertFalse((repo.root / 'should_not_exist').exists())
