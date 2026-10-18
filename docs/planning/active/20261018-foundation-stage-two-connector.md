@@ -1,8 +1,9 @@
 # Foundation Stage 2: Thunderbird connector
 
 Status: approved design [PR #2](https://github.com/woswos/raicho/pull/2) merged on
-2026-10-18. The packaging and lifecycle slice is committed. The mail API
-experiment is implemented and awaits review of its compatibility limitations.
+2026-10-18. Packaging/lifecycle and the mail API experiment are committed. The
+minimal connector contract is implemented and awaits review. Mail compatibility
+limitations remain gates before dependent compose work.
 
 ## Goal
 
@@ -84,6 +85,13 @@ Validate messages with Rust `jsonschema` and build-time Ajv standalone validator
 in the extension. Use a small schema vocabulary supported by both generators,
 local references only, pinned dependencies, and generated-output drift checks.
 Shared valid and invalid fixtures must exercise both implementations.
+
+The implemented [control contract](../../reference/connector-contract.md) uses
+Draft 7, empty capabilities, strict duplicate-member rejection, bounded JSON
+depth, printable ASCII control fields, and phase/generation validation. Its Ajv
+standalone output is bundled with build-only esbuild so Thunderbird needs no
+runtime imports or dynamic code generation. These source modules do not activate
+the production transport or verify credentials.
 
 Define authentication, protocol negotiation, capabilities, heartbeat, connection
 generation, and error messages. Advertise only implemented capabilities. Keep
@@ -209,13 +217,20 @@ with their corresponding slice, and run through Docker locally and in CI.
   draft replacement works, but a standard programmatic replacement operation
   remains unproven. Sent-copy failure returned API success, and uncertain sends
   remain `unknown`. Evidence and limits are in the compatibility matrix.
-- [ ] Stage 3: Define the minimal connector contract.
+- [x] Stage 3: Define the minimal connector contract.
   Add schemas, generated bindings, validators, and Docker generation commands.
   Cover protocol/authentication negotiation, capabilities, generations, heartbeat,
   and errors. Test valid and malformed messages, incompatible versions, limits,
   and agreement between Rust and TypeScript. Keep fixture commands separate.
   Quality gate: generation drift check, shared contract tests, Rust/TypeScript
   checks, and production artifact inspection. Review the minimal wire contract.
+  Debrief (2026-10-18): added the shared schema/limits, generated Rust and
+  TypeScript bindings, offline/standalone validators, Docker generation and
+  drift checks, and 85 shared cases. Red/green regressions covered generation
+  guards and duplicate-key parsing. Rust tests, 97 extension tests, 71 repository
+  tests, generation drift, lint/format/type checks, packaging boundaries, and the
+  server Docker build stage passed. Runtime credential checks, registration,
+  generation fencing, and heartbeat timing remain later integration work.
 - [ ] Stage 4: Implement credential provisioning and persistence.
   Add migrations and standalone SQL queries for backend and credential state.
   Provide containerized setup, rotation, revocation, and recovery commands. Test

@@ -5,6 +5,14 @@ from pathlib import Path
 
 EXCLUDED = {'.git', 'node_modules', 'target', 'dist', 'vendor', '__pycache__'}
 CONFIGURATION_FILES = {
+    'protocol/limits.json',
+    'protocol/schema/connector.schema.json',
+    'protocol/fixtures/control.json',
+    'protocol/fixtures/depth.json',
+    'protocol/fixtures/duplicates.json',
+    'protocol/fixtures/handshake.json',
+    'protocol/fixtures/malformed.json',
+    'protocol/fixtures/parsing.json',
     'package.json',
     '.prettierrc.json',
     'compose/compose.tools.yaml',

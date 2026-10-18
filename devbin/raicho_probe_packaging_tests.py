@@ -33,6 +33,10 @@ class ProbePackagingTests(unittest.TestCase):
                     if label == 'production':
                         self.assertEqual(manifest['permissions'], ['storage'])
                         self.assertNotIn('dispatcher.js', archive.namelist())
+                        self.assertIn(
+                            'contract/validator_generated.js', archive.namelist()
+                        )
+                        self.assertNotIn('node_modules/', ''.join(archive.namelist()))
                     else:
                         self.assertNotIn('messages.send', manifest['permissions'])
                         self.assertEqual(
@@ -40,3 +44,9 @@ class ProbePackagingTests(unittest.TestCase):
                         )
                         self.assertIn('dispatcher.js', archive.namelist())
                         self.assertIn('permission.html', archive.namelist())
+                        self.assertFalse(
+                            any(
+                                name.startswith('contract/')
+                                for name in archive.namelist()
+                            )
+                        )

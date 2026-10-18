@@ -11,7 +11,7 @@ tooling:
 
 lint lint-repo lint-pr lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql format format-sql format-check format-check-rust format-check-javascript format-check-sql typecheck test-tooling: | tooling
 
-lint: lint-repo lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql
+lint: lint-repo lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql check-protocol
 
 lint-repo:
 	@python3 -B devbin/raicho_check_agent_config.py
@@ -39,3 +39,12 @@ build-server build-web build-extension test-server test-web test-extension test-
 
 build-server build-web build-extension test-server test-web test-extension test-mail-probe:
 	@python3 -B devbin/raicho_application.py $@
+
+.PHONY: generate-protocol check-protocol test-protocol
+generate-protocol check-protocol test-protocol: | tooling
+generate-protocol:
+	@python3 -B devbin/raicho_protocol.py generate
+check-protocol:
+	@python3 -B devbin/raicho_protocol.py check
+test-protocol:
+	@python3 -B devbin/raicho_protocol.py test

@@ -12,6 +12,7 @@ FROM rust:1.99.1-slim-bookworm@sha256:a24e292b4af7bdee351a31d3a6379972a5652f0ea2
 WORKDIR /source
 COPY Cargo.toml Cargo.lock ./
 COPY server/ server/
+COPY protocol/ protocol/
 RUN cargo build --release --locked --package raicho-server
 
 FROM debian:bookworm-slim@sha256:7c7b2c966bc9ee8cedfeef67e0e279108992c77681fa595db4a9d65c06ccc587

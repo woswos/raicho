@@ -1,0 +1,10 @@
+pub const AUTHENTICATION_DEADLINE_MS: usize = 5000;
+pub const AUTHENTICATION_MAX_BYTES: usize = 4096;
+pub const CONTROL_MAX_BYTES: usize = 65536;
+pub const HEARTBEAT_INTERVAL_MS: usize = 15000;
+pub const HEARTBEAT_TIMEOUT_MS: usize = 45000;
+pub const MAXIMUM_ACTIVE_CONNECTIONS: usize = 1;
+pub const MAXIMUM_JSON_DEPTH: usize = 64;
+pub const MAXIMUM_PENDING_AUTHENTICATIONS: usize = 4;
+pub const MAXIMUM_QUEUED_MESSAGES: usize = 8;
+pub const PROTOCOL_VERSION: usize = 1;

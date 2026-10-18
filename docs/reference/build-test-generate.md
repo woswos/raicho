@@ -47,7 +47,7 @@ docker compose -f compose/compose.tools.yaml run --rm check make test-tooling
 
 | Target | Behavior |
 | --- | --- |
-| `lint` | Repository integrity, guard tests, and Bash/Python/JavaScript/TypeScript/Rust/SQL linters |
+| `lint` | Repository integrity, guard tests, language linters, and protocol generation drift |
 | `lint-repo` | Agent, documentation, source filename, and skill guards with regression tests |
 | `format-check` | Check selected source and configuration formatting without edits |
 | `typecheck` | TypeScript compiler with no emitted output |
@@ -145,7 +145,23 @@ startup, administration, persistence checks, and cleanup.
 
 `compose/compose.tools.yaml` remains a development-only configuration and does
 not start the application. Application state belongs to the runtime volumes, not the
-checkout. No mail schema or API code generation exists in this stage.
+checkout. Control-contract generation is described below. Mail commands remain
+outside the production contract.
+
+## Connector contract
+
+```bash
+docker compose -f compose/compose.tools.yaml run --rm format make generate-protocol
+docker compose -f compose/compose.tools.yaml run --rm check make check-protocol test-protocol
+```
+
+Use the caller's UID/GID for writable generation as above. `generate-protocol`
+builds both generators into temporary output, then updates committed bindings,
+limits, and the standalone validator. `check-protocol` compares fresh output
+without editing sources and runs under `lint` in CI. `test-protocol` runs the
+Rust contract/generator and compiled production extension tests. The same tests
+also run through `test-app`. See the [contract reference](connector-contract.md)
+for sources, parsing rules, and integration responsibilities.
 
 ## Extension lifecycle
 

@@ -13,6 +13,7 @@ compose/           Runtime, administration, test, tooling, and CI Compose files
 server/            Rust diagnostics, SQLite queries, migrations, and tests
 web/               TypeScript diagnostics, public files, and behavioral tests
 extension/         Production lifecycle extension and separate mail API test probe
+protocol/          Control schema, limits, shared fixtures, Rust bindings/generator
 devbin/            Repository guards, language runners, and tooling tests
 docs/contributing/ Contribution workflow and working agreements
 docs/reference/    Current structure, tooling, CI, and architecture
@@ -36,15 +37,6 @@ The [brand guide](../../assets/brand/README.md) describes asset locations and
 See [architecture](architecture.md) for the distinction between the prototype
 and the intended product.
 
-## Planned application layout
-
-The [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md#proposed-source-layout)
-introduces the following directory with the connector contract slice. It does not exist yet.
-
-```text
-protocol/          Versioned connector schemas
-```
-
-The existing brand sources remain in
-`assets/brand/`. Component responsibilities and persistence are defined in
-[architecture](architecture.md).
+The [connector contract](connector-contract.md) describes the schema, generated
+modules, and their current integration boundary. Component responsibilities and
+persistence are defined in [architecture](architecture.md).

@@ -1,0 +1,375 @@
+[
+  {
+    "name": "authenticate",
+    "phase": "authentication",
+    "valid": true,
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "alternate backend remains neutral",
+    "phase": "authentication",
+    "valid": true,
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "backend_kind": "another_backend",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "welcome",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "welcome",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "capabilities": [],
+      "heartbeat_interval_ms": 15000,
+      "heartbeat_timeout_ms": 45000
+    }
+  },
+  {
+    "name": "handshake error authentication_failed",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "authentication_failed"
+    }
+  },
+  {
+    "name": "handshake error incompatible_version",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "incompatible_version"
+    }
+  },
+  {
+    "name": "handshake error invalid_message",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "invalid_message"
+    }
+  },
+  {
+    "name": "handshake error message_too_large",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "message_too_large"
+    }
+  },
+  {
+    "name": "handshake error unexpected_message",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "unexpected_message"
+    }
+  },
+  {
+    "name": "handshake error stale_generation",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "stale_generation"
+    }
+  },
+  {
+    "name": "handshake error heartbeat_timeout",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "heartbeat_timeout"
+    }
+  },
+  {
+    "name": "handshake error session_replaced",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "session_replaced"
+    }
+  },
+  {
+    "name": "handshake error server_busy",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "server_busy"
+    }
+  },
+  {
+    "name": "wrong protocol version",
+    "phase": "authentication",
+    "valid": false,
+    "error": "incompatible_version",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 2,
+      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "string protocol version",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": "1",
+      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "zero protocol version",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 0,
+      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "fractional protocol version",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1.5,
+      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "unbounded protocol version",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1e100,
+      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "token missing",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "short token",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "noncanonical token",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "token": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "empty backend",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "backend_kind": "",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "unknown member",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": [],
+      "mail": "not allowed"
+    }
+  },
+  {
+    "name": "unimplemented capability",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": ["messages.send"]
+    }
+  },
+  {
+    "name": "welcome mail capability",
+    "phase": "handshake",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "welcome",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "capabilities": ["mail"],
+      "heartbeat_interval_ms": 15000,
+      "heartbeat_timeout_ms": 45000
+    }
+  },
+  {
+    "name": "unsupported heartbeat interval",
+    "phase": "handshake",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "welcome",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "capabilities": [],
+      "heartbeat_interval_ms": 1000,
+      "heartbeat_timeout_ms": 45000
+    }
+  },
+  {
+    "name": "unsupported heartbeat timeout",
+    "phase": "handshake",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "welcome",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "capabilities": [],
+      "heartbeat_interval_ms": 15000,
+      "heartbeat_timeout_ms": 0
+    }
+  },
+  {
+    "name": "error cannot echo text",
+    "phase": "handshake",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "invalid_message",
+      "message": "do not echo inputs"
+    }
+  },
+  {
+    "name": "unknown error code",
+    "phase": "handshake",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "arbitrary"
+    }
+  },
+  {
+    "name": "handshake error cannot claim generation",
+    "phase": "handshake",
+    "valid": false,
+    "error": "unexpected_message",
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "invalid_message",
+      "generation": "0123456789abcdef0123456789abcdef"
+    }
+  }
+]

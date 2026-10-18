@@ -9,7 +9,7 @@ The workflow uses a read-only token and does not retain checkout credentials.
 
 - `lint`: repository integrity, guard regression tests, language linting,
   formatting checks, TypeScript type checking, and runner fixture tests on
-  pushes and PRs, including designs.
+  pushes and PRs, including designs. `make lint` also checks protocol generation drift.
 - `pr-guards`: PR context checks on PR events only.
 - `application-build`: runtime Compose validation and both application images.
 - `application-test`: Rust, browser, and extension builds/tests, plus Thunderbird
@@ -38,6 +38,9 @@ fixtures still verify discovery and failure behavior independently. Missing
 project configuration fails rather than silently skipping application checks.
 Automated checks do not claim visual verification of the administrative desktop.
 Extension packaging regressions also run in `lint` through `lint-repo`.
+The Rust workspace and extension application tests exercise the same
+[connector contract fixtures](connector-contract.md). No live connector
+authentication or heartbeat timing is implied by these source tests.
 The separate [extension lifecycle runner](build-test-generate.md#extension-lifecycle)
 currently runs locally. Full connector lifecycle coverage in CI is planned for
 the connector plan's integration slice.
