@@ -1,0 +1,6 @@
+services:
+  thunderbird:
+    environment:
+      RAICHO_ADMIN_ENABLED: 'true'
+    ports:
+      - '127.0.0.1:${RAICHO_ADMIN_PORT:-6080}:6080'

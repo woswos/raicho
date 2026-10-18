@@ -1,10 +1,10 @@
 # Coding standards
 
-These rules apply to the current static showcase and repository tooling.
+These rules apply to the application, static showcase, and repository tooling.
 The [foundation decision](../decisions/20261017-thunderbird-first-foundation.md)
 selects Rust for the server and TypeScript for the browser client and Thunderbird
-extension. Application-specific conventions will be documented with their
-implementation. Framework choices remain open. See
+extension. The diagnostics server uses Axum/Tokio and SQLx, while the browser
+uses ordinary TypeScript ES modules. See
 [architecture](../reference/architecture.md) for the accepted direction and
 implementation status.
 
@@ -26,6 +26,34 @@ and `.py` suffix. Document filenames follow
 Keep files focused on one concern. Split them by functionality at approximately
 150 lines or when they hold multiple concerns, unless stronger existing
 conventions apply. Keep search, navigation, and review mapped to one concern.
+
+## Source filenames
+
+Use lowercase `snake_case` source filenames across languages, such as
+`status_poller.ts` and `count_migrations.sql`. Separate words with one underscore.
+Numeric prefixes, including SQL migration timestamps, are allowed.
+
+The naming guard covers Rust (`.rs`), Python (`.py`, `.pyi`), Bash (`.sh`, `.bash`
+and extensionless shell scripts), JavaScript (`.js`, `.mjs`, `.cjs`, `.jsx`),
+TypeScript (`.ts`, `.tsx`, `.mts`, `.cts`), SQL (`.sql`), HTML (`.html`), and
+CSS (`.css`). Extensions must also be lowercase.
+
+Conventional suffixes are allowed after a snake_case stem: `.test` and `.spec`
+for JavaScript/TypeScript, `.d` for TypeScript declarations, `.config` for
+JavaScript/TypeScript tool configuration, and `.module` for CSS. Preserve
+Python's `__init__` and `__main__` module names, `.eslintrc.js`, `.eslintrc.cjs`,
+`.prettierrc.js`, `.prettierrc.cjs`, and `.prettierrc.mjs`. Additional tool-required
+exceptions belong in the guard and its tests, rather than a general exemption
+for dotted filenames.
+
+The guard checks tracked and non-ignored untracked paths. Tracked names with
+source extensions are checked even when missing from the worktree. Extensionless
+scripts require a readable shell shebang. Stage a rename to remove its old name
+from the index before running it. Dependency/build directories and historical
+references use the [tooling exclusions](linting-and-formatting.md#scope-and-enforcement).
+Directory names, documentation, configuration data, and artwork retain their
+existing naming conventions. See the
+[decision](../decisions/20261018-source-filename-convention.md) for rationale.
 
 ## Comments and prose
 
@@ -52,6 +80,20 @@ aggregating failures.
 
 Each guard prints `FAIL:` diagnostics to stderr and exits nonzero on failure.
 Report actionable messages identifying the path or condition.
+
+Rust uses edition 2024, snake_case functions/modules, and PascalCase types.
+Propagate failures with context rather than panicking in application paths.
+Keep SQLite operations inside persistence modules and HTTP payloads separate
+from database implementation details. Use temporary fixture databases in tests.
+Production SQL belongs in `server/queries/*.sql` and is embedded at compile
+time with `include_str!`. Keep migration SQL in `server/migrations/` and preserve
+the [migration invariants](../reference/runtime.md#sqlite-initialization-and-migrations).
+Use the [SQL tooling conventions](linting-and-formatting.md) for style.
+
+Browser TypeScript uses strict checking and explicit `.js` imports for emitted
+ES modules. Validate JSON at the boundary, render status with DOM text APIs,
+and bound asynchronous polling. Test pure behavior with Node's built-in runner.
+Select a UI framework only with the stage that requires it.
 
 ## Error messages
 

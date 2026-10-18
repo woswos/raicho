@@ -7,8 +7,14 @@ EXCLUDED = {'.git', 'node_modules', 'target', 'dist', 'vendor', '__pycache__'}
 CONFIGURATION_FILES = {
     'package.json',
     '.prettierrc.json',
-    'compose.tools.yaml',
-    'compose.ci.yaml',
+    'compose/compose.tools.yaml',
+    'compose/compose.ci.yaml',
+    'compose/compose.yaml',
+    'compose/compose.admin.yaml',
+    'compose/compose.test.yaml',
+    'web/package.json',
+    'web/tsconfig.json',
+    'containers/thunderbird/policies.json',
     '.github/workflows/repository-checks.yml',
 }
 JAVASCRIPT_SUFFIXES = {'.js', '.mjs', '.cjs'}
@@ -22,6 +28,7 @@ SOURCE_SUFFIXES = (
         '.rs',
         '.sh',
         '.bash',
+        '.sql',
     }
 )
 

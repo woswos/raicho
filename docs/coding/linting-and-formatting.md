@@ -6,15 +6,18 @@ Run the shared tooling image using the commands in
 [build, test, and generate](../reference/build-test-generate.md). The
 [code-quality decision](../decisions/20261018-containerized-code-quality.md)
 records the selected tools and their boundary.
+The [Compose and SQL decision](../decisions/20261018-compose-layout-and-sql-quality.md)
+extends that tooling to SQLite source.
 
 | Language or check | Configuration |
 | --- | --- |
-| Repository guards | Five direct Python entry points and standard-library helpers in `devbin/`, with regression tests |
+| Repository guards | Direct Python entry points and standard-library helpers in `devbin/`, with regression tests |
 | Bash | `bash -n`, ShellCheck with `.shellcheckrc`, `shfmt -ln bash -i 4 -ci` |
 | Python | Ruff lint and format with `pyproject.toml` |
 | JavaScript | ESLint recommended rules with `eslint.config.mjs`, Prettier with `.prettierrc.json` |
 | TypeScript | typescript-eslint typed rules, Prettier, and `tsc --noEmit` with project configuration |
 | Rust | Clippy for Cargo targets, rustfmt with edition 2024 from `rustfmt.toml` |
+| SQL | SQLFluff lint and format using the root `.sqlfluff` configuration |
 
 Ruff checks `E4`, `E7`, `E9`, `F`, `I`, `UP`, and `B`, targeting Python 3.13.
 Its formatter uses 88 columns and single quotes. Prettier also uses single
@@ -29,16 +32,33 @@ targets under their active configuration, not
 unreferenced `.rs` files or every conditional feature combination. Formatting
 checks cover Cargo projects and each discovered owned `.rs` file independently.
 
+SQLFluff uses the SQLite dialect and raw templater, four-space indentation,
+88-column lines, uppercase keywords/functions/literals/types, and lowercase
+unquoted identifiers. The lint rules cover layout, capitalization, ambiguous
+result columns (`AM04`), and NULL comparison (`CV05`). Formatting applies only
+SQLFluff's formatting rules. Both commands force the repository configuration,
+ignore personal/nested configurations, and fail on parsing errors. Checks do
+not connect to a database. SQLFluff syntax checks complement SQLite behavior
+tests rather than proving query execution or migration safety.
+
 ## Scope and enforcement
+
+`make lint-repo` runs `devbin/raicho_check_source_naming.py` and its regression
+tests locally and in CI. It checks the
+[source filename convention](coding-standards.md#source-filenames), including
+HTML and CSS names without adding them to the formatting scope. Renames are
+explicit edits, never formatter fixes.
 
 Check and format commands discover tracked and non-ignored untracked source
 through Git. Disposable fixture directories use filesystem discovery. Scope
 includes Bash (`.bash`, `.sh`, and shell shebangs), Python (`.py`, `.pyi`),
 JavaScript (`.js`, `.mjs`, `.cjs`), TypeScript (`.ts`, `.tsx`, `.mts`, `.cts`),
-and Rust (`.rs` and Cargo projects).
+Rust (`.rs` and Cargo projects), and SQL (`.sql`).
 
-Prettier also covers `package.json`, `.prettierrc.json`, `compose.tools.yaml`,
-`compose.ci.yaml`, and `.github/workflows/repository-checks.yml`.
+Prettier also covers `package.json`, `.prettierrc.json`, `compose/compose.tools.yaml`,
+`compose/compose.ci.yaml`, the runtime/admin/test Compose files, browser package and
+TypeScript configuration, Thunderbird policy JSON, and
+`.github/workflows/repository-checks.yml`.
 Do not broaden it to Markdown, HTML, CSS, SVG, exported previews, historical
 references, fonts, or vendor artifacts. Dependency directories, build output,
 and generated lockfile formatting are excluded. Preserve the approved artwork
@@ -47,15 +67,20 @@ and showcase behavior when applying the source formatting baseline.
 Discovery excludes `.git`, `node_modules`, `target`, `dist`, `vendor`,
 `__pycache__`, and `assets/brand/references`.
 
-There are no Rust or TypeScript application sources yet. The runners report
-that absence explicitly, and `test-tooling` exercises real passing/failing
-projects in temporary storage. Once owned sources exist, missing project
-configuration or tools must fail. Add manifests and TypeScript configuration
-with the first application sources. Fixture success is not evidence of a
-working application.
+The Rust workspace and browser TypeScript project are checked directly.
+`test-tooling` also exercises real passing/failing projects in temporary storage.
+Missing project configuration or tools fail. Runner fixture success does not
+replace application tests or runtime verification.
 
 `format-check` never rewrites sources. `format` is an explicit writable command
 using the caller's UID/GID. CI runs checks without automatic fixes.
+SQL format checks parse and format temporary copies with the original relative
+paths, then compare bytes. Missing SQL tools or configuration fail even when no
+SQL files exist. An empty valid SQL scope reports an explicit skip. SQL strings
+inside Rust or Python are outside SQLFluff's file scope. Production queries live
+in `server/queries/`, while intentionally invalid test fixtures remain inline.
+Follow the [migration immutability rule](../reference/runtime.md#sqlite-initialization-and-migrations)
+before formatting migration files.
 
 ## Versions and updates
 
@@ -72,6 +97,13 @@ image by digest. It installs Debian Bookworm support packages from the
 | Ruff | 0.16.8 |
 | ShellCheck | 0.11.0 |
 | shfmt | 3.14.1 |
+| SQLFluff | 4.4.0 |
+
+Python tooling dependencies and their wheel hashes are locked in
+`containers/tooling/requirements.txt`, currently for Python 3.13 on Linux amd64.
+The image installs them with `pip --require-hashes --only-binary=:all:`.
+Refresh this lock inside Docker when upgrading SQLFluff, review all dependency
+changes, and rebuild the image. The entrypoint detects a stale requirements file.
 
 JavaScript tools use exact versions in `package.json` and resolved dependencies
 in `package-lock.json`:

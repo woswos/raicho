@@ -16,7 +16,7 @@ const folderNames = {
 let activeFolder = 'inbox';
 let selectedId = 'walk';
 let statusTimer;
-// Keep aligned with the reading-pane breakpoint in inbox-responsive.css.
+// Keep aligned with the reading-pane breakpoint in inbox_responsive.css.
 const readingPaneLayout = window.matchMedia('(max-width: 900px)');
 function searchableText(message) {
   return `${message.sender} ${message.subject} ${message.snippet} ${message.paragraphs.join(' ')}`

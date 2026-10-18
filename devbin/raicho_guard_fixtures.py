@@ -89,6 +89,7 @@ class GuardTestCase(unittest.TestCase):
         for source in (
             *DEVBIN.glob('raicho_check_*.py'),
             DEVBIN / 'raicho_pr_context.py',
+            DEVBIN / 'raicho_shell_shebang.py',
         ):
             shutil.copy2(source, directory / source.name)
 

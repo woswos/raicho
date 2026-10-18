@@ -34,13 +34,15 @@ run inside the pinned tooling image. Versions and commands are recorded in
 [build, test, and generate](../reference/build-test-generate.md).
 
 ```bash
-docker compose -f compose.tools.yaml build
-docker compose -f compose.tools.yaml run --rm check make lint format-check typecheck
+docker compose -f compose/compose.tools.yaml build
+docker compose -f compose/compose.tools.yaml run --rm check make lint format-check typecheck
 ```
 
-## Planned application development
+## Application development
 
 The [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md)
-introduces the application runtime from stage 1. Repository tooling is available
-now, but there is no application deployment to start. See
+introduces the application incrementally. The diagnostics server and independent
+Thunderbird image are available now. Start with the
+[local runtime procedure](../operations/local-runtime.md), using disposable
+profiles and no personal accounts for tests. See
 [architecture](../reference/architecture.md) for current and planned behavior.

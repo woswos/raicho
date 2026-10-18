@@ -12,12 +12,12 @@ From the repository root, serve the brand directory locally:
 python3 -m http.server 8765 --bind 127.0.0.1 --directory assets/brand
 ```
 
-Open [the identity board](http://127.0.0.1:8765/showcase/identity-board.html).
+Open [the identity board](http://127.0.0.1:8765/showcase/identity_board.html).
 The page navigation also opens the inbox concept and launch compositions.
 
 | Source | Purpose |
 | --- | --- |
-| [identity-board.html](identity-board.html) | Current visual identity with production artwork and Geologica |
+| [identity_board.html](identity_board.html) | Current visual identity with production artwork and Geologica |
 | [inbox.html](inbox.html) | Interactive light/dark inbox concept with mobile layout |
 | [launch.html](launch.html) | Editable layouts for the four launch exports |
 | [Writing guide](../voice.md) | Tagline, product description, and draft interface copy |

@@ -13,6 +13,7 @@ from raicho_quality_files import (
     source_files,
 )
 from raicho_quality_projects import rust, typecheck, typescript_projects
+from raicho_quality_sql import sql
 
 TOOLING_ROOT = Path(__file__).resolve().parent.parent
 
@@ -99,10 +100,13 @@ def main():
             'lint-javascript',
             'lint-typescript',
             'lint-rust',
+            'lint-sql',
             'format',
+            'format-sql',
             'format-check',
             'format-check-rust',
             'format-check-javascript',
+            'format-check-sql',
             'typecheck',
         ),
     )
@@ -135,6 +139,14 @@ def main():
     if target in {'format', 'format-check', 'format-check-rust', 'lint-rust'}:
         require_tools('cargo', 'rustfmt', 'cargo-clippy')
         rust(root, files, action, TOOLING_ROOT)
+    if target in {
+        'format',
+        'format-sql',
+        'format-check',
+        'format-check-sql',
+        'lint-sql',
+    }:
+        sql(root, files, action, TOOLING_ROOT)
 
 
 if __name__ == '__main__':

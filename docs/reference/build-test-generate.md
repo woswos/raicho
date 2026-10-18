@@ -11,11 +11,12 @@ Bash, Python, Make, Node, Rust, and the selected quality tools. Host language
 toolchains are not required. Build after changing the image or dependency pins:
 
 ```bash
-docker compose -f compose.tools.yaml build
+docker compose -f compose/compose.tools.yaml build
 ```
 
-The entrypoint also compares `package.json`, `package-lock.json`, and
-`eslint.config.mjs` with the image copies. A mismatch stops the command with a
+The entrypoint also compares `package.json`, `package-lock.json`,
+`eslint.config.mjs`, and `containers/tooling/requirements.txt` with the image
+copies. A mismatch stops the command with a
 rebuild instruction, preventing stale installed dependencies or lint rules.
 
 The `check` service mounts the repository read-only. Tool caches and temporary
@@ -29,7 +30,7 @@ that mount, checks fail because Git cannot resolve the worktree metadata:
 
 ```bash
 RAICHO_GIT_COMMON_DIR="$(git rev-parse --path-format=absolute --git-common-dir)"
-docker compose -f compose.tools.yaml run --rm \
+docker compose -f compose/compose.tools.yaml run --rm \
   --volume "${RAICHO_GIT_COMMON_DIR}:${RAICHO_GIT_COMMON_DIR}:ro" \
   check make lint format-check typecheck
 ```
@@ -40,19 +41,22 @@ worktree. The source mount remains read-only for checks.
 ## Checks and formatting
 
 ```bash
-docker compose -f compose.tools.yaml run --rm check make lint format-check typecheck
-docker compose -f compose.tools.yaml run --rm check make test-tooling
+docker compose -f compose/compose.tools.yaml run --rm check make lint format-check typecheck
+docker compose -f compose/compose.tools.yaml run --rm check make test-tooling
 ```
 
 | Target | Behavior |
 | --- | --- |
-| `lint` | Repository integrity, guard tests, and Bash/Python/JavaScript/TypeScript/Rust linters |
-| `lint-repo` | Repository integrity guards and their regression tests |
+| `lint` | Repository integrity, guard tests, and Bash/Python/JavaScript/TypeScript/Rust/SQL linters |
+| `lint-repo` | Agent, documentation, source filename, and skill guards with regression tests |
 | `format-check` | Check selected source and configuration formatting without edits |
 | `typecheck` | TypeScript compiler with no emitted output |
-| `test-tooling` | Disposable passing/failing Rust and TypeScript projects exercising the runners |
+| `test-tooling` | Disposable passing/failing Rust, TypeScript, and SQL fixtures exercising the runners |
 | `lint-pr` | PR metadata and design/decision policy guard |
 | `format` | Rewrite files in the documented formatting scope |
+| `lint-sql` | Check owned SQLite source for syntax and configured lint rules |
+| `format-check-sql` | Compare formatted temporary copies with SQL sources without editing them |
+| `format-sql` | Rewrite owned SQL sources using formatting rules only |
 
 The `devbin/raicho_check_*.py` guards are direct Python entry points. Their
 optional repository-root argument defaults to the repository containing the
@@ -71,8 +75,13 @@ explicitly so rewritten files retain the caller's ownership:
 
 ```bash
 LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)" \
-docker compose -f compose.tools.yaml run --rm format make format
+docker compose -f compose/compose.tools.yaml run --rm format make format
 ```
+
+For SQL alone, use `check make lint-sql format-check-sql` or
+`format make format-sql` with the same Compose command and ownership settings.
+SQL checks need no database connection. Applied migration files must retain
+their original bytes, as explained in the [runtime reference](runtime.md#sqlite-initialization-and-migrations).
 
 The exact scope and pins are in
 [linting and formatting](../coding/linting-and-formatting.md). CI never runs
@@ -94,34 +103,47 @@ PR_BASE_SHA="$(git rev-parse origin/main)" \
 PR_HEAD_SHA="$(git rev-parse HEAD)" \
 PR_DESCRIPTION="Decision: docs/decisions/20261005-adopt-shared-workflow.md" \
 PR_LABELS="" \
-docker compose -f compose.tools.yaml run --rm check make lint-pr
+docker compose -f compose/compose.tools.yaml run --rm check make lint-pr
 ```
 
 Without a local base, the guard conservatively requires a design or decision.
 A `design` label needs both commits to prove that only planning docs changed.
 GitHub event metadata always takes precedence over local overrides.
 
-CI adds `compose.ci.yaml` to bind-mount the event JSON read-only at
-`/tmp/github-event.json`. This override requires `GITHUB_EVENT_PATH` to identify
-an existing host file. The checkout supplies the base/head Git objects:
+CI adds `compose/compose.ci.yaml` to bind-mount the event JSON read-only at
+`/tmp/github-event.json`. This override requires `GITHUB_EVENT_PATH` to be an
+absolute path to an existing host file. The checkout supplies the base/head Git
+objects:
 
 ```bash
-docker compose -f compose.tools.yaml -f compose.ci.yaml run --rm check make lint-pr
+docker compose -f compose/compose.tools.yaml -f compose/compose.ci.yaml run --rm check make lint-pr
 ```
 
 ## Application tooling
 
-Application build, integration test, and deployment commands are not configured.
-The [foundation decision](../decisions/20261017-thunderbird-first-foundation.md)
-selects a Rust server and TypeScript browser client and Thunderbird extension.
-The [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md)
-introduces Docker application services from stage 1. Its shared development
-tooling was brought forward through the
-[code-quality decision](../decisions/20261018-containerized-code-quality.md).
-There is no application or Thunderbird service to start with `compose.tools.yaml`.
+Run source builds and behavioral tests through the same tooling container:
 
-Framework choices and application image pins remain open as described in
-[architecture](architecture.md). Do not use no-op commands to imply checks exist.
-When checks and deployments may run is defined in
-[workflow](../contributing/workflow.md). The guard's acceptance rules are in
-[CI](ci-cd.md).
+```bash
+docker compose -f compose/compose.tools.yaml run --rm check make build-app test-app
+docker compose -f compose/compose.tools.yaml run --rm check \
+  python3 -B -m unittest discover -s containers/thunderbird -p '*_tests.py'
+```
+
+`build-app` combines `build-server` and `build-web`. `test-app` combines
+`test-server` and `test-web`. Rust uses `--workspace --all-targets --locked` and
+temporary Cargo output. The browser build uses `tsc`, copies public files and
+the selected identity assets, then runs Node's built-in tests against compiled
+modules. All temporary build output stays outside the source mount.
+
+Build runtime images with `docker compose -f compose/compose.yaml build`. This
+compiles release artifacts and installs the independently packaged Thunderbird runtime.
+The image recipes pin base digests and downloaded artifacts. No XPI or connector
+is built yet. See [local runtime](../operations/local-runtime.md) for Compose
+startup, administration, persistence checks, and cleanup.
+
+`compose/compose.tools.yaml` remains a development-only configuration and does
+not start the application. Application state belongs to the runtime volumes, not the
+checkout. No mail schema or API code generation exists in this stage.
+
+Authorization follows [workflow](../contributing/workflow.md). CI behavior is
+documented in [CI](ci-cd.md), and runtime details in [runtime](runtime.md).

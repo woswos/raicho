@@ -1,0 +1,50 @@
+name: raicho
+
+services:
+  raicho:
+    image: raicho-server:local
+    platform: linux/amd64
+    build:
+      context: ..
+      dockerfile: containers/raicho/Dockerfile
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777
+    volumes:
+      - raicho-data:/var/lib/raicho
+    networks: [application]
+    ports:
+      - '127.0.0.1:${RAICHO_PORT:-8080}:8080'
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 30s
+    restart: unless-stopped
+
+  thunderbird:
+    image: raicho-thunderbird:local
+    platform: linux/amd64
+    build:
+      context: ../containers/thunderbird
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777
+    volumes:
+      - thunderbird-data:/config
+    networks: [thunderbird]
+    shm_size: 1gb
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 30s
+    restart: unless-stopped
+
+networks:
+  application:
+  thunderbird:
+
+volumes:
+  raicho-data:
+  thunderbird-data:

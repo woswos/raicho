@@ -1,0 +1,5 @@
+{
+  "name": "@raicho/diagnostics",
+  "private": true,
+  "type": "module"
+}

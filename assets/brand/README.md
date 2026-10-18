@@ -6,7 +6,7 @@ Your Thunderbird, anywhere.
 
 ## Brand showcase
 
-- [Updated identity board](showcase/identity-board.html) / [PNG](previews/identity-board.png)
+- [Updated identity board](showcase/identity_board.html) / [PNG](previews/identity-board.png)
 - [Interactive inbox concept](showcase/inbox.html): light/dark themes and mobile layout
 - [Launch materials](showcase/launch.html): repository card, README banner, introduction, avatar
 - [Writing guide](voice.md): tagline, product description, tone, and interface copy

@@ -1,4 +1,4 @@
-.PHONY: lint lint-repo lint-pr lint-bash lint-python lint-javascript lint-typescript lint-rust format format-check format-check-rust format-check-javascript typecheck test-tooling
+.PHONY: lint lint-repo lint-pr lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql format format-sql format-check format-check-rust format-check-javascript format-check-sql typecheck test-tooling
 .DEFAULT_GOAL := lint
 
 TOOLING_ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
@@ -7,26 +7,35 @@ QUALITY = python3 -B "$(TOOLING_ROOT)devbin/raicho_quality.py" --root "$(QUALITY
 
 .PHONY: tooling
 tooling:
-	@test -f /opt/quality/package-lock.json || { echo 'Run Make through docker compose -f compose.tools.yaml run --rm check' >&2; exit 1; }
+	@test -f /opt/quality/package-lock.json || { echo 'Run Make through docker compose -f compose/compose.tools.yaml run --rm check' >&2; exit 1; }
 
-lint lint-repo lint-pr lint-bash lint-python lint-javascript lint-typescript lint-rust format format-check format-check-rust format-check-javascript typecheck test-tooling: | tooling
+lint lint-repo lint-pr lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql format format-sql format-check format-check-rust format-check-javascript format-check-sql typecheck test-tooling: | tooling
 
-lint: lint-repo lint-bash lint-python lint-javascript lint-typescript lint-rust
+lint: lint-repo lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql
 
 lint-repo:
 	@python3 -B devbin/raicho_check_agent_config.py
 	@python3 -B devbin/raicho_check_doc_naming.py
+	@python3 -B devbin/raicho_check_source_naming.py
 	@python3 -B devbin/raicho_check_skills.py
 	@python3 -B -m unittest discover -s devbin -p 'raicho_*_tests.py'
 
 lint-pr:
 	@python3 -B devbin/raicho_check_pr.py
 
-lint-bash lint-python lint-javascript lint-typescript lint-rust:
+lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql:
 	@$(QUALITY) $@
 
-format format-check format-check-rust format-check-javascript typecheck:
+format format-sql format-check format-check-rust format-check-javascript format-check-sql typecheck:
 	@$(QUALITY) $@
 
 test-tooling:
-	@python3 -B -m unittest discover -s devbin -p 'raicho_tooling_checks.py'
+	@python3 -B -m unittest discover -s devbin -p 'raicho_*tooling_checks.py'
+
+.PHONY: build-app build-server build-web test-app test-server test-web
+build-app: build-server build-web
+test-app: test-server test-web
+build-server build-web test-server test-web: | tooling
+
+build-server build-web test-server test-web:
+	@python3 -B devbin/raicho_application.py $@
