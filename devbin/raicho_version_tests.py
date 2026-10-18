@@ -13,8 +13,9 @@ from raicho_changelog import (
     unreleased_body,
 )
 from raicho_check_changelog import is_shipping
-from raicho_cut_release import latest_release, numbers_in_subject
+from raicho_cut_release import latest_release
 from raicho_guard_fixtures import DEVBIN, GuardTestCase
+from raicho_release_requests import numbers_in_subject
 from raicho_version import (
     check_product_version,
     parse_version,
