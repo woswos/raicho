@@ -92,6 +92,7 @@ class GuardTestCase(unittest.TestCase):
             DEVBIN / 'raicho_pr_context.py',
             DEVBIN / 'raicho_shell_shebang.py',
             DEVBIN / 'raicho_version.py',
+            DEVBIN / 'raicho_version_lock.py',
         ):
             shutil.copy2(source, directory / source.name)
 

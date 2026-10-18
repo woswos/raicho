@@ -209,7 +209,7 @@ class ChangelogTests(GuardTestCase):
         )
         self.assertEqual(
             status.stdout,
-            ' M CHANGELOG.md\n M Cargo.toml\n M extension/manifest.json\n',
+            ' M CHANGELOG.md\n M Cargo.lock\n M Cargo.toml\n M extension/manifest.json\n',
         )
 
     def test_empty_unreleased_is_not_a_failure(self):
@@ -240,7 +240,15 @@ class ChangelogTests(GuardTestCase):
             f'# Changelog\n\n## [Unreleased]\n{body}\n## [0.1.0] - 2026-01-01\n\n'
             '### Added\n\n- Initial diagnostics.\n',
         )
-        repo.write('Cargo.toml', CARGO)
+        repo.write('Cargo.toml', '[workspace]\nmembers = ["server"]\n\n' + CARGO)
+        repo.write(
+            'server/Cargo.toml',
+            '[package]\nname = "raicho-server"\nversion.workspace = true\n',
+        )
+        repo.write(
+            'Cargo.lock',
+            'version = 4\n\n[[package]]\nname = "raicho-server"\nversion = "0.1.0"\n',
+        )
         repo.write('extension/manifest.json', MANIFEST)
         repo.commit()
         repo.git('tag', 'v0.1.0')

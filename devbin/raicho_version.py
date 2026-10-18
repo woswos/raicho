@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from raicho_version_lock import replace_lock_version
+
 VERSION_TEXT = re.compile(
     r'(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})'
 )
@@ -153,10 +155,17 @@ def check_product_version(root):
 
 def write_product_version(root, version):
     cargo = root / 'Cargo.toml'
-    cargo.write_text(replace_workspace_version(cargo.read_text(), version))
+    lockfile = root / 'Cargo.lock'
+    cargo_text = cargo.read_text()
+    replacements = {
+        cargo: replace_workspace_version(cargo_text, version),
+        lockfile: replace_lock_version(root, cargo_text, lockfile.read_text(), version),
+    }
     for relative in extension_manifests(root):
         path = root / relative
-        path.write_text(replace_manifest_version(path.read_text(), version))
+        replacements[path] = replace_manifest_version(path.read_text(), version)
+    for path, text in replacements.items():
+        path.write_text(text)
 
 
 def main():

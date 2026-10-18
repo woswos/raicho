@@ -63,7 +63,7 @@ jobs:
         run: |
           git config user.name "raicho-release"
           git config user.email "raicho-release@users.noreply.github.com"
-          git add CHANGELOG.md Cargo.toml
+          git add CHANGELOG.md Cargo.toml Cargo.lock
           if [ -d extension ]; then
             git add --update -- extension
           fi
