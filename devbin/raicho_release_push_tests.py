@@ -57,6 +57,7 @@ class ReleasePushTests(GuardTestCase):
                 repo, remote, base = self.prepare_remote(reject_tags=True)
                 result = self.run_push_step(workflow, repo)
                 self.assertNotEqual(result.returncode, 0)
+                self.assertIn('hook declined to update refs/tags/v0.1.1', result.stderr)
                 self.assertEqual(self.remote_commit(remote, 'main'), base)
                 tags = subprocess.check_output(
                     ['git', '--git-dir', str(remote), 'tag', '--list'], text=True
