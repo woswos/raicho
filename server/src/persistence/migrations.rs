@@ -4,7 +4,7 @@ use crate::error::{Error, Result};
 
 pub(super) async fn initialize(pool: &SqlitePool, migrations: &Migrator) -> Result<String> {
     let tables: Vec<String> =
-        sqlx::query_scalar(include_str!("../../queries/list-application-tables.sql"))
+        sqlx::query_scalar(include_str!("../../queries/list_application_tables.sql"))
             .fetch_all(pool)
             .await
             .map_err(|error| Error::new("Cannot inspect application database schema", error))?;
@@ -18,11 +18,11 @@ pub(super) async fn initialize(pool: &SqlitePool, migrations: &Migrator) -> Resu
         .await
         .map_err(|error| Error::new("Application database migration failed", error))?;
     // An unchanged migration history can succeed on SQLite's read-only fallback.
-    sqlx::query(include_str!("../../queries/verify-database-writable.sql"))
+    sqlx::query(include_str!("../../queries/verify_database_writable.sql"))
         .execute(pool)
         .await
         .map_err(|error| Error::new("Application database is not writable", error))?;
-    sqlx::query_scalar(include_str!("../../queries/read-sqlite-version.sql"))
+    sqlx::query_scalar(include_str!("../../queries/read_sqlite_version.sql"))
         .fetch_one(pool)
         .await
         .map_err(|error| Error::new("Cannot read application database version", error))

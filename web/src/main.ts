@@ -1,5 +1,5 @@
-import { createStatusPoller } from './status-poller.js';
-import { createStatusView } from './status-view.js';
+import { createStatusPoller } from './status_poller.js';
+import { createStatusView } from './status_view.js';
 
 const view = createStatusView();
 let poller = createStatusPoller(view);

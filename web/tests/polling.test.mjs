@@ -4,11 +4,11 @@ import process from 'node:process';
 import { test } from 'node:test';
 import { setImmediate } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
-import { mockBrowser } from './polling-browser.js';
+import { mockBrowser } from './polling_browser.js';
 
 const outputDirectory = process.env.RAICHO_WEB_BUILD_DIR ?? 'web/dist';
 const { createStatusPoller } = await import(
-  pathToFileURL(resolve(outputDirectory, 'status-poller.js')).href
+  pathToFileURL(resolve(outputDirectory, 'status_poller.js')).href
 );
 
 function pollingFixture(context) {
