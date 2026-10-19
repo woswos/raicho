@@ -64,7 +64,13 @@ fn check_references(schema: &Value) -> Result<(), Box<dyn Error>> {
 
 fn generate_limits(limits: &Value) -> Result<String, Box<dyn Error>> {
     let mut source = String::new();
-    for (name, value) in limits.as_object().ok_or("Limits must be an object.")? {
+    let mut entries: Vec<_> = limits
+        .as_object()
+        .ok_or("Limits must be an object.")?
+        .iter()
+        .collect();
+    entries.sort_unstable_by(|left, right| left.0.cmp(right.0));
+    for (name, value) in entries {
         if !name
             .bytes()
             .all(|value| value.is_ascii_lowercase() || value == b'_')
