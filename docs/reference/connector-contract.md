@@ -135,7 +135,8 @@ nesting regressions exercise agreement between the two decoders.
 
 ```bash
 docker compose -f compose/compose.tools.yaml build
-docker compose -f compose/compose.tools.yaml run --rm format make generate-protocol
+LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)" \
+  docker compose -f compose/compose.tools.yaml run --rm format make generate-protocol
 docker compose -f compose/compose.tools.yaml run --rm check make check-protocol test-protocol
 ```
 
@@ -150,4 +151,5 @@ fail before generation. Review schema, generated changes, and corpus together.
 the Rust workspace and compiled extension, including shared contract fixtures.
 Packaging tests require the production validator and exclude it from the separate
 mail probe. The CSP test loads the standalone artifact with dynamic code
-generation disabled. Actual connector lifecycle CI remains a later slice.
+generation disabled. The [acceptance record](connector-acceptance.md) describes
+the connector lifecycle checks that CI runs.

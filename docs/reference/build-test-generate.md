@@ -157,7 +157,8 @@ outside the production contract.
 ## Connector contract
 
 ```bash
-docker compose -f compose/compose.tools.yaml run --rm format make generate-protocol
+LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)" \
+  docker compose -f compose/compose.tools.yaml run --rm format make generate-protocol
 docker compose -f compose/compose.tools.yaml run --rm check make check-protocol test-protocol
 ```
 
