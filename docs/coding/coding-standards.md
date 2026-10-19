@@ -31,7 +31,12 @@ conventions apply. Keep search, navigation, and review mapped to one concern.
 
 Use lowercase `snake_case` source filenames across languages, such as
 `status_poller.ts` and `count_migrations.sql`. Separate words with one underscore.
-Numeric prefixes, including SQL migration timestamps, are allowed.
+Numeric prefixes are allowed. Files directly in `server/migrations/` use a
+unique four-digit sequence starting at `0000`, followed by a descriptive
+snake_case name, such as `0000_connector_credentials.sql`. Increment the
+sequence for each new migration, without using a date. The source naming guard
+checks the format and rejects duplicate versions. See the
+[migration naming decision](../decisions/20261026-naming-conventions.md#migrations).
 
 The naming guard covers Rust (`.rs`), Python (`.py`, `.pyi`), Bash (`.sh`, `.bash`
 and extensionless shell scripts), JavaScript (`.js`, `.mjs`, `.cjs`, `.jsx`),

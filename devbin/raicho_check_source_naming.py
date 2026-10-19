@@ -5,6 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from raicho_migration_naming import migration_failures
 from raicho_shell_shebang import shell_header
 
 EXCLUDED = {'.git', 'node_modules', 'target', 'dist', 'vendor', '__pycache__'}
@@ -88,7 +89,7 @@ def check_source_naming(root):
         paths = repository_paths(root)
     except (OSError, ValueError, subprocess.CalledProcessError) as error:
         return [f'cannot inspect Git repository {root}: {error}']
-    failures = []
+    failures = migration_failures(paths)
     for path in paths:
         if EXCLUDED.intersection(path.parts[:-1]) or path.is_relative_to(
             'assets/brand/references'

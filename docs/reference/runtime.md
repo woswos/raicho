@@ -145,9 +145,11 @@ backend. The instance lock stays held for the process lifetime.
 
 The connector migration records backend configuration and credential state.
 No mail data is stored. Add versioned SQL files under
-`server/migrations/` with the feature that uses them. Embedded migration changes
-trigger recompilation. Do not change an applied migration, including formatting
-or whitespace, because SQLx checksums its bytes. Format new migrations before
+`server/migrations/` with the feature that uses them, following the
+[sequential filename convention](../coding/coding-standards.md#source-filenames).
+Embedded migration changes trigger recompilation. Do not rename, renumber, or
+edit an applied migration, including formatting or whitespace, because SQLx
+checks its version and checksums its bytes. Format new migrations before
 applying them. Missing versions,
 checksum changes, failed migrations, and invalid databases prevent startup.
 A failed migration rolls back itself and its bookkeeping, not previously
