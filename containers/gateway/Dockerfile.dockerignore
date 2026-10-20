@@ -1,0 +1,4 @@
+**
+!config/
+!config/gateway/
+!config/gateway/nginx.conf

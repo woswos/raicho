@@ -7,8 +7,9 @@ procedure is maintained in the [showcase guide](../../assets/brand/showcase/READ
 
 Run from the repository root with Docker and Compose installed. Git is needed
 to clone the repository and prepare local PR comparisons. The image supplies
-Bash, Python, Make, Node, Rust, and the selected quality tools. Host language
-toolchains are not required. Build after changing the image or dependency pins:
+Bash, Python, Make, Node, Rust, the selected quality tools, and Python test
+fixtures. Host language toolchains are not required. Rebuild after changing
+the image, dependency pins, or packaged fixture sources:
 
 ```bash
 docker compose -f compose/compose.tools.yaml build
@@ -125,8 +126,9 @@ Run source builds and behavioral tests through the same tooling container:
 
 ```bash
 docker compose -f compose/compose.tools.yaml run --rm check make build-app test-app
-docker compose -f compose/compose.tools.yaml run --rm check \
-  python3 -B -m unittest discover -s containers/thunderbird -p '*_tests.py'
+docker compose -f compose/compose.tools.yaml run --rm \
+  -e PYTHONPATH=/workspace/runtime/thunderbird check \
+  python3 -B -m unittest discover -s tests/thunderbird_runtime -p '*_tests.py'
 ```
 
 `build-app` combines `build-server`, `build-web`, and `build-extension`. `test-app`
@@ -213,8 +215,9 @@ Run the focused source checks through the tooling image:
 ```bash
 docker compose -f compose/compose.tools.yaml run --rm check \
   make build-extension test-extension typecheck
-docker compose -f compose/compose.tools.yaml run --rm check \
-  python3 -B -m unittest discover -s containers/thunderbird -p '*_tests.py'
+docker compose -f compose/compose.tools.yaml run --rm \
+  -e PYTHONPATH=/workspace/runtime/thunderbird check \
+  python3 -B -m unittest discover -s tests/thunderbird_runtime -p '*_tests.py'
 bash devbin/raicho_check_extension_lifecycle.bash
 ```
 
@@ -236,10 +239,11 @@ the tooling container and run `python3 -B devbin/raicho_build_extension.py
 --output /output/raicho.xpi`; `--version` selects the version for an upgrade test.
 No test modules or credentials enter the archive.
 
-The lifecycle fixture unit tests use the Thunderbird image because its pinned
-websockify package provides the WebSocket server. The lifecycle runner runs those
-tests before starting the fixture. CI's `compatibility-test` job runs the same
-command. The production ten-minute check is separate from this historical fixture.
+The lifecycle fixture controller, check driver, and fixture unit tests use the
+same tooling image as language checks. It packages their sources and the pinned
+websockify dependency. The lifecycle runner rebuilds that image before running
+the fixture. CI's `compatibility-test` job runs the same command. The production
+ten-minute check is separate from this historical fixture.
 
 ## Releases
 
@@ -263,8 +267,14 @@ bash devbin/raicho_check_mail_compatibility.bash --native
 
 The separate `test-mail-probe` target compiles and tests the fixture extension.
 It does not change `build-app` or the production XPI. The host runner builds
-temporary Docker images, runs fixture unit tests, and starts a fresh isolated
-mail deployment. It cleans up its own images, containers, networks, and volumes.
+temporary tags for the tooling image and the normal Thunderbird image. The
+tooling image runs fixture unit tests, the controller, SMTP/IMAP fault proxy,
+and test driver. A one-off tooling service builds the mail test XPI into a
+disposable artifact volume. Thunderbird mounts it read-only over its production
+extension directory, with volume copy-up disabled, and mounts the profile setup
+source read-only. Only Thunderbird loads its own NSS library to seed credentials.
+GreenMail retains its pinned upstream image. There is no separate mail-probe
+image recipe. The runner cleans up its own images, containers, networks, and volumes.
 The default run covers drafts and restart. `--native` also requires a browser
 on the Linux Docker host for the sending permission and native draft checkpoints.
 Sending and native checks are explicitly skipped in unattended mode. CI's

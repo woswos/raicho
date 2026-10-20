@@ -21,14 +21,16 @@ Raicho from reaching Thunderbird's administrative listener. Both retain provider
 internet access. The image now includes a TypeScript extension with a persistent
 background page and generated enterprise policy. It is inactive without managed
 configuration. With provisioned credentials it connects outbound through a fixed
-Nginx proxy to a separate Rust WebSocket listener. Only the proxy joins both
+Nginx gateway to a separate Rust WebSocket listener. Only the gateway joins both
 networks. The browser displays authenticated connection status.
 Browser login and mail operations remain planned.
 
 A separate test-only extension and disposable GreenMail deployment exercise
 mail API compatibility. A fixed SMTP/IMAP fault proxy and test controller run
-on an internal network with a fresh fictional profile. The production XPI has
-no mail permissions or probe commands. See the
+on an internal network with a fresh fictional profile. These Python helpers and
+the lifecycle helpers share the development tooling image. Thunderbird uses its
+normal runtime image with read-only mounts for the mail test extension and
+profile setup code. The production XPI has no mail permissions or probe commands. See the
 [versioned compatibility matrix](mail-api-compatibility.md) for observed behavior
 and the native consent and draft-editing gates.
 
@@ -47,7 +49,10 @@ startup never imports tokens. See the
 The [runtime reference](runtime.md) describes endpoints, storage, migrations,
 image packaging, and configuration. The existing showcase in `assets/brand/`
 remains a separate static concept with fictional in-memory messages. Shared
-Docker tooling runs language, application, and repository checks.
+Docker tooling runs language, application, and repository checks, and packages
+the Python mocks and drivers used by disposable tests. The
+[shared test image decision](../decisions/20261026-repository-layout.md#tooling-image)
+records that boundary.
 SQLFluff checks standalone production SQL embedded into the Rust executable,
 using the same tooling image locally and in CI. See the
 [Compose and SQL decision](../decisions/20261018-compose-layout-and-sql-quality.md).
@@ -63,8 +68,8 @@ flowchart LR
     Display --> Thunderbird[Thunderbird]
     Thunderbird --> Profile[(Thunderbird profile)]
     Thunderbird --> Extension[Packaged extension]
-    Extension -->|WebSocket| Proxy[Fixed internal connector proxy]
-    Proxy --> Listener[Rust connector listener]
+    Extension -->|WebSocket| Gateway[Fixed internal gateway]
+    Gateway --> Listener[Rust connector listener]
     Listener --> State
     Listener -->|Connection diagnostics| Server
 ```
@@ -81,7 +86,7 @@ Thunderbird owns messages, accounts, provider credentials, drafts, and filters.
 Raicho keeps login, preferences, and connector credentials in SQLite, and does
 not persist mail or run a second filter engine. The browser talks to a Raicho mail
 contract. Thunderbird-specific objects stay in the extension adapter. The current
-proxy and control transport provide the connection boundary for those future operations.
+gateway and control transport provide the connection boundary for those future operations.
 
 The foundation plan holds the target component diagram, storage rules, backup
 requirements, and stage gates. The stage 2 experiments record mail API limitations.
@@ -98,10 +103,10 @@ decisions. The
 selects Axum, Tokio, SQLx, the initial SQLite configuration, and the independently
 built Thunderbird image. The
 [connector plan](../planning/done/20261018-foundation-stage-two-connector.md)
-selects MV2 packaging, managed configuration, a fixed internal proxy, and a
+selects MV2 packaging, managed configuration, a fixed internal gateway, and a
 versioned authenticated protocol. The lifecycle fixture, mail compatibility
 fixture, and control contract have separate implementations.
-Credential persistence, offline provisioning, production control transport, proxy,
+Credential persistence, offline provisioning, production control transport, gateway,
 and connection diagnostics are implemented. Dedicated CI jobs run the source and
 unattended acceptance commands described in the
 [acceptance record](connector-acceptance.md). The static showcase remains a design reference.

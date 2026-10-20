@@ -33,7 +33,7 @@ bash devbin/raicho_connector.bash reactivate
 ```
 
 Every command stops Raicho and Thunderbird. Successful `init`, `rotate`,
-`reactivate`, and `verify` recreate both services and the connector proxy, wait for
+`reactivate`, and `verify` recreate both services and the gateway, wait for
 their health checks, and require an authenticated heartbeat within 90 seconds.
 `status` and
 `revoke` leave them stopped. Failures also leave services stopped unless service
@@ -42,7 +42,7 @@ The helper holds a deployment operation lock for the entire sequence. SQLite's
 instance lock independently rejects provisioning while another process owns it.
 
 `compose/compose.credentials.yaml` adds offline provisioning services and mounts
-the secret read-only into Thunderbird. It configures the fixed internal proxy
+the secret read-only into Thunderbird. It configures the fixed internal gateway
 endpoint. Verification checks the SQLite digest, file permissions, UID 10001
 access, service health, and the live authenticated connection. The diagnostics
 page should report `Connected`. This confirms the control connection, not mail

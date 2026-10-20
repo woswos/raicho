@@ -39,10 +39,10 @@ def send(connection, opcode, contents):
 
 
 def reject(mail=False):
-    with socket.create_connection(('connector-proxy', 8081), timeout=8) as connection:
+    with socket.create_connection(('gateway', 8081), timeout=8) as connection:
         key = base64.b64encode(secrets.token_bytes(16)).decode()
         request = (
-            'GET /connector/v1 HTTP/1.1\r\nHost: connector-proxy:8081\r\n'
+            'GET /connector/v1 HTTP/1.1\r\nHost: gateway:8081\r\n'
             'Origin: moz-extension://12345678-1234-1234-1234-123456789abc\r\n'
             'Upgrade: websocket\r\nConnection: Upgrade\r\n'
             f'Sec-WebSocket-Version: 13\r\nSec-WebSocket-Key: {key}\r\n\r\n'
@@ -98,7 +98,7 @@ def reject(mail=False):
         assert opcode == 8
         assert struct.unpack('!H', contents[:2])[0] == (4002 if mail else 4001)
         send(connection, 8, contents)
-    print('Proxy forwarded the bounded rejection without reflecting input')
+    print('Gateway forwarded the bounded rejection without reflecting input')
 
 
 if __name__ == '__main__':

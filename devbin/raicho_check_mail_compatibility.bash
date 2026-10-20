@@ -15,9 +15,8 @@ elif [[ ${#} != 0 ]]; then
 fi
 
 PROJECT="raicho-mail-$(date -u +%Y%m%d%H%M%S)-${RANDOM}"
-TOOLING_IMAGE="${PROJECT}:tools"
-export RAICHO_MAIL_BASE_IMAGE="${PROJECT}:base"
-export RAICHO_MAIL_PROBE_IMAGE="${PROJECT}:probe"
+export RAICHO_TEST_TOOLING_IMAGE="${PROJECT}:tools"
+export RAICHO_MAIL_TEST_IMAGE="${PROJECT}:thunderbird"
 COMPOSE=(docker compose -p "${PROJECT}" -f compose/compose.mail_test.yaml)
 if [[ ${NATIVE} == true ]]; then
     COMPOSE+=(-f compose/compose.mail_admin.yaml)
@@ -32,8 +31,8 @@ cleanup() {
     if ! "${COMPOSE[@]}" down --volumes --remove-orphans; then
         RESULT=1
     fi
-    docker image rm "${RAICHO_MAIL_PROBE_IMAGE}" "${RAICHO_MAIL_BASE_IMAGE}" \
-        "${TOOLING_IMAGE}" >/dev/null 2>&1 || true
+    docker image rm "${RAICHO_MAIL_TEST_IMAGE}" "${RAICHO_TEST_TOOLING_IMAGE}" \
+        >/dev/null 2>&1 || true
     exit "${RESULT}"
 }
 trap cleanup EXIT
@@ -41,23 +40,20 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 docker build --platform linux/amd64 -f containers/tooling/Dockerfile \
-    -t "${TOOLING_IMAGE}" .
+    -t "${RAICHO_TEST_TOOLING_IMAGE}" .
 docker build --platform linux/amd64 -f containers/thunderbird/Dockerfile \
-    -t "${RAICHO_MAIL_BASE_IMAGE}" .
-docker build --platform linux/amd64 -f containers/mail_probe/Dockerfile \
-    --build-arg "THUNDERBIRD_IMAGE=${RAICHO_MAIL_BASE_IMAGE}" \
-    --build-arg "TOOLING_IMAGE=${TOOLING_IMAGE}" \
-    -t "${RAICHO_MAIL_PROBE_IMAGE}" .
+    -t "${RAICHO_MAIL_TEST_IMAGE}" .
 
-for SUITE in mail_test mail_profile mail_probe; do
+for SUITE in proxy profile probe; do
     docker run --rm --read-only --network none --tmpfs /tmp:mode=1777 \
         --cap-drop ALL --security-opt no-new-privileges:true \
-        --mount "type=bind,source=${REPOSITORY_ROOT}/containers,target=/tests,readonly" \
-        --env PYTHONPATH=/tests/mail_test:/tests/mail_profile:/tests/mail_probe:/tests/extension_test \
-        --entrypoint python3 "${RAICHO_MAIL_BASE_IMAGE}" \
-        -B -m unittest discover -s "/tests/${SUITE}" -p '*_tests.py'
+        --user 10001:10001 \
+        --env PYTHONPATH=/opt/raicho/tests/mail_compatibility/proxy:/opt/raicho/tests/mail_compatibility/profile:/opt/raicho/tests/mail_compatibility/probe:/opt/raicho/tests/extension_lifecycle \
+        --entrypoint python3 "${RAICHO_TEST_TOOLING_IMAGE}" \
+        -B -m unittest discover -s "/opt/raicho/tests/mail_compatibility/${SUITE}" -p '*_tests.py'
 done
 
+"${COMPOSE[@]}" run --rm extension
 "${COMPOSE[@]}" up -d --wait --wait-timeout 120 greenmail probe mail-proxy
 "${COMPOSE[@]}" run --rm driver prepare
 "${COMPOSE[@]}" up -d --wait --wait-timeout 120 thunderbird

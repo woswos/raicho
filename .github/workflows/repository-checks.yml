@@ -60,6 +60,9 @@ jobs:
       - name: Validate runtime configuration
         env:
           RAICHO_CREDENTIAL_DIRECTORY: /tmp/raicho-ci-credentials
+          RAICHO_TEST_TOOLING_IMAGE: raicho-tools:local
+          RAICHO_EXTENSION_TEST_IMAGE: raicho-thunderbird:local
+          RAICHO_MAIL_TEST_IMAGE: raicho-thunderbird:local
         run: |
           docker compose -f compose/compose.yaml config --quiet
           docker compose -f compose/compose.yaml -f compose/compose.admin.yaml config --quiet
@@ -67,6 +70,9 @@ jobs:
           docker compose -f compose/compose.yaml -f compose/compose.test.yaml -f compose/compose.admin.yaml config --quiet
           docker compose -f compose/compose.yaml -f compose/compose.credentials.yaml config --quiet
           docker compose -f compose/compose.yaml -f compose/compose.test.yaml -f compose/compose.admin.yaml -f compose/compose.credentials.yaml config --quiet
+          docker compose -f compose/compose.extension_test.yaml --profile test config --quiet
+          docker compose -f compose/compose.mail_test.yaml --profile test config --quiet
+          docker compose -f compose/compose.mail_test.yaml -f compose/compose.mail_admin.yaml --profile test config --quiet
       - name: Build application images
         run: docker compose -f compose/compose.yaml build
 
@@ -86,8 +92,9 @@ jobs:
         run: docker compose -f compose/compose.tools.yaml run --rm check make build-app test-app test-mail-probe
       - name: Test Thunderbird process supervision
         run: >-
-          docker compose -f compose/compose.tools.yaml run --rm check
-          python3 -B -m unittest discover -s containers/thunderbird -p '*_tests.py'
+          docker compose -f compose/compose.tools.yaml run --rm
+          -e PYTHONPATH=/workspace/runtime/thunderbird check
+          python3 -B -m unittest discover -s tests/thunderbird_runtime -p '*_tests.py'
 
   runtime-test:
     if: >-

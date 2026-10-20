@@ -108,12 +108,17 @@ image by digest. It installs Debian Bookworm support packages from the
 | ShellCheck | 0.11.0 |
 | shfmt | 3.14.1 |
 | SQLFluff | 4.4.0 |
+| websockify (test fixtures) | 0.13.0 |
 
 Python tooling dependencies and their wheel hashes are locked in
 `containers/tooling/requirements.txt`, currently for Python 3.13 on Linux amd64.
 The image installs them with `pip --require-hashes --only-binary=:all:`.
-Refresh this lock inside Docker when upgrading SQLFluff, review all dependency
-changes, and rebuild the image. The entrypoint detects a stale requirements file.
+Refresh this lock inside Docker when upgrading SQLFluff or test dependencies,
+review all dependency changes, and rebuild the image. The entrypoint detects a
+stale requirements file.
+The [websockify release](https://pypi.org/project/websockify/0.13.0/) supplies
+the WebSocket fixture server. Thunderbird's optional desktop support retains its
+Debian package independently.
 
 JavaScript tools use exact versions in `package.json` and resolved dependencies
 in `package-lock.json`:
@@ -141,7 +146,7 @@ The production listener enables Axum 0.8.9's WebSocket support, uses futures-uti
 0.3.34 for socket writes, and getrandom 0.4.3 for session generations.
 Socket tests pin tokio-tungstenite 0.29.0, matching
 Axum's resolved implementation. The runtime proxy pins Nginx 1.30.6 Alpine by
-digest in `containers/connector_proxy/Dockerfile`.
+digest in `containers/gateway/Dockerfile`.
 
 GitHub checkout stays at v7.0.1, pinned to
 `3d3c42e5aac5ba805825da76410c181273ba90b1`. The `ubuntu-24.04` hosted runner

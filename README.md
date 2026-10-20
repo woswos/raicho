@@ -73,8 +73,9 @@ docker compose -f compose/compose.tools.yaml build
 docker compose -f compose/compose.tools.yaml run --rm check make lint format-check typecheck
 ```
 
-The tooling image provides the language tools, so host language toolchains are
-not required. It does not start runtime services.
+The tooling image provides the language tools and Python test fixtures, so host
+language toolchains are not required. The `check` service does not start runtime
+services.
 
 See [build, test, and generate](docs/reference/build-test-generate.md) for
 formatting, additional checks, and Git worktree setup.
@@ -104,6 +105,9 @@ Anyone can contribute. Start with the
 [contributor guide](docs/contributing/getting-started.md) and
 [delivery workflow](docs/contributing/workflow.md). Substantial changes begin
 with a design pull request before implementation.
+
+The [project structure](docs/reference/project-structure.md) explains where image
+recipes, runtime code, configuration, tests, and developer commands belong.
 
 [AGENTS.md](AGENTS.md) is the entry point for AI-assisted work, and
 [decision records](docs/decisions/README.md) explain the project's choices.

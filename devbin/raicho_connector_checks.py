@@ -10,7 +10,7 @@ from raicho_connector_status import snapshot, wait_for_status
 
 
 def raw_request(request_line):
-    with socket.create_connection(('connector-proxy', 8081), timeout=5) as connection:
+    with socket.create_connection(('gateway', 8081), timeout=5) as connection:
         connection.sendall(
             f'{request_line}\r\nHost: attacker.invalid\r\n'
             'Upgrade: websocket\r\nConnection: Upgrade\r\n'
@@ -21,7 +21,7 @@ def raw_request(request_line):
     return int(response.split()[1])
 
 
-def proxy_routes():
+def gateway_routes():
     for request_line in (
         'GET / HTTP/1.1',
         'GET /health/live HTTP/1.1',
@@ -34,7 +34,7 @@ def proxy_routes():
     ):
         assert raw_request(request_line) in (400, 404, 405)
     print(
-        'Proxy rejected alternate paths, queries, encoded paths, destinations and methods'
+        'Gateway rejected alternate paths, queries, encoded paths, destinations and methods'
     )
 
 
@@ -50,24 +50,23 @@ def browser_route():
 
 def deployment():
     containers = json.load(sys.stdin)
-    proxy = next(
+    gateway = next(
         container
         for container in containers
-        if container['Config']['Labels']['com.docker.compose.service']
-        == 'connector_proxy'
+        if container['Config']['Labels']['com.docker.compose.service'] == 'gateway'
     )
-    assert proxy['Config']['User'] == '10001:10001'
-    assert proxy['HostConfig']['ReadonlyRootfs']
-    assert proxy['HostConfig']['CapDrop'] == ['ALL']
-    assert not proxy['HostConfig'].get('CapAdd')
-    assert not proxy['HostConfig']['PortBindings']
-    assert all(mount['Type'] == 'tmpfs' for mount in proxy['Mounts'])
-    assert len(proxy['NetworkSettings']['Networks']) == 2
+    assert gateway['Config']['User'] == '10001:10001'
+    assert gateway['HostConfig']['ReadonlyRootfs']
+    assert gateway['HostConfig']['CapDrop'] == ['ALL']
+    assert not gateway['HostConfig'].get('CapAdd')
+    assert not gateway['HostConfig']['PortBindings']
+    assert all(mount['Type'] == 'tmpfs' for mount in gateway['Mounts'])
+    assert len(gateway['NetworkSettings']['Networks']) == 2
     for container in containers:
-        if container is not proxy:
+        if container is not gateway:
             assert len(container['NetworkSettings']['Networks']) == 1
     print(
-        'Proxy is the only dual-network service and has no ports, secrets or data mounts'
+        'Gateway is the only dual-network service and has no ports, secrets or data mounts'
     )
 
 
@@ -85,7 +84,7 @@ def main():
         wait_for_status(arguments)
     else:
         {
-            'routes': proxy_routes,
+            'routes': gateway_routes,
             'browser': browser_route,
             'deployment': deployment,
             'snapshot': snapshot,

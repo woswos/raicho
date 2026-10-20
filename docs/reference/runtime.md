@@ -21,14 +21,16 @@ official Mozilla archive, Xvfb, Openbox, DBus, and optional noVNC/websockify sup
 Its supervisor starts Thunderbird without a viewer, terminates the other children
 if a required child exits, and forwards shutdown. The health check verifies
 processes and the internal display. A desktop HTTP response alone is insufficient.
+These runtime modules live in `runtime/thunderbird/`, separately from the image recipe.
 
 Base images use digests, support packages use the 20261018 Debian snapshot, and
 downloaded application assets use checksums. Installed OS packages are recorded
 in `/opt/raicho/packages.tsv` inside the Raicho and Thunderbird images. Runtime
 support is Linux amd64.
 
-`containers/connector_proxy/Dockerfile` pins Nginx 1.30.6 Alpine by digest.
-The proxy runs as UID/GID 10001 with a read-only root, bounded temporary storage,
+`containers/gateway/Dockerfile` pins Nginx 1.30.6 Alpine by digest.
+Its routing configuration lives in `config/gateway/nginx.conf`.
+The gateway runs as UID/GID 10001 with a read-only root, bounded temporary storage,
 no data or secret mounts, and no published port.
 
 | Service | Named volume | Container path |
@@ -101,7 +103,7 @@ provides endpoint/token through managed storage. Partial or invalid configuratio
 fails before Thunderbird starts. Neither value is baked into an image or XPI.
 The [credential procedure](../operations/connector-credentials.md) provisions
 the production token and SQLite digest. The credentials override mounts the
-file into Thunderbird and selects `ws://connector-proxy:8081/connector/v1`.
+file into Thunderbird and selects `ws://gateway:8081/connector/v1`.
 Managed policy is read at startup. Thunderbird does not support managed-storage
 change events, so policy changes and terminal authentication failures require
 restarting Thunderbird. The credential wrapper force-recreates it.
@@ -111,8 +113,8 @@ and uses only the `storage`
 permission. Its persistent background authenticates and answers heartbeat.
 The old lifecycle protocol is separately packaged from `extension/lifecycle_probe/`.
 Its disposable network has no external egress or published ports, and its listener
-uses the pinned websockify installation. Neither probe code nor listener enters
-the production XPI.
+uses the tooling image's pinned websockify installation. Neither probe code nor
+listener enters the production XPI.
 See [extension checks](build-test-generate.md#extension-lifecycle) for the command
 and [lifecycle evidence](extension-lifecycle.md) for measured behavior.
 
@@ -123,10 +125,10 @@ Thunderbird uses a separate `thunderbird` bridge network. Both use Docker's
 default NAT isolation and retain internet egress, but Raicho cannot reach
 Thunderbird's container IP or administrative listener. Do not join the two
 services to a shared network or enable direct routing around this boundary.
-Only `connector_proxy` joins both networks. It accepts an exact WebSocket upgrade
+Only `gateway` joins both networks. It accepts an exact WebSocket upgrade
 at `/connector/v1` and forwards to `raicho:8082`. Alternate paths, queries, methods,
 and arbitrary destinations are rejected. Docker DNS is re-resolved so a changed
-Raicho IP requires no proxy recreation. HTTP access logs are disabled.
+Raicho IP requires no gateway recreation. HTTP access logs are disabled.
 
 The administrative override publishes only on host loopback. Use Docker Engine
 28 or newer, since older versions have a

@@ -24,19 +24,19 @@ services:
     stop_grace_period: 30s
     restart: unless-stopped
 
-  connector_proxy:
-    image: raicho-connector-proxy:local
+  gateway:
+    image: raicho-gateway:local
     platform: linux/amd64
     build:
       context: ..
-      dockerfile: containers/connector_proxy/Dockerfile
+      dockerfile: containers/gateway/Dockerfile
     read_only: true
     tmpfs:
       - /tmp:size=16m,mode=1777
     networks:
       application:
       thunderbird:
-        aliases: [connector-proxy]
+        aliases: [gateway]
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
     stop_grace_period: 10s

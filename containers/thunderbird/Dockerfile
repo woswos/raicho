@@ -67,8 +67,8 @@ RUN rm /etc/apt/sources.list.d/debian.sources && \
 COPY --from=download /opt/thunderbird /opt/thunderbird
 COPY --from=download /opt/novnc /usr/share/novnc
 COPY --from=extension /artifact/ /opt/raicho/extension/
-COPY containers/thunderbird/runtime.py containers/thunderbird/supervisor.py \
-    containers/thunderbird/healthcheck.py containers/thunderbird/policy.py /opt/raicho/
+COPY runtime/thunderbird/runtime.py runtime/thunderbird/supervisor.py \
+    runtime/thunderbird/healthcheck.py runtime/thunderbird/policy.py /opt/raicho/
 RUN mkdir -p /opt/thunderbird/distribution && \
     ln -s /tmp/raicho-runtime/policies.json /opt/thunderbird/distribution/policies.json
 

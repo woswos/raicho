@@ -12,7 +12,7 @@ The workflow uses a read-only token and does not retain checkout credentials.
   pushes and PRs, including designs. `make lint` also checks protocol generation drift.
 - `pr-guards`: PR context checks on PR events only, including the changelog
   entry required for user-visible changes.
-- `application-build`: runtime Compose validation and all runtime images.
+- `application-build`: runtime and fixture Compose validation and all runtime images.
 - `application-test`: Rust, browser, and extension builds/tests, plus Thunderbird
   process supervision, generated-policy tests, and separate mail probe source tests.
 - `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
@@ -30,6 +30,9 @@ use no accounts and remove only their job-specific containers and volumes.
 
 Language jobs build the same pinned tooling image used locally. Runtime jobs
 build the application images and use that tooling image for the smoke driver.
+Compatibility runners also use it for Python mock services, fixture unit tests,
+and the mail test extension build. Thunderbird and GreenMail retain their own
+runtime images.
 Sources remain read-only, with separate cache/temp storage. No formatter writes
 or lint fixes run in CI. The hosted runner provides
 Docker and Compose, while language tools come from the image. Exact commands

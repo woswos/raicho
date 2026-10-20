@@ -78,15 +78,15 @@ connected() {
 }
 
 docker compose -f compose/compose.tools.yaml build
-"${COMPOSE[@]}" build raicho thunderbird connector_proxy
+"${COMPOSE[@]}" build raicho thunderbird gateway
 prepare_network
 bash devbin/raicho_connector.bash init
 connected
 SERVER="$("${COMPOSE[@]}" ps -q raicho)"
 THUNDERBIRD="$("${COMPOSE[@]}" ps -q thunderbird)"
-PROXY="$("${COMPOSE[@]}" ps -q connector_proxy)"
-docker inspect --format '{{.Name}} {{.Image}}' "${SERVER}" "${THUNDERBIRD}" "${PROXY}"
-docker inspect "${SERVER}" "${THUNDERBIRD}" "${PROXY}" | check deployment
+GATEWAY="$("${COMPOSE[@]}" ps -q gateway)"
+docker inspect --format '{{.Name}} {{.Image}}' "${SERVER}" "${THUNDERBIRD}" "${GATEWAY}"
+docker inspect "${SERVER}" "${THUNDERBIRD}" "${GATEWAY}" | check deployment
 docker inspect "${SERVER}" "${THUNDERBIRD}" | fixture mounts
 fixture database --revision 1
 "${COMPOSE[@]}" exec -T thunderbird python3 -B - <"${SCRIPT_DIRECTORY}/raicho_inspect_connector_xpi.py"
@@ -102,7 +102,7 @@ if [[ ${SAME_GENERATION} != "${GENERATION}" ]]; then
     exit 1
 fi
 
-for SERVICE in thunderbird connector_proxy raicho; do
+for SERVICE in thunderbird gateway raicho; do
     "${COMPOSE[@]}" restart "${SERVICE}"
     connected
     "${COMPOSE[@]}" up -d --no-deps --force-recreate --wait --wait-timeout 120 "${SERVICE}"
@@ -116,7 +116,7 @@ docker network connect --alias thunderbird "${RAICHO_PROJECT}_thunderbird" "${TH
 connected
 
 SERVER="$("${COMPOSE[@]}" ps -q raicho)"
-PROXY="$("${COMPOSE[@]}" ps -q connector_proxy)"
+GATEWAY="$("${COMPOSE[@]}" ps -q gateway)"
 OLD_ADDRESS="$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${SERVER}")"
 "${COMPOSE[@]}" stop raicho
 "${COMPOSE[@]}" rm -f raicho
@@ -126,19 +126,19 @@ docker run -d --name "${HOLDER}" --network "${RAICHO_PROJECT}_application" \
 "${COMPOSE[@]}" up -d --no-deps --wait --wait-timeout 120 raicho
 SERVER="$("${COMPOSE[@]}" ps -q raicho)"
 NEW_ADDRESS="$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${SERVER}")"
-if [[ ${NEW_ADDRESS} == "${OLD_ADDRESS}" || $("${COMPOSE[@]}" ps -q connector_proxy) != "${PROXY}" ]]; then
-    echo 'FAIL: DNS recovery requires a changed Raicho address and unchanged proxy' >&2
+if [[ ${NEW_ADDRESS} == "${OLD_ADDRESS}" || $("${COMPOSE[@]}" ps -q gateway) != "${GATEWAY}" ]]; then
+    echo 'FAIL: DNS recovery requires a changed Raicho address and unchanged gateway' >&2
     exit 1
 fi
 connected
 docker rm -f "${HOLDER}" >/dev/null
-echo 'Proxy dynamically resolved a recreated Raicho container at a different address'
+echo 'Gateway dynamically resolved a recreated Raicho container at a different address'
 
 COMPOSE_PROJECT_NAME="${RAICHO_PROJECT}" bash devbin/raicho_check_admin_isolation.bash
 connected
-"${COMPOSE[@]}" logs --no-color raicho thunderbird connector_proxy | fixture logs
+"${COMPOSE[@]}" logs --no-color raicho thunderbird gateway | fixture logs
 fixture database --revision 1
-"${COMPOSE[@]}" logs --no-color raicho thunderbird connector_proxy | privacy logs
+"${COMPOSE[@]}" logs --no-color raicho thunderbird gateway | privacy logs
 privacy diagnostics
 privacy database
 echo 'Connector passed: ten-minute idle, authentication, recovery, DNS refresh, isolation, and privacy'

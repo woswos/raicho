@@ -4,11 +4,34 @@ import tempfile
 import unittest
 from pathlib import Path
 
-RUNNER = Path(__file__).with_name('raicho_check_extension_lifecycle.bash')
-
 
 class RunnerCleanupTests(unittest.TestCase):
     def test_ci_termination_removes_the_owned_project_and_image_tags(self):
+        for name, prefix, tags in (
+            (
+                'extension_lifecycle',
+                'raicho-lifecycle-',
+                ('initial', 'upgrade', 'tools'),
+            ),
+            ('mail_compatibility', 'raicho-mail-', ('thunderbird', 'tools')),
+        ):
+            with self.subTest(runner=name):
+                commands = self.interrupt_runner(name)
+                self.assertIn('down --volumes --remove-orphans', commands)
+                removal = next(
+                    line
+                    for line in commands.splitlines()
+                    if line.startswith('image rm ')
+                )
+                images = removal.split()[2:]
+                self.assertEqual(len(images), len(tags))
+                self.assertTrue(all(image.startswith(prefix) for image in images))
+                self.assertEqual(
+                    {image.rsplit(':', 1)[1] for image in images}, set(tags)
+                )
+
+    def interrupt_runner(self, name):
+        runner = Path(__file__).with_name(f'raicho_check_{name}.bash')
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)
             docker = directory / 'docker'
@@ -21,7 +44,7 @@ class RunnerCleanupTests(unittest.TestCase):
             )
             docker.chmod(0o700)
             result = subprocess.run(
-                ['bash', str(RUNNER)],
+                ['bash', str(runner)],
                 env={
                     **os.environ,
                     'PATH': f'{directory}:{os.environ["PATH"]}',
@@ -34,5 +57,4 @@ class RunnerCleanupTests(unittest.TestCase):
             )
             commands = trace.read_text()
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn('down --volumes --remove-orphans', commands)
-        self.assertIn('image rm raicho-lifecycle-', commands)
+        return commands

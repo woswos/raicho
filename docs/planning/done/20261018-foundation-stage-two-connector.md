@@ -22,10 +22,10 @@ Acceptance requires review of the evidence and unresolved API limitations.
 Keep the accepted single-user Rust/SQLite architecture and Thunderbird ownership
 boundary in the foundation plan. This stage adds `extension/`, `protocol/`,
 connector modules under `server/src/`, application-state migrations and queries,
-and a connector proxy recipe under `containers/`. Extend runtime configuration
+and a gateway recipe under `containers/`. Extend runtime configuration
 under `compose/`, the diagnostics in `web/`, Docker tooling, and CI as needed.
 
-The existing `containers/thunderbird/runtime.py` owns Thunderbird startup and
+The existing `runtime/thunderbird/runtime.py` owns Thunderbird startup and
 will gain policy preparation. The Rust server never mounts or edits its profile.
 Production Stage 2 exposes connection diagnostics only. Mail probes and their permissions
 belong to a separate test artifact. Browser login, mailbox APIs, rendering, and
@@ -58,14 +58,14 @@ on a dynamic configuration notification.
 ```mermaid
 flowchart LR
     Browser[Browser diagnostics] -->|HTTP| Server[Raicho Rust server]
-    Extension[Extension inside Thunderbird] -->|WebSocket| Proxy[Connector proxy]
-    Proxy -->|Dedicated internal listener| Server
+    Extension[Extension inside Thunderbird] -->|WebSocket| Gateway[Gateway]
+    Gateway -->|Dedicated internal listener| Server
     Server --- Database[(Raicho SQLite)]
 ```
 
-Add a fixed Nginx proxy as a third production Compose service. Raicho stays on
-`application`, Thunderbird stays on `thunderbird`, and only the proxy joins both.
-The proxy has no published port, data volume, credentials, or mail logic. It is
+Add a fixed Nginx gateway as a third production Compose service. Raicho stays on
+`application`, Thunderbird stays on `thunderbird`, and only the gateway joins both.
+The gateway has no published port, data volume, credentials, or mail logic. It is
 trusted infrastructure with access to Thunderbird's network. This arrangement
 preserves the existing protection against direct access from Raicho.
 
@@ -321,8 +321,9 @@ The existing implementation checks are:
 docker compose -f compose/compose.tools.yaml build
 docker compose -f compose/compose.tools.yaml run --rm check \
   make lint format-check typecheck test-tooling build-app test-app test-mail-probe
-docker compose -f compose/compose.tools.yaml run --rm check \
-  python3 -B -m unittest discover -s containers/thunderbird -p '*_tests.py'
+docker compose -f compose/compose.tools.yaml run --rm \
+  -e PYTHONPATH=/workspace/runtime/thunderbird check \
+  python3 -B -m unittest discover -s tests/thunderbird_runtime -p '*_tests.py'
 bash devbin/raicho_check_connector.bash
 bash devbin/raicho_check_credentials.bash
 bash devbin/raicho_check_extension_lifecycle.bash
@@ -342,6 +343,9 @@ implementation slices additionally ran the source and runtime checks above.
 
 ## Notes
 
+- Fixture follow-up: the [shared test image decision](../../decisions/20261026-repository-layout.md#tooling-image)
+  replaces the dedicated mail-probe image recipe. Python fixture sources now live
+  under `tests/`, and their helpers use the same tooling image as language checks.
 - Publication integration: merged main's product-versioning work from PR #3.
   Production and probe defaults now follow the declared product version 0.1.0.
   Historical experiment versions remain identified in their evidence records.

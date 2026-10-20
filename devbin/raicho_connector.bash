@@ -108,7 +108,7 @@ case "${OPERATION}" in
         ;;
 esac
 database verify --token-file /credentials/connector.token
-"${COMPOSE[@]}" up -d --no-deps --force-recreate --wait --wait-timeout 120 raicho connector_proxy thunderbird
+"${COMPOSE[@]}" up -d --no-deps --force-recreate --wait --wait-timeout 120 raicho gateway thunderbird
 "${COMPOSE[@]}" exec -T thunderbird test -r /run/secrets/raicho_connector_token
 "${COMPOSE[@]}" run --rm --no-deps -T credential_check
 files finish >/dev/null

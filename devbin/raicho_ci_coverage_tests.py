@@ -39,9 +39,22 @@ class WorkflowCoverageTests(unittest.TestCase):
             step.get('run', '') for step in self.jobs['application-test']['steps']
         )
         self.assertIn('make build-app test-app test-mail-probe', script)
+        self.assertIn('PYTHONPATH=/workspace/runtime/thunderbird', script)
+        self.assertIn('unittest discover -s tests/thunderbird_runtime', script)
 
     def test_image_job_validates_the_production_credential_override(self):
         script = '\n'.join(
             step.get('run', '') for step in self.jobs['application-build']['steps']
         )
         self.assertIn('-f compose/compose.credentials.yaml config --quiet', script)
+
+    def test_image_job_validates_the_disposable_fixture_configurations(self):
+        script = '\n'.join(
+            step.get('run', '') for step in self.jobs['application-build']['steps']
+        )
+        for configuration in (
+            '-f compose/compose.extension_test.yaml',
+            '-f compose/compose.mail_test.yaml',
+            '-f compose/compose.mail_test.yaml -f compose/compose.mail_admin.yaml',
+        ):
+            self.assertIn(f'{configuration} --profile test config --quiet', script)

@@ -1,6 +1,6 @@
 import unittest
 
-from fault_evidence import verify_fault_events
+from scenario_faults import verify_fault_events
 
 
 class FaultEvidenceTests(unittest.TestCase):

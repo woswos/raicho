@@ -30,15 +30,15 @@ class ProbeSocketTests(unittest.TestCase):
         connection.settimeout.assert_called_once_with(35)
 
     def test_text_frames_reuse_library_decoder_with_binary_payload_assembly(self):
-        decoded = ProbeSocket()._decode_hybi(b'\x81\x0e{"sequence":0}')
+        decoded = ProbeSocket(None)._decode_hybi(b'\x81\x0e{"sequence":0}')
         self.assertEqual(decoded['opcode'], 2)
         self.assertEqual(decoded['payload'], b'{"sequence":0}')
 
     def test_incomplete_frames_remain_incomplete(self):
-        self.assertIsNone(ProbeSocket()._decode_hybi(b'\x81'))
+        self.assertIsNone(ProbeSocket(None)._decode_hybi(b'\x81'))
 
     def test_ping_frames_keep_their_control_opcode(self):
-        decoded = ProbeSocket()._decode_hybi(b'\x89\x00')
+        decoded = ProbeSocket(None)._decode_hybi(b'\x89\x00')
         self.assertEqual(decoded['opcode'], 9)
 
     def test_closed_websocket_does_not_access_cleared_socket(self):

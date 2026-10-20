@@ -11,6 +11,7 @@ from websockify.websocketserver import WebSocketRequestHandler, WebSocketServer
 
 
 class ControlHandler(WebSocketRequestHandler):
+    protocol_version = 'HTTP/1.1'
     SocketClass = ControlSocket
 
     def setup(self):

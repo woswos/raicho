@@ -1,7 +1,7 @@
 name: raicho-extension-test
 
 x-runtime: &runtime
-  image: ${RAICHO_EXTENSION_TEST_IMAGE:?Set the disposable test image}
+  image: ${RAICHO_TEST_TOOLING_IMAGE:?Set the disposable tooling image}
   platform: linux/amd64
   user: '10001:10001'
   read_only: true
@@ -14,9 +14,15 @@ x-runtime: &runtime
 services:
   probe:
     <<: *runtime
-    entrypoint: [python3, -B, /test/probe_server.py, --directory, /config]
+    entrypoint:
+      [
+        python3,
+        -B,
+        /opt/raicho/tests/extension_lifecycle/probe_server.py,
+        --directory,
+        /config,
+      ]
     volumes:
-      - ../containers/extension_test:/test:ro
       - fixture:/config
     networks: [lifecycle]
     healthcheck:
@@ -33,6 +39,7 @@ services:
 
   thunderbird:
     <<: *runtime
+    image: ${RAICHO_EXTENSION_TEST_IMAGE:?Set the disposable test image}
     depends_on:
       probe:
         condition: service_healthy
@@ -51,11 +58,17 @@ services:
   check:
     <<: *runtime
     profiles: [test]
-    entrypoint: [python3, -B, /test/probe_check.py, --directory, /config]
+    entrypoint:
+      [
+        python3,
+        -B,
+        /opt/raicho/tests/extension_lifecycle/probe_check.py,
+        --directory,
+        /config,
+      ]
     healthcheck:
       disable: true
     volumes:
-      - ../containers/extension_test:/test:ro
       - fixture:/config
     network_mode: none
 

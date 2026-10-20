@@ -5,8 +5,12 @@ import traceback
 from pathlib import Path
 
 from probe_state import ProbeState
-from websockify.websocket import WebSocket, WebSocketWantReadError
-from websockify.websocketserver import WebSocketRequestHandler, WebSocketServer
+from websockify.websocket import WebSocketWantReadError
+from websockify.websocketserver import (
+    HttpWebSocket,
+    WebSocketRequestHandler,
+    WebSocketServer,
+)
 
 
 class BudgetSocket:
@@ -25,7 +29,7 @@ class BudgetSocket:
         return content
 
 
-class ProbeSocket(WebSocket):
+class ProbeSocket(HttpWebSocket):
     def accept(self, connection, headers):
         super().accept(BudgetSocket(connection), headers)
 
@@ -38,6 +42,7 @@ class ProbeSocket(WebSocket):
 
 
 class ProbeHandler(WebSocketRequestHandler):
+    protocol_version = 'HTTP/1.1'
     SocketClass = ProbeSocket
 
     def log_message(self, *_arguments):

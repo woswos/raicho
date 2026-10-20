@@ -9,6 +9,7 @@ cd "${REPOSITORY_ROOT}"
 PROJECT="raicho-lifecycle-$(date -u +%Y%m%d%H%M%S)-${RANDOM}"
 INITIAL_IMAGE="${PROJECT}:initial"
 UPGRADE_IMAGE="${PROJECT}:upgrade"
+export RAICHO_TEST_TOOLING_IMAGE="${PROJECT}:tools"
 export RAICHO_EXTENSION_TEST_IMAGE="${INITIAL_IMAGE}"
 COMPOSE=(docker compose -p "${PROJECT}" -f compose/compose.extension_test.yaml)
 IDLE_SECONDS="${RAICHO_EXTENSION_IDLE_SECONDS:-90}"
@@ -27,10 +28,16 @@ cleanup() {
     if ! "${COMPOSE[@]}" down --volumes --remove-orphans; then
         RESULT=1
     fi
-    docker image rm "${INITIAL_IMAGE}" "${UPGRADE_IMAGE}" >/dev/null 2>&1 || true
+    docker image rm "${INITIAL_IMAGE}" "${UPGRADE_IMAGE}" \
+        "${RAICHO_TEST_TOOLING_IMAGE}" >/dev/null 2>&1 || true
     exit "${RESULT}"
 }
 trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+docker build --platform linux/amd64 -f containers/tooling/Dockerfile \
+    -t "${RAICHO_TEST_TOOLING_IMAGE}" .
 
 for VERSION in 0.1.0 0.1.1; do
     IMAGE="${INITIAL_IMAGE}"
@@ -44,9 +51,9 @@ done
 
 docker run --rm --read-only --network none --tmpfs /tmp:mode=1777 \
     --cap-drop ALL --security-opt no-new-privileges:true \
-    --mount "type=bind,source=${REPOSITORY_ROOT}/containers/extension_test,target=/test,readonly" \
-    --workdir /test --entrypoint python3 "${INITIAL_IMAGE}" \
-    -B -m unittest discover -s /test -p '*_tests.py'
+    --user 10001:10001 --workdir /opt/raicho/tests/extension_lifecycle \
+    --entrypoint python3 "${RAICHO_TEST_TOOLING_IMAGE}" \
+    -B -m unittest discover -s . -p '*_tests.py'
 
 "${COMPOSE[@]}" up -d --wait --wait-timeout 120 probe thunderbird
 CONTAINER="$("${COMPOSE[@]}" ps -q thunderbird)"

@@ -30,14 +30,14 @@ class ControlSocketTests(unittest.TestCase):
         reader, writer = socket.socketpair()
         self.addCleanup(reader.close)
         self.addCleanup(writer.close)
-        connection = ControlSocket()
+        connection = ControlSocket(None)
         connection.socket = reader
         self.assertFalse(readable(connection, 0))
         writer.sendall(b'x')
         self.assertTrue(readable(connection, 0))
 
     def test_readable_consumes_buffered_frame_without_network_data(self):
-        connection = ControlSocket()
+        connection = ControlSocket(None)
         connection._recv_queue = [{'opcode': 2, 'payload': b'{}'}]
         self.assertTrue(readable(connection, 0))
 
