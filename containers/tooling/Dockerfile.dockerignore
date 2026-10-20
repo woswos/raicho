@@ -8,9 +8,11 @@
 !package.json
 !package-lock.json
 !eslint.config.mjs
-!tests/
-!tests/extension_lifecycle/
-!tests/extension_lifecycle/**
-!tests/mail_compatibility/
-!tests/mail_compatibility/**
+!extension/
+!extension/lifecycle_probe/
+!extension/lifecycle_probe/tests/
+!extension/lifecycle_probe/tests/**
+!extension/mail_probe/
+!extension/mail_probe/tests/
+!extension/mail_probe/tests/**
 **/__pycache__

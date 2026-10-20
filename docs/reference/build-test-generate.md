@@ -15,6 +15,10 @@ the image, dependency pins, or packaged fixture sources:
 docker compose -f compose/compose.tools.yaml build
 ```
 
+The image's build-context allowlist is
+`containers/tooling/Dockerfile.dockerignore`. Fixture sources come from the
+component-local directories listed in [project structure](project-structure.md#test-code).
+
 The entrypoint also compares `package.json`, `package-lock.json`,
 `eslint.config.mjs`, and `containers/tooling/requirements.txt` with the image
 copies. A mismatch stops the command with a
@@ -128,7 +132,7 @@ Run source builds and behavioral tests through the same tooling container:
 docker compose -f compose/compose.tools.yaml run --rm check make build-app test-app
 docker compose -f compose/compose.tools.yaml run --rm \
   -e PYTHONPATH=/workspace/runtime/thunderbird check \
-  python3 -B -m unittest discover -s tests/thunderbird_runtime -p '*_tests.py'
+  python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
 ```
 
 `build-app` combines `build-server`, `build-web`, and `build-extension`. `test-app`
@@ -217,7 +221,7 @@ docker compose -f compose/compose.tools.yaml run --rm check \
   make build-extension test-extension typecheck
 docker compose -f compose/compose.tools.yaml run --rm \
   -e PYTHONPATH=/workspace/runtime/thunderbird check \
-  python3 -B -m unittest discover -s tests/thunderbird_runtime -p '*_tests.py'
+  python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
 bash devbin/raicho_check_extension_lifecycle.bash
 ```
 

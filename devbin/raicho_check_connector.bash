@@ -13,7 +13,7 @@ export RAICHO_CREDENTIAL_DIRECTORY="${RAICHO_STATE_DIRECTORY}/credentials"
 export RAICHO_COMPOSE_TEST=1
 mkdir -m 700 "${RAICHO_CREDENTIAL_DIRECTORY}"
 COMPOSE=(docker compose -p "${RAICHO_PROJECT}" -f compose/compose.yaml
-    -f compose/compose.credentials.yaml -f compose/compose.test.yaml)
+    -f compose/compose.credentials.yaml -f compose/compose.runtime_test.yaml)
 HOLDER="${RAICHO_PROJECT}-address-holder"
 PROBE=(docker run --rm -i --read-only --user 10001:10001 --cap-drop ALL
     --security-opt no-new-privileges:true

@@ -323,7 +323,7 @@ docker compose -f compose/compose.tools.yaml run --rm check \
   make lint format-check typecheck test-tooling build-app test-app test-mail-probe
 docker compose -f compose/compose.tools.yaml run --rm \
   -e PYTHONPATH=/workspace/runtime/thunderbird check \
-  python3 -B -m unittest discover -s tests/thunderbird_runtime -p '*_tests.py'
+  python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
 bash devbin/raicho_check_connector.bash
 bash devbin/raicho_check_credentials.bash
 bash devbin/raicho_check_extension_lifecycle.bash

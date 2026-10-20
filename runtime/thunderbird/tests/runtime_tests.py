@@ -8,8 +8,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 from healthcheck import healthy
-from runtime import admin_enabled, commands
 from supervisor import Supervisor, process_identity
+
+from runtime import admin_enabled, commands
 
 
 class RuntimeTests(unittest.TestCase):

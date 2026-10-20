@@ -18,7 +18,7 @@ services:
       [
         python3,
         -B,
-        /opt/raicho/tests/extension_lifecycle/probe_server.py,
+        /opt/raicho/extension/lifecycle_probe/tests/probe_server.py,
         --directory,
         /config,
       ]
@@ -62,7 +62,7 @@ services:
       [
         python3,
         -B,
-        /opt/raicho/tests/extension_lifecycle/probe_check.py,
+        /opt/raicho/extension/lifecycle_probe/tests/probe_check.py,
         --directory,
         /config,
       ]

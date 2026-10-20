@@ -9,7 +9,12 @@
 !extension/package.json
 !extension/tsconfig.json
 !extension/lifecycle_probe/
-!extension/lifecycle_probe/**
+!extension/lifecycle_probe/src/
+!extension/lifecycle_probe/src/**
+!extension/lifecycle_probe/background.html
+!extension/lifecycle_probe/manifest.json
+!extension/lifecycle_probe/package.json
+!extension/lifecycle_probe/tsconfig.json
 !devbin/
 !devbin/raicho_build_extension.py
 !runtime/

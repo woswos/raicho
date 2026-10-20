@@ -19,7 +19,7 @@ CONFIGURATION_FILES = {
     'compose/compose.ci.yaml',
     'compose/compose.yaml',
     'compose/compose.admin.yaml',
-    'compose/compose.test.yaml',
+    'compose/compose.runtime_test.yaml',
     'compose/compose.credentials.yaml',
     'compose/compose.extension_test.yaml',
     'compose/compose.mail_test.yaml',

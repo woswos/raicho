@@ -34,7 +34,7 @@ class TestImageTests(unittest.TestCase):
                     if name == 'extension':
                         self.assertEqual(service['network_mode'], 'none')
                     else:
-                        self.assertNotIn('../tests/', str(service['volumes']))
+                        self.assertNotIn('../extension/', str(service['volumes']))
 
     def test_mail_fixture_mounts_only_the_disposable_test_artifact(self):
         configured = services('compose.mail_test.yaml')
@@ -51,7 +51,7 @@ class TestImageTests(unittest.TestCase):
         artifact = extension['source']
         self.assertIn(f'{artifact}:/artifact', configured['extension']['volumes'])
         self.assertIn(
-            '../tests/mail_compatibility/profile:/mail_profile:ro',
+            '../extension/mail_probe/tests/profile:/mail_profile:ro',
             thunderbird['volumes'],
         )
         self.assertEqual(

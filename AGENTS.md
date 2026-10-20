@@ -21,7 +21,7 @@ file explicitly. Rules live in these topic documents, not in this entry point.
 - Git branches, commits, and pull requests: `docs/contributing/git-and-pull-requests.md`
 - Documentation placement: `docs/contributing/documentation-organisation.md`
 - Engineering principles: `docs/contributing/coding-principles.md`
-- Repository layout, runtime code, and test fixtures: `docs/reference/project-structure.md`
+- Repository layout, runtime code, and component-local tests: `docs/reference/project-structure.md`
 - Commands: `docs/reference/build-test-generate.md`
 - CI and pull request guards: `docs/reference/ci-cd.md`
 - Showcase and tooling style: `docs/coding/coding-standards.md`

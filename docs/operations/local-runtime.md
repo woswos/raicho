@@ -82,7 +82,7 @@ It restores Thunderbird without administration before returning.
 ```bash
 (
   export COMPOSE_PROJECT_NAME="raicho-check-$(date +%s)-$$"
-  export COMPOSE_FILE=compose/compose.yaml:compose/compose.test.yaml
+  export COMPOSE_FILE=compose/compose.yaml:compose/compose.runtime_test.yaml
   set -eu
   trap 'docker compose down --volumes --remove-orphans' EXIT
   docker compose --profile test build

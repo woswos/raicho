@@ -14,7 +14,7 @@ export RAICHO_CREDENTIAL_DIRECTORY="${RAICHO_STATE_DIRECTORY}/credentials"
 export RAICHO_COMPOSE_TEST=1
 mkdir -m 700 "${RAICHO_CREDENTIAL_DIRECTORY}"
 COMPOSE=(docker compose -p "${RAICHO_PROJECT}" -f compose/compose.yaml
-    -f compose/compose.credentials.yaml -f compose/compose.test.yaml)
+    -f compose/compose.credentials.yaml -f compose/compose.runtime_test.yaml)
 
 fixture() {
     docker run --rm -i --network none --read-only --user 0:0 \

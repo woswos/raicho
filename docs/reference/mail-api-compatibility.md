@@ -24,11 +24,11 @@ optional [administration override](../../compose/compose.mail_admin.yaml) enable
 the desktop listener only inside that fixture network.
 
 The separate [probe extension](../../extension/mail_probe/manifest.json) calls
-standard Thunderbird APIs. A [test controller](../../tests/mail_compatibility/probe/control_server.py)
+standard Thunderbird APIs. A [test controller](../../extension/mail_probe/tests/probe/control_server.py)
 issues correlated commands without replaying them after disconnects. The
-[mail proxy](../../tests/mail_compatibility/proxy/fault_server.py) forwards SMTP and IMAP
+[mail proxy](../../extension/mail_probe/tests/proxy/fault_server.py) forwards SMTP and IMAP
 to GreenMail and injects bounded failures. Direct
-[IMAP inspection](../../tests/mail_compatibility/proxy/mail_inspect.py) checks the fictional
+[IMAP inspection](../../extension/mail_probe/tests/proxy/mail_inspect.py) checks the fictional
 mail independently of the extension's result. Only the test profile initializer
 accesses the fixture profile. Raicho's server has no profile access.
 

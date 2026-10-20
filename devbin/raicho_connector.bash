@@ -48,7 +48,7 @@ mkdir -p -- "${RAICHO_CREDENTIAL_DIRECTORY}"
 sync -f "${STATE_DIRECTORY}"
 COMPOSE=(docker compose -p "${PROJECT}" -f compose/compose.yaml -f compose/compose.credentials.yaml)
 if [[ ${RAICHO_COMPOSE_TEST:-0} == 1 ]]; then
-    COMPOSE+=(-f compose/compose.test.yaml)
+    COMPOSE+=(-f compose/compose.runtime_test.yaml)
 fi
 
 files() {

@@ -10,7 +10,7 @@ CHANGELOG.md       Product changelog used to cut semantic versions
 .github/           Pull request templates and GitHub Actions workflows
 assets/brand/      Production identity masters, fonts, guides, and prototypes
 containers/        Docker recipes, build-context filters, and dependency locks
-runtime/           Production runtime helpers, including Thunderbird startup
+runtime/           Production runtime helpers and their component-local tests
 config/            Runtime configuration, including the gateway's Nginx config
 compose/           Runtime, administration, test, tooling, and CI Compose files
 server/            Rust diagnostics, SQLite queries, migrations, and tests
@@ -18,7 +18,6 @@ web/               TypeScript diagnostics, public files, and behavioral tests
 extension/         Production connector and separate lifecycle/mail API test probes
 protocol/          Control schema, limits, shared fixtures, Rust bindings/generator
 devbin/            Repository guards, language runners, and tooling tests
-tests/             Thunderbird runtime tests and disposable integration fixtures
 docs/contributing/ Contribution workflow and working agreements
 docs/reference/    Current structure, tooling, CI, and architecture
 docs/coding/       Concrete coding and formatting conventions
@@ -28,7 +27,7 @@ docs/planning/     Active and completed staged plans
 
 `compose/compose.yaml` runs the application and Thunderbird with separate volumes
 and the fixed gateway between their networks.
-`compose.admin.yaml` adds local desktop administration, and `compose.test.yaml`
+`compose.admin.yaml` adds local desktop administration, and `compose.runtime_test.yaml`
 adds the isolated runtime fixture driver. `compose.tools.yaml` provides checks
 and formatting, with `compose.ci.yaml` adding the GitHub event mount.
 `compose.credentials.yaml` supplies offline provisioning and the Thunderbird
@@ -51,18 +50,23 @@ persistence are defined in [architecture](architecture.md).
 
 ## Test code
 
-`tests/thunderbird_runtime/` tests the four production Python modules in
+`runtime/thunderbird/tests/` tests the four production Python modules in
 `runtime/thunderbird/`. Set the source import path using the documented
 [test command](build-test-generate.md#application-tooling).
 
-`tests/extension_lifecycle/` owns the lifecycle fixture controller and its tests.
-`tests/mail_compatibility/` groups the mail probe and scenarios under `probe/`,
+`extension/lifecycle_probe/tests/` owns the lifecycle fixture controller and its tests.
+`extension/mail_probe/tests/` groups the mail probe and scenarios under `probe/`,
 fictional profile setup under `profile/`, and SMTP/IMAP fault infrastructure under
 `proxy/`, with their unit tests alongside the fixture code. The tooling image
-packages these fixtures under `/opt/raicho/tests/`. Docker recipes stay under
+packages these fixtures at the same component paths under `/opt/raicho/`.
+Docker recipes stay under
 `containers/`, and the production Thunderbird image copies only its explicit
 runtime modules. See the [fixture commands](build-test-generate.md#mail-api-compatibility)
 for the mail test extension and profile mounts.
+
+Each image's build-context filter lives beside its Dockerfile as
+`Dockerfile.dockerignore`. The tooling filter includes its dependencies and
+component-local fixtures. The Thunderbird filter excludes test directories.
 
 Module boundaries follow the
 [coding standards](../coding/coding-standards.md#naming-and-structure).

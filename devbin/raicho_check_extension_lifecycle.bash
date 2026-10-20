@@ -51,7 +51,7 @@ done
 
 docker run --rm --read-only --network none --tmpfs /tmp:mode=1777 \
     --cap-drop ALL --security-opt no-new-privileges:true \
-    --user 10001:10001 --workdir /opt/raicho/tests/extension_lifecycle \
+    --user 10001:10001 --workdir /opt/raicho/extension/lifecycle_probe/tests \
     --entrypoint python3 "${RAICHO_TEST_TOOLING_IMAGE}" \
     -B -m unittest discover -s . -p '*_tests.py'
 

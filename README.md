@@ -77,6 +77,10 @@ The tooling image provides the language tools and Python test fixtures, so host
 language toolchains are not required. The `check` service does not start runtime
 services.
 
+Docker recipes and their build-context filters live in `containers/`, deployment
+definitions in `compose/`, and tests beside their owning components. See
+[project structure](docs/reference/project-structure.md) for the layout.
+
 See [build, test, and generate](docs/reference/build-test-generate.md) for
 formatting, additional checks, and Git worktree setup.
 

@@ -52,7 +52,8 @@ remains a separate static concept with fictional in-memory messages. Shared
 Docker tooling runs language, application, and repository checks, and packages
 the Python mocks and drivers used by disposable tests. The
 [shared test image decision](../decisions/20261026-repository-layout.md#tooling-image)
-records that boundary.
+records that boundary. Fixtures and runtime tests live beside their owning
+components, as described in [project structure](project-structure.md#test-code).
 SQLFluff checks standalone production SQL embedded into the Rust executable,
 using the same tooling image locally and in CI. See the
 [Compose and SQL decision](../decisions/20261018-compose-layout-and-sql-quality.md).

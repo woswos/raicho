@@ -11,7 +11,7 @@ if [[ -z ${COMPOSE_PROJECT_NAME:-} || ${COMPOSE_PROJECT_NAME} == raicho ]]; then
     exit 1
 fi
 
-BASE_COMPOSE=(docker compose -p "${COMPOSE_PROJECT_NAME}" -f compose/compose.yaml -f compose/compose.test.yaml)
+BASE_COMPOSE=(docker compose -p "${COMPOSE_PROJECT_NAME}" -f compose/compose.yaml -f compose/compose.runtime_test.yaml)
 if [[ -n ${RAICHO_CREDENTIAL_DIRECTORY:-} ]]; then
     BASE_COMPOSE+=(-f compose/compose.credentials.yaml)
 fi
