@@ -320,7 +320,7 @@ The existing implementation checks are:
 ```bash
 docker compose -f compose/compose.tools.yaml build
 docker compose -f compose/compose.tools.yaml run --rm check \
-  make lint format-check typecheck test-tooling build-app test-app test-mail-probe
+  make lint format-check typecheck test-tooling build-app test-app test-mail-probe test-protocol
 docker compose -f compose/compose.tools.yaml run --rm \
   -e PYTHONPATH=/workspace/runtime/thunderbird check \
   python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
@@ -331,7 +331,8 @@ bash devbin/raicho_check_mail_compatibility.bash
 ```
 
 The extension is included in `build-app` and `test-app`, while protocol drift runs
-under `lint`. Host runners orchestrate Docker outside the read-only tooling
+under `lint`. `test-protocol` also runs the independently compiled TypeScript
+protocol suite. Host runners orchestrate Docker outside the read-only tooling
 container, which has no Docker socket. They own uniquely named disposable
 projects, never use personal profiles or provider credentials, and clean up
 only their own resources. The existing CI labels and independent readiness

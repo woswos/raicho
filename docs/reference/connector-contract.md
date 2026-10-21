@@ -29,9 +29,16 @@ authentication frame. An incoming frame never enrolls a token.
   phases, expected generations, and error codes run in both languages.
 - [Rust crate](../../protocol/rust/src/lib.rs): generated types and limits,
   embedded offline `jsonschema` validation, and a boundary decoder.
-- [Extension decoder](../../extension/src/contract/decode_frame.ts): generated
+- [TypeScript project](../../protocol/typescript/src/decode_frame.ts): generated
   types and limits with a bundled Ajv standalone validator. No runtime Ajv,
   network schema retrieval, Node imports, or dynamic code generation is required.
+
+Both implementations live under `protocol/`, with their own tests. The TypeScript
+project is private ES modules and imports no Thunderbird APIs. The extension
+imports those sources directly. Its XPI preserves the compiled `extension/src/`
+and `protocol/typescript/src/` paths so browser module imports resolve inside the
+archive. The background page remains at the archive root. Protocol fixtures and
+tests are excluded from production packaging.
 
 Use the boundary decoder on untrusted input. Deserializing a generated type or
 calling the schema validator alone does not enforce frame size, phase, generation,

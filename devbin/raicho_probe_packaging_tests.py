@@ -34,7 +34,8 @@ class ProbePackagingTests(unittest.TestCase):
                         self.assertEqual(manifest['permissions'], ['storage'])
                         self.assertNotIn('dispatcher.js', archive.namelist())
                         self.assertIn(
-                            'contract/validator_generated.js', archive.namelist()
+                            'protocol/typescript/src/validator_generated.js',
+                            archive.namelist(),
                         )
                         self.assertNotIn('node_modules/', ''.join(archive.namelist()))
                     else:
@@ -46,7 +47,7 @@ class ProbePackagingTests(unittest.TestCase):
                         self.assertIn('permission.html', archive.namelist())
                         self.assertFalse(
                             any(
-                                name.startswith('contract/')
+                                name.startswith('protocol/')
                                 for name in archive.namelist()
                             )
                         )

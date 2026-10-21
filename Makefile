@@ -47,5 +47,5 @@ generate-protocol:
 	@python3 -B devbin/raicho_protocol.py generate
 check-protocol:
 	@python3 -B devbin/raicho_protocol.py check
-test-protocol:
+test-protocol: test-extension
 	@python3 -B devbin/raicho_protocol.py test

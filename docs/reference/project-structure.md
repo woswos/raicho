@@ -16,7 +16,7 @@ compose/           Runtime, administration, test, tooling, and CI Compose files
 server/            Rust diagnostics, SQLite queries, migrations, and tests
 web/               TypeScript diagnostics, public files, and behavioral tests
 extension/         Production connector and separate lifecycle/mail API test probes
-protocol/          Control schema, limits, shared fixtures, Rust bindings/generator
+protocol/          Control schema, limits, fixtures, Rust/TypeScript implementations
 devbin/            Repository guards, language runners, and tooling tests
 docs/contributing/ Contribution workflow and working agreements
 docs/reference/    Current structure, tooling, CI, and architecture
@@ -49,6 +49,11 @@ modules, and their current integration boundary. Component responsibilities and
 persistence are defined in [architecture](architecture.md).
 
 ## Test code
+
+`protocol/rust/tests/` and `protocol/typescript/tests/` run the shared protocol
+fixtures against their respective implementations. TypeScript protocol tests
+compile independently of the extension. See the
+[contract commands](build-test-generate.md#connector-contract).
 
 `runtime/thunderbird/tests/` tests the four production Python modules in
 `runtime/thunderbird/`. Set the source import path using the documented

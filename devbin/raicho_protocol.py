@@ -7,6 +7,7 @@ import tempfile
 from pathlib import Path
 
 from raicho_protocol_schema import validate_sources
+from raicho_protocol_typescript import test_typescript
 
 ROOT = Path(__file__).resolve().parent.parent
 OUTPUTS = {
@@ -15,7 +16,7 @@ OUTPUTS = {
         ['generated.rs', 'limits_generated.rs'],
     ),
     'typescript': (
-        Path('extension/src/contract'),
+        Path('protocol/typescript/src'),
         [
             'contract_generated.ts',
             'validator_generated.js',
@@ -98,16 +99,7 @@ def main():
                 cwd=ROOT,
                 check=True,
             )
-            subprocess.run(
-                [
-                    sys.executable,
-                    '-B',
-                    str(ROOT / 'devbin/raicho_application.py'),
-                    'test-extension',
-                ],
-                cwd=ROOT,
-                check=True,
-            )
+            test_typescript(ROOT)
         else:
             generate(action)
     except (OSError, ValueError, subprocess.CalledProcessError) as error:

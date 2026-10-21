@@ -15,6 +15,12 @@
 !extension/lifecycle_probe/manifest.json
 !extension/lifecycle_probe/package.json
 !extension/lifecycle_probe/tsconfig.json
+!protocol/
+!protocol/typescript/
+!protocol/typescript/src/
+!protocol/typescript/src/**
+!protocol/typescript/package.json
+!protocol/typescript/tsconfig.json
 !devbin/
 !devbin/raicho_build_extension.py
 !runtime/

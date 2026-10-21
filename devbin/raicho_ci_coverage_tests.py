@@ -38,7 +38,7 @@ class WorkflowCoverageTests(unittest.TestCase):
         script = '\n'.join(
             step.get('run', '') for step in self.jobs['application-test']['steps']
         )
-        self.assertIn('make build-app test-app test-mail-probe', script)
+        self.assertIn('make build-app test-app test-mail-probe test-protocol', script)
         self.assertIn('PYTHONPATH=/workspace/runtime/thunderbird', script)
         self.assertIn('unittest discover -s runtime/thunderbird/tests', script)
 

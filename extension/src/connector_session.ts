@@ -1,7 +1,10 @@
 import type { Configuration } from './configuration.js';
-import type { Authenticate, Pong } from './contract/contract_generated.js';
-import { decodeFrame } from './contract/decode_frame.js';
-import { LIMITS } from './contract/limits_generated.js';
+import type {
+  Authenticate,
+  Pong,
+} from '../../protocol/typescript/src/contract_generated.js';
+import { decodeFrame } from '../../protocol/typescript/src/decode_frame.js';
+import { LIMITS } from '../../protocol/typescript/src/limits_generated.js';
 
 export interface Metadata {
   backendVersion: string;

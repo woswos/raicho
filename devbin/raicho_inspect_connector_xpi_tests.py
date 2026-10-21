@@ -18,7 +18,7 @@ class ProductionArchiveTests(unittest.TestCase):
         }
         with zipfile.ZipFile(path, 'w') as archive:
             archive.writestr('manifest.json', json.dumps(manifest))
-            archive.writestr('connector_transport.js', contents)
+            archive.writestr('extension/src/connector_transport.js', contents)
         return path
 
     def test_inspects_the_packaged_archive_for_secrets_and_probe_content(self):

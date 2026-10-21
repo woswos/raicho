@@ -12,6 +12,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts --no-audit --no-fund
 ENV PATH="/build/node_modules/.bin:${PATH}"
 COPY extension/ extension/
+COPY protocol/typescript/ protocol/typescript/
 COPY devbin/raicho_build_extension.py devbin/raicho_build_extension.py
 ARG RAICHO_EXTENSION_VERSION
 ARG RAICHO_EXTENSION_SOURCE=extension

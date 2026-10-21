@@ -5,6 +5,8 @@ from pathlib import Path
 
 EXCLUDED = {'.git', 'node_modules', 'target', 'dist', 'vendor', '__pycache__'}
 CONFIGURATION_FILES = {
+    'protocol/typescript/package.json',
+    'protocol/typescript/tsconfig.json',
     'protocol/limits.json',
     'protocol/schema/connector.schema.json',
     'protocol/fixtures/control.json',

@@ -13,8 +13,9 @@ The workflow uses a read-only token and does not retain checkout credentials.
 - `pr-guards`: PR context checks on PR events only, including the changelog
   entry required for user-visible changes.
 - `application-build`: runtime and fixture Compose validation and all runtime images.
-- `application-test`: Rust, browser, and extension builds/tests, plus Thunderbird
-  process supervision, generated-policy tests, and separate mail probe source tests.
+- `application-test`: Rust, browser, extension, and shared protocol builds/tests,
+  plus Thunderbird process supervision, generated-policy tests, and separate
+  mail probe source tests.
 - `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
   administrative network isolation and listener closure, and application readiness
   while Thunderbird is stopped, in a disposable project.

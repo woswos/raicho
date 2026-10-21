@@ -5,7 +5,10 @@ import { probeFixture } from './probe_fixture.mjs';
 
 export const { startConnectorTransport } = await import(
   pathToFileURL(
-    resolve(process.env.RAICHO_EXTENSION_BUILD_DIR, 'connector_transport.js'),
+    resolve(
+      process.env.RAICHO_EXTENSION_BUILD_DIR,
+      'extension/src/connector_transport.js',
+    ),
   ).href
 );
 export const configuration = {

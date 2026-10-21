@@ -16,7 +16,9 @@ def inspect_archive(path, token):
         )
         assert not manifest.get('optional_permissions')
         assert not manifest.get('experiment_apis')
-        assert 'connector_transport.js' in names, 'Production transport is missing'
+        assert 'extension/src/connector_transport.js' in names, (
+            'Production transport is missing'
+        )
         for name in names:
             assert not name.endswith(('.ts', '.map')), (
                 'Source/test artifact entered XPI'

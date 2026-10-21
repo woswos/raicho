@@ -7,10 +7,10 @@ import { pathToFileURL, URL } from 'node:url';
 
 const { ContractError, decodeFrame } = await import(
   pathToFileURL(
-    resolve(process.env.RAICHO_EXTENSION_BUILD_DIR, 'contract/decode_frame.js'),
+    resolve(process.env.RAICHO_PROTOCOL_BUILD_DIR, 'decode_frame.js'),
   ).href
 );
-const fixtureDirectory = new URL('../../protocol/fixtures/', import.meta.url);
+const fixtureDirectory = new URL('../../fixtures/', import.meta.url);
 const fixtureFiles = (await readdir(fixtureDirectory)).filter((filename) =>
   filename.endsWith('.json'),
 );
@@ -54,10 +54,7 @@ test('contract errors do not disclose rejected input', () => {
 
 test('standalone validator has no runtime code generation or dependencies', async () => {
   const source = await readFile(
-    resolve(
-      process.env.RAICHO_EXTENSION_BUILD_DIR,
-      'contract/validator_generated.js',
-    ),
+    resolve(process.env.RAICHO_PROTOCOL_BUILD_DIR, 'validator_generated.js'),
     'utf8',
   );
   assert.doesNotMatch(source, /\bimport\s*(?:\(|["'{*])/u);

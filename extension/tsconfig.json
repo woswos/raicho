@@ -9,8 +9,11 @@
     "noUncheckedIndexedAccess": true,
     "verbatimModuleSyntax": true,
     "noEmitOnError": true,
-    "rootDir": "src",
+    "rootDir": "..",
     "outDir": "dist"
   },
-  "include": ["src/**/*.ts", "src/contract/validator_generated.js"]
+  "include": [
+    "src/**/*.ts",
+    "../protocol/typescript/src/validator_generated.js"
+  ]
 }

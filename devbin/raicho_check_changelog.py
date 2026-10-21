@@ -28,6 +28,8 @@ def is_shipping(path):
         return True
     if path.startswith('web/src/') and name.endswith(('.ts', '.css')):
         return True
+    if path.startswith('protocol/typescript/src/') and name.endswith(('.ts', '.js')):
+        return True
     if path.startswith('web/public/') and name.endswith(('.html', '.css', '.svg')):
         return True
     if path.startswith('extension/') and (

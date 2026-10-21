@@ -1,6 +1,6 @@
 import type { Configuration } from './configuration.js';
 import { connectorSession, type Metadata } from './connector_session.js';
-import { LIMITS } from './contract/limits_generated.js';
+import { LIMITS } from '../../protocol/typescript/src/limits_generated.js';
 
 interface Dependencies {
   connect: (endpoint: string) => WebSocket;

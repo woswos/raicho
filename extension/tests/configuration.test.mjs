@@ -6,7 +6,10 @@ import { pathToFileURL } from 'node:url';
 
 const { parseConfiguration } = await import(
   pathToFileURL(
-    resolve(process.env.RAICHO_EXTENSION_BUILD_DIR, 'configuration.js'),
+    resolve(
+      process.env.RAICHO_EXTENSION_BUILD_DIR,
+      'extension/src/configuration.js',
+    ),
   ).href
 );
 const token = 'a'.repeat(64);

@@ -35,7 +35,8 @@ profile setup code. The production XPI has no mail permissions or probe commands
 and the native consent and draft-editing gates.
 
 The [connector contract](connector-contract.md) now provides a shared control
-schema, generated Rust/TypeScript bindings, and bounded decoders used by the
+schema, generated Rust/TypeScript bindings, and bounded decoders under
+`protocol/rust/` and `protocol/typescript/`, used by the
 server and production extension. It carries authentication and heartbeat only.
 Separate lifecycle and mail probes remain test artifacts.
 

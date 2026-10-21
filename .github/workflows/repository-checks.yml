@@ -89,7 +89,7 @@ jobs:
       - name: Build tooling image
         run: docker compose -f compose/compose.tools.yaml build
       - name: Build and test application sources
-        run: docker compose -f compose/compose.tools.yaml run --rm check make build-app test-app test-mail-probe
+        run: docker compose -f compose/compose.tools.yaml run --rm check make build-app test-app test-mail-probe test-protocol
       - name: Test Thunderbird process supervision
         run: >-
           docker compose -f compose/compose.tools.yaml run --rm

@@ -5,9 +5,8 @@ import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
 
 const { isUnambiguousJson } = await import(
-  pathToFileURL(
-    resolve(process.env.RAICHO_EXTENSION_BUILD_DIR, 'contract/raw_json.js'),
-  ).href
+  pathToFileURL(resolve(process.env.RAICHO_PROTOCOL_BUILD_DIR, 'raw_json.js'))
+    .href
 );
 
 test('raw JSON rejects duplicate members including escaped aliases', () => {

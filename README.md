@@ -80,6 +80,8 @@ services.
 Docker recipes and their build-context filters live in `containers/`, deployment
 definitions in `compose/`, and tests beside their owning components. See
 [project structure](docs/reference/project-structure.md) for the layout.
+The shared connector protocol has Rust and TypeScript implementations under
+`protocol/`.
 
 See [build, test, and generate](docs/reference/build-test-generate.md) for
 formatting, additional checks, and Git worktree setup.

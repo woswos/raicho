@@ -76,7 +76,7 @@ Missing project configuration or tools fail. Runner fixture success does not
 replace application tests or runtime verification.
 
 Generated contract outputs remain under formatting and generation-drift checks.
-Only `extension/src/contract/validator_generated.js` disables ESLint's generated
+Only `protocol/typescript/src/validator_generated.js` disables ESLint's generated
 variable redeclaration, unused variable/assignment, and unreachable-code rules.
 Other JavaScript rules and hand-written contract files retain normal checks.
 Regenerate these files instead of editing them. Rust wire types omit `Debug` to

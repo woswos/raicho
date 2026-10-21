@@ -129,7 +129,7 @@ docker compose -f compose/compose.tools.yaml -f compose/compose.ci.yaml run --rm
 Run source builds and behavioral tests through the same tooling container:
 
 ```bash
-docker compose -f compose/compose.tools.yaml run --rm check make build-app test-app
+docker compose -f compose/compose.tools.yaml run --rm check make build-app test-app test-protocol
 docker compose -f compose/compose.tools.yaml run --rm \
   -e PYTHONPATH=/workspace/runtime/thunderbird check \
   python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
@@ -172,8 +172,10 @@ Use the caller's UID/GID for writable generation as above. `generate-protocol`
 builds both generators into temporary output, then updates committed bindings,
 limits, and the standalone validator. `check-protocol` compares fresh output
 without editing sources and runs under `lint` in CI. `test-protocol` runs the
-Rust contract/generator and compiled production extension tests. The same tests
-also run through `test-app`. See the [contract reference](connector-contract.md)
+Rust contract/generator tests, independently compiled TypeScript protocol tests,
+and production/lifecycle extension tests through its `test-extension` dependency.
+CI runs `test-protocol` alongside `test-app`, which covers the application and
+extension suites. See the [contract reference](connector-contract.md)
 for sources, parsing rules, and integration responsibilities.
 
 ## Credential persistence

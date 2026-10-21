@@ -34,7 +34,7 @@ class ExtensionPackagingTests(unittest.TestCase):
             names = archive.namelist()
             self.assertEqual(names, sorted(names))
             self.assertIn('background.html', names)
-            self.assertIn('background.js', names)
+            self.assertIn('extension/src/background.js', names)
             self.assertTrue(
                 all(name.endswith(('.js', '.html', '.json')) for name in names)
             )
@@ -76,6 +76,10 @@ class ExtensionPackagingTests(unittest.TestCase):
         source_root = self.directory / 'source'
         extension_root = source_root / 'extension'
         shutil.copytree(BUILDER.parent.parent / 'extension', extension_root)
+        shutil.copytree(
+            BUILDER.parent.parent / 'protocol/typescript',
+            source_root / 'protocol/typescript',
+        )
         builder = source_root / 'devbin' / BUILDER.name
         builder.parent.mkdir()
         shutil.copyfile(BUILDER, builder)
