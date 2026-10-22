@@ -55,11 +55,11 @@ def main():
         run(['cargo', action, '--workspace', '--all-targets', '--locked'])
     elif target.endswith('extension') or target == 'test-mail-probe':
         if target == 'test-mail-probe':
-            extension(Path('extension/mail_probe'), True, 'RAICHO_MAIL_PROBE_BUILD_DIR')
+            extension(Path('extension/mailprobe'), True, 'RAICHO_MAIL_PROBE_BUILD_DIR')
         else:
             extension(Path('extension'), target.startswith('test-'))
             if target == 'test-extension':
-                extension(Path('extension/lifecycle_probe'), True)
+                extension(Path('extension/lifecycleprobe'), True)
     else:
         with tempfile.TemporaryDirectory(prefix='raicho-web-') as directory:
             run(['node', 'devbin/raicho_build_web.mjs', directory])

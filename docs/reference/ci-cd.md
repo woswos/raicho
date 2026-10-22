@@ -69,11 +69,11 @@ observations. See [acceptance evidence](connector-acceptance.md) for scope and l
 
 ## Repository integrity
 
-`make lint-repo` checks the AGENTS document references, canonical skills
-directory, documentation and source filenames, skill metadata/example
+`make lint-repo` checks the AGENTS document references, directory names,
+documentation and source filenames, skill metadata/example
 paths, and the declared product version, then runs the guard tests. The
-[source naming guard](../coding/linting-and-formatting.md#scope-and-enforcement)
-runs in the existing `lint` job and is not bypassed by skip labels.
+[naming guards](../coding/linting-and-formatting.md#scope-and-enforcement)
+run in the existing `lint` job and are not bypassed by skip labels.
 Documentation checks include tracked and untracked non-ignored
 documentation, including tracked paths missing from the worktree. `AGENTS.md`
 must `@`-load the working agreement, workflow, key conventions, and

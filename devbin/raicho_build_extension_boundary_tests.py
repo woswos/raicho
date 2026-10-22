@@ -55,7 +55,7 @@ class ExtensionBoundaryTests(unittest.TestCase):
                     '--output',
                     str(output),
                     '--source-root',
-                    str(BUILDER.parent.parent / 'extension' / 'lifecycle_probe'),
+                    str(BUILDER.parent.parent / 'extension' / 'lifecycleprobe'),
                 ],
                 check=True,
             )

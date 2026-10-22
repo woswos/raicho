@@ -51,7 +51,7 @@ class TestImageTests(unittest.TestCase):
         artifact = extension['source']
         self.assertIn(f'{artifact}:/artifact', configured['extension']['volumes'])
         self.assertIn(
-            '../extension/mail_probe/tests/profile:/mail_profile:ro',
+            '../extension/mailprobe/tests/profile:/mail_profile:ro',
             thunderbird['volumes'],
         )
         self.assertEqual(

@@ -13,7 +13,7 @@ x-fixture: &fixture
   <<: *runtime
   image: ${RAICHO_TEST_TOOLING_IMAGE:?Set the disposable tooling image}
   environment:
-    PYTHONPATH: /opt/raicho/extension/lifecycle_probe/tests:/opt/raicho/extension/mail_probe/tests/proxy:/opt/raicho/extension/mail_probe/tests/probe
+    PYTHONPATH: /opt/raicho/extension/lifecycleprobe/tests:/opt/raicho/extension/mailprobe/tests/proxy:/opt/raicho/extension/mailprobe/tests/probe
   volumes: [fixture:/config]
   networks: [mail-test]
 
@@ -38,7 +38,7 @@ services:
       [
         python3,
         -B,
-        /opt/raicho/extension/mail_probe/tests/probe/control_server.py,
+        /opt/raicho/extension/mailprobe/tests/probe/control_server.py,
       ]
     healthcheck:
       test:
@@ -58,7 +58,7 @@ services:
       [
         python3,
         -B,
-        /opt/raicho/extension/mail_probe/tests/proxy/fault_server.py,
+        /opt/raicho/extension/mailprobe/tests/proxy/fault_server.py,
         --directory,
         /config,
       ]
@@ -89,7 +89,7 @@ services:
     volumes:
       - profile:/config
       - fixture:/fixture:ro
-      - ../extension/mail_probe/tests/profile:/mail_profile:ro
+      - ../extension/mailprobe/tests/profile:/mail_profile:ro
       - type: volume
         source: artifacts
         target: /opt/raicho/extension
@@ -104,7 +104,7 @@ services:
     <<: *fixture
     profiles: [test]
     entrypoint:
-      [python3, -B, /opt/raicho/extension/mail_probe/tests/probe/driver.py]
+      [python3, -B, /opt/raicho/extension/mailprobe/tests/probe/driver.py]
     healthcheck: { disable: true }
 
   extension:
@@ -118,7 +118,7 @@ services:
         -B,
         devbin/raicho_build_extension.py,
         --source-root,
-        /workspace/extension/mail_probe,
+        /workspace/extension/mailprobe,
         --output-directory,
         /artifact,
       ]

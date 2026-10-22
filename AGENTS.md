@@ -8,6 +8,7 @@ reports connection health. Mail commands and browser mail workflows are still pl
 Read the documents below before working in this repository. The `@` lines are
 file references. If your agent does not expand them automatically, open each
 file explicitly. Rules live in these topic documents, not in this entry point.
+The always-loaded workflow covers planning, implementation, and documentation updates.
 
 ## Always loaded
 
@@ -25,5 +26,5 @@ file explicitly. Rules live in these topic documents, not in this entry point.
 - Commands: `docs/reference/build-test-generate.md`
 - Shared Rust/TypeScript protocol sources: `docs/reference/connector-contract.md`
 - CI and pull request guards: `docs/reference/ci-cd.md`
-- Showcase and tooling style: `docs/coding/coding-standards.md`
+- Coding and naming conventions: `docs/coding/coding-standards.md`
 - Formatters and linters: `docs/coding/linting-and-formatting.md`

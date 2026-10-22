@@ -59,8 +59,8 @@ compile independently of the extension. See the
 `runtime/thunderbird/`. Set the source import path using the documented
 [test command](build-test-generate.md#application-tooling).
 
-`extension/lifecycle_probe/tests/` owns the lifecycle fixture controller and its tests.
-`extension/mail_probe/tests/` groups the mail probe and scenarios under `probe/`,
+`extension/lifecycleprobe/tests/` owns the lifecycle fixture controller and its tests.
+`extension/mailprobe/tests/` groups the mail probe and scenarios under `probe/`,
 fictional profile setup under `profile/`, and SMTP/IMAP fault infrastructure under
 `proxy/`, with their unit tests alongside the fixture code. The tooling image
 packages these fixtures at the same component paths under `/opt/raicho/`.

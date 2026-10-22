@@ -7,7 +7,7 @@ and the [runtime reference](runtime.md#extension-installation) owns configuratio
 
 ## Scope
 
-This historical experiment now lives in `extension/lifecycle_probe/`, packaged
+This historical experiment now lives in `extension/lifecycleprobe/`, packaged
 separately from the production connector. Its results below describe the original
 fixture versions. The production XPI uses the [control contract](connector-contract.md).
 

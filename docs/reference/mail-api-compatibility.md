@@ -23,12 +23,12 @@ Docker network. It has no route to real mail providers or published ports. The
 optional [administration override](../../compose/compose.mail_admin.yaml) enables
 the desktop listener only inside that fixture network.
 
-The separate [probe extension](../../extension/mail_probe/manifest.json) calls
-standard Thunderbird APIs. A [test controller](../../extension/mail_probe/tests/probe/control_server.py)
+The separate [probe extension](../../extension/mailprobe/manifest.json) calls
+standard Thunderbird APIs. A [test controller](../../extension/mailprobe/tests/probe/control_server.py)
 issues correlated commands without replaying them after disconnects. The
-[mail proxy](../../extension/mail_probe/tests/proxy/fault_server.py) forwards SMTP and IMAP
+[mail proxy](../../extension/mailprobe/tests/proxy/fault_server.py) forwards SMTP and IMAP
 to GreenMail and injects bounded failures. Direct
-[IMAP inspection](../../extension/mail_probe/tests/proxy/mail_inspect.py) checks the fictional
+[IMAP inspection](../../extension/mailprobe/tests/proxy/mail_inspect.py) checks the fictional
 mail independently of the extension's result. Only the test profile initializer
 accesses the fixture profile. Raicho's server has no profile access.
 

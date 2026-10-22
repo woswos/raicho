@@ -3,6 +3,8 @@ import re
 import sys
 from pathlib import Path
 
+SKILL_NAME = r'[a-z0-9]+(?:-[a-z0-9]+)*'
+
 
 def scalar(value):
     value = value.strip()
@@ -29,7 +31,7 @@ def scalar(value):
 def inspect_skill(root, directory):
     if directory.is_symlink() or not directory.is_dir():
         raise ValueError('skills root must contain only regular skill directories')
-    if not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', directory.name):
+    if not re.fullmatch(SKILL_NAME, directory.name):
         raise ValueError('invalid skill directory name')
     entries = list(directory.iterdir())
     path = directory / 'SKILL.md'

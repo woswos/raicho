@@ -15,7 +15,7 @@ class ProbePackagingTests(unittest.TestCase):
             outputs = Path(temporary)
             for label, arguments in (
                 ('production', []),
-                ('probe', ['--source-root', 'extension/mail_probe']),
+                ('probe', ['--source-root', 'extension/mailprobe']),
             ):
                 archive_path = outputs / f'{label}.xpi'
                 subprocess.run(

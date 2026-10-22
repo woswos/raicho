@@ -45,13 +45,13 @@ for VERSION in 0.1.0 0.1.1; do
         IMAGE="${UPGRADE_IMAGE}"
     fi
     docker build --platform linux/amd64 -f containers/thunderbird/Dockerfile \
-        --build-arg RAICHO_EXTENSION_SOURCE=extension/lifecycle_probe \
+        --build-arg RAICHO_EXTENSION_SOURCE=extension/lifecycleprobe \
         --build-arg "RAICHO_EXTENSION_VERSION=${VERSION}" -t "${IMAGE}" .
 done
 
 docker run --rm --read-only --network none --tmpfs /tmp:mode=1777 \
     --cap-drop ALL --security-opt no-new-privileges:true \
-    --user 10001:10001 --workdir /opt/raicho/extension/lifecycle_probe/tests \
+    --user 10001:10001 --workdir /opt/raicho/extension/lifecycleprobe/tests \
     --entrypoint python3 "${RAICHO_TEST_TOOLING_IMAGE}" \
     -B -m unittest discover -s . -p '*_tests.py'
 

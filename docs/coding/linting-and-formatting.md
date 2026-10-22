@@ -49,6 +49,12 @@ tests locally and in CI. It checks the
 HTML and CSS names without adding them to the formatting scope. Renames are
 explicit edits, never formatter fixes.
 
+`devbin/raicho_check_directory_naming.py` enforces the separate
+[directory convention](coding-standards.md#directory-names). It also runs under
+`make lint-repo`, including regression tests for nested paths, reserved paths,
+ignored and missing files, and CLI root selection. It shares Git discovery and
+the exclusions below with the source filename guard.
+
 Check and format commands discover tracked and non-ignored untracked source
 through Git. Disposable fixture directories use filesystem discovery. Scope
 includes Bash (`.bash`, `.sh`, and shell shebangs), Python (`.py`, `.pyi`),

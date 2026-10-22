@@ -41,13 +41,20 @@ artifacts are outside this guard.
 Keep one canonical copy directly at `.agents/skills/<name>/SKILL.md`. Skills are flat, with no grouping
 subdirectories or auxiliary files. Frontmatter contains an exact `name` and a
 non-empty single-line `description`. Use plain or quoted single-line YAML scalars.
+Skill names use lowercase kebab-case: letters and digits in words separated by
+one hyphen, such as `write-plan-doc` and `execute-plan-stage`. The frontmatter
+`name` equals the directory name. The skill guard under `make lint-repo`
+enforces both, and the directory guard applies the same pattern.
 
-Only `add-*` scaffolding skills carry an `examples` list of one to three existing
-repository file paths. Each example is also cited in the skill body. Add such
+Only `add-*` scaffolding skills, such as `add-endpoint`, carry an `examples` list
+of one to three existing repository file paths. Each example is also cited in
+the skill body. Add such
 skills only once recurring patterns exist. Group related names with prefixes.
 
 ## Maintenance
 
+Documentation scope and completion checks are part of the
+[implementation workflow](workflow.md#documentation-with-implementation).
 Broken links and instructions that contradict the repository are defects. Use
 `execute-doc-housekeeping` to reconcile them. ADR lifecycle rules live in the
 [decision guide](../decisions/README.md).

@@ -56,9 +56,27 @@ source extensions are checked even when missing from the worktree. Extensionless
 scripts require a readable shell shebang. Stage a rename to remove its old name
 from the index before running it. Dependency/build directories and historical
 references use the [tooling exclusions](linting-and-formatting.md#scope-and-enforcement).
-Directory names, documentation, configuration data, and artwork retain their
+Documentation, configuration data, and artwork filenames retain their
 existing naming conventions. See the
 [decision](../decisions/20261018-source-filename-convention.md) for rationale.
+
+## Directory names
+
+Use ASCII lowercase letters and digits only for every owned directory name
+inside the repository, matching `[a-z0-9]+`. Join words without separators,
+such as `mailprobe` and `lifecycleprobe`. This includes source, documentation,
+and asset directories. Skill directories use kebab-case instead, as the
+[skill rules](../contributing/documentation-organisation.md#skills) define.
+The exact reserved tool paths `.agents`,
+`.github`, and `.github/PULL_REQUEST_TEMPLATE` are exceptions. Their other
+descendants follow the normal rule.
+
+The directory guard checks parents of tracked and non-ignored untracked paths,
+including tracked paths missing from the worktree. Stage directory renames before
+running it so removed names leave the index. Dependency/build directories and
+historical references use the [tooling exclusions](linting-and-formatting.md#scope-and-enforcement).
+The [directory naming decision](../decisions/20261026-naming-conventions.md#directories)
+records the rationale and migration.
 
 ## Comments and prose
 

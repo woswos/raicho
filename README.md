@@ -82,6 +82,7 @@ definitions in `compose/`, and tests beside their owning components. See
 [project structure](docs/reference/project-structure.md) for the layout.
 The shared connector protocol has Rust and TypeScript implementations under
 `protocol/`.
+Repository guards enforce the [source and directory naming conventions](docs/coding/coding-standards.md).
 
 See [build, test, and generate](docs/reference/build-test-generate.md) for
 formatting, additional checks, and Git worktree setup.

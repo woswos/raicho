@@ -111,7 +111,7 @@ restarting Thunderbird. The credential wrapper force-recreates it.
 The production MV2 extension shares the [declared product version](versioning.md)
 and uses only the `storage`
 permission. Its persistent background authenticates and answers heartbeat.
-The old lifecycle protocol is separately packaged from `extension/lifecycle_probe/`.
+The old lifecycle protocol is separately packaged from `extension/lifecycleprobe/`.
 Its disposable network has no external egress or published ports, and its listener
 uses the tooling image's pinned websockify installation. Neither probe code nor
 listener enters the production XPI.

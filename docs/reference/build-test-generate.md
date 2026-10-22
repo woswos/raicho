@@ -53,7 +53,7 @@ docker compose -f compose/compose.tools.yaml run --rm check make test-tooling
 | Target | Behavior |
 | --- | --- |
 | `lint` | Repository integrity, guard tests, language linters, and protocol generation drift |
-| `lint-repo` | Agent, documentation, source filename, skill, and product version guards with regression tests |
+| `lint-repo` | Agent, documentation, source filename, directory name, skill, and product version guards with regression tests |
 | `format-check` | Check selected source and configuration formatting without edits |
 | `typecheck` | TypeScript compiler with no emitted output |
 | `test-tooling` | Disposable passing/failing Rust, TypeScript, and SQL fixtures exercising the runners |
@@ -227,7 +227,7 @@ docker compose -f compose/compose.tools.yaml run --rm \
 bash devbin/raicho_check_extension_lifecycle.bash
 ```
 
-The separate artifact comes from `extension/lifecycle_probe/`, never the production
+The separate artifact comes from `extension/lifecycleprobe/`, never the production
 XPI. `test-extension` runs both production and lifecycle unit suites.
 The host Bash runner orchestrates Docker only. It creates a unique
 `raicho-lifecycle-...` project, builds extension versions 0.1.0 and 0.1.1 into

@@ -14,8 +14,8 @@ pass referenced in the `write-plan-doc` skill.
 1. Read the target `docs/planning/active/<YYYYMMDD>-<slug>.md`. If the user did
    not name one and several exist, ask which.
 2. Verify the plan structure matches the `write-plan-doc` template: Goal,
-   Approach, Open questions, Stages (ordered checklist), Notes.
-3. Review the plan adversarially across five areas:
+   Approach, Documentation impact, Open questions, Stages (ordered checklist), Notes.
+3. Review the plan adversarially across six areas:
    - **Problem understanding**: is the goal clear? Root causes or symptoms?
      Assumptions stated and valid?
    - **Solution approach**: is the design sound? Simpler approaches ruled out?
@@ -24,6 +24,9 @@ pass referenced in the `write-plan-doc` skill.
      Correct order? Independently verifiable? Any missing?
    - **Scope and risks**: open questions resolved or blocking? External
      dependencies called out? Contingencies planned?
+   - **Documentation**: does the plan satisfy the
+     [documentation workflow](../../../docs/contributing/workflow.md#documentation-with-implementation),
+     including stage-specific updates and verification?
    - **Verifiability**: can each stage's completion be observed without
      waiting for downstream stages?
 4. Optionally use an available independent review agent for another perspective.

@@ -25,6 +25,25 @@ files in plan mode. For non-trivial work, use `write-plan-doc` to capture the go
 approach, open questions, and ordered stages. Resolve blocking questions before
 implementation and offer a `review-plan-doc` critique.
 
+## Documentation with implementation
+
+Every edit plan, whether inline or a staged document, must explicitly assess
+documentation impact. Name the affected documents, including README files,
+references, contributor instructions, and skills where relevant. Assign the
+updates and their validation to the stages that introduce the change. If no
+documentation updates are needed, state that and explain why.
+
+Required documentation work belongs to the same implementation stage and
+approval scope as the change. Update affected behavior descriptions, commands,
+paths, examples, and links alongside implementation without waiting for a
+reminder. Before reporting completion, verify those documents against the final
+implementation and check their local references.
+
+Follow [documentation organisation](documentation-organisation.md) for canonical
+locations and cross-links, and the [decision guide](../decisions/README.md) for
+accepted records. The [documentation decision](../decisions/20261022-documentation-with-implementation.md)
+records this convention.
+
 ## Investigate
 
 Research unfamiliar subsystems before implementing them. Capture reusable
@@ -84,8 +103,8 @@ plan at `done/` by the same dated filename.
 
 ## Housekeeping
 
-Use `execute-doc-housekeeping` when a stage lands and the instructions or
-reference documents must match what that stage changed. Do not run it as a
-periodic prose pass. Commit conventions live in
+Use `execute-doc-housekeeping` for documentation work within an approved change
+or to reconcile existing drift. Do not run it as a periodic prose pass.
+Commit conventions live in
 [Git and pull requests](git-and-pull-requests.md). The rationale for this workflow
 is in the [shared workflow decision](../decisions/20261005-adopt-shared-workflow.md).
