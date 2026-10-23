@@ -4,7 +4,7 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from automation.acceptance.connector.raicho_inspect_connector_xpi import inspect_archive
+from extension.tests.raicho_inspect_connector_xpi import inspect_archive
 
 
 class ProductionArchiveTests(unittest.TestCase):

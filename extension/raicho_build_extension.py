@@ -8,9 +8,7 @@ import tempfile
 import zipfile
 from pathlib import Path
 
-from automation.raicho_paths import REPOSITORY_ROOT
-
-EXTENSION_ROOT = REPOSITORY_ROOT / 'extension'
+EXTENSION_ROOT = Path(__file__).resolve().parent
 
 
 def prepare_directory(directory):

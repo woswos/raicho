@@ -78,9 +78,9 @@ language toolchains are not required. The `check` service does not start runtime
 services.
 
 Docker recipes and their build-context filters live in `containers/`, deployment
-definitions in `compose/`, and development automation in `automation/`, grouped
-by responsibility with component-local tests. Operational credential helpers live
-in `runtime/credentials/`. See the
+definitions in `compose/`, and shared development automation in `automation/`,
+grouped by responsibility. Component-specific builders and tests live with their
+sources. Operational credential helpers live in `runtime/credentials/`. See the
 [placement guide](docs/reference/project-structure.md#placement-rules) for the layout.
 The shared connector protocol has Rust and TypeScript implementations under
 `protocol/`, with generation scripts in `protocol/generator/`.

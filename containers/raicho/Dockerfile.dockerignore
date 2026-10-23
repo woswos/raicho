@@ -9,9 +9,6 @@
 !protocol/**
 !web/
 !web/**
-!automation/
-!automation/build/
-!automation/build/raicho_build_web.mjs
 !assets/
 !assets/brand/
 !assets/brand/logos/

@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  '../..',
+  '..',
 );
 const output = process.argv[2];
 if (!output || !path.isAbsolute(output)) {

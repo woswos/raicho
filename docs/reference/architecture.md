@@ -46,15 +46,17 @@ one operation lock spanning database and file updates. Only the one-off
 provisioner and Thunderbird receive read-only raw credentials. Ordinary server
 startup never imports tokens. The operational wrapper, file helper, and live
 connection verifier live under `runtime/credentials/`, separate from disposable
-acceptance drivers under `automation/acceptance/credentials/`. See the
+acceptance drivers under `runtime/credentials/tests/acceptance/`. See the
 [credential procedure](../operations/connector-credentials.md) for recovery.
 
 The [runtime reference](runtime.md) describes endpoints, storage, migrations,
 image packaging, and configuration. The existing showcase in `assets/brand/`
 remains a separate static concept with fictional in-memory messages. Shared
 Docker tooling runs language, application, and repository checks, and packages
-the Python mocks and drivers used by disposable tests. Development commands live
-in responsibility-based `automation/` packages, while protocol generation belongs
+the Python mocks and drivers used by disposable tests. Component-specific builders
+and acceptance drivers live with their sources. Cross-component build dispatch,
+connector/runtime acceptance, and shared development commands live in
+responsibility-based `automation/` packages, while protocol generation belongs
 to `protocol/generator/`. The
 [shared test image decision](../decisions/20261026-repository-layout.md#tooling-image)
 records that boundary. Fixtures and runtime tests live beside their owning

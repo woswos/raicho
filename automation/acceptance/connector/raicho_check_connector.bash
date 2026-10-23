@@ -23,7 +23,7 @@ fixture() {
     docker run --rm -i --network none --read-only --user 0:0 \
         --cap-drop ALL --cap-add CHOWN --cap-add DAC_OVERRIDE --cap-add FOWNER \
         --security-opt no-new-privileges:true \
-        --mount "type=bind,source=${REPOSITORY_ROOT}/automation/acceptance/credentials/raicho_credential_checks.py,target=/checks.py,readonly" \
+        --mount "type=bind,source=${REPOSITORY_ROOT}/runtime/credentials/tests/acceptance/raicho_credential_checks.py,target=/checks.py,readonly" \
         --mount "type=bind,source=${RAICHO_STATE_DIRECTORY},target=/fixture" \
         --mount "type=volume,source=${RAICHO_PROJECT}_raicho-data,target=/database" \
         --entrypoint python3 raicho-tools:local -B /checks.py "${@}"
@@ -89,7 +89,7 @@ docker inspect --format '{{.Name}} {{.Image}}' "${SERVER}" "${THUNDERBIRD}" "${G
 docker inspect "${SERVER}" "${THUNDERBIRD}" "${GATEWAY}" | check deployment
 docker inspect "${SERVER}" "${THUNDERBIRD}" | fixture mounts
 fixture database --revision 1
-"${COMPOSE[@]}" exec -T thunderbird python3 -B - <"${SCRIPT_DIRECTORY}/raicho_inspect_connector_xpi.py"
+"${COMPOSE[@]}" exec -T thunderbird python3 -B - <"${REPOSITORY_ROOT}/extension/tests/raicho_inspect_connector_xpi.py"
 check idle
 check browser
 "${PROBE[@]}" --network "${RAICHO_PROJECT}_thunderbird" --entrypoint python3 \

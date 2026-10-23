@@ -13,14 +13,12 @@ RUN npm ci --ignore-scripts --no-audit --no-fund
 ENV PATH="/build/node_modules/.bin:${PATH}"
 COPY extension/ extension/
 COPY protocol/typescript/ protocol/typescript/
-COPY automation/raicho_paths.py automation/raicho_paths.py
-COPY automation/build/raicho_build_extension.py automation/build/raicho_build_extension.py
 ARG RAICHO_EXTENSION_VERSION
 ARG RAICHO_EXTENSION_SOURCE=extension
 RUN if [ -n "${RAICHO_EXTENSION_VERSION}" ]; then \
       set -- --version "${RAICHO_EXTENSION_VERSION}"; \
     else set --; fi && \
-    python3 -B -m automation.build.raicho_build_extension --source-root "${RAICHO_EXTENSION_SOURCE}" \
+    python3 -B -m extension.raicho_build_extension --source-root "${RAICHO_EXTENSION_SOURCE}" \
       --output-directory /artifact "${@}"
 
 FROM debian:bookworm-slim@sha256:7c7b2c966bc9ee8cedfeef67e0e279108992c77681fa595db4a9d65c06ccc587 AS download

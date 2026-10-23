@@ -22,6 +22,7 @@ lint-repo:
 	@python3 -B -m automation.repository.raicho_check_skills
 	@python3 -B -m automation.release.raicho_version
 	@python3 -B -m unittest discover -s automation -t . -p 'raicho_*_tests.py'
+	@python3 -B -m unittest discover -s extension/tests -t . -p 'raicho_*_tests.py'
 	@python3 -B -m unittest discover -s runtime/credentials/tests -t . -p 'raicho_*_tests.py'
 	@python3 -B -m unittest discover -s protocol/generator/tests -t . -p 'raicho_*_tests.py'
 

@@ -88,10 +88,10 @@ Back up Raicho's SQLite state separately using a database-supported consistent b
 Stage 1 introduces `server/` for the Rust application, persistence and migrations, `web/` for TypeScript diagnostics, application recipes under `containers/`, runtime Compose files, and an opt-in administrative override. Stage 2 adds `extension/` for Thunderbird integration and `protocol/` for connector schemas. Keep `assets/brand/` as the identity source. Update reference/coding docs, Make targets, CI, and ADRs with the stages that introduce actual behavior.
 
 Follow the current [placement guide](../../reference/project-structure.md#placement-rules)
-as later stages add code. Development commands and their support modules are
-grouped under `automation/`, operational credential helpers under
-`runtime/credentials/`, and protocol generation under `protocol/generator/`.
-Tests remain in each owning component or package's `tests/` directory.
+as later stages add code. Shared development commands and their support modules
+are grouped under `automation/`. Component-specific builders and tests remain
+with their sources, operational credential helpers under `runtime/credentials/`,
+and protocol generation under `protocol/generator/`.
 
 ### Approved stage 1 implementation
 

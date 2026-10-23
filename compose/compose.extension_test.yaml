@@ -50,7 +50,7 @@ services:
     volumes:
       - profile:/config
       - fixture:/fixture:ro
-      - ../automation/acceptance/lifecycle/raicho_extension_runtime_check.py:/test/runtime_check.py:ro
+      - ../extension/lifecycleprobe/tests/raicho_extension_runtime_check.py:/test/runtime_check.py:ro
     networks: [lifecycle]
     shm_size: 1gb
     stop_grace_period: 30s

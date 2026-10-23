@@ -19,7 +19,7 @@ def extension(source_root, testing=False, variable='RAICHO_EXTENSION_BUILD_DIR')
                 'python3',
                 '-B',
                 '-m',
-                'automation.build.raicho_build_extension',
+                'extension.raicho_build_extension',
                 '--source-root',
                 str(source_root),
                 '--output',
@@ -72,7 +72,7 @@ def main():
             run(
                 [
                     'node',
-                    str(REPOSITORY_ROOT / 'automation/build/raicho_build_web.mjs'),
+                    str(REPOSITORY_ROOT / 'web/raicho_build_web.mjs'),
                     directory,
                 ]
             )

@@ -149,7 +149,7 @@ jobs:
       - name: Verify production connector and ten-minute idle acceptance
         run: bash automation/acceptance/connector/raicho_check_connector.bash
       - name: Verify credential rotation, recovery, and revocation
-        run: bash automation/acceptance/credentials/raicho_check_credentials.bash
+        run: bash runtime/credentials/tests/acceptance/raicho_check_credentials.bash
 
   compatibility-test:
     if: >-
@@ -162,6 +162,6 @@ jobs:
         with:
           persist-credentials: false
       - name: Verify extension installation, idle, restart, and upgrade
-        run: bash automation/acceptance/lifecycle/raicho_check_extension_lifecycle.bash
+        run: bash extension/lifecycleprobe/tests/raicho_check_extension_lifecycle.bash
       - name: Verify unattended mail API compatibility
-        run: bash automation/acceptance/mail/raicho_check_mail_compatibility.bash
+        run: bash extension/mailprobe/tests/raicho_check_mail_compatibility.bash

@@ -33,11 +33,12 @@ class RunnerCleanupTests(unittest.TestCase):
                 )
 
     def interrupt_runner(self, name):
-        area = 'lifecycle' if name == 'extension_lifecycle' else 'mail'
+        probe = 'lifecycleprobe' if name == 'extension_lifecycle' else 'mailprobe'
         runner = (
             REPOSITORY_ROOT
-            / 'automation/acceptance'
-            / area
+            / 'extension'
+            / probe
+            / 'tests'
             / f'raicho_check_{name}.bash'
         )
         with tempfile.TemporaryDirectory() as temporary:

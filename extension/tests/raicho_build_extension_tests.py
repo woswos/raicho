@@ -8,9 +8,8 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from automation.raicho_paths import REPOSITORY_ROOT
-
-BUILDER = 'automation.build.raicho_build_extension'
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+BUILDER = 'extension.raicho_build_extension'
 BUILD_ENVIRONMENT = os.environ | {'PYTHONPATH': str(REPOSITORY_ROOT)}
 
 
@@ -90,15 +89,6 @@ class ExtensionPackagingTests(unittest.TestCase):
         shutil.copytree(
             REPOSITORY_ROOT / 'protocol/typescript',
             source_root / 'protocol/typescript',
-        )
-        builder = source_root / 'automation/build/raicho_build_extension.py'
-        builder.parent.mkdir(parents=True)
-        shutil.copyfile(
-            REPOSITORY_ROOT / 'automation/build/raicho_build_extension.py', builder
-        )
-        shutil.copyfile(
-            REPOSITORY_ROOT / 'automation/raicho_paths.py',
-            source_root / 'automation/raicho_paths.py',
         )
         manifest_path = extension_root / 'manifest.json'
         manifest = json.loads(manifest_path.read_text())

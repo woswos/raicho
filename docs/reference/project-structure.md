@@ -38,7 +38,8 @@ Use these locations when adding files or moving existing code:
 | Application sources | Their owning `server/`, `web/`, or `extension/` component |
 | Shared protocol schema, limits, fixtures, and implementations | `protocol/` |
 | Protocol generation scripts and support modules | `protocol/generator/` |
-| Development commands and their support modules | `automation/<responsibility>/` |
+| Component-specific build scripts and packaging | The owning component's root |
+| Shared development commands and their support modules | `automation/<responsibility>/` |
 
 Keep `containers/` focused on recipes and build metadata. Each image's
 `Dockerfile.dockerignore` lives beside its Dockerfile and selects inputs from
@@ -59,8 +60,14 @@ conventions within these locations.
 
 ## Automation
 
-Group development automation by responsibility, including its import-only support
-modules. Use Make as the main developer command interface. It invokes Python
+Keep component-specific builders with their sources: `web/raicho_build_web.mjs`
+and `extension/raicho_build_extension.py`. Their packaging and artifact-boundary
+tests belong in `extension/tests/`. The
+[component ownership decision](../decisions/20261026-repository-layout.md#tests)
+records this placement.
+
+Group shared development automation by responsibility, including its import-only
+support modules. Use Make as the main developer command interface. It invokes Python
 modules directly from the repository root with `python3 -B -m`, and Bash or
 JavaScript entry points by path. Keep Bash for substantive host/Docker orchestration.
 Do not add thin compatibility wrappers or restore a flat helper directory.
@@ -69,13 +76,14 @@ Do not add thin compatibility wrappers or restore a flat helper directory.
 | --- | --- |
 | Agent, naming, changelog, and pull request guards | `automation/repository/` |
 | Language linting, formatting, type checking, and tooling entrypoint | `automation/quality/` |
-| Application builds and extension packaging | `automation/build/` |
+| Cross-component application build/test dispatch | `automation/build/` |
 | Versioning, changelogs, and release preparation | `automation/release/` |
-| Disposable deployment checks | `automation/acceptance/` |
+| Cross-service disposable deployment checks | `automation/acceptance/` |
 | Fixtures shared by automation tests | `automation/testing/` |
 
-Acceptance drivers use `connector/`, `credentials/`, `runtime/`, `lifecycle/`, and
-`mail/` subpackages. The shared repository-path helper lives at
+Cross-service acceptance drivers use `connector/` and `runtime/` subpackages.
+Shared lifecycle/mail runner cleanup regressions remain under
+`automation/acceptance/tests/`. The shared repository-path helper lives at
 `automation/raicho_paths.py`.
 
 Operational credential provisioning, rotation, and live verification belong in
@@ -120,7 +128,9 @@ acceptance runner tests under `automation/acceptance/tests/`. Shared guard fixtu
 live in `automation/testing/`.
 
 `server/tests/`, `web/tests/`, and `extension/tests/` own their respective
-application and integration tests. Rust test support lives under
+application and integration tests. `extension/tests/` also owns Python packaging
+regressions and production-XPI inspection used by connector acceptance.
+Rust test support lives under
 `server/tests/support/`.
 
 `protocol/rust/tests/` and `protocol/typescript/tests/` run the shared protocol
@@ -130,17 +140,21 @@ compile independently of the extension. See the
 Generator regressions live in `protocol/generator/tests/`.
 
 `runtime/credentials/tests/` owns provisioning wrapper, file recovery, and live
-verification unit tests. `make lint-repo` includes these tests, the protocol
-generator tests, and the automation package suites.
+verification unit tests. Its `acceptance/` subtree owns the disposable credential
+deployment runner and fixture checks. `make lint-repo` includes credential unit
+tests, extension packaging and XPI-inspection regressions, protocol generator
+tests, and the automation package suites.
 
 `runtime/thunderbird/tests/` tests the four production Python modules in
 `runtime/thunderbird/`. Set the source import path using the documented
 [test command](build-test-generate.md#application-tooling).
 
-`extension/lifecycleprobe/tests/` owns the lifecycle fixture controller and its tests.
+`extension/lifecycleprobe/tests/` owns the lifecycle fixture controller, host
+acceptance runner, runtime checker, and unit tests.
 `extension/mailprobe/tests/` groups the mail probe and scenarios under `probe/`,
 fictional profile setup under `profile/`, and SMTP/IMAP fault infrastructure under
-`proxy/`, with their unit tests alongside the fixture code.
+`proxy/`, with their unit tests alongside the fixture code and the host acceptance
+runner directly in `tests/`.
 See the [fixture commands](build-test-generate.md#mail-api-compatibility)
 for the mail test extension and profile mounts.
 
@@ -155,8 +169,8 @@ records the image boundary.
 
 The tooling image packages fixture sources at their component-relative paths
 under `/opt/raicho/`. Its build-context filter includes those fixture directories
-and tooling dependencies. Keep fixture code out of production runtime images
-and production XPIs. The Thunderbird recipe copies its explicit runtime modules,
+and tooling dependencies, excluding host Docker orchestration. Keep fixture code
+out of production runtime images and production XPIs. The Thunderbird recipe copies its explicit runtime modules,
 and its filter excludes test directories. Rebuild and execution commands live in
 [build, test, and generate](build-test-generate.md#tooling-image).
 

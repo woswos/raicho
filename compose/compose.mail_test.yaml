@@ -117,7 +117,7 @@ services:
         python3,
         -B,
         -m,
-        automation.build.raicho_build_extension,
+        extension.raicho_build_extension,
         --source-root,
         /workspace/extension/mailprobe,
         --output-directory,

@@ -7,9 +7,8 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from automation.raicho_paths import REPOSITORY_ROOT
-
-BUILDER = 'automation.build.raicho_build_extension'
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+BUILDER = 'extension.raicho_build_extension'
 BUILD_ENVIRONMENT = os.environ | {'PYTHONPATH': str(REPOSITORY_ROOT)}
 
 

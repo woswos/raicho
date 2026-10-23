@@ -54,7 +54,7 @@ docker compose -f compose/compose.tools.yaml run --rm check make test-tooling
 | Target | Behavior |
 | --- | --- |
 | `lint` | Repository integrity, guard tests, language linters, and protocol generation drift |
-| `lint-repo` | Repository guards and unit suites for automation, runtime credentials, and protocol generation |
+| `lint-repo` | Repository guards and unit suites for automation, extension packaging, runtime credentials, and protocol generation |
 | `format-check` | Check selected source and configuration formatting without edits |
 | `typecheck` | TypeScript compiler with no emitted output |
 | `test-tooling` | Disposable passing/failing Rust, TypeScript, and SQL fixtures exercising the runners |
@@ -72,8 +72,8 @@ that repository root. The Docker/Make commands above remain the normal interface
 See [automation placement](project-structure.md#automation) for the module layout
 and invocation convention.
 
-`lint-repo` discovers `*_tests.py` under `automation/`,
-`runtime/credentials/tests/`, and `protocol/generator/tests/`. These package-local
+`lint-repo` discovers `*_tests.py` under `automation/`, `extension/tests/`,
+`runtime/credentials/tests/`, and `protocol/generator/tests/`. These component-local
 suites cover guard failures, quality discovery, packaging, releases, operational
 credential helpers, and acceptance-driver support. Thunderbird runtime and
 extension fixture suites retain the separate commands below.
@@ -149,7 +149,10 @@ combines `test-server`, `test-web`, and `test-extension`.
 Rust uses `--workspace --all-targets --locked` and
 temporary Cargo output. The browser build uses `tsc`, copies public files and
 the selected identity assets, then runs Node's built-in tests against compiled
-modules. All temporary build output stays outside the source mount.
+modules. The web builder is `web/raicho_build_web.mjs`, and extension packaging
+uses `extension/raicho_build_extension.py`. The shared dispatcher remains in
+`automation/build/raicho_application.py`. All temporary build output stays
+outside the source mount.
 
 Tooling defaults to no Rust debug symbols or incremental output, keeping the
 complete workspace build within the temporary filesystem on CI runners. These
@@ -193,7 +196,7 @@ for sources, parsing rules, and integration responsibilities.
 ```bash
 docker compose -f compose/compose.tools.yaml run --rm check \
   make test-server lint-repo lint-sql format-check-sql
-bash automation/acceptance/credentials/raicho_check_credentials.bash
+bash runtime/credentials/tests/acceptance/raicho_check_credentials.bash
 ```
 
 The source checks cover credential state transitions and host-file recovery.
@@ -235,7 +238,7 @@ docker compose -f compose/compose.tools.yaml run --rm check \
 docker compose -f compose/compose.tools.yaml run --rm \
   -e PYTHONPATH=/workspace/runtime/thunderbird check \
   python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
-bash automation/acceptance/lifecycle/raicho_check_extension_lifecycle.bash
+bash extension/lifecycleprobe/tests/raicho_check_extension_lifecycle.bash
 ```
 
 The separate artifact comes from `extension/lifecycleprobe/`, never the production
@@ -252,7 +255,7 @@ uses the default deployment or a personal profile.
 The packager stores sorted archive entries with fixed timestamps and modes.
 Its reproducibility and version tests run under `lint-repo`. `build-extension`
 uses disposable output. To export an XPI, mount an empty output directory into
-the tooling container and run `python3 -B -m automation.build.raicho_build_extension
+the tooling container and run `python3 -B -m extension.raicho_build_extension
 --output /output/raicho.xpi`; `--version` selects the version for an upgrade test.
 No test modules or credentials enter the archive.
 
@@ -278,8 +281,8 @@ documented in [CI](ci-cd.md), and runtime details in [runtime](runtime.md).
 
 ```bash
 docker compose -f compose/compose.tools.yaml run --rm check make test-mail-probe
-bash automation/acceptance/mail/raicho_check_mail_compatibility.bash
-bash automation/acceptance/mail/raicho_check_mail_compatibility.bash --native
+bash extension/mailprobe/tests/raicho_check_mail_compatibility.bash
+bash extension/mailprobe/tests/raicho_check_mail_compatibility.bash --native
 ```
 
 The separate `test-mail-probe` target compiles and tests the fixture extension.

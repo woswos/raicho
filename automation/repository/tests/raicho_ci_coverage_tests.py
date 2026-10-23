@@ -15,11 +15,11 @@ class WorkflowCoverageTests(unittest.TestCase):
         expected = {
             'connector-test': (
                 'bash automation/acceptance/connector/raicho_check_connector.bash',
-                'bash automation/acceptance/credentials/raicho_check_credentials.bash',
+                'bash runtime/credentials/tests/acceptance/raicho_check_credentials.bash',
             ),
             'compatibility-test': (
-                'bash automation/acceptance/lifecycle/raicho_check_extension_lifecycle.bash',
-                'bash automation/acceptance/mail/raicho_check_mail_compatibility.bash',
+                'bash extension/lifecycleprobe/tests/raicho_check_extension_lifecycle.bash',
+                'bash extension/mailprobe/tests/raicho_check_mail_compatibility.bash',
             ),
         }
         for name, commands in expected.items():
