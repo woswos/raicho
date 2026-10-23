@@ -82,8 +82,7 @@ Do not add thin compatibility wrappers or restore a flat helper directory.
 | Fixtures shared by automation tests | `automation/testing/` |
 
 Cross-service acceptance drivers use `connector/` and `runtime/` subpackages.
-Shared lifecycle/mail runner cleanup regressions remain under
-`automation/acceptance/tests/`. The shared repository-path helper lives at
+The shared repository-path helper lives at
 `automation/raicho_paths.py`.
 
 Operational credential provisioning, rotation, and live verification belong in
@@ -123,13 +122,14 @@ persistence are defined in [architecture](architecture.md).
 
 Keep tests, mocks, fixture controllers, and profile setup with their owning
 component, using its `tests/` subtree. Do not create a repository-root test tree.
-Automation tests live in the owning package's `tests/` subtree, including shared
-acceptance runner tests under `automation/acceptance/tests/`. Shared guard fixtures
-live in `automation/testing/`.
+Automation tests live in the owning package's `tests/` subtree. Changelog guard
+regressions belong in `automation/repository/tests/`, beside the other PR policy
+tests. Shared guard fixtures live in `automation/testing/`.
 
 `server/tests/`, `web/tests/`, and `extension/tests/` own their respective
 application and integration tests. `extension/tests/` also owns Python packaging
-regressions and production-XPI inspection used by connector acceptance.
+regressions, production-XPI inspection used by connector acceptance, and shared
+lifecycle/mail fixture-image and runner-cleanup assertions.
 Rust test support lives under
 `server/tests/support/`.
 
@@ -142,7 +142,7 @@ Generator regressions live in `protocol/generator/tests/`.
 `runtime/credentials/tests/` owns provisioning wrapper, file recovery, and live
 verification unit tests. Its `acceptance/` subtree owns the disposable credential
 deployment runner and fixture checks. `make lint-repo` includes credential unit
-tests, extension packaging and XPI-inspection regressions, protocol generator
+tests, extension packaging and fixture regressions, protocol generator
 tests, and the automation package suites.
 
 `runtime/thunderbird/tests/` tests the four production Python modules in

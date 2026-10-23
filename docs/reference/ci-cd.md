@@ -48,14 +48,14 @@ Disposable runner
 fixtures still verify discovery and failure behavior independently. Missing
 project configuration fails rather than silently skipping application checks.
 Automated checks do not claim visual verification of the administrative desktop.
-Extension packaging regressions also run in `lint` through `lint-repo`.
+Extension packaging and fixture regressions also run in `lint` through `lint-repo`.
 The Rust workspace and extension application tests exercise the same
 [connector contract fixtures](connector-contract.md). Source tests also exercise
 authentication, session replacement, heartbeat timeouts, extension retries, and
 diagnostics. The separate lifecycle artifact is included in extension unit tests.
 Rust credential persistence and CLI tests run in `application-test`. Python
-automation suites, extension packaging/XPI inspection, secret-file/wrapper
-verification, and protocol generation regressions run through `lint-repo`, using
+automation suites, extension packaging/XPI inspection and fixture regressions,
+secret-file/wrapper verification, and protocol generation regressions run through `lint-repo`, using
 component-local `tests/` directories in
 `automation/`, `extension/`, `runtime/credentials/`, and `protocol/generator/`.
 The [credential](build-test-generate.md#credential-persistence),
@@ -75,7 +75,8 @@ observations. See [acceptance evidence](connector-acceptance.md) for scope and l
 `make lint-repo` checks the AGENTS document references, directory names,
 documentation and source filenames, skill metadata/example
 paths, and the declared product version through modules in
-`automation/repository/`. It then runs the automation, extension packaging,
+`automation/repository/`. Its policy tests include changelog guard regressions.
+It then runs the automation, extension packaging and fixture,
 operational credential, and protocol generator unit suites described in the
 [command reference](build-test-generate.md#checks-and-formatting). The
 [naming guards](../coding/linting-and-formatting.md#scope-and-enforcement)

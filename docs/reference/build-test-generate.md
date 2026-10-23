@@ -54,7 +54,7 @@ docker compose -f compose/compose.tools.yaml run --rm check make test-tooling
 | Target | Behavior |
 | --- | --- |
 | `lint` | Repository integrity, guard tests, language linters, and protocol generation drift |
-| `lint-repo` | Repository guards and unit suites for automation, extension packaging, runtime credentials, and protocol generation |
+| `lint-repo` | Repository guards and unit suites for automation, extension packaging and fixtures, runtime credentials, and protocol generation |
 | `format-check` | Check selected source and configuration formatting without edits |
 | `typecheck` | TypeScript compiler with no emitted output |
 | `test-tooling` | Disposable passing/failing Rust, TypeScript, and SQL fixtures exercising the runners |
@@ -74,9 +74,10 @@ and invocation convention.
 
 `lint-repo` discovers `*_tests.py` under `automation/`, `extension/tests/`,
 `runtime/credentials/tests/`, and `protocol/generator/tests/`. These component-local
-suites cover guard failures, quality discovery, packaging, releases, operational
-credential helpers, and acceptance-driver support. Thunderbird runtime and
-extension fixture suites retain the separate commands below.
+suites cover repository policy including changelog guards, quality discovery,
+extension packaging and fixture regressions, releases, operational credential
+helpers, and acceptance-driver support. Thunderbird runtime and probe controller
+unit suites retain the separate commands below.
 
 Rust compilation is checked by Clippy under `lint`. While Rust or TypeScript
 sources are absent, their runners explicitly report not applicable. Once owned

@@ -21,7 +21,6 @@ from automation.release.raicho_version import (
     replace_manifest_version,
     replace_workspace_version,
 )
-from automation.repository.raicho_check_changelog import is_shipping
 from automation.testing.raicho_guard_fixtures import GuardTestCase
 
 CHANGELOG = """# Changelog
@@ -278,79 +277,3 @@ class ChangelogTests(GuardTestCase):
             capture_output=True,
             check=False,
         )
-
-
-class ChangelogGuardTests(GuardTestCase):
-    def test_shipping_paths_are_the_running_product(self):
-        self.assertTrue(is_shipping('server/src/http.rs'))
-        self.assertTrue(is_shipping('server/queries/read_sqlite_version.sql'))
-        self.assertTrue(is_shipping('web/public/index.html'))
-        self.assertTrue(is_shipping('runtime/thunderbird/supervisor.py'))
-        self.assertTrue(is_shipping('runtime/credentials/raicho_connector_files.py'))
-        self.assertTrue(is_shipping('runtime/credentials/raicho_connector.bash'))
-        self.assertTrue(is_shipping('runtime/credentials/raicho_wait_connector.py'))
-        self.assertTrue(is_shipping('extension/manifest.json'))
-        self.assertTrue(is_shipping('protocol/typescript/src/decode_frame.ts'))
-        self.assertTrue(is_shipping('protocol/typescript/src/validator_generated.js'))
-        self.assertFalse(is_shipping('protocol/typescript/tests/contract.test.mjs'))
-        self.assertFalse(is_shipping('server/tests/http.rs'))
-        self.assertFalse(is_shipping('runtime/thunderbird/tests/supervisor_tests.py'))
-        self.assertFalse(is_shipping('runtime/thunderbird/tests/fixture.py'))
-        self.assertFalse(
-            is_shipping('runtime/credentials/tests/raicho_connector_files_tests.py')
-        )
-        self.assertFalse(is_shipping('extension/mailprobe/tests/fixture.ts'))
-        self.assertFalse(is_shipping('web/tests/status.test.mjs'))
-        self.assertFalse(is_shipping('extension/tests/lifecycle.test.mjs'))
-        self.assertFalse(is_shipping('automation/release/raicho_version.py'))
-        self.assertFalse(is_shipping('docs/reference/versioning.md'))
-        self.assertFalse(is_shipping('containers/raicho/Dockerfile.dockerignore'))
-
-    def test_shipping_change_requires_an_entry(self):
-        repo, environment = self.shipping_change()
-        result = self.run_guard(repo, 'raicho_check_pr.py', environment)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn('no changelog entry', result.stderr)
-        self.assertIn('server/src/main.rs', result.stderr)
-
-    def test_description_entry_satisfies_the_guard(self):
-        repo, environment = self.shipping_change()
-        environment['PR_DESCRIPTION'] += (
-            '\n\n## Changelog\n\n### Fixed\n\n- The status page names the build.\n'
-        )
-        result = self.run_guard(repo, 'raicho_check_pr.py', environment)
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn('description has an entry', result.stdout)
-
-    def test_changelog_file_or_label_satisfies_the_guard(self):
-        repo, environment = self.shipping_change()
-        environment['PR_LABELS'] = 'no changelog'
-        labeled = self.run_guard(repo, 'raicho_check_pr.py', environment)
-        self.assertEqual(labeled.returncode, 0, labeled.stderr)
-        self.assertIn('no changelog label', labeled.stdout)
-
-        repo.write('CHANGELOG.md', '# Changelog\n\n## [Unreleased]\n\n- Noted.\n')
-        repo.commit()
-        environment = {
-            'PR_BASE_SHA': environment['PR_BASE_SHA'],
-            'PR_HEAD_SHA': repo.head(),
-            'PR_DESCRIPTION': environment['PR_DESCRIPTION'],
-        }
-        updated = self.run_guard(repo, 'raicho_check_pr.py', environment)
-        self.assertEqual(updated.returncode, 0, updated.stderr)
-        self.assertIn('CHANGELOG.md was updated', updated.stdout)
-
-    def shipping_change(self):
-        repo = self.repo()
-        decision = 'docs/decisions/20261018-test-decision.md'
-        repo.write('README.md', 'base\n')
-        repo.write(decision, '# Decision\n')
-        repo.commit()
-        base = repo.head()
-        repo.write('server/src/main.rs', 'fn main() {}\n')
-        repo.commit()
-        return repo, {
-            'PR_BASE_SHA': base,
-            'PR_HEAD_SHA': repo.head(),
-            'PR_DESCRIPTION': f'Decision: {decision}\n',
-        }
