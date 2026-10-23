@@ -22,6 +22,9 @@ Its supervisor starts Thunderbird without a viewer, terminates the other childre
 if a required child exits, and forwards shutdown. The health check verifies
 processes and the internal display. A desktop HTTP response alone is insufficient.
 These runtime modules live in `runtime/thunderbird/`, separately from the image recipe.
+Operational credential helpers live separately in `runtime/credentials/`, with
+their provisioning, recovery, and verification tests under `tests/`. The
+[credential runbook](../operations/connector-credentials.md) documents their use.
 
 Base images use digests, support packages use the 20261018 Debian snapshot, and
 downloaded application assets use checksums. Installed OS packages are recorded

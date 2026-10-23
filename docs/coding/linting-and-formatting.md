@@ -11,7 +11,7 @@ extends that tooling to SQLite source.
 
 | Language or check | Configuration |
 | --- | --- |
-| Repository guards | Direct Python entry points and standard-library helpers in `devbin/`, with regression tests |
+| Repository guards | Python modules in `automation/repository/`, with package-local regression tests |
 | Bash | `bash -n`, ShellCheck with `.shellcheckrc`, `shfmt -ln bash -i 4 -ci` |
 | Python | Ruff lint and format with `pyproject.toml` |
 | JavaScript | ESLint recommended rules with `eslint.config.mjs`, Prettier with `.prettierrc.json` |
@@ -43,13 +43,13 @@ tests rather than proving query execution or migration safety.
 
 ## Scope and enforcement
 
-`make lint-repo` runs `devbin/raicho_check_source_naming.py` and its regression
-tests locally and in CI. It checks the
+`make lint-repo` runs `automation.repository.raicho_check_source_naming` and its
+package-local regression tests locally and in CI. It checks the
 [source filename convention](coding-standards.md#source-filenames), including
 HTML and CSS names without adding them to the formatting scope. Renames are
 explicit edits, never formatter fixes.
 
-`devbin/raicho_check_directory_naming.py` enforces the separate
+`automation.repository.raicho_check_directory_naming` enforces the separate
 [directory convention](coding-standards.md#directory-names). It also runs under
 `make lint-repo`, including regression tests for nested paths, reserved paths,
 ignored and missing files, and CLI root selection. It shares Git discovery and
@@ -120,8 +120,9 @@ Python tooling dependencies and their wheel hashes are locked in
 `containers/tooling/requirements.txt`, currently for Python 3.13 on Linux amd64.
 The image installs them with `pip --require-hashes --only-binary=:all:`.
 Refresh this lock inside Docker when upgrading SQLFluff or test dependencies,
-review all dependency changes, and rebuild the image. The entrypoint detects a
-stale requirements file.
+review all dependency changes, and rebuild the image. The entrypoint at
+`automation/quality/raicho_tooling_entrypoint.bash` detects a stale requirements
+file.
 The [websockify release](https://pypi.org/project/websockify/0.13.0/) supplies
 the WebSocket fixture server. Thunderbird's optional desktop support retains its
 Debian package independently.

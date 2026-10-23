@@ -5,3 +5,8 @@ Notable changes to Raicho. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Changed
+
+- Move connector credential commands to `runtime/credentials/` and organize
+  developer commands under `automation/`.

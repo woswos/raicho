@@ -124,7 +124,7 @@ jobs:
           docker compose run --rm smoke http
           docker compose run --rm smoke persistence
       - name: Verify administrative network isolation
-        run: bash devbin/raicho_check_admin_isolation.bash
+        run: bash automation/acceptance/runtime/raicho_check_admin_isolation.bash
       - name: Verify independent application readiness
         run: |
           docker compose stop thunderbird
@@ -147,9 +147,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Verify production connector and ten-minute idle acceptance
-        run: bash devbin/raicho_check_connector.bash
+        run: bash automation/acceptance/connector/raicho_check_connector.bash
       - name: Verify credential rotation, recovery, and revocation
-        run: bash devbin/raicho_check_credentials.bash
+        run: bash automation/acceptance/credentials/raicho_check_credentials.bash
 
   compatibility-test:
     if: >-
@@ -162,6 +162,6 @@ jobs:
         with:
           persist-credentials: false
       - name: Verify extension installation, idle, restart, and upgrade
-        run: bash devbin/raicho_check_extension_lifecycle.bash
+        run: bash automation/acceptance/lifecycle/raicho_check_extension_lifecycle.bash
       - name: Verify unattended mail API compatibility
-        run: bash devbin/raicho_check_mail_compatibility.bash
+        run: bash automation/acceptance/mail/raicho_check_mail_compatibility.bash

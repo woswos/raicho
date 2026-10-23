@@ -83,9 +83,15 @@ Graceful shutdown, connection backoff, and reconciliation handle ordinary restar
 
 Back up Raicho's SQLite state separately using a database-supported consistent backup, or stop the Rust server before copying the complete state directory with any journal/WAL files. Copying only a live database file is not a supported backup. Restore with the Rust server stopped and verify the schema and operational state before serving requests. Document backup and recovery before schema upgrades, since rolling back a server image does not undo a migration. Stage 7 verifies restoration of both Raicho state and Thunderbird data.
 
-### Proposed source layout
+### Source layout
 
 Stage 1 introduces `server/` for the Rust application, persistence and migrations, `web/` for TypeScript diagnostics, application recipes under `containers/`, runtime Compose files, and an opt-in administrative override. Stage 2 adds `extension/` for Thunderbird integration and `protocol/` for connector schemas. Keep `assets/brand/` as the identity source. Update reference/coding docs, Make targets, CI, and ADRs with the stages that introduce actual behavior.
+
+Follow the current [placement guide](../../reference/project-structure.md#placement-rules)
+as later stages add code. Development commands and their support modules are
+grouped under `automation/`, operational credential helpers under
+`runtime/credentials/`, and protocol generation under `protocol/generator/`.
+Tests remain in each owning component or package's `tests/` directory.
 
 ### Approved stage 1 implementation
 

@@ -21,8 +21,10 @@
 !protocol/typescript/src/**
 !protocol/typescript/package.json
 !protocol/typescript/tsconfig.json
-!devbin/
-!devbin/raicho_build_extension.py
+!automation/
+!automation/raicho_paths.py
+!automation/build/
+!automation/build/raicho_build_extension.py
 !runtime/
 !runtime/thunderbird/
 !runtime/thunderbird/runtime.py

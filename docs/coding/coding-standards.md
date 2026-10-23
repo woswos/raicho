@@ -18,9 +18,11 @@ over unexplained abbreviations, while retaining standard protocol acronyms.
 
 Use lower camel case for JavaScript variables/functions, upper snake case for
 Bash variables, and snake case for Python identifiers. Use `mock`, not `fake`,
-when naming test doubles. New Bash helpers live at `devbin/raicho_<purpose>.bash`
-with underscore-separated purpose words. Python helpers use the same prefix
-and `.py` suffix. Document filenames follow
+when naming test doubles. Bash helper basenames use `raicho_<purpose>.bash`, with
+underscore-separated purpose words. Python helpers use the same prefix and `.py`
+suffix. Their locations follow the
+[automation placement guide](../reference/project-structure.md#automation).
+Document filenames follow
 [documentation organisation](../contributing/documentation-organisation.md#naming).
 
 Keep files focused on one concern. Split them by functionality at approximately
@@ -93,9 +95,11 @@ within each showcase file. Keep demo data in its separate module. Avoid new
 runtime dependencies for these static pages. New application framework choices
 need a design decision first.
 
-Repository guards are direct Python entry points. Use standard-library APIs for
+Repository guards are Python module entry points. Use standard-library APIs for
 JSON, file paths, and structured Git process arguments. Do not evaluate
-user-controlled text as code. Root and event-path handling follows
+user-controlled text as code. Module invocation follows the
+[automation guide](../reference/project-structure.md#automation). Root and
+event-path handling follows
 [build, test, and generate](../reference/build-test-generate.md#checks-and-formatting).
 
 Bash tooling uses `set -euo pipefail`, braces around parameter expansions, and

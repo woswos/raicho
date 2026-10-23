@@ -32,6 +32,8 @@ authentication frame. An incoming frame never enrolls a token.
 - [TypeScript project](../../protocol/typescript/src/decode_frame.ts): generated
   types and limits with a bundled Ajv standalone validator. No runtime Ajv,
   network schema retrieval, Node imports, or dynamic code generation is required.
+- [Generation scripts](../../protocol/generator/): Python orchestration and
+  JavaScript generation, with regression tests in its `tests/` directory.
 
 Both implementations live under `protocol/`, with their own tests. The TypeScript
 project is private ES modules and imports no Thunderbird APIs. The extension

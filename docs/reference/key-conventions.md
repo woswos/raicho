@@ -7,6 +7,8 @@ Project invariants complement the shared [workflow](../contributing/workflow.md)
 
 Use the [placement rules](project-structure.md#placement-rules) for files and
 the [test ownership guide](project-structure.md#test-code) for tests and fixtures.
+The [automation guide](project-structure.md#automation) separates development
+commands from operational credential helpers and protocol generation.
 Naming follows the [source filename](../coding/coding-standards.md#source-filenames)
 and [directory name](../coding/coding-standards.md#directory-names) conventions.
 

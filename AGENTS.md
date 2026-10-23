@@ -22,7 +22,7 @@ The always-loaded workflow covers planning, implementation, and documentation up
 - Git branches, commits, and pull requests: `docs/contributing/git-and-pull-requests.md`
 - Documentation placement: `docs/contributing/documentation-organisation.md`
 - Engineering principles: `docs/contributing/coding-principles.md`
-- Repository layout and placement rules: `docs/reference/project-structure.md`
+- Repository layout, automation, and placement rules: `docs/reference/project-structure.md`
 - Commands: `docs/reference/build-test-generate.md`
 - Shared Rust/TypeScript protocol sources: `docs/reference/connector-contract.md`
 - CI and pull request guards: `docs/reference/ci-cd.md`

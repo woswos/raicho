@@ -13,7 +13,7 @@ Build all runtime images and the tooling image before provisioning:
 ```bash
 docker compose -f compose/compose.yaml build
 docker compose -f compose/compose.tools.yaml build
-bash devbin/raicho_connector.bash init
+bash runtime/credentials/raicho_connector.bash init
 ```
 
 The project is selected by `RAICHO_PROJECT`, then `COMPOSE_PROJECT_NAME`, then
@@ -25,11 +25,11 @@ directory and the named database volume paired. Set
 `RAICHO_PORT` when the selected deployment needs a different loopback port.
 
 ```bash
-bash devbin/raicho_connector.bash rotate
-bash devbin/raicho_connector.bash verify
-bash devbin/raicho_connector.bash status
-bash devbin/raicho_connector.bash revoke
-bash devbin/raicho_connector.bash reactivate
+bash runtime/credentials/raicho_connector.bash rotate
+bash runtime/credentials/raicho_connector.bash verify
+bash runtime/credentials/raicho_connector.bash status
+bash runtime/credentials/raicho_connector.bash revoke
+bash runtime/credentials/raicho_connector.bash reactivate
 ```
 
 Every command stops Raicho and Thunderbird. Successful `init`, `rotate`,
@@ -47,6 +47,11 @@ endpoint. Verification checks the SQLite digest, file permissions, UID 10001
 access, service health, and the live authenticated connection. The diagnostics
 page should report `Connected`. This confirms the control connection, not mail
 availability. A failed connection check retains recovery files.
+
+The operational wrapper and its file-management and connection-verification
+modules live in `runtime/credentials/`. The disposable acceptance runner is
+separate under `automation/acceptance/credentials/`, as described in
+[project structure](../reference/project-structure.md#automation).
 
 ## Secret ownership
 
@@ -125,7 +130,7 @@ restore its token as an active credential.
 ## Validation
 
 ```bash
-bash devbin/raicho_check_credentials.bash
+bash automation/acceptance/credentials/raicho_check_credentials.bash
 ```
 
 The runner owns a uniquely named disposable Compose project and temporary host

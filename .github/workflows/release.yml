@@ -28,7 +28,7 @@ jobs:
       - name: Collect the release notes
         run: |
           version="${GITHUB_REF#refs/tags/v}"
-          python3 -B devbin/raicho_release_notes.py "$version" > release-notes.md
+          python3 -B -m automation.release.raicho_release_notes "$version" > release-notes.md
           echo "version=${version}" >> "$GITHUB_OUTPUT"
         id: notes
 

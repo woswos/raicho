@@ -102,12 +102,12 @@ This is bounded experimental evidence, not a universal delivery guarantee.
 
 ## Running the experiment
 
-The [host runner](../../devbin/raicho_check_mail_compatibility.bash) orchestrates
+The [host runner](../../automation/acceptance/mail/raicho_check_mail_compatibility.bash) orchestrates
 Docker builds, source tests, uniquely named disposable services, and cleanup:
 
 ```bash
-bash devbin/raicho_check_mail_compatibility.bash
-bash devbin/raicho_check_mail_compatibility.bash --native
+bash automation/acceptance/mail/raicho_check_mail_compatibility.bash
+bash automation/acceptance/mail/raicho_check_mail_compatibility.bash --native
 ```
 
 The default run covers unattended draft checks. The native run adds the desktop

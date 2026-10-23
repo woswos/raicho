@@ -53,8 +53,10 @@ The Rust workspace and extension application tests exercise the same
 [connector contract fixtures](connector-contract.md). Source tests also exercise
 authentication, session replacement, heartbeat timeouts, extension retries, and
 diagnostics. The separate lifecycle artifact is included in extension unit tests.
-Credential persistence and CLI tests run in `application-test`, while secret-file,
-wrapper, idle-observer, privacy, and CI coverage regressions run in `lint-repo`.
+Rust credential persistence and CLI tests run in `application-test`. Python
+automation suites, secret-file/wrapper verification, and protocol generation
+regressions run through `lint-repo`, using package-local `tests/` directories in
+`automation/`, `runtime/credentials/`, and `protocol/generator/`.
 The [credential](build-test-generate.md#credential-persistence),
 [production connector](build-test-generate.md#production-connector),
 [lifecycle](build-test-generate.md#extension-lifecycle), and
@@ -71,7 +73,10 @@ observations. See [acceptance evidence](connector-acceptance.md) for scope and l
 
 `make lint-repo` checks the AGENTS document references, directory names,
 documentation and source filenames, skill metadata/example
-paths, and the declared product version, then runs the guard tests. The
+paths, and the declared product version through modules in
+`automation/repository/`. It then runs the automation, operational credential,
+and protocol generator unit suites described in the
+[command reference](build-test-generate.md#checks-and-formatting). The
 [naming guards](../coding/linting-and-formatting.md#scope-and-enforcement)
 run in the existing `lint` job and are not bypassed by skip labels.
 Documentation checks include tracked and untracked non-ignored

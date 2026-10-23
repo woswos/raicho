@@ -16,8 +16,8 @@ compose/           Runtime, administration, test, tooling, and CI Compose files
 server/            Rust diagnostics, SQLite queries, migrations, and tests
 web/               TypeScript diagnostics, public files, and behavioral tests
 extension/         Production connector and separate lifecycle/mail API test probes
-protocol/          Control schema, limits, fixtures, Rust/TypeScript implementations
-devbin/            Repository guards, language runners, and tooling tests
+protocol/          Control schema, limits, fixtures, generators, and implementations
+automation/        Development commands and support packages grouped by responsibility
 docs/contributing/ Contribution workflow and working agreements
 docs/reference/    Current structure, tooling, CI, and architecture
 docs/coding/       Concrete coding and formatting conventions
@@ -37,7 +37,8 @@ Use these locations when adding files or moving existing code:
 | Runtime service configuration | `config/<service>/` |
 | Application sources | Their owning `server/`, `web/`, or `extension/` component |
 | Shared protocol schema, limits, fixtures, and implementations | `protocol/` |
-| Repository commands, guards, runners, and their tests | `devbin/` |
+| Protocol generation scripts and support modules | `protocol/generator/` |
+| Development commands and their support modules | `automation/<responsibility>/` |
 
 Keep `containers/` focused on recipes and build metadata. Each image's
 `Dockerfile.dockerignore` lives beside its Dockerfile and selects inputs from
@@ -48,11 +49,42 @@ Shared protocol implementations belong together in `protocol/rust/` and
 `protocol/typescript/`, with their own sources and tests. Keep them independent
 of Thunderbird APIs. Thunderbird adapters and extension integration tests belong
 in `extension/`. See the [protocol placement decision](../decisions/20261026-protocol-contracts.md).
+Protocol generation belongs to `protocol/generator/`, beside the schema and
+implementations it produces.
 
 Apply the [source filename](../coding/coding-standards.md#source-filenames),
 [directory name](../coding/coding-standards.md#directory-names), and
 [documentation naming](../contributing/documentation-organisation.md#naming)
 conventions within these locations.
+
+## Automation
+
+Group development automation by responsibility, including its import-only support
+modules. Use Make as the main developer command interface. It invokes Python
+modules directly from the repository root with `python3 -B -m`, and Bash or
+JavaScript entry points by path. Keep Bash for substantive host/Docker orchestration.
+Do not add thin compatibility wrappers or restore a flat helper directory.
+
+| Responsibility | Package |
+| --- | --- |
+| Agent, naming, changelog, and pull request guards | `automation/repository/` |
+| Language linting, formatting, type checking, and tooling entrypoint | `automation/quality/` |
+| Application builds and extension packaging | `automation/build/` |
+| Versioning, changelogs, and release preparation | `automation/release/` |
+| Disposable deployment checks | `automation/acceptance/` |
+| Fixtures shared by automation tests | `automation/testing/` |
+
+Acceptance drivers use `connector/`, `credentials/`, `runtime/`, `lifecycle/`, and
+`mail/` subpackages. The shared repository-path helper lives at
+`automation/raicho_paths.py`.
+
+Operational credential provisioning, rotation, and live verification belong in
+`runtime/credentials/`, including their host Bash wrapper and Python helpers.
+These commands manage a deployment and are separate from acceptance tests that
+create disposable deployments. Their procedure is in the
+[credential runbook](../operations/connector-credentials.md). The
+[automation decision](../decisions/20261026-repository-layout.md#automation) records this
+organization and the replacement of the former `devbin/` tree.
 
 ## Compose deployments
 
@@ -83,7 +115,9 @@ persistence are defined in [architecture](architecture.md).
 
 Keep tests, mocks, fixture controllers, and profile setup with their owning
 component, using its `tests/` subtree. Do not create a repository-root test tree.
-Repository tooling tests stay beside their helpers in `devbin/`.
+Automation tests live in the owning package's `tests/` subtree, including shared
+acceptance runner tests under `automation/acceptance/tests/`. Shared guard fixtures
+live in `automation/testing/`.
 
 `server/tests/`, `web/tests/`, and `extension/tests/` own their respective
 application and integration tests. Rust test support lives under
@@ -93,6 +127,11 @@ application and integration tests. Rust test support lives under
 fixtures against their respective implementations. TypeScript protocol tests
 compile independently of the extension. See the
 [contract commands](build-test-generate.md#connector-contract).
+Generator regressions live in `protocol/generator/tests/`.
+
+`runtime/credentials/tests/` owns provisioning wrapper, file recovery, and live
+verification unit tests. `make lint-repo` includes these tests, the protocol
+generator tests, and the automation package suites.
 
 `runtime/thunderbird/tests/` tests the four production Python modules in
 `runtime/thunderbird/`. Set the source import path using the documented

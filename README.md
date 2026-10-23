@@ -78,10 +78,12 @@ language toolchains are not required. The `check` service does not start runtime
 services.
 
 Docker recipes and their build-context filters live in `containers/`, deployment
-definitions in `compose/`, and tests beside their owning components. See
+definitions in `compose/`, and development automation in `automation/`, grouped
+by responsibility with component-local tests. Operational credential helpers live
+in `runtime/credentials/`. See the
 [placement guide](docs/reference/project-structure.md#placement-rules) for the layout.
 The shared connector protocol has Rust and TypeScript implementations under
-`protocol/`.
+`protocol/`, with generation scripts in `protocol/generator/`.
 Repository guards enforce the [source and directory naming conventions](docs/coding/coding-standards.md).
 
 See [build, test, and generate](docs/reference/build-test-generate.md) for
@@ -115,7 +117,8 @@ with a design pull request before implementation.
 
 The [repository placement rules](docs/reference/project-structure.md#placement-rules)
 explain where image recipes, runtime code, configuration, tests, shared protocol
-implementations, and developer commands belong.
+implementations, and automation belong. Make remains the developer command
+interface, backed by Python modules and substantive Bash orchestration.
 
 [AGENTS.md](AGENTS.md) is the entry point for AI-assisted work, and
 [decision records](docs/decisions/README.md) explain the project's choices.

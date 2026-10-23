@@ -18,6 +18,7 @@ docker compose -f compose/compose.tools.yaml build
 The image's build-context allowlist is
 `containers/tooling/Dockerfile.dockerignore`. Fixture sources come from the
 component-local directories listed in [project structure](project-structure.md#test-code).
+The tooling entrypoint lives at `automation/quality/raicho_tooling_entrypoint.bash`.
 
 The entrypoint also compares `package.json`, `package-lock.json`,
 `eslint.config.mjs`, and `containers/tooling/requirements.txt` with the image
@@ -53,7 +54,7 @@ docker compose -f compose/compose.tools.yaml run --rm check make test-tooling
 | Target | Behavior |
 | --- | --- |
 | `lint` | Repository integrity, guard tests, language linters, and protocol generation drift |
-| `lint-repo` | Agent, documentation, source filename, directory name, skill, and product version guards with regression tests |
+| `lint-repo` | Repository guards and unit suites for automation, runtime credentials, and protocol generation |
 | `format-check` | Check selected source and configuration formatting without edits |
 | `typecheck` | TypeScript compiler with no emitted output |
 | `test-tooling` | Disposable passing/failing Rust, TypeScript, and SQL fixtures exercising the runners |
@@ -63,11 +64,19 @@ docker compose -f compose/compose.tools.yaml run --rm check make test-tooling
 | `format-check-sql` | Compare formatted temporary copies with SQL sources without editing them |
 | `format-sql` | Rewrite owned SQL sources using formatting rules only |
 
-The `devbin/raicho_check_*.py` guards are direct Python entry points. Their
+The guards in `automation/repository/` are Python module entry points. Their
 optional repository-root argument defaults to the repository containing the
 script. Explicit roots are normalized to absolute paths from the caller's
 working directory. PR guards resolve a relative `GITHUB_EVENT_PATH` against
 that repository root. The Docker/Make commands above remain the normal interface.
+See [automation placement](project-structure.md#automation) for the module layout
+and invocation convention.
+
+`lint-repo` discovers `*_tests.py` under `automation/`,
+`runtime/credentials/tests/`, and `protocol/generator/tests/`. These package-local
+suites cover guard failures, quality discovery, packaging, releases, operational
+credential helpers, and acceptance-driver support. Thunderbird runtime and
+extension fixture suites retain the separate commands below.
 
 Rust compilation is checked by Clippy under `lint`. While Rust or TypeScript
 sources are absent, their runners explicitly report not applicable. Once owned
@@ -170,8 +179,9 @@ docker compose -f compose/compose.tools.yaml run --rm check make check-protocol 
 
 Use the caller's UID/GID for writable generation as above. `generate-protocol`
 builds both generators into temporary output, then updates committed bindings,
-limits, and the standalone validator. `check-protocol` compares fresh output
-without editing sources and runs under `lint` in CI. `test-protocol` runs the
+limits, and the standalone validator. Python orchestration and JavaScript
+generation scripts live in `protocol/generator/`. `check-protocol` compares fresh
+output without editing sources and runs under `lint` in CI. `test-protocol` runs the
 Rust contract/generator tests, independently compiled TypeScript protocol tests,
 and production/lifecycle extension tests through its `test-extension` dependency.
 CI runs `test-protocol` alongside `test-app`, which covers the application and
@@ -183,21 +193,22 @@ for sources, parsing rules, and integration responsibilities.
 ```bash
 docker compose -f compose/compose.tools.yaml run --rm check \
   make test-server lint-repo lint-sql format-check-sql
-bash devbin/raicho_check_credentials.bash
+bash automation/acceptance/credentials/raicho_check_credentials.bash
 ```
 
 The source checks cover credential state transitions and host-file recovery.
 The host runner owns a disposable Docker deployment and checks the actual
 provisioning, rotation, revocation, restart, file permissions, and mount boundary.
 The [credential runbook](../operations/connector-credentials.md) documents the
-operator commands and recovery states. Successful provisioning now requires a
-live authenticated heartbeat before removing the previous token file.
+operator commands under `runtime/credentials/` and recovery states. Successful
+provisioning now requires a live authenticated heartbeat before removing the
+previous token file.
 
 ## Production connector
 
 ```bash
 docker compose -f compose/compose.tools.yaml run --rm check make test-server test-extension test-web
-bash devbin/raicho_check_connector.bash
+bash automation/acceptance/connector/raicho_check_connector.bash
 ```
 
 The host runner owns a fresh `raicho-connector-...` deployment and credentials.
@@ -224,7 +235,7 @@ docker compose -f compose/compose.tools.yaml run --rm check \
 docker compose -f compose/compose.tools.yaml run --rm \
   -e PYTHONPATH=/workspace/runtime/thunderbird check \
   python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
-bash devbin/raicho_check_extension_lifecycle.bash
+bash automation/acceptance/lifecycle/raicho_check_extension_lifecycle.bash
 ```
 
 The separate artifact comes from `extension/lifecycleprobe/`, never the production
@@ -241,7 +252,7 @@ uses the default deployment or a personal profile.
 The packager stores sorted archive entries with fixed timestamps and modes.
 Its reproducibility and version tests run under `lint-repo`. `build-extension`
 uses disposable output. To export an XPI, mount an empty output directory into
-the tooling container and run `python3 -B devbin/raicho_build_extension.py
+the tooling container and run `python3 -B -m automation.build.raicho_build_extension
 --output /output/raicho.xpi`; `--version` selects the version for an upgrade test.
 No test modules or credentials enter the archive.
 
@@ -257,7 +268,7 @@ Product versions are cut from the changelog. The commands and the bump rules
 are in [versioning](versioning.md). A dry run writes nothing:
 
 ```bash
-python3 -B devbin/raicho_cut_release.py
+python3 -B -m automation.release.raicho_cut_release
 ```
 
 Authorization follows [workflow](../contributing/workflow.md). CI behavior is
@@ -267,8 +278,8 @@ documented in [CI](ci-cd.md), and runtime details in [runtime](runtime.md).
 
 ```bash
 docker compose -f compose/compose.tools.yaml run --rm check make test-mail-probe
-bash devbin/raicho_check_mail_compatibility.bash
-bash devbin/raicho_check_mail_compatibility.bash --native
+bash automation/acceptance/mail/raicho_check_mail_compatibility.bash
+bash automation/acceptance/mail/raicho_check_mail_compatibility.bash --native
 ```
 
 The separate `test-mail-probe` target compiles and tests the fixture extension.
