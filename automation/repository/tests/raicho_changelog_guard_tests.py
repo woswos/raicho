@@ -1,6 +1,8 @@
 from automation.repository.raicho_check_changelog import is_shipping
 from automation.testing.raicho_guard_fixtures import GuardTestCase
 
+GATEWAY_PATHS = ('runtime/gateway/nginx.conf', 'containers/gateway/Dockerfile')
+
 
 class ChangelogGuardTests(GuardTestCase):
     def test_shipping_paths_are_the_running_product(self):
@@ -8,6 +10,9 @@ class ChangelogGuardTests(GuardTestCase):
         self.assertTrue(is_shipping('server/queries/read_sqlite_version.sql'))
         self.assertTrue(is_shipping('web/public/index.html'))
         self.assertTrue(is_shipping('runtime/thunderbird/supervisor.py'))
+        for path in GATEWAY_PATHS:
+            with self.subTest(path=path):
+                self.assertTrue(is_shipping(path))
         self.assertTrue(is_shipping('runtime/credentials/raicho_connector_files.py'))
         self.assertTrue(is_shipping('runtime/credentials/raicho_connector.bash'))
         self.assertTrue(is_shipping('runtime/credentials/raicho_wait_connector.py'))
@@ -18,6 +23,8 @@ class ChangelogGuardTests(GuardTestCase):
         self.assertFalse(is_shipping('server/tests/http.rs'))
         self.assertFalse(is_shipping('runtime/thunderbird/tests/supervisor_tests.py'))
         self.assertFalse(is_shipping('runtime/thunderbird/tests/fixture.py'))
+        self.assertFalse(is_shipping('runtime/gateway/tests/nginx.conf'))
+        self.assertFalse(is_shipping('containers/gateway/tests/fixture.conf'))
         self.assertFalse(
             is_shipping('runtime/credentials/tests/raicho_connector_files_tests.py')
         )
@@ -27,6 +34,7 @@ class ChangelogGuardTests(GuardTestCase):
         self.assertFalse(is_shipping('automation/release/raicho_version.py'))
         self.assertFalse(is_shipping('docs/reference/versioning.md'))
         self.assertFalse(is_shipping('containers/raicho/Dockerfile.dockerignore'))
+        self.assertFalse(is_shipping('containers/gateway/Dockerfile.dockerignore'))
 
     def test_shipping_change_requires_an_entry(self):
         repo, environment = self.shipping_change()
@@ -43,6 +51,26 @@ class ChangelogGuardTests(GuardTestCase):
         result = self.run_guard(repo, 'raicho_check_pr.py', environment)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('description has an entry', result.stdout)
+
+    def test_gateway_changes_require_an_entry(self):
+        for path in GATEWAY_PATHS:
+            with self.subTest(path=path):
+                repo, environment = self.shipping_change(path)
+                result = self.run_guard(repo, 'raicho_check_pr.py', environment)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn('no changelog entry', result.stderr)
+                self.assertIn(path, result.stderr)
+
+    def test_description_entry_satisfies_gateway_changes(self):
+        for path in GATEWAY_PATHS:
+            with self.subTest(path=path):
+                repo, environment = self.shipping_change(path)
+                environment['PR_DESCRIPTION'] += (
+                    '\n\n## Changelog\n\n### Fixed\n\n- Update the connector gateway.\n'
+                )
+                result = self.run_guard(repo, 'raicho_check_pr.py', environment)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn('description has an entry', result.stdout)
 
     def test_changelog_file_or_label_satisfies_the_guard(self):
         repo, environment = self.shipping_change()
@@ -62,14 +90,14 @@ class ChangelogGuardTests(GuardTestCase):
         self.assertEqual(updated.returncode, 0, updated.stderr)
         self.assertIn('CHANGELOG.md was updated', updated.stdout)
 
-    def shipping_change(self):
+    def shipping_change(self, path='server/src/main.rs'):
         repo = self.repo()
         decision = 'docs/decisions/20261018-test-decision.md'
         repo.write('README.md', 'base\n')
         repo.write(decision, '# Decision\n')
         repo.commit()
         base = repo.head()
-        repo.write('server/src/main.rs', 'fn main() {}\n')
+        repo.write(path, 'fn main() {}\n')
         repo.commit()
         return repo, {
             'PR_BASE_SHA': base,

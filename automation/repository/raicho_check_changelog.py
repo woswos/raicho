@@ -41,8 +41,10 @@ def is_shipping(path):
         (
             'containers/raicho/',
             'containers/thunderbird/',
+            'containers/gateway/',
             'runtime/thunderbird/',
             'runtime/credentials/',
+            'runtime/gateway/',
         )
     ):
         return True

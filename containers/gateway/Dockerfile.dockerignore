@@ -1,4 +1,4 @@
 **
-!config/
-!config/gateway/
-!config/gateway/nginx.conf
+!runtime/
+!runtime/gateway/
+!runtime/gateway/nginx.conf

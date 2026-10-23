@@ -10,8 +10,7 @@ CHANGELOG.md       Product changelog used to cut semantic versions
 .github/           Pull request templates and GitHub Actions workflows
 assets/brand/      Production identity masters, fonts, guides, and prototypes
 containers/        Docker recipes, build-context filters, and dependency locks
-runtime/           Production runtime helpers and their component-local tests
-config/            Runtime configuration, including the gateway's Nginx config
+runtime/           Production service helpers, configuration, and component-local tests
 compose/           Runtime, administration, test, tooling, and CI Compose files
 server/            Rust diagnostics, SQLite queries, migrations, and tests
 web/               TypeScript diagnostics, public files, and behavioral tests
@@ -33,8 +32,7 @@ Use these locations when adding files or moving existing code:
 | --- | --- |
 | Docker recipes and image dependency metadata | `containers/<image>/` |
 | Compose deployments and overrides | `compose/` |
-| Production runtime helpers | `runtime/<component>/` |
-| Runtime service configuration | `config/<service>/` |
+| Production runtime helpers and service configuration | `runtime/<component>/` |
 | Application sources | Their owning `server/`, `web/`, or `extension/` component |
 | Shared protocol schema, limits, fixtures, and implementations | `protocol/` |
 | Protocol generation scripts and support modules | `protocol/generator/` |
@@ -45,6 +43,11 @@ Keep `containers/` focused on recipes and build metadata. Each image's
 `Dockerfile.dockerignore` lives beside its Dockerfile and selects inputs from
 their owning components. The [container input decision](../decisions/20261026-repository-layout.md#components)
 records this separation.
+
+Keep service configuration beside its runtime support, including the gateway's
+`runtime/gateway/nginx.conf`. The
+[runtime configuration decision](../decisions/20261026-repository-layout.md#components)
+records this consolidation.
 
 Shared protocol implementations belong together in `protocol/rust/` and
 `protocol/typescript/`, with their own sources and tests. Keep them independent

@@ -32,7 +32,7 @@ in `/opt/raicho/packages.tsv` inside the Raicho and Thunderbird images. Runtime
 support is Linux amd64.
 
 `containers/gateway/Dockerfile` pins Nginx 1.30.6 Alpine by digest.
-Its routing configuration lives in `config/gateway/nginx.conf`.
+Its routing configuration lives in `runtime/gateway/nginx.conf`.
 The gateway runs as UID/GID 10001 with a read-only root, bounded temporary storage,
 no data or secret mounts, and no published port.
 
