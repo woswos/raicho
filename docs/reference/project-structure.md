@@ -25,6 +25,37 @@ docs/decisions/    Decision records and their template
 docs/planning/     Active and completed staged plans
 ```
 
+## Placement rules
+
+Use these locations when adding files or moving existing code:
+
+| Material | Location |
+| --- | --- |
+| Docker recipes and image dependency metadata | `containers/<image>/` |
+| Compose deployments and overrides | `compose/` |
+| Production runtime helpers | `runtime/<component>/` |
+| Runtime service configuration | `config/<service>/` |
+| Application sources | Their owning `server/`, `web/`, or `extension/` component |
+| Shared protocol schema, limits, fixtures, and implementations | `protocol/` |
+| Repository commands, guards, runners, and their tests | `devbin/` |
+
+Keep `containers/` focused on recipes and build metadata. Each image's
+`Dockerfile.dockerignore` lives beside its Dockerfile and selects inputs from
+their owning components. The [container input decision](../decisions/20261026-repository-layout.md#components)
+records this separation.
+
+Shared protocol implementations belong together in `protocol/rust/` and
+`protocol/typescript/`, with their own sources and tests. Keep them independent
+of Thunderbird APIs. Thunderbird adapters and extension integration tests belong
+in `extension/`. See the [protocol placement decision](../decisions/20261026-protocol-contracts.md).
+
+Apply the [source filename](../coding/coding-standards.md#source-filenames),
+[directory name](../coding/coding-standards.md#directory-names), and
+[documentation naming](../contributing/documentation-organisation.md#naming)
+conventions within these locations.
+
+## Compose deployments
+
 `compose/compose.yaml` runs the application and Thunderbird with separate volumes
 and the fixed gateway between their networks.
 `compose.admin.yaml` adds local desktop administration, and `compose.runtime_test.yaml`
@@ -35,8 +66,8 @@ secret mount, endpoint, and live verification through the
 [credential commands](../operations/connector-credentials.md).
 `compose.extension_test.yaml` is a standalone disposable extension lifecycle
 fixture. `compose.mail_test.yaml` runs the separate fictional mail experiment,
-with `compose.mail_admin.yaml` enabling its native UI checks. All Compose files
-live in `compose/`. The [runtime guide](../operations/local-runtime.md) and
+with `compose.mail_admin.yaml` enabling its native UI checks.
+The [runtime guide](../operations/local-runtime.md) and
 [tooling commands](build-test-generate.md) show their combinations.
 
 The [brand guide](../../assets/brand/README.md) describes asset locations and
@@ -50,6 +81,14 @@ persistence are defined in [architecture](architecture.md).
 
 ## Test code
 
+Keep tests, mocks, fixture controllers, and profile setup with their owning
+component, using its `tests/` subtree. Do not create a repository-root test tree.
+Repository tooling tests stay beside their helpers in `devbin/`.
+
+`server/tests/`, `web/tests/`, and `extension/tests/` own their respective
+application and integration tests. Rust test support lives under
+`server/tests/support/`.
+
 `protocol/rust/tests/` and `protocol/typescript/tests/` run the shared protocol
 fixtures against their respective implementations. TypeScript protocol tests
 compile independently of the extension. See the
@@ -62,16 +101,25 @@ compile independently of the extension. See the
 `extension/lifecycleprobe/tests/` owns the lifecycle fixture controller and its tests.
 `extension/mailprobe/tests/` groups the mail probe and scenarios under `probe/`,
 fictional profile setup under `profile/`, and SMTP/IMAP fault infrastructure under
-`proxy/`, with their unit tests alongside the fixture code. The tooling image
-packages these fixtures at the same component paths under `/opt/raicho/`.
-Docker recipes stay under
-`containers/`, and the production Thunderbird image copies only its explicit
-runtime modules. See the [fixture commands](build-test-generate.md#mail-api-compatibility)
+`proxy/`, with their unit tests alongside the fixture code.
+See the [fixture commands](build-test-generate.md#mail-api-compatibility)
 for the mail test extension and profile mounts.
 
-Each image's build-context filter lives beside its Dockerfile as
-`Dockerfile.dockerignore`. The tooling filter includes its dependencies and
-component-local fixtures. The Thunderbird filter excludes test directories.
+## Tooling and image boundaries
+
+Use the shared tooling image for linters, formatters, test runners, Python mocks,
+and fixture drivers locally and in CI. Independent fixture processes can use
+separate containers from that image. Thunderbird and upstream fixture services
+such as GreenMail retain their runtime images. The
+[shared tooling decision](../decisions/20261026-repository-layout.md#tooling-image)
+records the image boundary.
+
+The tooling image packages fixture sources at their component-relative paths
+under `/opt/raicho/`. Its build-context filter includes those fixture directories
+and tooling dependencies. Keep fixture code out of production runtime images
+and production XPIs. The Thunderbird recipe copies its explicit runtime modules,
+and its filter excludes test directories. Rebuild and execution commands live in
+[build, test, and generate](build-test-generate.md#tooling-image).
 
 Module boundaries follow the
 [coding standards](../coding/coding-standards.md#naming-and-structure).

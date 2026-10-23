@@ -79,7 +79,7 @@ services.
 
 Docker recipes and their build-context filters live in `containers/`, deployment
 definitions in `compose/`, and tests beside their owning components. See
-[project structure](docs/reference/project-structure.md) for the layout.
+[placement guide](docs/reference/project-structure.md#placement-rules) for the layout.
 The shared connector protocol has Rust and TypeScript implementations under
 `protocol/`.
 Repository guards enforce the [source and directory naming conventions](docs/coding/coding-standards.md).
@@ -113,8 +113,9 @@ Anyone can contribute. Start with the
 [delivery workflow](docs/contributing/workflow.md). Substantial changes begin
 with a design pull request before implementation.
 
-The [project structure](docs/reference/project-structure.md) explains where image
-recipes, runtime code, configuration, tests, and developer commands belong.
+The [repository placement rules](docs/reference/project-structure.md#placement-rules)
+explain where image recipes, runtime code, configuration, tests, shared protocol
+implementations, and developer commands belong.
 
 [AGENTS.md](AGENTS.md) is the entry point for AI-assisted work, and
 [decision records](docs/decisions/README.md) explain the project's choices.

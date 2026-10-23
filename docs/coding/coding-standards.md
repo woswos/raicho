@@ -26,6 +26,7 @@ and `.py` suffix. Document filenames follow
 Keep files focused on one concern. Split them by functionality at approximately
 150 lines or when they hold multiple concerns, unless stronger existing
 conventions apply. Keep search, navigation, and review mapped to one concern.
+File locations follow the [repository placement rules](../reference/project-structure.md#placement-rules).
 
 ## Source filenames
 

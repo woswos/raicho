@@ -3,6 +3,13 @@
 Project invariants complement the shared [workflow](../contributing/workflow.md) and
 [coding standards](../coding/coding-standards.md).
 
+## Repository organization
+
+Use the [placement rules](project-structure.md#placement-rules) for files and
+the [test ownership guide](project-structure.md#test-code) for tests and fixtures.
+Naming follows the [source filename](../coding/coding-standards.md#source-filenames)
+and [directory name](../coding/coding-standards.md#directory-names) conventions.
+
 ## Product and data
 
 - Follow the accepted [foundation decision](../decisions/20261017-thunderbird-first-foundation.md)
