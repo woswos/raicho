@@ -101,7 +101,7 @@ image. Leave it unset and the commit is `unknown`, which the page shows as the
 version alone. Set it to the full git commit to record the build:
 
 ```bash
-RAICHO_COMMIT="$(git rev-parse HEAD)" docker compose -f compose/compose.yaml build
+RAICHO_COMMIT="$(git rev-parse HEAD)" docker compose build
 ```
 
 The commit text must fit in 80 characters, which a full git object name does.

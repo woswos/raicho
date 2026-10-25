@@ -7,13 +7,14 @@ Docker Compose 2.24 or newer is needed for the test override's reset syntax.
 Use Docker Engine 28 or newer for the
 [administrative network boundary](../reference/runtime.md#network-isolation).
 
-Compose files live in `compose/`, separate from image recipes in `containers/`.
+The base `compose.yaml` and the operator overlays `compose.admin.yaml` and
+`compose.credentials.yaml` live at the repository root.
 Run the commands below from the repository root. Configuration may come from
 shell variables. If using a repository-root `.env` file, pass `--env-file .env`
 explicitly to Compose, for example:
 
 ```bash
-docker compose --env-file .env -f compose/compose.yaml config --quiet
+docker compose --env-file .env config --quiet
 ```
 
 ## Start and inspect
@@ -21,9 +22,9 @@ docker compose --env-file .env -f compose/compose.yaml config --quiet
 From the repository root:
 
 ```bash
-docker compose -f compose/compose.yaml config --quiet
-docker compose -f compose/compose.yaml build
-docker compose -f compose/compose.yaml up -d --wait
+docker compose config --quiet
+docker compose build
+docker compose up -d --wait
 ```
 
 Open <http://127.0.0.1:8080>. Expect a ready application and an unconfigured
@@ -36,7 +37,7 @@ restart sequence, then verify an authenticated heartbeat.
 For explicit administration:
 
 ```bash
-docker compose -f compose/compose.yaml -f compose/compose.admin.yaml up -d --wait
+docker compose -f compose.yaml -f compose.admin.yaml up -d --wait
 ```
 
 Open <http://127.0.0.1:6080/vnc.html?autoconnect=true&resize=remote>. This is the
@@ -44,19 +45,19 @@ native Thunderbird desktop for setup and recovery. Foundation checks use empty
 profiles and no provider credentials. To disable the administrative listener:
 
 ```bash
-docker compose -f compose/compose.yaml up -d --force-recreate thunderbird
+docker compose up -d --force-recreate thunderbird
 ```
 
-For an enrolled deployment, include `compose/compose.credentials.yaml` in both
+For an enrolled deployment, include `compose.credentials.yaml` in both
 administration commands and set `RAICHO_CREDENTIAL_DIRECTORY` to that deployment's
 absolute `credentials/` directory. Omitting the credentials override when
 recreating Thunderbird disables its connector configuration.
 
-Inspect failures with `docker compose -f compose/compose.yaml logs` and
-`docker compose -f compose/compose.yaml ps`. To stop while retaining both volumes:
+Inspect failures with `docker compose logs` and
+`docker compose ps`. To stop while retaining both volumes:
 
 ```bash
-docker compose -f compose/compose.yaml down
+docker compose down
 ```
 
 For another deployment, choose its own project name and host ports. Exporting
@@ -66,7 +67,7 @@ For example, in a separate shell:
 
 ```bash
 export COMPOSE_PROJECT_NAME=raicho-second RAICHO_PORT=8081 RAICHO_ADMIN_PORT=6081
-docker compose -f compose/compose.yaml up -d --wait
+docker compose up -d --wait
 ```
 
 If Raicho fails to start because a migration's checksum or version does not
@@ -76,9 +77,9 @@ are never edited. For a development deployment, remove the volume and provision
 again:
 
 ```bash
-docker compose -f compose/compose.yaml down
+docker compose down
 docker volume rm "${COMPOSE_PROJECT_NAME:-raicho}_raicho-data"
-docker compose -f compose/compose.yaml up -d --wait
+docker compose up -d --wait
 bash runtime/credentials/connector.bash init
 ```
 
@@ -98,7 +99,7 @@ It restores Thunderbird without administration before returning.
 ```bash
 (
   export COMPOSE_PROJECT_NAME="raicho-check-$(date +%s)-$$"
-  export COMPOSE_FILE=compose/compose.yaml:compose/compose.runtime_test.yaml
+  export COMPOSE_FILE=compose.yaml:automation/acceptance/runtime/compose.test.yaml
   set -eu
   trap 'docker compose down --volumes --remove-orphans' EXIT
   docker compose --profile test build

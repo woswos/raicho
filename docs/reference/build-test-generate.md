@@ -12,16 +12,16 @@ fixtures. Host language toolchains are not required. Rebuild after changing
 the image, dependency pins, or packaged fixture sources:
 
 ```bash
-docker compose -f compose/compose.tools.yaml build
+docker compose -f automation/tooling/compose.yaml build
 ```
 
 The image's build-context allowlist is
-`containers/tooling/Dockerfile.dockerignore`. Fixture sources come from the
+`automation/tooling/Dockerfile.dockerignore`. Fixture sources come from the
 component-local directories listed in [project structure](project-structure.md#test-code).
-The tooling entrypoint lives at `automation/quality/tooling_entrypoint.bash`.
+The tooling entrypoint lives at `automation/tooling/entrypoint.bash`.
 
 The entrypoint also compares `package.json`, `package-lock.json`,
-`eslint.config.mjs`, and `containers/tooling/requirements.txt` with the image
+`eslint.config.mjs`, and `automation/tooling/requirements.txt` with the image
 copies. A mismatch stops the command with a
 rebuild instruction, preventing stale installed dependencies or lint rules.
 
@@ -36,7 +36,7 @@ that mount, checks fail because Git cannot resolve the worktree metadata:
 
 ```bash
 RAICHO_GIT_COMMON_DIR="$(git rev-parse --path-format=absolute --git-common-dir)"
-docker compose -f compose/compose.tools.yaml run --rm \
+docker compose -f automation/tooling/compose.yaml run --rm \
   --volume "${RAICHO_GIT_COMMON_DIR}:${RAICHO_GIT_COMMON_DIR}:ro" \
   check make lint format-check typecheck
 ```
@@ -47,8 +47,8 @@ worktree. The source mount remains read-only for checks.
 ## Checks and formatting
 
 ```bash
-docker compose -f compose/compose.tools.yaml run --rm check make lint format-check typecheck
-docker compose -f compose/compose.tools.yaml run --rm check make test-tooling
+docker compose -f automation/tooling/compose.yaml run --rm check make lint format-check typecheck
+docker compose -f automation/tooling/compose.yaml run --rm check make test-tooling
 ```
 
 | Target | Behavior |
@@ -91,7 +91,7 @@ explicitly so rewritten files retain the caller's ownership:
 
 ```bash
 LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)" \
-docker compose -f compose/compose.tools.yaml run --rm format make format
+docker compose -f automation/tooling/compose.yaml run --rm format make format
 ```
 
 For SQL alone, use `check make lint-sql format-check-sql` or
@@ -105,7 +105,7 @@ through the writable service first:
 
 ```bash
 LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)" \
-docker compose -f compose/compose.tools.yaml run --rm format cargo metadata --format-version 1
+docker compose -f automation/tooling/compose.yaml run --rm format cargo metadata --format-version 1
 ```
 
 The exact scope and pins are in
@@ -128,20 +128,20 @@ PR_BASE_SHA="$(git rev-parse origin/main)" \
 PR_HEAD_SHA="$(git rev-parse HEAD)" \
 PR_DESCRIPTION="Decision: docs/decisions/20261005-adopt-shared-workflow.md" \
 PR_LABELS="" \
-docker compose -f compose/compose.tools.yaml run --rm check make lint-pr
+docker compose -f automation/tooling/compose.yaml run --rm check make lint-pr
 ```
 
 Without a local base, the guard conservatively requires a design or decision.
 A `design` label needs both commits to prove that only planning docs changed.
 GitHub event metadata always takes precedence over local overrides.
 
-CI adds `compose/compose.ci.yaml` to bind-mount the event JSON read-only at
+CI adds `automation/tooling/compose.ci.yaml` to bind-mount the event JSON read-only at
 `/tmp/github-event.json`. This override requires `GITHUB_EVENT_PATH` to be an
 absolute path to an existing host file. The checkout supplies the base/head Git
 objects:
 
 ```bash
-docker compose -f compose/compose.tools.yaml -f compose/compose.ci.yaml run --rm check make lint-pr
+docker compose -f automation/tooling/compose.yaml -f automation/tooling/compose.ci.yaml run --rm check make lint-pr
 ```
 
 ## Application tooling
@@ -149,8 +149,8 @@ docker compose -f compose/compose.tools.yaml -f compose/compose.ci.yaml run --rm
 Run source builds and behavioral tests through the same tooling container:
 
 ```bash
-docker compose -f compose/compose.tools.yaml run --rm check make build-app test-app test-protocol
-docker compose -f compose/compose.tools.yaml run --rm \
+docker compose -f automation/tooling/compose.yaml run --rm check make build-app test-app test-protocol
+docker compose -f automation/tooling/compose.yaml run --rm \
   -e PYTHONPATH=/workspace/runtime/thunderbird check \
   python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
 ```
@@ -171,14 +171,14 @@ settings affect check containers, not release images. Set
 `CARGO_PROFILE_DEV_DEBUG=2`, `CARGO_PROFILE_TEST_DEBUG=2`, or `CARGO_INCREMENTAL=1`
 before the Compose command when that output is needed for local debugging.
 
-Build runtime images with `docker compose -f compose/compose.yaml build`. This
+Build runtime images with `docker compose build`. This
 compiles release artifacts and installs the independently packaged Thunderbird runtime.
 The image recipes pin base digests and downloaded artifacts. The Thunderbird
-image also builds the XPI with TypeScript and the deterministic Python packager.
+image also builds the XPI with TypeScript and the deterministic Node packager.
 See [local runtime](../operations/local-runtime.md) for Compose
 startup, administration, persistence checks, and cleanup.
 
-`compose/compose.tools.yaml` remains a development-only configuration and does
+`automation/tooling/compose.yaml` remains a development-only configuration and does
 not start the application. Application state belongs to the runtime volumes, not the
 checkout. Control-contract generation is described below. Mail commands remain
 outside the production contract.
@@ -187,8 +187,8 @@ outside the production contract.
 
 ```bash
 LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)" \
-  docker compose -f compose/compose.tools.yaml run --rm format make generate-protocol
-docker compose -f compose/compose.tools.yaml run --rm check make check-protocol test-protocol
+  docker compose -f automation/tooling/compose.yaml run --rm format make generate-protocol
+docker compose -f automation/tooling/compose.yaml run --rm check make check-protocol test-protocol
 ```
 
 Use the caller's UID/GID for writable generation as above. `generate-protocol`
@@ -205,7 +205,7 @@ for sources, parsing rules, and integration responsibilities.
 ## Credential persistence
 
 ```bash
-docker compose -f compose/compose.tools.yaml run --rm check \
+docker compose -f automation/tooling/compose.yaml run --rm check \
   make test-server lint-repo lint-sql format-check-sql
 bash automation/acceptance/credentials/check_credentials.bash
 ```
@@ -222,7 +222,7 @@ previous token file.
 ## Production connector
 
 ```bash
-docker compose -f compose/compose.tools.yaml run --rm check make test-server test-extension test-web
+docker compose -f automation/tooling/compose.yaml run --rm check make test-server test-extension test-web
 bash automation/acceptance/connector/check_connector.bash
 ```
 
@@ -252,9 +252,9 @@ commit while editing continues in another checkout.
 ## Extension packaging
 
 ```bash
-docker compose -f compose/compose.tools.yaml run --rm check \
+docker compose -f automation/tooling/compose.yaml run --rm check \
   make build-extension test-extension typecheck
-docker compose -f compose/compose.tools.yaml run --rm \
+docker compose -f automation/tooling/compose.yaml run --rm \
   -e PYTHONPATH=/workspace/runtime/thunderbird check \
   python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
 ```
@@ -282,7 +282,7 @@ documented in [CI](ci-cd.md), and runtime details in [runtime](runtime.md).
 ## Mail API compatibility
 
 ```bash
-docker compose -f compose/compose.tools.yaml run --rm check make test-mailprobe
+docker compose -f automation/tooling/compose.yaml run --rm check make test-mailprobe
 bash mailprobe/tests/check_mail_compatibility.bash
 bash mailprobe/tests/check_mail_compatibility.bash --native
 ```

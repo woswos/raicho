@@ -5,7 +5,7 @@ services:
     image: raicho-server:local
     platform: linux/amd64
     build:
-      context: ..
+      context: .
       dockerfile: containers/raicho/Dockerfile
       args:
         RAICHO_COMMIT: ${RAICHO_COMMIT:-unknown}
@@ -28,7 +28,7 @@ services:
     image: raicho-gateway:local
     platform: linux/amd64
     build:
-      context: ..
+      context: .
       dockerfile: containers/gateway/Dockerfile
     read_only: true
     tmpfs:
@@ -43,7 +43,7 @@ services:
     image: raicho-thunderbird:local
     platform: linux/amd64
     build:
-      context: ..
+      context: .
       dockerfile: containers/thunderbird/Dockerfile
     read_only: true
     tmpfs:

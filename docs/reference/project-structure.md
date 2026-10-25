@@ -6,12 +6,12 @@ image, brand assets, and the shared workflow. Mail integration is still planned.
 ```text
 AGENTS.md          Always-loaded instructions and pointers to task-specific docs
 CHANGELOG.md       Product changelog used to cut semantic versions
+compose*.yaml      Base deployment and its administration and credential overlays
 .agents/skills/    Canonical shared workflow skills
 .github/           Pull request templates and GitHub Actions workflows
 assets/brand/      Production identity masters, fonts, guides, and prototypes
 containers/        Docker recipes, build-context filters, and dependency locks
 runtime/           Production service helpers, configuration, and component-local tests
-compose/           Runtime, administration, test, tooling, and CI Compose files
 server/            Rust diagnostics, SQLite queries, migrations, and tests
 web/               TypeScript diagnostics, public files, and behavioral tests
 extension/         Production connector, its packager, and its tests
@@ -32,7 +32,9 @@ Use these locations when adding files or moving existing code:
 | Material | Location |
 | --- | --- |
 | Docker recipes and image dependency metadata | `containers/<image>/` |
-| Compose deployments and overrides | `compose/` |
+| Base Compose deployment and operator overlays | Repository root |
+| Test-only Compose overlays | Beside the acceptance driver that uses them |
+| Development tooling image and its Compose files | `automation/tooling/` |
 | Production runtime helpers and service configuration | `runtime/<component>/` |
 | Application sources | Their owning `server/`, `web/`, or `extension/` component |
 | Mail API compatibility probe, its fixtures, and its runner | `mailprobe/` |
@@ -104,18 +106,22 @@ organization and the replacement of the former `devbin/` tree.
 
 ## Compose deployments
 
-`compose/compose.yaml` runs the application and Thunderbird with separate volumes
-and the fixed gateway between their networks.
-`compose.admin.yaml` adds local desktop administration, and `compose.runtime_test.yaml`
-adds the isolated runtime fixture driver. `compose.tools.yaml` provides checks
-and formatting, with `compose.ci.yaml` adding the GitHub event mount.
-`compose.credentials.yaml` supplies offline provisioning and the Thunderbird
-token mount, endpoint, and live verification through the
+The root `compose.yaml` runs the application and Thunderbird with separate
+volumes and the fixed gateway between their networks, so `docker compose` works
+from the repository root without `-f`. `compose.admin.yaml` adds local desktop
+administration. `compose.credentials.yaml` supplies offline provisioning and the
+Thunderbird token mount, endpoint, and live verification through the
 [credential commands](../operations/connector-credentials.md).
-`compose.connector_upgrade.yaml` mounts a version-bumped production XPI for the
-connector acceptance upgrade check. `mailprobe/compose.yaml` runs the separate
-fictional mail experiment, with `mailprobe/compose.admin.yaml` enabling its
-native UI checks.
+
+Test overlays live with their drivers. `automation/acceptance/runtime/compose.test.yaml`
+adds the isolated runtime fixture driver, and
+`automation/acceptance/connector/compose.upgrade.yaml` mounts a version-bumped
+production XPI for the connector acceptance upgrade check. Compose resolves every
+overlay's paths from the first file, so these overlays use repository-relative
+paths. `automation/tooling/compose.yaml` provides checks and formatting, with
+`automation/tooling/compose.ci.yaml` adding the GitHub event mount.
+`mailprobe/compose.yaml` runs the separate fictional mail experiment, with
+`mailprobe/compose.admin.yaml` enabling its native UI checks.
 The [runtime guide](../operations/local-runtime.md) and
 [tooling commands](build-test-generate.md) show their combinations.
 

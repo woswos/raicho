@@ -1,3 +1,4 @@
+# Paths resolve from the repository root, where the base compose.yaml lives.
 services:
   thunderbird:
     volumes:
@@ -27,7 +28,7 @@ services:
         /artifact,
       ]
     volumes:
-      - ..:/workspace:ro
+      - .:/workspace:ro
       - upgrade-extension:/artifact
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]

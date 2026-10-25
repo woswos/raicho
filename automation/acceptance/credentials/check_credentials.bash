@@ -48,7 +48,7 @@ expect_failure() {
     fi
 }
 
-docker compose -f compose/compose.tools.yaml build
+docker compose -f automation/tooling/compose.yaml build
 "${COMPOSE[@]}" build raicho gateway thunderbird
 operate init
 fixture database --revision 1

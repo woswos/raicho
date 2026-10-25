@@ -169,10 +169,10 @@ nesting regressions exercise agreement between the two decoders.
 ## Generation and verification
 
 ```bash
-docker compose -f compose/compose.tools.yaml build
+docker compose -f automation/tooling/compose.yaml build
 LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)" \
-  docker compose -f compose/compose.tools.yaml run --rm format make generate-protocol
-docker compose -f compose/compose.tools.yaml run --rm check make check-protocol test-protocol
+  docker compose -f automation/tooling/compose.yaml run --rm format make generate-protocol
+docker compose -f automation/tooling/compose.yaml run --rm check make check-protocol test-protocol
 ```
 
 Set `LOCAL_UID` and `LOCAL_GID` for writable generation as described in

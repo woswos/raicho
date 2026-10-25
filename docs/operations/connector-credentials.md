@@ -11,7 +11,7 @@ Run from the repository root on a Linux Docker host with Bash and `flock`.
 Build the runtime images before provisioning:
 
 ```bash
-docker compose -f compose/compose.yaml build
+docker compose build
 bash runtime/credentials/connector.bash init
 ```
 
@@ -40,7 +40,7 @@ recreation itself has already begun. Fix the reported failure before restarting.
 The helper holds a deployment operation lock for the entire sequence. SQLite's
 instance lock independently rejects provisioning while another process owns it.
 
-`compose/compose.credentials.yaml` adds offline provisioning services and mounts
+`compose.credentials.yaml` adds offline provisioning services and mounts
 the token read-only into Thunderbird. It configures the fixed internal gateway
 endpoint. Verification checks the SQLite keys, file permissions, UID 10001
 access, service health, and the live authenticated connection. The diagnostics

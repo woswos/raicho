@@ -55,8 +55,8 @@ Install Git and Docker with Compose, then clone the repository. On Linux amd64,
 build and start the foundation from the repository root:
 
 ```bash
-docker compose -f compose/compose.yaml build
-docker compose -f compose/compose.yaml up -d --wait
+docker compose build
+docker compose up -d --wait
 ```
 
 Open <http://127.0.0.1:8080> for diagnostics. Thunderbird starts without a viewer,
@@ -69,16 +69,16 @@ administration, disposable profiles, persistence checks, and stopping services.
 Build the tooling image and run development checks separately:
 
 ```bash
-docker compose -f compose/compose.tools.yaml build
-docker compose -f compose/compose.tools.yaml run --rm check make lint format-check typecheck
+docker compose -f automation/tooling/compose.yaml build
+docker compose -f automation/tooling/compose.yaml run --rm check make lint format-check typecheck
 ```
 
 The tooling image provides the language tools and Python test fixtures, so host
 language toolchains are not required. The `check` service does not start runtime
 services.
 
-Docker recipes and their build-context filters live in `containers/`, deployment
-definitions in `compose/`, and shared development automation in `automation/`,
+Docker recipes and their build-context filters live in `containers/`, the
+deployment in the root `compose.yaml`, and shared development automation in `automation/`,
 grouped by responsibility. Component-specific builders and tests live with their
 sources. Operational credential helpers live in `runtime/credentials/`. See the
 [placement guide](docs/reference/project-structure.md#placement-rules) for the layout.

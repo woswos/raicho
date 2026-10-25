@@ -34,8 +34,8 @@ run inside the pinned tooling image. Versions and commands are recorded in
 [build, test, and generate](../reference/build-test-generate.md).
 
 ```bash
-docker compose -f compose/compose.tools.yaml build
-docker compose -f compose/compose.tools.yaml run --rm check make lint format-check typecheck
+docker compose -f automation/tooling/compose.yaml build
+docker compose -f automation/tooling/compose.yaml run --rm check make lint format-check typecheck
 ```
 
 ## Application development

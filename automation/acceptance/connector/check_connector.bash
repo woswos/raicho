@@ -68,7 +68,7 @@ thunderbird_check() {
         <"${REPOSITORY_ROOT}/automation/acceptance/connector/thunderbird_checks.py"
 }
 
-docker compose -f compose/compose.tools.yaml build
+docker compose -f automation/tooling/compose.yaml build
 "${COMPOSE[@]}" build raicho thunderbird gateway
 prepare_network
 bash runtime/credentials/connector.bash init
@@ -136,7 +136,7 @@ echo 'Gateway dynamically resolved a recreated Raicho container at a different a
 COMPOSE_PROJECT_NAME="${RAICHO_PROJECT}" bash automation/acceptance/runtime/check_admin_isolation.bash
 connected
 
-COMPOSE+=(-f compose/compose.connector_upgrade.yaml)
+COMPOSE+=(-f automation/acceptance/connector/compose.upgrade.yaml)
 "${COMPOSE[@]}" run --rm upgrade-extension
 "${COMPOSE[@]}" up -d --no-deps --force-recreate --wait --wait-timeout 120 thunderbird
 connected

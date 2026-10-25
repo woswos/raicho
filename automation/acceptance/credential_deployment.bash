@@ -8,8 +8,8 @@ prepare_credential_deployment() {
     export RAICHO_CREDENTIAL_DIRECTORY="${RAICHO_STATE_DIRECTORY}/credentials"
     export RAICHO_COMPOSE_TEST=1
     mkdir -m 700 "${RAICHO_CREDENTIAL_DIRECTORY}"
-    COMPOSE=(docker compose -p "${RAICHO_PROJECT}" -f compose/compose.yaml
-        -f compose/compose.credentials.yaml -f compose/compose.runtime_test.yaml)
+    COMPOSE=(docker compose -p "${RAICHO_PROJECT}" -f compose.yaml
+        -f compose.credentials.yaml -f automation/acceptance/runtime/compose.test.yaml)
 }
 
 fixture() {

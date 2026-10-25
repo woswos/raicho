@@ -39,7 +39,7 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-docker build --platform linux/amd64 -f containers/tooling/Dockerfile \
+docker build --platform linux/amd64 -f automation/tooling/Dockerfile \
     -t "${RAICHO_TEST_TOOLING_IMAGE}" .
 docker build --platform linux/amd64 -f containers/thunderbird/Dockerfile \
     -t "${RAICHO_MAIL_TEST_IMAGE}" .

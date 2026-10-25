@@ -8,7 +8,7 @@ QUALITY = python3 -B -m automation.quality.runner --root "$(QUALITY_ROOT)"
 
 .PHONY: tooling
 tooling:
-	@test -f /opt/quality/package-lock.json || { echo 'Run Make through docker compose -f compose/compose.tools.yaml run --rm check' >&2; exit 1; }
+	@test -f /opt/quality/package-lock.json || { echo 'Run Make through docker compose -f automation/tooling/compose.yaml run --rm check' >&2; exit 1; }
 
 lint lint-repo lint-pr lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql format format-sql format-check format-check-rust format-check-javascript format-check-sql typecheck test-tooling: | tooling
 

@@ -75,12 +75,9 @@ includes Bash (`.bash`, `.sh`, and shell shebangs), Python (`.py`, `.pyi`),
 JavaScript (`.js`, `.mjs`, `.cjs`), TypeScript (`.ts`, `.tsx`, `.mts`, `.cts`),
 Rust (`.rs` and Cargo projects), and SQL (`.sql`).
 
-Prettier also covers `package.json`, `.prettierrc.json`, `compose/compose.tools.yaml`,
-`compose/compose.ci.yaml`, the runtime/admin/test/credential Compose files, browser package and
-TypeScript configuration, extension manifest/package/TypeScript configuration,
-the extension lifecycle and mail fixture Compose files, separate mail probe
-manifest/package/TypeScript configuration, and
-`.github/workflows/repository-checks.yml`. The control schema, limits, and shared
+Prettier also covers `package.json`, `.prettierrc.json`, every Compose file,
+browser package and TypeScript configuration, extension and mail probe
+manifest/package/TypeScript configuration, and the GitHub workflows. The control schema, limits, and shared
 protocol fixture JSON files are also included.
 Do not broaden it to Markdown, HTML, CSS, SVG, exported previews, historical
 references, fonts, or vendor artifacts. Dependency directories, build output,
@@ -114,7 +111,7 @@ before formatting migration files.
 
 ## Versions and updates
 
-The [tooling Dockerfile](../../containers/tooling/Dockerfile) pins each source
+The [tooling Dockerfile](../../automation/tooling/Dockerfile) pins each source
 image by digest. It installs Debian Bookworm support packages from the
 `20261018T000000Z` snapshot.
 
@@ -131,11 +128,11 @@ image by digest. It installs Debian Bookworm support packages from the
 | websockify (test fixtures) | 0.13.0 |
 
 Python tooling dependencies and their wheel hashes are locked in
-`containers/tooling/requirements.txt`, currently for Python 3.13 on Linux amd64.
+`automation/tooling/requirements.txt`, currently for Python 3.13 on Linux amd64.
 The image installs them with `pip --require-hashes --only-binary=:all:`.
 Refresh this lock inside Docker when upgrading SQLFluff or test dependencies,
 review all dependency changes, and rebuild the image. The entrypoint at
-`automation/quality/tooling_entrypoint.bash` detects a stale requirements
+`automation/tooling/entrypoint.bash` detects a stale requirements
 file.
 The [websockify release](https://pypi.org/project/websockify/0.13.0/) supplies
 the WebSocket fixture server. Thunderbird's optional desktop support retains its

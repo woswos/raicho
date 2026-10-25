@@ -27,8 +27,8 @@ volumes, networks, temporary credentials, and fixture image tags.
 The workflow invokes the same commands used locally:
 
 ```bash
-docker compose -f compose/compose.tools.yaml build
-docker compose -f compose/compose.tools.yaml run --rm check \
+docker compose -f automation/tooling/compose.yaml build
+docker compose -f automation/tooling/compose.yaml run --rm check \
   make lint format-check typecheck test-tooling build-app test-app test-mailprobe test-protocol
 bash automation/acceptance/connector/check_connector.bash
 bash automation/acceptance/credentials/check_credentials.bash
