@@ -3,13 +3,13 @@ mod support;
 use raicho_protocol::diagnostics_generated::{BackendError, BackendState};
 use std::time::Duration;
 
-use futures_util::{SinkExt, StreamExt};
-use raicho_server::credentials::CredentialStore;
+use futures_util::SinkExt;
+use raicho_server::persistence::CredentialStore;
 use serde_json::json;
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::{Message, client::IntoClientRequest};
 
-use support::{Fixture, ORIGIN, authentication, receive};
+use support::{Fixture, ORIGIN, authentication, receive, receive_within};
 
 #[tokio::test]
 async fn authentication_registers_one_session_and_replacement_fences_old_cleanup() {
@@ -85,12 +85,7 @@ async fn stalled_credential_storage_is_retryable_rather_than_a_rejection() {
         .send(Message::Text(authentication("a").to_string().into()))
         .await
         .unwrap();
-    let frame = tokio::time::timeout(Duration::from_secs(12), socket.next())
-        .await
-        .unwrap()
-        .unwrap()
-        .unwrap();
-    let error: serde_json::Value = serde_json::from_str(frame.to_text().unwrap()).unwrap();
+    let error = receive_within(&mut socket, Duration::from_secs(12)).await;
     assert_eq!(error["code"], "server_busy");
     drop(held);
     assert_eq!(
@@ -103,21 +98,29 @@ async fn stalled_credential_storage_is_retryable_rather_than_a_rejection() {
 #[tokio::test]
 async fn route_requires_exact_path_origin_and_no_query_or_subprotocol() {
     let fixture = Fixture::new().await;
-    for (suffix, origin, protocol) in [
-        ("?token=redacted", Some(ORIGIN), None),
-        ("/extra", Some(ORIGIN), None),
-        ("", None, None),
-        ("", Some("https://example.com"), None),
-        ("", Some("moz-extension://invalid"), None),
-        ("", Some(ORIGIN), Some("credential")),
+    let trailing_slash = format!("{ORIGIN}/");
+    let uppercase = ORIGIN.to_uppercase();
+    let joined = format!("{ORIGIN}, {ORIGIN}");
+    for (suffix, origins, protocol) in [
+        ("?token=redacted", vec![ORIGIN], None),
+        ("/extra", vec![ORIGIN], None),
+        ("", vec![], None),
+        ("", vec!["https://example.com"], None),
+        ("", vec!["moz-extension://invalid"], None),
+        ("", vec![trailing_slash.as_str()], None),
+        ("", vec![uppercase.as_str()], None),
+        ("", vec![joined.as_str()], None),
+        ("", vec!["null"], None),
+        ("", vec![ORIGIN, ORIGIN], None),
+        ("", vec![ORIGIN], Some("credential")),
     ] {
         let mut request = format!("{}{suffix}", fixture.address)
             .into_client_request()
             .unwrap();
-        if let Some(origin) = origin {
+        for origin in origins {
             request
                 .headers_mut()
-                .insert("Origin", origin.parse().unwrap());
+                .append("Origin", origin.parse().unwrap());
         }
         if let Some(protocol) = protocol {
             request

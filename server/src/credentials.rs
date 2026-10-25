@@ -1,12 +1,11 @@
-mod secret_file;
-mod store;
+mod token_file;
 
 use sha2::{Digest, Sha256};
 use subtle::ConstantTimeEq;
 
 use crate::error::{Error, Result};
 
-pub use store::{CredentialStatus, CredentialStore};
+const TOKEN_HEX_LENGTH: usize = 64;
 
 pub struct Credential {
     digest: [u8; 32],
@@ -14,7 +13,7 @@ pub struct Credential {
 
 impl Credential {
     pub fn parse(value: &str) -> Result<Self> {
-        if value.len() != 64
+        if value.len() != TOKEN_HEX_LENGTH
             || !value
                 .bytes()
                 .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
@@ -28,7 +27,11 @@ impl Credential {
         })
     }
 
-    fn matches(&self, digest: &[u8]) -> bool {
+    pub(crate) fn digest(&self) -> &[u8] {
+        &self.digest
+    }
+
+    pub(crate) fn matches(&self, digest: &[u8]) -> bool {
         bool::from(self.digest.as_slice().ct_eq(digest))
     }
 }

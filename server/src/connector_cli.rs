@@ -1,10 +1,10 @@
-use std::env;
 use std::ffi::OsString;
 use std::path::PathBuf;
 
-use raicho_server::credentials::{Credential, CredentialStatus, CredentialStore};
+use raicho_server::config::Config;
+use raicho_server::credentials::Credential;
 use raicho_server::error::{Error, Result};
-use raicho_server::persistence::Database;
+use raicho_server::persistence::{CredentialStatus, CredentialStore, Database};
 
 enum Operation {
     Initialize(PathBuf),
@@ -61,13 +61,7 @@ impl Operation {
 
 pub async fn run(arguments: &[OsString]) -> Result<()> {
     let operation = Operation::parse(arguments)?;
-    let directory = env::var_os("RAICHO_DATA_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| "/var/lib/raicho".into());
-    if !directory.is_absolute() {
-        return Err(Error::message("RAICHO_DATA_DIR must be an absolute path"));
-    }
-    let database = Database::open(&directory).await?;
+    let database = Database::open(&Config::data_dir_from_environment()?).await?;
     let result = execute(operation, &CredentialStore::new(&database)).await;
     database.close().await;
     if let Ok(status) = result {

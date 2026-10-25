@@ -7,9 +7,10 @@ use raicho_protocol::limits_generated::AUTHENTICATION_DEADLINE_MS;
 use raicho_protocol::{Phase, decode_frame};
 use tokio::sync::watch;
 
-use crate::credentials::{Credential, CredentialStore};
+use crate::credentials::Credential;
+use crate::persistence::CredentialStore;
 
-use super::{Connector, transport, wire::Failure};
+use super::{Connector, failure::Failure, transport};
 
 pub(super) async fn authenticate(
     socket: &mut WebSocket,

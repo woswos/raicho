@@ -1,4 +1,5 @@
 mod authentication;
+mod failure;
 mod heartbeat;
 mod listener;
 mod route;
@@ -17,8 +18,7 @@ use raicho_protocol::limits_generated::{
 };
 use tokio::sync::{Semaphore, watch};
 
-use crate::credentials::{CredentialStatus, CredentialStore};
-use crate::persistence::Database;
+use crate::persistence::{CredentialStatus, CredentialStore, Database};
 
 pub use listener::ConnectorListener;
 pub use state::BackendStatus;

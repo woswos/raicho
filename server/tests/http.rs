@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use axum::body::{Body, to_bytes};
 use axum::http::{Request, StatusCode};
-use raicho_server::{persistence::Database, router};
+use raicho_server::{connector::Connector, persistence::Database, router};
 use serde_json::{Value, json};
 use tempfile::tempdir;
 use tower::ServiceExt;
@@ -12,7 +12,11 @@ use tower::ServiceExt;
 async fn diagnostics_report_database_readiness_independently_of_thunderbird() {
     let directory = tempdir().unwrap();
     let database = Arc::new(Database::open(directory.path()).await.unwrap());
-    let application = router(Arc::clone(&database), directory.path());
+    let application = router(
+        Arc::clone(&database),
+        directory.path(),
+        Connector::new(Arc::clone(&database)),
+    );
     for path in ["/health/live", "/health/ready", "/api/status"] {
         let response = application
             .clone()
@@ -82,7 +86,11 @@ async fn static_files_are_served_without_api_or_path_traversal_fallbacks() {
     .unwrap();
     fs::write(directory.path().join("private.txt"), "not public").unwrap();
     let database = Arc::new(Database::open(directory.path()).await.unwrap());
-    let application = router(Arc::clone(&database), &web);
+    let application = router(
+        Arc::clone(&database),
+        &web,
+        Connector::new(Arc::clone(&database)),
+    );
     for path in ["/", "/diagnostics.js"] {
         let response = application
             .clone()

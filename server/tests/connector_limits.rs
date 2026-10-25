@@ -3,13 +3,13 @@ mod support;
 use raicho_protocol::diagnostics_generated::BackendState;
 use std::time::Duration;
 
-use futures_util::{SinkExt, StreamExt};
+use futures_util::SinkExt;
 use raicho_protocol::limits_generated::{HEARTBEAT_INTERVAL_MS, HEARTBEAT_TIMEOUT_MS};
 use serde_json::json;
 use tokio_tungstenite::connect_async;
-use tokio_tungstenite::tungstenite::{Message, client::IntoClientRequest};
+use tokio_tungstenite::tungstenite::Message;
 
-use support::{Fixture, ORIGIN, receive};
+use support::{Fixture, elapse, receive, receive_within};
 
 #[tokio::test]
 async fn silent_authentication_expires_and_pending_connections_are_bounded() {
@@ -18,16 +18,8 @@ async fn silent_authentication_expires_and_pending_connections_are_bounded() {
     for _ in 0..4 {
         pending.push(fixture.connect().await);
     }
-    let mut request = fixture.address.clone().into_client_request().unwrap();
-    request
-        .headers_mut()
-        .insert("Origin", ORIGIN.parse().unwrap());
-    assert!(connect_async(request).await.is_err());
-    let frame = tokio::time::timeout(Duration::from_secs(6), pending[0].next())
-        .await
-        .unwrap();
-    let message = frame.unwrap().unwrap();
-    let error: serde_json::Value = serde_json::from_str(message.to_text().unwrap()).unwrap();
+    assert!(connect_async(fixture.request()).await.is_err());
+    let error = receive_within(&mut pending[0], Duration::from_secs(6)).await;
     assert_eq!(error["code"], "authentication_failed");
     let (_replacement, _) = fixture.authenticate().await;
     fixture.finish().await;
@@ -75,12 +67,6 @@ async fn heartbeat_accepts_only_its_sequence_and_silent_peers_expire() {
     let timeout = receive(&mut socket).await;
     assert_eq!(timeout["code"], "heartbeat_timeout");
     fixture.finish().await;
-}
-
-async fn elapse(milliseconds: usize) {
-    tokio::time::pause();
-    tokio::time::advance(Duration::from_millis(milliseconds as u64)).await;
-    tokio::time::resume();
 }
 
 #[tokio::test]

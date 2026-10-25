@@ -1,51 +1,86 @@
 use std::time::Duration;
 
-use axum::extract::ws::WebSocket;
+use axum::extract::ws::{Utf8Bytes, WebSocket};
 use raicho_protocol::contract_generated::{ConnectorMessage, Generation};
 use raicho_protocol::diagnostics_generated::BackendError;
 use raicho_protocol::limits_generated::{HEARTBEAT_INTERVAL_MS, HEARTBEAT_TIMEOUT_MS};
 use raicho_protocol::{Phase, decode_frame};
 use tokio::time::Instant;
 
-use super::{
-    Connector, transport,
-    wire::{self, Failure},
-};
+use super::{Connector, failure::Failure, transport, wire};
+
+struct Heartbeat {
+    next_sequence: u64,
+    outstanding: Option<u64>,
+    deadline: Instant,
+}
 
 pub(super) async fn run(
     socket: &mut WebSocket,
     connector: &Connector,
     generation: &Generation,
 ) -> Failure {
-    let mut next_sequence = 1u64;
-    let mut outstanding = None;
-    let mut deadline = Instant::now() + Duration::from_millis(HEARTBEAT_INTERVAL_MS as u64);
+    let mut heartbeat = Heartbeat {
+        next_sequence: 1,
+        outstanding: None,
+        deadline: after(HEARTBEAT_INTERVAL_MS),
+    };
     loop {
-        tokio::select! {
+        let result = tokio::select! {
             biased;
-            _ = tokio::time::sleep_until(deadline) => {
-                if outstanding.is_some() { return Failure::new(BackendError::HeartbeatTimeout); }
-                if next_sequence > i32::MAX as u64 { return Failure::new(BackendError::ServerBusy); }
-                if let Err(error) = wire::ping(socket, generation, next_sequence).await { return error; }
-                outstanding = Some(next_sequence);
-                next_sequence += 1;
-                deadline = Instant::now() + Duration::from_millis(HEARTBEAT_TIMEOUT_MS as u64);
+            _ = tokio::time::sleep_until(heartbeat.deadline) => {
+                send_ping(socket, generation, &mut heartbeat).await
             },
             received = transport::receive_text(socket) => {
-                let text = match received {
-                    Ok(text) => text,
-                    Err(error) => return error,
-                };
-                let decoded = match decode_frame(&text, Phase::ClientControl, Some(generation)) {
-                    Ok(message) => message,
-                    Err(error) => return error.into(),
-                };
-                let ConnectorMessage::Pong(pong) = decoded else { return Failure::new(BackendError::UnexpectedMessage); };
-                if outstanding != Some(pong.sequence.get()) { return Failure::new(BackendError::UnexpectedMessage); }
-                if !connector.heartbeat(generation) { return Failure::new(BackendError::SessionReplaced); }
-                outstanding = None;
-                deadline = Instant::now() + Duration::from_millis(HEARTBEAT_INTERVAL_MS as u64);
+                accept_pong(received, connector, generation, &mut heartbeat)
             },
+        };
+        if let Err(failure) = result {
+            return failure;
         }
     }
+}
+
+async fn send_ping(
+    socket: &mut WebSocket,
+    generation: &Generation,
+    heartbeat: &mut Heartbeat,
+) -> Result<(), Failure> {
+    if heartbeat.outstanding.is_some() {
+        return Err(Failure::new(BackendError::HeartbeatTimeout));
+    }
+    if heartbeat.next_sequence > i32::MAX as u64 {
+        return Err(Failure::new(BackendError::ServerBusy));
+    }
+    wire::ping(socket, generation, heartbeat.next_sequence).await?;
+    heartbeat.outstanding = Some(heartbeat.next_sequence);
+    heartbeat.next_sequence += 1;
+    heartbeat.deadline = after(HEARTBEAT_TIMEOUT_MS);
+    Ok(())
+}
+
+fn accept_pong(
+    received: Result<Utf8Bytes, Failure>,
+    connector: &Connector,
+    generation: &Generation,
+    heartbeat: &mut Heartbeat,
+) -> Result<(), Failure> {
+    let text = received?;
+    let ConnectorMessage::Pong(pong) = decode_frame(&text, Phase::ClientControl, Some(generation))?
+    else {
+        return Err(Failure::new(BackendError::UnexpectedMessage));
+    };
+    if heartbeat.outstanding != Some(pong.sequence.get()) {
+        return Err(Failure::new(BackendError::UnexpectedMessage));
+    }
+    if !connector.heartbeat(generation) {
+        return Err(Failure::new(BackendError::SessionReplaced));
+    }
+    heartbeat.outstanding = None;
+    heartbeat.deadline = after(HEARTBEAT_INTERVAL_MS);
+    Ok(())
+}
+
+fn after(milliseconds: usize) -> Instant {
+    Instant::now() + Duration::from_millis(milliseconds as u64)
 }

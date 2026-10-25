@@ -3,7 +3,7 @@ use std::sync::Arc;
 use axum::Router;
 use axum::extract::Request;
 use axum::extract::{State, WebSocketUpgrade};
-use axum::http::{HeaderMap, Method, StatusCode, Uri};
+use axum::http::{HeaderMap, StatusCode, Uri};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
 use axum::routing::get;
@@ -30,13 +30,11 @@ async fn close_http(request: Request, next: Next) -> Response {
 
 async fn upgrade(
     State(connector): State<Arc<Connector>>,
-    method: Method,
     uri: Uri,
     headers: HeaderMap,
     upgrade: WebSocketUpgrade,
 ) -> Response {
-    if method != Method::GET
-        || uri.query().is_some()
+    if uri.query().is_some()
         || !valid_origin(&headers)
         || headers.contains_key("sec-websocket-protocol")
     {
@@ -87,30 +85,4 @@ fn valid_origin(headers: &HeaderMap) -> bool {
                 character.is_ascii_digit() || (b'a'..=b'f').contains(&character)
             }
         })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::valid_origin;
-    use axum::http::HeaderMap;
-
-    #[test]
-    fn origin_rejects_duplicates_and_noncanonical_values() {
-        let valid = "moz-extension://12345678-1234-1234-1234-123456789abc";
-        let mut headers = HeaderMap::new();
-        headers.append("origin", valid.parse().unwrap());
-        assert!(valid_origin(&headers));
-        headers.append("origin", valid.parse().unwrap());
-        assert!(!valid_origin(&headers));
-        for invalid in [
-            format!("{valid}/"),
-            valid.to_uppercase(),
-            format!("{valid}, {valid}"),
-            "null".into(),
-        ] {
-            headers.clear();
-            headers.insert("origin", invalid.parse().unwrap());
-            assert!(!valid_origin(&headers));
-        }
-    }
 }

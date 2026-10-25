@@ -5,9 +5,8 @@ use std::time::Duration;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 use tokio_tungstenite::connect_async;
-use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 
-use support::{Fixture, ORIGIN};
+use support::Fixture;
 
 #[tokio::test]
 async fn partial_upgrade_headers_have_an_absolute_deadline() {
@@ -73,11 +72,7 @@ async fn accepted_connections_are_bounded_before_upgrade() {
         stream.write_all(b"GET /").await.unwrap();
         stalled.push(stream);
     }
-    let mut request = fixture.address.clone().into_client_request().unwrap();
-    request
-        .headers_mut()
-        .insert("origin", ORIGIN.parse().unwrap());
-    let mut connecting = Box::pin(connect_async(request));
+    let mut connecting = Box::pin(connect_async(fixture.request()));
     assert!(
         tokio::time::timeout(Duration::from_millis(100), &mut connecting)
             .await

@@ -10,7 +10,7 @@ use tokio_tungstenite::tungstenite::protocol::frame::{
     coding::{Data, OpCode},
 };
 
-use support::{Fixture, receive};
+use support::{Fixture, receive, receive_within};
 
 #[tokio::test]
 async fn fragmented_authentication_cannot_extend_the_absolute_deadline() {
@@ -33,12 +33,7 @@ async fn fragmented_authentication_cannot_extend_the_absolute_deadline() {
         )))
         .await
         .unwrap();
-    let frame = tokio::time::timeout(Duration::from_secs(3), socket.next())
-        .await
-        .unwrap()
-        .unwrap()
-        .unwrap();
-    let error: serde_json::Value = serde_json::from_str(frame.to_text().unwrap()).unwrap();
+    let error = receive_within(&mut socket, Duration::from_secs(3)).await;
     assert_eq!(error["code"], "authentication_failed");
     assert_eq!(
         fixture.connector.snapshot().await.last_error,

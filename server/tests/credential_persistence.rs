@@ -1,5 +1,5 @@
-use raicho_server::credentials::{Credential, CredentialStatus, CredentialStore};
-use raicho_server::persistence::Database;
+use raicho_server::credentials::Credential;
+use raicho_server::persistence::{CredentialStatus, CredentialStore, Database};
 use tempfile::tempdir;
 
 fn credential(character: char) -> Credential {

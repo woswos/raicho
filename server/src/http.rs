@@ -39,16 +39,7 @@ struct Status {
     commit: &'static str,
 }
 
-pub fn router(database: Arc<Database>, web_dir: &Path) -> Router {
-    let connector = Connector::new(Arc::clone(&database));
-    router_with_connector(database, web_dir, connector)
-}
-
-pub fn router_with_connector(
-    database: Arc<Database>,
-    web_dir: &Path,
-    connector: Arc<Connector>,
-) -> Router {
+pub fn router(database: Arc<Database>, web_dir: &Path, connector: Arc<Connector>) -> Router {
     let health = Router::new()
         .route("/live", get(live))
         .route("/ready", get(ready))

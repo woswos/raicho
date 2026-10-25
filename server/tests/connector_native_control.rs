@@ -7,7 +7,7 @@ use futures_util::{SinkExt, StreamExt};
 use raicho_protocol::limits_generated::{HEARTBEAT_INTERVAL_MS, HEARTBEAT_TIMEOUT_MS};
 use tokio_tungstenite::tungstenite::Message;
 
-use support::{Fixture, Socket, authentication, receive};
+use support::{Fixture, Socket, authentication, elapse, receive};
 
 #[tokio::test]
 async fn native_ping_and_pong_are_transport_controls_before_and_after_authentication() {
@@ -77,10 +77,4 @@ async fn native_ping(socket: &mut Socket) {
         .unwrap()
         .unwrap();
     assert!(matches!(frame, Message::Pong(contents) if contents.as_ref() == [7, 8, 9]));
-}
-
-async fn elapse(milliseconds: usize) {
-    tokio::time::pause();
-    tokio::time::advance(Duration::from_millis(milliseconds as u64)).await;
-    tokio::time::resume();
 }

@@ -7,4 +7,4 @@ pub mod version;
 
 mod http;
 
-pub use http::{router, router_with_connector};
+pub use http::router;

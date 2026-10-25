@@ -5,11 +5,14 @@ use std::path::Path;
 
 use crate::error::{Error, Result};
 
-use super::Credential;
+use super::{Credential, TOKEN_HEX_LENGTH};
+
+const SERVICE_UID: u32 = 10001;
+const MAXIMUM_FILE_BYTES: u64 = TOKEN_HEX_LENGTH as u64 + 2;
 
 impl Credential {
     pub fn read_file(path: &Path) -> Result<Self> {
-        read_file(path, 10001)
+        read_file(path, SERVICE_UID)
     }
 }
 
@@ -28,8 +31,8 @@ fn read_file(path: &Path, expected_owner: u32) -> Result<Credential> {
             "Connector credential file must be regular, owned by UID 10001, and mode 0600",
         ));
     }
-    let mut contents = Vec::with_capacity(66);
-    file.take(66)
+    let mut contents = Vec::new();
+    file.take(MAXIMUM_FILE_BYTES)
         .read_to_end(&mut contents)
         .map_err(|_| Error::message("Cannot read connector credential file"))?;
     if contents.last() == Some(&b'\n') {
@@ -53,7 +56,7 @@ mod tests {
     fn checks_permissions_owner_type_and_canonical_contents() {
         let directory = tempdir().unwrap();
         let path = directory.path().join("token");
-        assert!(read_file(&path, 10001).is_err());
+        assert!(read_file(&path, super::SERVICE_UID).is_err());
         fs::write(&path, format!("{}\n", "a".repeat(64))).unwrap();
         let owner = fs::metadata(&path).unwrap().uid();
         fs::set_permissions(&path, fs::Permissions::from_mode(0o600)).unwrap();

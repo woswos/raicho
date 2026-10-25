@@ -4,10 +4,7 @@ use axum::extract::ws::WebSocket;
 use raicho_protocol::diagnostics_generated::BackendError;
 use tokio::sync::OwnedSemaphorePermit;
 
-use super::{
-    Connector, authentication, heartbeat,
-    wire::{self, Failure},
-};
+use super::{Connector, authentication, failure::Failure, heartbeat, wire};
 
 pub(super) async fn run(
     mut socket: WebSocket,
