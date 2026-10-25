@@ -38,7 +38,8 @@ and the native consent and draft-editing gates.
 The [connector contract](connector-contract.md) provides a shared control
 schema, generated Rust/TypeScript bindings, and bounded decoders under
 `protocol/rust/` and `protocol/typescript/`, used by the
-server and production extension. It carries authentication and heartbeat only.
+server and production extension. It carries authentication and heartbeat only,
+and every frame after the handshake carries a MAC under a per-session key.
 The separate mail probe remains a test artifact.
 
 Offline credential commands acquire the database's exclusive instance lock.

@@ -30,7 +30,8 @@ fn numeric_rounding_uses_binary64_ties_to_even() {
         ),
     ] {
         let raw = format!(
-            r#"{{"type":"ping","protocol_version":{version},"generation":"0123456789abcdef0123456789abcdef","sequence":1}}"#,
+            r#"{{"type":"ping","protocol_version":{version},"generation":"0123456789abcdef0123456789abcdef","sequence":1,"mac":"{mac}"}}"#,
+            mac = "a".repeat(64),
         );
         let result = decode_frame(
             &raw,

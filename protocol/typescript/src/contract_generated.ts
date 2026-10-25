@@ -39,12 +39,14 @@ export interface Ping {
   protocol_version: 1;
   generation: Generation;
   sequence: number;
+  mac: Signature;
 }
 export interface Pong {
   type: 'pong';
   protocol_version: 1;
   generation: Generation;
   sequence: number;
+  mac: Signature;
 }
 export interface ProtocolError {
   type: 'error';
@@ -60,4 +62,5 @@ export interface ProtocolError {
     | 'heartbeat_timeout'
     | 'session_replaced'
     | 'server_busy';
+  mac?: Signature;
 }

@@ -26,6 +26,7 @@ pub(super) async fn run(
         generation,
         mut replaced,
         server_signature,
+        mut channel,
     } = match authenticated {
         Ok(session) => session,
         Err(failure) => {
@@ -44,7 +45,7 @@ pub(super) async fn run(
         _ = replaced.changed() => Some(Failure::new(BackendError::SessionReplaced)),
         result = async {
             match wire::welcome(&mut socket, &generation, &server_signature).await {
-                Ok(()) => heartbeat::run(&mut socket, &connector, &generation).await,
+                Ok(()) => heartbeat::run(&mut socket, &connector, &generation, &mut channel).await,
                 Err(error) => error,
             }
         } => Some(result),
@@ -56,7 +57,7 @@ pub(super) async fn run(
     if let Some(failure) = result {
         tokio::select! {
             _ = shutdown.changed() => (),
-            _ = wire::terminate(&mut socket, Some(&generation), failure) => (),
+            _ = wire::terminate(&mut socket, Some((&generation, &mut channel)), failure) => (),
         }
     }
 }

@@ -1,5 +1,6 @@
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ContractError {
+    AuthenticationFailed,
     InvalidMessage,
     MessageTooLarge,
     IncompatibleVersion,
@@ -10,6 +11,7 @@ pub enum ContractError {
 impl ContractError {
     pub const fn code(self) -> &'static str {
         match self {
+            Self::AuthenticationFailed => "authentication_failed",
             Self::InvalidMessage => "invalid_message",
             Self::MessageTooLarge => "message_too_large",
             Self::IncompatibleVersion => "incompatible_version",

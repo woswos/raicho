@@ -11,6 +11,7 @@ export type Phase =
   | 'server_control';
 
 export type ContractErrorCode =
+  | 'authentication_failed'
   | 'invalid_message'
   | 'incompatible_version'
   | 'message_too_large'
@@ -83,7 +84,7 @@ function checkPhase(
     (phase === 'challenge' || phase === 'handshake') &&
     message.type === 'error'
   ) {
-    if (message.generation !== undefined) {
+    if (message.generation !== undefined || message.mac !== undefined) {
       throw new ContractError('unexpected_message');
     }
   } else if (phase === 'client_control' || phase === 'server_control') {
@@ -93,6 +94,9 @@ function checkPhase(
       message.generation !== generation
     ) {
       throw new ContractError('stale_generation');
+    }
+    if (!('mac' in message) || message.mac === undefined) {
+      throw new ContractError('invalid_message');
     }
   }
 }

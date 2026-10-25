@@ -1,9 +1,10 @@
 use std::time::Duration;
 
+use raicho_protocol::Phase;
+use raicho_protocol::channel::Channel;
 use raicho_protocol::contract_generated::{ConnectorMessage, Generation};
 use raicho_protocol::diagnostics_generated::BackendError;
 use raicho_protocol::limits_generated::{HEARTBEAT_INTERVAL_MS, HEARTBEAT_TIMEOUT_MS};
-use raicho_protocol::{Phase, decode_frame};
 use tokio::time::Instant;
 use tokio_tungstenite::tungstenite::Utf8Bytes;
 
@@ -20,6 +21,7 @@ pub(super) async fn run(
     socket: &mut Socket,
     connector: &Connector,
     generation: &Generation,
+    channel: &mut Channel,
 ) -> Failure {
     let mut heartbeat = Heartbeat {
         next_sequence: 1,
@@ -30,10 +32,10 @@ pub(super) async fn run(
         let result = tokio::select! {
             biased;
             _ = tokio::time::sleep_until(heartbeat.deadline) => {
-                send_ping(socket, generation, &mut heartbeat).await
+                send_ping(socket, generation, channel, &mut heartbeat).await
             },
             received = transport::receive_text(socket) => {
-                accept_pong(received, connector, generation, &mut heartbeat)
+                accept_pong(received, connector, generation, channel, &mut heartbeat)
             },
         };
         if let Err(failure) = result {
@@ -45,6 +47,7 @@ pub(super) async fn run(
 async fn send_ping(
     socket: &mut Socket,
     generation: &Generation,
+    channel: &mut Channel,
     heartbeat: &mut Heartbeat,
 ) -> Result<(), Failure> {
     if heartbeat.outstanding.is_some() {
@@ -53,7 +56,7 @@ async fn send_ping(
     if heartbeat.next_sequence > i32::MAX as u64 {
         return Err(Failure::new(BackendError::ServerBusy));
     }
-    wire::ping(socket, generation, heartbeat.next_sequence).await?;
+    wire::ping(socket, generation, heartbeat.next_sequence, channel).await?;
     heartbeat.outstanding = Some(heartbeat.next_sequence);
     heartbeat.next_sequence += 1;
     heartbeat.deadline = after(HEARTBEAT_TIMEOUT_MS);
@@ -64,10 +67,11 @@ fn accept_pong(
     received: Result<Utf8Bytes, Failure>,
     connector: &Connector,
     generation: &Generation,
+    channel: &mut Channel,
     heartbeat: &mut Heartbeat,
 ) -> Result<(), Failure> {
     let text = received?;
-    let ConnectorMessage::Pong(pong) = decode_frame(&text, Phase::ClientControl, Some(generation))?
+    let ConnectorMessage::Pong(pong) = channel.open(&text, Phase::ClientControl, generation)?
     else {
         return Err(Failure::new(BackendError::UnexpectedMessage));
     };

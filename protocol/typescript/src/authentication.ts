@@ -6,15 +6,15 @@ const encoder = new TextEncoder();
 
 export type AuthenticationFields = Omit<Authenticate, 'type' | 'client_proof'>;
 
-function hex(bytes: Uint8Array): string {
+export function hex(bytes: Uint8Array): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join(
     '',
   );
 }
 
-type Bytes = Uint8Array<ArrayBuffer>;
+export type Bytes = Uint8Array<ArrayBuffer>;
 
-async function hmac(key: Bytes, message: string): Promise<Bytes> {
+export async function hmac(key: Bytes, message: string): Promise<Bytes> {
   const imported = await crypto.subtle.importKey(
     'raw',
     key,
@@ -60,10 +60,13 @@ export async function clientProof(
   return hex(clientKey.map((byte, index) => byte ^ (signature[index] ?? 0)));
 }
 
+export function serverKey(token: string): Promise<Bytes> {
+  return hmac(encoder.encode(token), SERVER_KEY_LABEL);
+}
+
 export async function serverSignature(
   token: string,
   message: string,
 ): Promise<string> {
-  const serverKey = await hmac(encoder.encode(token), SERVER_KEY_LABEL);
-  return hex(await hmac(serverKey, message));
+  return hex(await hmac(await serverKey(token), message));
 }

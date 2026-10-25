@@ -74,7 +74,7 @@ fn client_key(token: &str) -> Key {
     hmac(token.as_bytes(), CLIENT_KEY_LABEL)
 }
 
-fn hmac(key: &[u8], message: &[u8]) -> Key {
+pub(crate) fn hmac(key: &[u8], message: &[u8]) -> Key {
     let mut code = Hmac::<Sha256>::new_from_slice(key).expect("HMAC accepts any key length");
     code.update(message);
     code.finalize().into_bytes().into()

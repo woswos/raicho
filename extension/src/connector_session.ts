@@ -3,12 +3,18 @@ import {
   authenticationMessage,
   clientProof,
   randomNonce,
+  serverKey,
   serverSignature,
   type AuthenticationFields,
 } from '../../protocol/typescript/src/authentication.js';
+import {
+  createChannel,
+  sessionKey,
+  type Channel,
+} from '../../protocol/typescript/src/channel.js';
 import type {
   Authenticate,
-  Pong,
+  Welcome,
 } from '../../protocol/typescript/src/contract_generated.js';
 import { decodeFrame } from '../../protocol/typescript/src/decode_frame.js';
 import { LIMITS } from '../../protocol/typescript/src/limits_generated.js';
@@ -28,8 +34,8 @@ export function connectorSession(
   metadata: Metadata,
 ) {
   let transcript: string | undefined;
-  let generation: string | undefined;
-  let previousSequence = -1;
+  let session: { generation: string; channel: Channel } | undefined;
+  let previousSequence = 0;
 
   async function answer(serverNonce: string): Promise<Received> {
     const fields: AuthenticationFields = {
@@ -51,47 +57,63 @@ export function connectorSession(
     return { action: 'authenticate', reply };
   }
 
+  async function accept(welcome: Welcome): Promise<Received> {
+    if (
+      transcript === undefined ||
+      welcome.server_signature !==
+        (await serverSignature(configuration.token, transcript))
+    ) {
+      throw new Error('The server did not prove the connector token.');
+    }
+    const key = await sessionKey(
+      await serverKey(configuration.token),
+      transcript,
+      welcome.generation,
+    );
+    session = {
+      generation: welcome.generation,
+      channel: createChannel(key, 'client'),
+    };
+    return { action: 'welcome' };
+  }
+
+  async function control(
+    raw: string,
+    current: { generation: string; channel: Channel },
+  ): Promise<Received> {
+    const message = await current.channel.open(
+      raw,
+      'server_control',
+      current.generation,
+    );
+    // Only an authenticated frame can stop retries, and only for a newer connector.
+    if (message.type === 'error') {
+      return { action: message.code === 'session_replaced' ? 'stop' : 'retry' };
+    }
+    if (message.type !== 'ping' || message.sequence <= previousSequence) {
+      throw new Error('Unexpected heartbeat sequence.');
+    }
+    previousSequence = message.sequence;
+    const reply = await current.channel.seal({
+      type: 'pong',
+      protocol_version: message.protocol_version,
+      generation: message.generation,
+      sequence: message.sequence,
+    });
+    return { action: 'heartbeat', reply };
+  }
+
   return {
-    // Until the server proves it knows the token, its errors and closes may be spoofed.
-    get proven() {
-      return generation !== undefined;
-    },
     async receive(raw: unknown): Promise<Received> {
       if (typeof raw !== 'string') throw new Error('Expected a text frame.');
-      const phase =
-        generation !== undefined
-          ? 'server_control'
-          : transcript === undefined
-            ? 'challenge'
-            : 'handshake';
-      const message = decodeFrame(raw, phase, generation);
-      if (message.type === 'error') {
-        return {
-          action:
-            generation === undefined ||
-            ['server_busy', 'heartbeat_timeout'].includes(message.code)
-              ? 'retry'
-              : 'stop',
-        };
-      }
+      if (session !== undefined) return control(raw, session);
+      const message = decodeFrame(
+        raw,
+        transcript === undefined ? 'challenge' : 'handshake',
+      );
       if (message.type === 'challenge') return answer(message.server_nonce);
-      if (message.type === 'welcome') {
-        if (
-          transcript === undefined ||
-          message.server_signature !==
-            (await serverSignature(configuration.token, transcript))
-        ) {
-          throw new Error('The server did not prove the connector token.');
-        }
-        generation = message.generation;
-        return { action: 'welcome' };
-      }
-      if (message.type !== 'ping' || message.sequence <= previousSequence) {
-        throw new Error('Unexpected heartbeat sequence.');
-      }
-      previousSequence = message.sequence;
-      const reply: Pong = { ...message, type: 'pong' };
-      return { action: 'heartbeat', reply: JSON.stringify(reply) };
+      if (message.type === 'welcome') return accept(message);
+      return { action: 'retry' };
     },
   };
 }

@@ -31,7 +31,7 @@ test('adds jitter and resets backoff only after a valid heartbeat', async () => 
   fixture.fireTimer(3000);
   const active = fixture.sockets[2];
   await active.handshake();
-  await active.receive(ping);
+  await active.receiveSealed(ping);
   active.close();
   fixture.fireTimer(1500);
   fixture.stop();
@@ -57,20 +57,21 @@ test('drops a silent peer and ignores every captured stale socket callback', asy
   await stale.message({ data: JSON.stringify(ping) });
   assert.equal(second.sent.length, 1);
   assert.equal(second.readyState, 1);
-  await second.receive(ping);
+  await second.receiveSealed(ping);
   assert.equal(second.sent.length, 2);
   fixture.stop();
 });
 
 for (const code of [4001, 4002, 4003]) {
-  test(`retries unproven close ${code} but stops on it after proof`, async () => {
+  test(`retries close ${code} before and after proof`, async () => {
     const unproven = connectorFixture();
     unproven.sockets[0].onclose({ code });
     assert.equal(unproven.timers.size, 1);
     const proven = connectorFixture();
     await proven.sockets[0].handshake();
     proven.sockets[0].onclose({ code });
-    assert.equal(proven.timers.size, 0);
+    assert.equal(proven.timers.size, 1);
+    assert.equal(proven.sockets.length, 1);
   });
 }
 
@@ -79,7 +80,7 @@ test('retries server busy and heartbeat timeout without an application queue', a
     const fixture = connectorFixture();
     const socket = fixture.sockets[0];
     await socket.handshake();
-    await socket.receive({
+    await socket.receiveSealed({
       type: 'error',
       protocol_version: 1,
       code,
@@ -95,7 +96,7 @@ test('closes congested senders and handles connection and send failures', async 
   const socket = fixture.sockets[0];
   await socket.handshake();
   socket.bufferedAmount = 1;
-  await socket.receive(ping);
+  await socket.receiveSealed(ping);
   assert.equal(socket.readyState, 3);
   fixture.dependencies.connect = () => {
     throw new Error('Private endpoint');

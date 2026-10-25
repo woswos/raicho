@@ -2,7 +2,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
-use raicho_protocol::authentication::{authentication_message, client_proof, to_hex};
+use raicho_protocol::authentication::{
+    ConnectorKeys, authentication_message, client_proof, to_hex,
+};
+use raicho_protocol::channel::{Channel, Peer, session_key};
 use raicho_protocol::contract_generated::Authenticate;
 use raicho_server::connector::Connector;
 use raicho_server::credentials::Credential;
@@ -64,16 +67,29 @@ impl Fixture {
     }
 
     pub async fn authenticate(&self) -> (Socket, Value) {
+        let (socket, welcome, _) = self.session().await;
+        (socket, welcome)
+    }
+
+    pub async fn session(&self) -> (Socket, Value, Channel) {
         let (mut socket, server_nonce) = self.connect().await;
+        let message = authentication("a", &server_nonce);
         socket
-            .send(Message::Text(
-                authentication("a", &server_nonce).to_string().into(),
-            ))
+            .send(Message::Text(message.to_string().into()))
             .await
             .unwrap();
         let welcome = receive(&mut socket).await;
         assert_eq!(welcome["type"], "welcome");
-        (socket, welcome)
+        let fields: Authenticate = serde_json::from_value(message).unwrap();
+        let channel = Channel::new(
+            session_key(
+                &ConnectorKeys::derive(&"a".repeat(64)).server_key,
+                &authentication_message(&server_nonce, &fields),
+                welcome["generation"].as_str().unwrap(),
+            ),
+            Peer::Client,
+        );
+        (socket, welcome, channel)
     }
 
     pub async fn finish(self) {

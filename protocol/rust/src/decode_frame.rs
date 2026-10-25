@@ -24,6 +24,15 @@ pub fn decode_frame(
     phase: Phase,
     generation: Option<&str>,
 ) -> Result<ConnectorMessage, ContractError> {
+    let message = decode_value(raw, phase, generation)?;
+    serde_json::from_value(message).map_err(|_| ContractError::InvalidMessage)
+}
+
+pub(crate) fn decode_value(
+    raw: &str,
+    phase: Phase,
+    generation: Option<&str>,
+) -> Result<Value, ContractError> {
     let maximum = match phase {
         Phase::Authentication => MAXIMUM_AUTHENTICATION_BYTES,
         _ => MAXIMUM_CONTROL_BYTES,
@@ -37,7 +46,7 @@ pub fn decode_frame(
     schema::validate(&message)?;
     check_phase(&message, phase, generation)?;
     normalize_numbers(&mut message);
-    serde_json::from_value(message).map_err(|_| ContractError::InvalidMessage)
+    Ok(message)
 }
 
 fn check_wire_values(message: &Value) -> Result<(), ContractError> {
@@ -85,7 +94,9 @@ fn check_phase(
     generation: Option<&str>,
 ) -> Result<(), ContractError> {
     let message_type = message["type"].as_str();
-    let unclaimed_error = message_type == Some("error") && message.get("generation").is_none();
+    let unclaimed_error = message_type == Some("error")
+        && message.get("generation").is_none()
+        && message.get("mac").is_none();
     let permitted = match phase {
         Phase::Authentication => message_type == Some("authenticate"),
         Phase::Challenge => message_type == Some("challenge") || unclaimed_error,
@@ -96,10 +107,13 @@ fn check_phase(
     if !permitted {
         return Err(ContractError::UnexpectedMessage);
     }
-    if matches!(phase, Phase::ClientControl | Phase::ServerControl)
-        && (generation.is_none() || generation != message["generation"].as_str())
-    {
-        return Err(ContractError::StaleGeneration);
+    if matches!(phase, Phase::ClientControl | Phase::ServerControl) {
+        if generation.is_none() || generation != message["generation"].as_str() {
+            return Err(ContractError::StaleGeneration);
+        }
+        if message.get("mac").is_none() {
+            return Err(ContractError::InvalidMessage);
+        }
     }
     Ok(())
 }

@@ -160,7 +160,7 @@
     "Ping": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "protocol_version", "generation", "sequence"],
+      "required": ["type", "protocol_version", "generation", "sequence", "mac"],
       "properties": {
         "type": {
           "type": "string",
@@ -177,13 +177,16 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 2147483647
+        },
+        "mac": {
+          "$ref": "#/definitions/Signature"
         }
       }
     },
     "Pong": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "protocol_version", "generation", "sequence"],
+      "required": ["type", "protocol_version", "generation", "sequence", "mac"],
       "properties": {
         "type": {
           "type": "string",
@@ -200,6 +203,9 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 2147483647
+        },
+        "mac": {
+          "$ref": "#/definitions/Signature"
         }
       }
     },
@@ -232,6 +238,9 @@
             "session_replaced",
             "server_busy"
           ]
+        },
+        "mac": {
+          "$ref": "#/definitions/Signature"
         }
       }
     }

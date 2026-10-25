@@ -15,6 +15,7 @@ export const { startConnectorTransport } = await built(
 export const authentication = await built(
   'protocol/typescript/src/authentication.js',
 );
+export const channel = await built('protocol/typescript/src/channel.js');
 export const configuration = {
   endpoint: 'ws://connector-proxy:8081/connector/v1',
   token: 'a'.repeat(64),
@@ -44,17 +45,32 @@ export const ping = {
   sequence: 1,
 };
 
+function transcript(authenticate) {
+  return authentication.authenticationMessage(
+    challenge.server_nonce,
+    authenticate,
+  );
+}
+
 export async function provenWelcome(authenticate, token = configuration.token) {
   return {
     ...welcome,
     server_signature: await authentication.serverSignature(
       token,
-      authentication.authenticationMessage(
-        challenge.server_nonce,
-        authenticate,
-      ),
+      transcript(authenticate),
     ),
   };
+}
+
+export async function serverChannel(authenticate) {
+  return channel.createChannel(
+    await channel.sessionKey(
+      await authentication.serverKey(configuration.token),
+      transcript(authenticate),
+      generation,
+    ),
+    'server',
+  );
 }
 
 export function connectorFixture() {
@@ -72,8 +88,14 @@ export function connectorFixture() {
     socket.handshake = async () => {
       socket.open();
       await socket.receive(challenge);
-      await socket.receive(await provenWelcome(socket.sent.at(-1)));
+      const authenticate = socket.sent.at(-1);
+      await socket.receive(await provenWelcome(authenticate));
+      socket.server = await serverChannel(authenticate);
     };
+    socket.receiveSealed = async (message) =>
+      socket.receive(await socket.server.seal(message));
+    socket.verifySent = (message) =>
+      socket.server.open(JSON.stringify(message), 'client_control', generation);
     return socket;
   };
   fixture.stop = startConnectorTransport(

@@ -521,6 +521,7 @@ impl<'de> ::serde::Deserialize<'de> for Nonce {
 #[serde(deny_unknown_fields)]
 pub struct Ping {
     pub generation: Generation,
+    pub mac: Signature,
     pub protocol_version: PingProtocolVersion,
     pub sequence: ::std::num::NonZeroU64,
     #[serde(rename = "type")]
@@ -603,6 +604,7 @@ impl ::std::convert::TryFrom<::std::string::String> for PingType {
 #[serde(deny_unknown_fields)]
 pub struct Pong {
     pub generation: Generation,
+    pub mac: Signature,
     pub protocol_version: PongProtocolVersion,
     pub sequence: ::std::num::NonZeroU64,
     #[serde(rename = "type")]
@@ -687,6 +689,8 @@ pub struct ProtocolError {
     pub code: ProtocolErrorCode,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub generation: ::std::option::Option<Generation>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub mac: ::std::option::Option<Signature>,
     pub protocol_version: ProtocolErrorProtocolVersion,
     #[serde(rename = "type")]
     pub type_: ProtocolErrorType,

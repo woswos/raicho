@@ -8,6 +8,7 @@ import {
   generation,
   ping,
   provenWelcome,
+  serverChannel,
   welcome,
 } from './connector_fixture.mjs';
 
@@ -44,12 +45,17 @@ test('answers the challenge with a proof, never the token, and accepts a proven 
   );
   await socket.receive(await provenWelcome(authenticate));
   assert.equal(fixture.timers.size, 1);
-  await socket.receive(ping);
-  await socket.receive({ ...ping, sequence: 2 });
-  assert.deepEqual(socket.sent.slice(1), [
-    { ...ping, type: 'pong' },
-    { ...ping, type: 'pong', sequence: 2 },
-  ]);
+  const server = await serverChannel(authenticate);
+  await socket.receive(await server.seal(ping));
+  await socket.receive(await server.seal({ ...ping, sequence: 2 }));
+  const pongs = socket.sent.slice(1);
+  assert.equal(pongs.length, 2);
+  for (const [index, pong] of pongs.entries()) {
+    assert.deepEqual(
+      await server.open(JSON.stringify(pong), 'client_control', generation),
+      { ...ping, type: 'pong', sequence: index + 1, mac: pong.mac },
+    );
+  }
   assert.equal(
     JSON.stringify(socket.sent).includes(configuration.token),
     false,
@@ -118,47 +124,78 @@ test('a welcome signed with another token is not trusted', async () => {
 for (const code of [
   'authentication_failed',
   'incompatible_version',
-  'session_replaced',
   'invalid_message',
+  'server_busy',
+  'heartbeat_timeout',
 ]) {
-  test(`retries unproven error ${code} but stops on it after proof`, async () => {
-    const unproven = connectorFixture();
-    const pending = unproven.sockets[0];
-    pending.open();
-    await pending.receive(challenge);
-    await pending.receive({ type: 'error', protocol_version: 1, code });
-    await assertRetried(unproven, pending);
-    const proven = connectorFixture();
-    const socket = proven.sockets[0];
+  test(`retries after an authenticated ${code} error`, async () => {
+    const fixture = connectorFixture();
+    const socket = fixture.sockets[0];
     await socket.handshake();
-    await socket.receive({
+    await socket.receiveSealed({
       type: 'error',
       protocol_version: 1,
       code,
       generation,
     });
-    assert.equal(proven.timers.size, 0);
+    await assertRetried(fixture, socket);
   });
 }
 
-test('stops on stale generation, duplicate ping, and out-of-order messages after proof', async () => {
-  for (const message of [
-    { ...ping, generation: 'c'.repeat(32) },
-    welcome,
-    { ...ping, sequence: 1 },
-    {
-      type: 'error',
-      protocol_version: 1,
-      code: 'server_busy',
-      generation: generation.replaceAll('b', 'c'),
-    },
+test('retries an unproven replacement but stops on an authenticated one', async () => {
+  const unproven = connectorFixture();
+  const pending = unproven.sockets[0];
+  pending.open();
+  await pending.receive(challenge);
+  await pending.receive({
+    type: 'error',
+    protocol_version: 1,
+    code: 'session_replaced',
+  });
+  await assertRetried(unproven, pending);
+  const proven = connectorFixture();
+  const socket = proven.sockets[0];
+  await socket.handshake();
+  await socket.receiveSealed({
+    type: 'error',
+    protocol_version: 1,
+    code: 'session_replaced',
+    generation,
+  });
+  assert.equal(socket.readyState, 3);
+  assert.equal(proven.timers.size, 0);
+});
+
+test('retries every frame it cannot authenticate after proof', async () => {
+  for (const deliver of [
+    (socket) => socket.receive({ ...ping, sequence: 2, mac: 'a'.repeat(64) }),
+    (socket) => socket.receive({ ...ping, sequence: 2 }),
+    (socket) => socket.receiveSealed({ ...ping, generation: 'c'.repeat(32) }),
+    (socket) => socket.receive(welcome),
+    (socket) => socket.receiveSealed({ ...ping, sequence: 1 }),
+    (socket) =>
+      socket.receiveSealed({
+        type: 'error',
+        protocol_version: 1,
+        code: 'session_replaced',
+        generation: 'c'.repeat(32),
+      }),
   ]) {
     const fixture = connectorFixture();
     const socket = fixture.sockets[0];
     await socket.handshake();
-    await socket.receive(ping);
-    await socket.receive(message);
-    assert.equal(socket.readyState, 3);
-    assert.equal(fixture.timers.size, 0);
+    await socket.receiveSealed(ping);
+    await deliver(socket);
+    await assertRetried(fixture, socket);
   }
+});
+
+test('retries a replayed ping', async () => {
+  const fixture = connectorFixture();
+  const socket = fixture.sockets[0];
+  await socket.handshake();
+  const sealed = await socket.server.seal(ping);
+  await socket.receive(sealed);
+  await socket.receive(sealed);
+  await assertRetried(fixture, socket);
 });

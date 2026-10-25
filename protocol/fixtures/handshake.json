@@ -497,5 +497,17 @@
       "code": "invalid_message",
       "generation": "0123456789abcdef0123456789abcdef"
     }
+  },
+  {
+    "name": "handshake error cannot carry a mac",
+    "phase": "handshake",
+    "valid": false,
+    "error": "unexpected_message",
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "server_busy",
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
   }
 ]

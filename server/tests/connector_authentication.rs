@@ -187,8 +187,9 @@ async fn authentication_rejects_version_direction_duplicate_and_oversized_messag
         ),
         (" ".repeat(4097), "message_too_large"),
         (
-            json!({"type":"pong","protocol_version":1,"generation":"0".repeat(32),"sequence":1})
-                .to_string(),
+            json!({"type":"pong","protocol_version":1,"generation":"0".repeat(32),
+                "sequence":1,"mac":"0".repeat(64)})
+            .to_string(),
             "unexpected_message",
         ),
     ] {

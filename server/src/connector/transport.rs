@@ -14,7 +14,17 @@ pub(super) async fn send(
     socket: &mut (impl Sink<Message> + Unpin),
     value: &impl Serialize,
 ) -> Result<(), Failure> {
-    let text = serde_json::to_string(value).expect("Connector envelope is serializable");
+    send_text(
+        socket,
+        serde_json::to_string(value).expect("Connector envelope is serializable"),
+    )
+    .await
+}
+
+pub(super) async fn send_text(
+    socket: &mut (impl Sink<Message> + Unpin),
+    text: String,
+) -> Result<(), Failure> {
     tokio::time::timeout(
         Duration::from_millis(AUTHENTICATION_DEADLINE_MS as u64),
         socket.send(Message::Text(text.into())),

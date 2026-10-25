@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use futures_util::SinkExt;
+use raicho_protocol::channel::Channel;
 use raicho_protocol::contract_generated::{
     Capabilities, Challenge, ChallengeType, Generation, Nonce, Ping, PingType, ProtocolError,
     ProtocolErrorType, Signature, Welcome, WelcomeType,
@@ -13,7 +14,7 @@ use tokio_tungstenite::tungstenite::protocol::{CloseFrame, frame::coding::CloseC
 
 use super::failure::Failure;
 use super::handshake::Socket;
-use super::transport::send;
+use super::transport::{send, send_text};
 
 fn protocol_version<Version: TryFrom<i64, Error: std::fmt::Debug>>() -> Version {
     (PROTOCOL_VERSION as i64)
@@ -61,34 +62,41 @@ pub(super) async fn ping(
     socket: &mut Socket,
     generation: &Generation,
     sequence: u64,
+    channel: &mut Channel,
 ) -> Result<(), Failure> {
-    send(
-        socket,
-        &Ping {
-            generation: generation.clone(),
-            protocol_version: protocol_version(),
-            sequence: sequence.try_into().expect("Positive heartbeat sequence"),
-            type_: PingType::Ping,
-        },
-    )
-    .await
+    let ping = Ping {
+        generation: generation.clone(),
+        mac: Channel::unsealed(),
+        protocol_version: protocol_version(),
+        sequence: sequence.try_into().expect("Positive heartbeat sequence"),
+        type_: PingType::Ping,
+    };
+    send_text(socket, channel.seal(&ping)).await
 }
 
 pub(super) async fn terminate(
     socket: &mut Socket,
-    generation: Option<&Generation>,
+    session: Option<(&Generation, &mut Channel)>,
     failure: Failure,
 ) {
-    let frame = ProtocolError {
+    let mut frame = ProtocolError {
         code: failure.code,
-        generation: generation.cloned(),
+        generation: None,
+        mac: None,
         protocol_version: protocol_version(),
         type_: ProtocolErrorType::Error,
+    };
+    let text = match session {
+        Some((generation, channel)) => {
+            frame.generation = Some(generation.clone());
+            channel.seal(&frame)
+        }
+        None => serde_json::to_string(&frame).expect("Connector envelope is serializable"),
     };
     let _ = tokio::time::timeout(
         Duration::from_millis(AUTHENTICATION_DEADLINE_MS as u64),
         async {
-            if send(socket, &frame).await.is_ok() {
+            if send_text(socket, text).await.is_ok() {
                 let _ = socket
                     .send(Message::Close(Some(CloseFrame {
                         code: CloseCode::from(failure.close_code()),

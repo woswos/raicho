@@ -1432,12 +1432,13 @@ function validate15(
 var schema22 = {
   type: 'object',
   additionalProperties: false,
-  required: ['type', 'protocol_version', 'generation', 'sequence'],
+  required: ['type', 'protocol_version', 'generation', 'sequence', 'mac'],
   properties: {
     type: { type: 'string', enum: ['ping'] },
     protocol_version: { type: 'integer', enum: [1] },
     generation: { $ref: '#/definitions/Generation' },
     sequence: { type: 'integer', minimum: 1, maximum: 2147483647 },
+    mac: { $ref: '#/definitions/Signature' },
   },
 };
 function validate17(
@@ -1458,7 +1459,9 @@ function validate17(
         ((data.generation === void 0 || !func0.call(data, 'generation')) &&
           (missing0 = 'generation')) ||
         ((data.sequence === void 0 || !func0.call(data, 'sequence')) &&
-          (missing0 = 'sequence'))
+          (missing0 = 'sequence')) ||
+        ((data.mac === void 0 || !func0.call(data, 'mac')) &&
+          (missing0 = 'mac'))
       ) {
         validate17.errors = [
           {
@@ -1477,7 +1480,8 @@ function validate17(
             key0 === 'type' ||
             key0 === 'protocol_version' ||
             key0 === 'generation' ||
-            key0 === 'sequence'
+            key0 === 'sequence' ||
+            key0 === 'mac'
           )) {
             validate17.errors = [
               {
@@ -1685,6 +1689,71 @@ function validate17(
                 } else {
                   var valid0 = true;
                 }
+                if (valid0) {
+                  if (data.mac !== void 0 && func0.call(data, 'mac')) {
+                    let data4 = data.mac;
+                    const _errs11 = errors;
+                    const _errs12 = errors;
+                    if (errors === _errs12) {
+                      if (typeof data4 === 'string') {
+                        if (func51(data4) > 64) {
+                          validate17.errors = [
+                            {
+                              instancePath: instancePath + '/mac',
+                              schemaPath: '#/definitions/Signature/maxLength',
+                              keyword: 'maxLength',
+                              params: { limit: 64 },
+                              message: 'must NOT have more than 64 characters',
+                            },
+                          ];
+                          return false;
+                        } else {
+                          if (func51(data4) < 64) {
+                            validate17.errors = [
+                              {
+                                instancePath: instancePath + '/mac',
+                                schemaPath: '#/definitions/Signature/minLength',
+                                keyword: 'minLength',
+                                params: { limit: 64 },
+                                message:
+                                  'must NOT have fewer than 64 characters',
+                              },
+                            ];
+                            return false;
+                          } else {
+                            if (!pattern0.test(data4)) {
+                              validate17.errors = [
+                                {
+                                  instancePath: instancePath + '/mac',
+                                  schemaPath: '#/definitions/Signature/pattern',
+                                  keyword: 'pattern',
+                                  params: { pattern: '^[a-f0-9]{64}$' },
+                                  message:
+                                    'must match pattern "^[a-f0-9]{64}$"',
+                                },
+                              ];
+                              return false;
+                            }
+                          }
+                        }
+                      } else {
+                        validate17.errors = [
+                          {
+                            instancePath: instancePath + '/mac',
+                            schemaPath: '#/definitions/Signature/type',
+                            keyword: 'type',
+                            params: { type: 'string' },
+                            message: 'must be string',
+                          },
+                        ];
+                        return false;
+                      }
+                    }
+                    var valid0 = _errs11 === errors;
+                  } else {
+                    var valid0 = true;
+                  }
+                }
               }
             }
           }
@@ -1706,15 +1775,16 @@ function validate17(
   validate17.errors = vErrors;
   return errors === 0;
 }
-var schema24 = {
+var schema25 = {
   type: 'object',
   additionalProperties: false,
-  required: ['type', 'protocol_version', 'generation', 'sequence'],
+  required: ['type', 'protocol_version', 'generation', 'sequence', 'mac'],
   properties: {
     type: { type: 'string', enum: ['pong'] },
     protocol_version: { type: 'integer', enum: [1] },
     generation: { $ref: '#/definitions/Generation' },
     sequence: { type: 'integer', minimum: 1, maximum: 2147483647 },
+    mac: { $ref: '#/definitions/Signature' },
   },
 };
 function validate19(
@@ -1735,7 +1805,9 @@ function validate19(
         ((data.generation === void 0 || !func0.call(data, 'generation')) &&
           (missing0 = 'generation')) ||
         ((data.sequence === void 0 || !func0.call(data, 'sequence')) &&
-          (missing0 = 'sequence'))
+          (missing0 = 'sequence')) ||
+        ((data.mac === void 0 || !func0.call(data, 'mac')) &&
+          (missing0 = 'mac'))
       ) {
         validate19.errors = [
           {
@@ -1754,7 +1826,8 @@ function validate19(
             key0 === 'type' ||
             key0 === 'protocol_version' ||
             key0 === 'generation' ||
-            key0 === 'sequence'
+            key0 === 'sequence' ||
+            key0 === 'mac'
           )) {
             validate19.errors = [
               {
@@ -1791,7 +1864,7 @@ function validate19(
                   instancePath: instancePath + '/type',
                   schemaPath: '#/properties/type/enum',
                   keyword: 'enum',
-                  params: { allowedValues: schema24.properties.type.enum },
+                  params: { allowedValues: schema25.properties.type.enum },
                   message: 'must be equal to one of the allowed values',
                 },
               ];
@@ -1832,7 +1905,7 @@ function validate19(
                     schemaPath: '#/properties/protocol_version/enum',
                     keyword: 'enum',
                     params: {
-                      allowedValues: schema24.properties.protocol_version.enum,
+                      allowedValues: schema25.properties.protocol_version.enum,
                     },
                     message: 'must be equal to one of the allowed values',
                   },
@@ -1962,6 +2035,71 @@ function validate19(
                 } else {
                   var valid0 = true;
                 }
+                if (valid0) {
+                  if (data.mac !== void 0 && func0.call(data, 'mac')) {
+                    let data4 = data.mac;
+                    const _errs11 = errors;
+                    const _errs12 = errors;
+                    if (errors === _errs12) {
+                      if (typeof data4 === 'string') {
+                        if (func51(data4) > 64) {
+                          validate19.errors = [
+                            {
+                              instancePath: instancePath + '/mac',
+                              schemaPath: '#/definitions/Signature/maxLength',
+                              keyword: 'maxLength',
+                              params: { limit: 64 },
+                              message: 'must NOT have more than 64 characters',
+                            },
+                          ];
+                          return false;
+                        } else {
+                          if (func51(data4) < 64) {
+                            validate19.errors = [
+                              {
+                                instancePath: instancePath + '/mac',
+                                schemaPath: '#/definitions/Signature/minLength',
+                                keyword: 'minLength',
+                                params: { limit: 64 },
+                                message:
+                                  'must NOT have fewer than 64 characters',
+                              },
+                            ];
+                            return false;
+                          } else {
+                            if (!pattern0.test(data4)) {
+                              validate19.errors = [
+                                {
+                                  instancePath: instancePath + '/mac',
+                                  schemaPath: '#/definitions/Signature/pattern',
+                                  keyword: 'pattern',
+                                  params: { pattern: '^[a-f0-9]{64}$' },
+                                  message:
+                                    'must match pattern "^[a-f0-9]{64}$"',
+                                },
+                              ];
+                              return false;
+                            }
+                          }
+                        }
+                      } else {
+                        validate19.errors = [
+                          {
+                            instancePath: instancePath + '/mac',
+                            schemaPath: '#/definitions/Signature/type',
+                            keyword: 'type',
+                            params: { type: 'string' },
+                            message: 'must be string',
+                          },
+                        ];
+                        return false;
+                      }
+                    }
+                    var valid0 = _errs11 === errors;
+                  } else {
+                    var valid0 = true;
+                  }
+                }
               }
             }
           }
@@ -1983,7 +2121,7 @@ function validate19(
   validate19.errors = vErrors;
   return errors === 0;
 }
-var schema26 = {
+var schema28 = {
   type: 'object',
   additionalProperties: false,
   required: ['type', 'protocol_version', 'code'],
@@ -2005,6 +2143,7 @@ var schema26 = {
         'server_busy',
       ],
     },
+    mac: { $ref: '#/definitions/Signature' },
   },
 };
 function validate21(
@@ -2042,7 +2181,8 @@ function validate21(
             key0 === 'type' ||
             key0 === 'protocol_version' ||
             key0 === 'generation' ||
-            key0 === 'code'
+            key0 === 'code' ||
+            key0 === 'mac'
           )) {
             validate21.errors = [
               {
@@ -2079,7 +2219,7 @@ function validate21(
                   instancePath: instancePath + '/type',
                   schemaPath: '#/properties/type/enum',
                   keyword: 'enum',
-                  params: { allowedValues: schema26.properties.type.enum },
+                  params: { allowedValues: schema28.properties.type.enum },
                   message: 'must be equal to one of the allowed values',
                 },
               ];
@@ -2120,7 +2260,7 @@ function validate21(
                     schemaPath: '#/properties/protocol_version/enum',
                     keyword: 'enum',
                     params: {
-                      allowedValues: schema26.properties.protocol_version.enum,
+                      allowedValues: schema28.properties.protocol_version.enum,
                     },
                     message: 'must be equal to one of the allowed values',
                   },
@@ -2229,7 +2369,7 @@ function validate21(
                         schemaPath: '#/properties/code/enum',
                         keyword: 'enum',
                         params: {
-                          allowedValues: schema26.properties.code.enum,
+                          allowedValues: schema28.properties.code.enum,
                         },
                         message: 'must be equal to one of the allowed values',
                       },
@@ -2239,6 +2379,71 @@ function validate21(
                   var valid0 = _errs9 === errors;
                 } else {
                   var valid0 = true;
+                }
+                if (valid0) {
+                  if (data.mac !== void 0 && func0.call(data, 'mac')) {
+                    let data4 = data.mac;
+                    const _errs11 = errors;
+                    const _errs12 = errors;
+                    if (errors === _errs12) {
+                      if (typeof data4 === 'string') {
+                        if (func51(data4) > 64) {
+                          validate21.errors = [
+                            {
+                              instancePath: instancePath + '/mac',
+                              schemaPath: '#/definitions/Signature/maxLength',
+                              keyword: 'maxLength',
+                              params: { limit: 64 },
+                              message: 'must NOT have more than 64 characters',
+                            },
+                          ];
+                          return false;
+                        } else {
+                          if (func51(data4) < 64) {
+                            validate21.errors = [
+                              {
+                                instancePath: instancePath + '/mac',
+                                schemaPath: '#/definitions/Signature/minLength',
+                                keyword: 'minLength',
+                                params: { limit: 64 },
+                                message:
+                                  'must NOT have fewer than 64 characters',
+                              },
+                            ];
+                            return false;
+                          } else {
+                            if (!pattern0.test(data4)) {
+                              validate21.errors = [
+                                {
+                                  instancePath: instancePath + '/mac',
+                                  schemaPath: '#/definitions/Signature/pattern',
+                                  keyword: 'pattern',
+                                  params: { pattern: '^[a-f0-9]{64}$' },
+                                  message:
+                                    'must match pattern "^[a-f0-9]{64}$"',
+                                },
+                              ];
+                              return false;
+                            }
+                          }
+                        }
+                      } else {
+                        validate21.errors = [
+                          {
+                            instancePath: instancePath + '/mac',
+                            schemaPath: '#/definitions/Signature/type',
+                            keyword: 'type',
+                            params: { type: 'string' },
+                            message: 'must be string',
+                          },
+                        ];
+                        return false;
+                      }
+                    }
+                    var valid0 = _errs11 === errors;
+                  } else {
+                    var valid0 = true;
+                  }
                 }
               }
             }

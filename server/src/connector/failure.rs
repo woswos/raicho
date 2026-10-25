@@ -49,6 +49,7 @@ impl Failure {
 impl From<ContractError> for Failure {
     fn from(error: ContractError) -> Self {
         Self::new(match error {
+            ContractError::AuthenticationFailed => BackendError::AuthenticationFailed,
             ContractError::InvalidMessage => BackendError::InvalidMessage,
             ContractError::MessageTooLarge => BackendError::MessageTooLarge,
             ContractError::IncompatibleVersion => BackendError::IncompatibleVersion,

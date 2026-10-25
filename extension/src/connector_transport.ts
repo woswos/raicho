@@ -5,11 +5,6 @@ import { LIMITS } from '../../protocol/typescript/src/limits_generated.js';
 const INITIAL_RETRY_DELAY_MS = 1000;
 const MAXIMUM_RETRY_DELAY_MS = 30000;
 const MAXIMUM_BACKOFF_EXPONENT = 5;
-const TERMINAL_CLOSE_CODES: readonly number[] = [
-  LIMITS.authentication_failure_close_code,
-  LIMITS.protocol_failure_close_code,
-  LIMITS.session_replaced_close_code,
-];
 
 interface Dependencies {
   connect: (endpoint: string) => WebSocket;
@@ -99,9 +94,7 @@ export function startConnectorTransport(
         try {
           received = await session.receive(data);
         } catch {
-          if (!active()) return;
-          if (session.proven) stop();
-          else retry();
+          if (active()) retry();
           return;
         }
         if (!active()) return;
@@ -132,10 +125,8 @@ export function startConnectorTransport(
         );
         return processing;
       };
-      current.onclose = (event) => {
-        if (!active()) return;
-        if (session.proven && TERMINAL_CLOSE_CODES.includes(event.code)) stop();
-        else retry();
+      current.onclose = () => {
+        if (active()) retry();
       };
       current.onerror = () => {
         if (active()) retry();

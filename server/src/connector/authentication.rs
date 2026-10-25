@@ -1,6 +1,7 @@
 use raicho_protocol::authentication::{
     authentication_message, from_hex, server_signature, to_hex, verify_client_proof,
 };
+use raicho_protocol::channel::{Channel, Peer, session_key};
 use raicho_protocol::contract_generated::{ConnectorMessage, Generation, Nonce, Signature};
 use raicho_protocol::diagnostics_generated::BackendError;
 use raicho_protocol::{Phase, decode_frame};
@@ -16,6 +17,7 @@ pub(super) struct Authenticated {
     pub generation: Generation,
     pub replaced: watch::Receiver<bool>,
     pub server_signature: Signature,
+    pub channel: Channel,
 }
 
 pub(super) async fn authenticate(
@@ -56,6 +58,10 @@ pub(super) async fn authenticate(
         .parse()
         .map_err(|_| Failure::new(BackendError::ServerBusy))?;
     let generation: Generation = random_hex::<16, _>()?;
+    let channel = Channel::new(
+        session_key(&keys.server_key, &transcript, &generation),
+        Peer::Server,
+    );
     let replaced = connector
         .register(generation.clone())
         .ok_or(Failure::new(BackendError::ServerBusy))?;
@@ -63,6 +69,7 @@ pub(super) async fn authenticate(
         generation,
         replaced,
         server_signature,
+        channel,
     })
 }
 
