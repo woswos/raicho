@@ -49,4 +49,7 @@ class ConnectorNetworkTests(unittest.TestCase):
                         'com.docker.compose.project=raicho-connector-network-test',
                         command,
                     )
-                    self.assertIn('com.docker.compose.network=application', command)
+                    self.assertIn(
+                        'com.docker.compose.network=connector-application', command
+                    )
+                    self.assertIn('--internal', command)

@@ -365,6 +365,9 @@ never used that listener.
 
 ## Notes
 
+- Review follow-up: the gateway moved to two internal networks so its dynamic
+  upstream lookup cannot fall back to outside DNS. See the
+  [network decision](../../decisions/20261026-thunderbird-connector.md#network-isolation).
 - Review follow-up: the lifecycle fixture was removed after production
   acceptance gained the runtime policy, profile persistence, and same-profile
   upgrade checks. Its results remain in the section above.

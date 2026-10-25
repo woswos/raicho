@@ -51,25 +51,39 @@ def browser_route():
     print('Browser listener does not expose the connector')
 
 
+EXPECTED_NETWORKS = {
+    'raicho': {'application', 'connector-application'},
+    'gateway': {'connector-application', 'connector-thunderbird'},
+    'thunderbird': {'thunderbird', 'connector-thunderbird'},
+}
+
+
+def networks(container):
+    project = container['Config']['Labels']['com.docker.compose.project']
+    return {
+        name.removeprefix(f'{project}_')
+        for name in container['NetworkSettings']['Networks']
+    }
+
+
 def deployment():
-    containers = json.load(sys.stdin)
-    gateway = next(
-        container
-        for container in containers
-        if container['Config']['Labels']['com.docker.compose.service'] == 'gateway'
-    )
+    containers = {
+        container['Config']['Labels']['com.docker.compose.service']: container
+        for container in json.load(sys.stdin)
+    }
+    gateway = containers['gateway']
     assert gateway['Config']['User'] == '10001:10001'
     assert gateway['HostConfig']['ReadonlyRootfs']
     assert gateway['HostConfig']['CapDrop'] == ['ALL']
     assert not gateway['HostConfig'].get('CapAdd')
     assert not gateway['HostConfig']['PortBindings']
     assert all(mount['Type'] == 'tmpfs' for mount in gateway['Mounts'])
-    assert len(gateway['NetworkSettings']['Networks']) == 2
-    for container in containers:
-        if container is not gateway:
-            assert len(container['NetworkSettings']['Networks']) == 1
+    for service, expected in EXPECTED_NETWORKS.items():
+        assert networks(containers[service]) == expected, service
+    assert not networks(containers['raicho']) & networks(containers['thunderbird'])
     print(
-        'Gateway is the only dual-network service and has no ports, secrets or data mounts'
+        'Only the gateway bridges Raicho and Thunderbird, and it has no ports, '
+        'secrets or data mounts'
     )
 
 

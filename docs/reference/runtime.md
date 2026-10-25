@@ -127,7 +127,12 @@ Thunderbird uses a separate `thunderbird` bridge network. Both use Docker's
 default NAT isolation and retain internet egress, but Raicho cannot reach
 Thunderbird's container IP or administrative listener. Do not join the two
 services to a shared network or enable direct routing around this boundary.
-Only `gateway` joins both networks. It accepts an exact WebSocket upgrade
+The gateway joins only the internal `connector-application` network, shared with
+Raicho, and the internal `connector-thunderbird` network, shared with
+Thunderbird. It has no egress, and Docker never forwards its DNS queries to
+outside resolvers. See the
+[network decision](../decisions/20261026-thunderbird-connector.md#network-isolation).
+It accepts an exact WebSocket upgrade
 at `/connector/v1` and forwards to `raicho:8082`. Alternate paths, queries, methods,
 and arbitrary destinations are rejected. Docker DNS is re-resolved so a changed
 Raicho IP requires no gateway recreation. HTTP access logs are disabled.

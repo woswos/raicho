@@ -29,14 +29,18 @@ privacy() {
 }
 
 prepare_network() {
-    local NETWORK="${RAICHO_PROJECT}_application"
+    local NETWORK="${RAICHO_PROJECT}_connector-application"
     local SUBNET
-    local LABELS=(--label "com.docker.compose.project=${RAICHO_PROJECT}"
-        --label com.docker.compose.network=application)
-    docker network create "${LABELS[@]}" "${NETWORK}" >/dev/null
+    local OPTIONS=(--internal --label "com.docker.compose.project=${RAICHO_PROJECT}"
+        --label com.docker.compose.network=connector-application)
+    docker network create "${OPTIONS[@]}" "${NETWORK}" >/dev/null
     SUBNET="$(docker network inspect --format '{{(index .IPAM.Config 0).Subnet}}' "${NETWORK}")"
     docker network rm "${NETWORK}" >/dev/null
-    docker network create --subnet "${SUBNET}" "${LABELS[@]}" "${NETWORK}" >/dev/null
+    docker network create --subnet "${SUBNET}" "${OPTIONS[@]}" "${NETWORK}" >/dev/null
+}
+
+address() {
+    docker inspect --format "{{(index .NetworkSettings.Networks \"${RAICHO_PROJECT}_${2}\").IPAddress}}" "${1}"
 }
 
 cleanup() {
@@ -74,15 +78,21 @@ THUNDERBIRD="$("${COMPOSE[@]}" ps -q thunderbird)"
 GATEWAY="$("${COMPOSE[@]}" ps -q gateway)"
 docker inspect --format '{{.Name}} {{.Image}}' "${SERVER}" "${THUNDERBIRD}" "${GATEWAY}"
 docker inspect "${SERVER}" "${THUNDERBIRD}" "${GATEWAY}" | check deployment
+for NETWORK in connector-application connector-thunderbird; do
+    if [[ $(docker network inspect --format '{{.Internal}}' "${RAICHO_PROJECT}_${NETWORK}") != true ]]; then
+        echo "FAIL: ${NETWORK} must deny external routing and DNS forwarding" >&2
+        exit 1
+    fi
+done
 docker inspect "${SERVER}" "${THUNDERBIRD}" | fixture mounts
 fixture database --revision 1
 "${COMPOSE[@]}" exec -T thunderbird python3 -B - <"${REPOSITORY_ROOT}/extension/tests/raicho_inspect_connector_xpi.py"
 thunderbird_check seed
 check idle
 check browser
-"${PROBE[@]}" --network "${RAICHO_PROJECT}_thunderbird" --entrypoint python3 \
+"${PROBE[@]}" --network "${RAICHO_PROJECT}_connector-thunderbird" --entrypoint python3 \
     raicho-tools:local -B -m automation.acceptance.connector.raicho_connector_checks routes
-"${PROBE[@]}" --network "${RAICHO_PROJECT}_thunderbird" --entrypoint python3 \
+"${PROBE[@]}" --network "${RAICHO_PROJECT}_connector-thunderbird" --entrypoint python3 \
     raicho-tools:local -B -m automation.acceptance.connector.raicho_connector_rejection
 SAME_GENERATION="$(check wait --minimum-heartbeats 1)"
 if [[ ${SAME_GENERATION} != "${GENERATION}" ]]; then
@@ -99,22 +109,22 @@ done
 thunderbird_check persist
 
 THUNDERBIRD="$("${COMPOSE[@]}" ps -q thunderbird)"
-docker network disconnect "${RAICHO_PROJECT}_thunderbird" "${THUNDERBIRD}"
+docker network disconnect "${RAICHO_PROJECT}_connector-thunderbird" "${THUNDERBIRD}"
 check wait --status disconnected --timeout 75
-docker network connect --alias thunderbird "${RAICHO_PROJECT}_thunderbird" "${THUNDERBIRD}"
+docker network connect --alias thunderbird "${RAICHO_PROJECT}_connector-thunderbird" "${THUNDERBIRD}"
 connected
 
 SERVER="$("${COMPOSE[@]}" ps -q raicho)"
 GATEWAY="$("${COMPOSE[@]}" ps -q gateway)"
-OLD_ADDRESS="$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${SERVER}")"
+OLD_ADDRESS="$(address "${SERVER}" connector-application)"
 "${COMPOSE[@]}" stop raicho
 "${COMPOSE[@]}" rm -f raicho
-docker run -d --name "${HOLDER}" --network "${RAICHO_PROJECT}_application" \
+docker run -d --name "${HOLDER}" --network "${RAICHO_PROJECT}_connector-application" \
     --ip "${OLD_ADDRESS}" --read-only --user 10001:10001 --cap-drop ALL \
     --security-opt no-new-privileges:true --entrypoint sleep raicho-tools:local 600 >/dev/null
 "${COMPOSE[@]}" up -d --no-deps --wait --wait-timeout 120 raicho
 SERVER="$("${COMPOSE[@]}" ps -q raicho)"
-NEW_ADDRESS="$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${SERVER}")"
+NEW_ADDRESS="$(address "${SERVER}" connector-application)"
 if [[ ${NEW_ADDRESS} == "${OLD_ADDRESS}" || $("${COMPOSE[@]}" ps -q gateway) != "${GATEWAY}" ]]; then
     echo 'FAIL: DNS recovery requires a changed Raicho address and unchanged gateway' >&2
     exit 1

@@ -21,8 +21,9 @@ Raicho from reaching Thunderbird's administrative listener. Both retain provider
 internet access. The image now includes a TypeScript extension with a persistent
 background page and generated enterprise policy. It is inactive without managed
 configuration. With provisioned credentials it connects outbound through a fixed
-Nginx gateway to a separate Rust WebSocket listener. Only the gateway joins both
-networks. The browser displays authenticated connection status.
+Nginx gateway to a separate Rust WebSocket listener. The gateway joins only two
+internal networks, one shared with each service, so it is the only path between
+them and has no egress. The browser displays authenticated connection status.
 Browser login and mail operations remain planned.
 
 A separate test-only extension and disposable GreenMail deployment exercise
