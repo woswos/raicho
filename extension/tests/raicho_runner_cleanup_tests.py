@@ -1,10 +1,9 @@
-import os
 import subprocess
 import tempfile
 import unittest
-from pathlib import Path
 
 from automation.raicho_paths import REPOSITORY_ROOT
+from automation.testing.raicho_docker_mock import DockerMock, Response
 
 
 class RunnerCleanupTests(unittest.TestCase):
@@ -13,12 +12,14 @@ class RunnerCleanupTests(unittest.TestCase):
             ('mail_compatibility', 'raicho-mail-', ('thunderbird', 'tools')),
         ):
             with self.subTest(runner=name):
-                commands = self.interrupt_runner(name)
-                self.assertIn('down --volumes --remove-orphans', commands)
+                commands = [
+                    ' '.join(command) for command in self.interrupt_runner(name)
+                ]
+                self.assertTrue(
+                    any('down --volumes --remove-orphans' in line for line in commands)
+                )
                 removal = next(
-                    line
-                    for line in commands.splitlines()
-                    if line.startswith('image rm ')
+                    line for line in commands if line.startswith('image rm ')
                 )
                 images = removal.split()[2:]
                 self.assertEqual(len(images), len(tags))
@@ -32,28 +33,17 @@ class RunnerCleanupTests(unittest.TestCase):
             REPOSITORY_ROOT / 'extension/mailprobe/tests' / f'raicho_check_{name}.bash'
         )
         with tempfile.TemporaryDirectory() as temporary:
-            directory = Path(temporary)
-            docker = directory / 'docker'
-            trace = directory / 'trace'
-            docker.write_text(
-                '#!/usr/bin/env bash\n'
-                'printf "%s\\n" "${*}" >> "${MOCK_DOCKER_TRACE}"\n'
-                'if [[ ${1} == build ]]; then kill -TERM "${PPID}"; fi\n'
-                'exit 0\n'
+            docker = DockerMock(
+                temporary, [Response(('build',), terminate_parent=True)]
             )
-            docker.chmod(0o700)
             result = subprocess.run(
                 ['bash', str(runner)],
-                env={
-                    **os.environ,
-                    'PATH': f'{directory}:{os.environ["PATH"]}',
-                    'MOCK_DOCKER_TRACE': str(trace),
-                },
+                env=docker.environment(),
                 capture_output=True,
                 text=True,
                 timeout=10,
                 check=False,
             )
-            commands = trace.read_text()
+            commands = docker.commands()
         self.assertNotEqual(result.returncode, 0)
         return commands

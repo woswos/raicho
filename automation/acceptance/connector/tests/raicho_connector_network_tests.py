@@ -1,10 +1,10 @@
-import json
-import os
 import re
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+
+from automation.testing.raicho_docker_mock import DockerMock, Response
 
 RUNNER = Path(__file__).resolve().parents[1] / 'raicho_check_connector.bash'
 
@@ -21,32 +21,19 @@ class ConnectorNetworkTests(unittest.TestCase):
                 self.subTest(subnet=subnet),
                 tempfile.TemporaryDirectory() as temporary,
             ):
-                directory = Path(temporary)
-                trace = directory / 'trace'
-                docker = directory / 'docker'
-                docker.write_text(
-                    '#!/usr/bin/env python3\n'
-                    'import json, os, sys\n'
-                    'with open(os.environ["MOCK_TRACE"], "a") as output:\n'
-                    '    output.write(json.dumps(sys.argv[1:]) + "\\n")\n'
-                    'if sys.argv[1:3] == ["network", "inspect"]:\n'
-                    '    print(os.environ["MOCK_SUBNET"])\n'
+                docker = DockerMock(
+                    temporary, [Response(('network', 'inspect'), output=subnet)]
                 )
-                docker.chmod(0o700)
                 subprocess.run(
                     ['bash', '-euo', 'pipefail', '-c', function + '\nprepare_network'],
-                    env={
-                        **os.environ,
-                        'PATH': f'{directory}:{os.environ["PATH"]}',
-                        'RAICHO_PROJECT': 'raicho-connector-network-test',
-                        'MOCK_TRACE': str(trace),
-                        'MOCK_SUBNET': subnet,
-                    },
+                    env=docker.environment(
+                        RAICHO_PROJECT='raicho-connector-network-test'
+                    ),
                     check=True,
                     capture_output=True,
                     text=True,
                 )
-                commands = [json.loads(line) for line in trace.read_text().splitlines()]
+                commands = docker.commands()
                 creations = [
                     command
                     for command in commands

@@ -1,8 +1,9 @@
-import os
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+
+from automation.testing.raicho_docker_mock import DockerMock, Response
 
 WRAPPER = Path(__file__).resolve().parents[1] / 'raicho_connector.bash'
 
@@ -11,35 +12,22 @@ class ConnectorVerificationTests(unittest.TestCase):
     def run_verification(self, directory, check_status):
         state = directory / 'state'
         state.mkdir(mode=0o700)
-        trace = directory / 'trace'
-        commands = directory / 'commands'
-        commands.mkdir()
-        docker = commands / 'docker'
-        docker.write_text(
-            '#!/usr/bin/env bash\n'
-            'printf "%s\\n" "${*}" >> "${MOCK_DOCKER_TRACE}"\n'
-            'case " ${*} " in\n'
-            '  *" credential_check "*) exit "${MOCK_CHECK_STATUS}" ;;\n'
-            'esac\n'
-            'exit 0\n'
+        docker = DockerMock(
+            directory / 'commands',
+            [Response(('credential_check',), status=check_status)],
         )
-        docker.chmod(0o700)
         result = subprocess.run(
             ['bash', str(WRAPPER), 'verify'],
-            env={
-                **os.environ,
-                'PATH': f'{commands}:{os.environ["PATH"]}',
-                'RAICHO_PROJECT': 'raicho-verification-test',
-                'RAICHO_STATE_DIRECTORY': str(state),
-                'RAICHO_COMPOSE_TEST': '0',
-                'MOCK_DOCKER_TRACE': str(trace),
-                'MOCK_CHECK_STATUS': str(check_status),
-            },
+            env=docker.environment(
+                RAICHO_PROJECT='raicho-verification-test',
+                RAICHO_STATE_DIRECTORY=str(state),
+                RAICHO_COMPOSE_TEST='0',
+            ),
             capture_output=True,
             text=True,
             check=False,
         )
-        return result, trace.read_text().splitlines()
+        return result, [' '.join(command) for command in docker.commands()]
 
     def test_failed_live_authentication_does_not_discard_previous_token(self):
         with tempfile.TemporaryDirectory(prefix='raicho-verification-') as temporary:
