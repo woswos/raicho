@@ -1,12 +1,13 @@
 use std::time::Duration;
 
-use axum::extract::ws::{Utf8Bytes, WebSocket};
 use raicho_protocol::contract_generated::{ConnectorMessage, Generation};
 use raicho_protocol::diagnostics_generated::BackendError;
 use raicho_protocol::limits_generated::{HEARTBEAT_INTERVAL_MS, HEARTBEAT_TIMEOUT_MS};
 use raicho_protocol::{Phase, decode_frame};
 use tokio::time::Instant;
+use tokio_tungstenite::tungstenite::Utf8Bytes;
 
+use super::handshake::Socket;
 use super::{Connector, failure::Failure, transport, wire};
 
 struct Heartbeat {
@@ -16,7 +17,7 @@ struct Heartbeat {
 }
 
 pub(super) async fn run(
-    socket: &mut WebSocket,
+    socket: &mut Socket,
     connector: &Connector,
     generation: &Generation,
 ) -> Failure {
@@ -42,7 +43,7 @@ pub(super) async fn run(
 }
 
 async fn send_ping(
-    socket: &mut WebSocket,
+    socket: &mut Socket,
     generation: &Generation,
     heartbeat: &mut Heartbeat,
 ) -> Result<(), Failure> {

@@ -2,11 +2,15 @@ mod support;
 
 use std::time::Duration;
 
+use futures_util::SinkExt;
+use raicho_protocol::diagnostics_generated::BackendError;
+use raicho_server::connector::SOCKET_LIMIT;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
-use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message;
+use tokio_tungstenite::{MaybeTlsStream, client_async, connect_async};
 
-use support::Fixture;
+use support::{Fixture, authentication, elapse, receive};
 
 #[tokio::test]
 async fn partial_upgrade_headers_have_an_absolute_deadline() {
@@ -67,7 +71,7 @@ async fn oversized_headers_are_dropped_before_websocket_authentication() {
 async fn accepted_connections_are_bounded_before_upgrade() {
     let fixture = Fixture::new().await;
     let mut stalled = Vec::new();
-    for _ in 0..9 {
+    for _ in 0..SOCKET_LIMIT {
         let mut stream = TcpStream::connect(address(&fixture)).await.unwrap();
         stream.write_all(b"GET /").await.unwrap();
         stalled.push(stream);
@@ -83,6 +87,31 @@ async fn accepted_connections_are_bounded_before_upgrade() {
         .await
         .unwrap()
         .unwrap();
+    fixture.finish().await;
+}
+
+#[tokio::test]
+async fn one_deadline_covers_the_upgrade_and_authentication() {
+    let fixture = Fixture::new().await;
+    let stream = TcpStream::connect(address(&fixture)).await.unwrap();
+    tokio::time::sleep(Duration::from_millis(20)).await;
+    elapse(3000).await;
+    let (mut socket, _) = client_async(fixture.request(), MaybeTlsStream::Plain(stream))
+        .await
+        .unwrap();
+    let challenge = receive(&mut socket).await;
+    elapse(2500).await;
+    let server_nonce = challenge["server_nonce"].as_str().unwrap();
+    let _ = socket
+        .send(Message::Text(
+            authentication("a", server_nonce).to_string().into(),
+        ))
+        .await;
+    assert_eq!(receive(&mut socket).await["code"], "authentication_failed");
+    assert_eq!(
+        fixture.connector.snapshot().await.last_error,
+        Some(BackendError::AuthenticationTimeout)
+    );
     fixture.finish().await;
 }
 

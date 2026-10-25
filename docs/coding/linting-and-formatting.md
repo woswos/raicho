@@ -160,10 +160,10 @@ syn 3.0.9 for generated syntax. Exact direct dependencies live in `Cargo.toml`,
 with the graph locked in `Cargo.lock`. Ajv and esbuild run only during generation,
 producing a self-contained extension validator with no runtime compiler.
 
-The production listener enables Axum 0.8.9's WebSocket support, uses futures-util
-0.3.34 for socket writes, and getrandom 0.4.3 for session generations.
-Socket tests pin tokio-tungstenite 0.29.0, matching
-Axum's resolved implementation. The runtime proxy pins Nginx 1.30.6 Alpine by
+The public listener uses Axum 0.8.9 without its WebSocket support. The connector
+listener accepts WebSockets with tokio-tungstenite 0.29.0, which its socket tests
+also use, futures-util 0.3.34 for socket writes, and getrandom 0.4.3 for session
+generations. The runtime proxy pins Nginx 1.30.6 Alpine by
 digest in `deploy/gateway/Dockerfile`.
 
 GitHub checkout stays at v7.0.1, pinned to

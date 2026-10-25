@@ -4,7 +4,7 @@ use std::time::Duration;
 use futures_util::{SinkExt, StreamExt};
 use raicho_protocol::authentication::{authentication_message, client_proof, to_hex};
 use raicho_protocol::contract_generated::Authenticate;
-use raicho_server::connector::{Connector, ConnectorListener};
+use raicho_server::connector::Connector;
 use raicho_server::credentials::Credential;
 use raicho_server::persistence::{CredentialStore, Database};
 use serde_json::{Value, json};
@@ -37,12 +37,7 @@ impl Fixture {
         let connector = Connector::new(Arc::clone(&database));
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
         let address = format!("ws://{}/connector/v1", listener.local_addr().unwrap());
-        let application = connector.router();
-        let server = tokio::spawn(async move {
-            axum::serve(ConnectorListener::new(listener), application)
-                .await
-                .unwrap()
-        });
+        let server = tokio::spawn(Arc::clone(&connector).serve(listener));
         Self {
             connector,
             database,

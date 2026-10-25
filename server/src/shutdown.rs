@@ -8,7 +8,7 @@ use tokio::net::TcpListener;
 use tokio::signal::unix::{SignalKind, signal};
 use tokio::sync::watch;
 
-use raicho_server::connector::{Connector, ConnectorListener};
+use raicho_server::connector::Connector;
 use raicho_server::error::{Error, Result};
 
 pub async fn serve(
@@ -23,14 +23,12 @@ pub async fn serve(
         .map_err(|error| Error::new("Cannot register SIGINT handler", error))?;
     let (sender, receiver) = watch::channel(false);
     let public = axum::serve(listener, application)
-        .with_graceful_shutdown(stop(receiver.clone()))
+        .with_graceful_shutdown(stop(receiver))
         .into_future();
-    let internal = axum::serve(
-        ConnectorListener::new(connector_listener),
-        connector.router(),
-    )
-    .with_graceful_shutdown(stop(receiver))
-    .into_future();
+    let internal = async {
+        Arc::clone(&connector).serve(connector_listener).await;
+        Ok(())
+    };
     let servers = async { tokio::try_join!(public, internal).map(|_| ()) };
     let mut servers = pin!(servers);
     let completed = tokio::select! {

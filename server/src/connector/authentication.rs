@@ -1,17 +1,15 @@
-use std::time::Duration;
-
-use axum::extract::ws::WebSocket;
 use raicho_protocol::authentication::{
     authentication_message, from_hex, server_signature, to_hex, verify_client_proof,
 };
 use raicho_protocol::contract_generated::{ConnectorMessage, Generation, Nonce, Signature};
 use raicho_protocol::diagnostics_generated::BackendError;
-use raicho_protocol::limits_generated::AUTHENTICATION_DEADLINE_MS;
 use raicho_protocol::{Phase, decode_frame};
 use tokio::sync::watch;
+use tokio::time::{Instant, timeout_at};
 
 use crate::persistence::CredentialStore;
 
+use super::handshake::Socket;
 use super::{Connector, failure::Failure, transport, wire};
 
 pub(super) struct Authenticated {
@@ -21,15 +19,18 @@ pub(super) struct Authenticated {
 }
 
 pub(super) async fn authenticate(
-    socket: &mut WebSocket,
+    socket: &mut Socket,
     connector: &Connector,
+    deadline: Instant,
 ) -> Result<Authenticated, Failure> {
-    let deadline = Duration::from_millis(AUTHENTICATION_DEADLINE_MS as u64);
+    let timed_out = |_| Failure::new(BackendError::AuthenticationTimeout);
     let server_nonce: Nonce = random_hex::<32, _>()?;
-    wire::challenge(socket, &server_nonce).await?;
-    let message = tokio::time::timeout(deadline, transport::receive_text(socket))
+    timeout_at(deadline, wire::challenge(socket, &server_nonce))
         .await
-        .map_err(|_| Failure::new(BackendError::AuthenticationTimeout))??;
+        .map_err(timed_out)??;
+    let message = timeout_at(deadline, transport::receive_text(socket))
+        .await
+        .map_err(timed_out)??;
     let decoded = decode_frame(&message, Phase::Authentication, None)?;
     let ConnectorMessage::Authenticate(authentication) = decoded else {
         return Err(Failure::new(BackendError::UnexpectedMessage));
@@ -37,7 +38,7 @@ pub(super) async fn authenticate(
     if authentication.backend_kind.as_str() != "thunderbird" {
         return Err(Failure::new(BackendError::InvalidMessage));
     }
-    let keys = tokio::time::timeout(
+    let keys = timeout_at(
         deadline,
         CredentialStore::new(&connector.database).active_keys(),
     )

@@ -9,7 +9,7 @@ rust-version = "1.99.1"
 license = "MIT"
 
 [workspace.dependencies]
-axum = { version = "=0.8.9", default-features = false, features = ["http1", "json", "tokio", "ws"] }
+axum = { version = "=0.8.9", default-features = false, features = ["http1", "json", "tokio"] }
 futures-util = { version = "=0.3.34", features = ["sink"] }
 getrandom = "=0.4.3"
 hmac = "=0.13.0"
@@ -31,5 +31,4 @@ tokio = { version = "=1.53.3", features = ["macros", "rt-multi-thread", "signal"
 tokio-tungstenite = { version = "=0.29.0", default-features = false, features = ["connect", "handshake"] }
 tower = { version = "=0.5.3", features = ["util"] }
 tower-http = { version = "=0.7.1", features = ["fs", "set-header"] }
-tungstenite = { version = "=0.29.0", default-features = false }
 typify = { version = "=0.8.0", default-features = false }

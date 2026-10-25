@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use axum::extract::ws::{CloseFrame, Message, WebSocket};
+use futures_util::SinkExt;
 use raicho_protocol::contract_generated::{
     Capabilities, Challenge, ChallengeType, Generation, Nonce, Ping, PingType, ProtocolError,
     ProtocolErrorType, Signature, Welcome, WelcomeType,
@@ -8,8 +8,11 @@ use raicho_protocol::contract_generated::{
 use raicho_protocol::limits_generated::{
     AUTHENTICATION_DEADLINE_MS, HEARTBEAT_INTERVAL_MS, HEARTBEAT_TIMEOUT_MS, PROTOCOL_VERSION,
 };
+use tokio_tungstenite::tungstenite::Message;
+use tokio_tungstenite::tungstenite::protocol::{CloseFrame, frame::coding::CloseCode};
 
 use super::failure::Failure;
+use super::handshake::Socket;
 use super::transport::send;
 
 fn protocol_version<Version: TryFrom<i64, Error: std::fmt::Debug>>() -> Version {
@@ -18,7 +21,7 @@ fn protocol_version<Version: TryFrom<i64, Error: std::fmt::Debug>>() -> Version 
         .expect("Shared protocol version")
 }
 
-pub(super) async fn challenge(socket: &mut WebSocket, server_nonce: &Nonce) -> Result<(), Failure> {
+pub(super) async fn challenge(socket: &mut Socket, server_nonce: &Nonce) -> Result<(), Failure> {
     send(
         socket,
         &Challenge {
@@ -31,7 +34,7 @@ pub(super) async fn challenge(socket: &mut WebSocket, server_nonce: &Nonce) -> R
 }
 
 pub(super) async fn welcome(
-    socket: &mut WebSocket,
+    socket: &mut Socket,
     generation: &Generation,
     server_signature: &Signature,
 ) -> Result<(), Failure> {
@@ -55,7 +58,7 @@ pub(super) async fn welcome(
 }
 
 pub(super) async fn ping(
-    socket: &mut WebSocket,
+    socket: &mut Socket,
     generation: &Generation,
     sequence: u64,
 ) -> Result<(), Failure> {
@@ -72,7 +75,7 @@ pub(super) async fn ping(
 }
 
 pub(super) async fn terminate(
-    socket: &mut WebSocket,
+    socket: &mut Socket,
     generation: Option<&Generation>,
     failure: Failure,
 ) {
@@ -88,7 +91,7 @@ pub(super) async fn terminate(
             if send(socket, &frame).await.is_ok() {
                 let _ = socket
                     .send(Message::Close(Some(CloseFrame {
-                        code: failure.close_code(),
+                        code: CloseCode::from(failure.close_code()),
                         reason: failure.code.to_string().into(),
                     })))
                     .await;

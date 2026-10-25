@@ -126,14 +126,15 @@ exponential backoff with jitter capped at 30 seconds, reset after a valid heartb
 Managed policy changes require Thunderbird restart. No command or mail operation
 is replayed.
 
-The internal listener caps accepted TCP connections at nine. Everything a client
-sends before the server's 101 response must fit 8 KiB and arrive within five
-seconds, and non-upgrade responses close their connection. The server allows four
-pending authentications and one active session, with five
-total upgraded sockets including sessions being closed. The authentication frame
-has a five-second deadline and a 4 KiB decoded-frame limit. Credential lookup has
-its own five-second bound, and a storage failure closes with retryable
-`server_busy` instead of an authentication rejection. A connection lost without
+The internal listener accepts the WebSocket upgrade itself with tokio-tungstenite,
+without an HTTP framework. It holds at most nine sockets, one active session plus
+twice the four pending authentications, so excess upgrades still receive a 503.
+The upgrade request must fit 8 KiB. Requests for another path receive 404, and a
+query, a missing or malformed `moz-extension` origin, or a subprotocol receives
+403. One five-second deadline starts when the TCP connection is accepted and covers
+the upgrade, the challenge, the 4 KiB authentication frame, and the credential
+lookup. A credential lookup that fails or outlasts the deadline closes with
+retryable `server_busy` instead of an authentication rejection. A connection lost without
 a close frame is recorded as `disconnected`, and a frame over the transport limit
 as `message_too_large`. The WebSocket allocation
 limit is 64 KiB even before authentication, and control frames have the same

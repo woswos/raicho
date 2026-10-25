@@ -1,15 +1,17 @@
 use std::sync::Arc;
 
-use axum::extract::ws::WebSocket;
 use raicho_protocol::diagnostics_generated::BackendError;
 use tokio::sync::OwnedSemaphorePermit;
+use tokio::time::Instant;
 
+use super::handshake::Socket;
 use super::{Connector, authentication, failure::Failure, heartbeat, wire};
 
 pub(super) async fn run(
-    mut socket: WebSocket,
+    mut socket: Socket,
     connector: Arc<Connector>,
     pending: OwnedSemaphorePermit,
+    deadline: Instant,
 ) {
     let mut shutdown = connector.shutdown.subscribe();
     if *shutdown.borrow() {
@@ -18,7 +20,7 @@ pub(super) async fn run(
     let authenticated = tokio::select! {
         biased;
         _ = shutdown.changed() => return,
-        result = authentication::authenticate(&mut socket, &connector) => result,
+        result = authentication::authenticate(&mut socket, &connector, deadline) => result,
     };
     let authentication::Authenticated {
         generation,

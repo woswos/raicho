@@ -40,7 +40,7 @@ flowchart LR
     Backend -. future adapters .-> Other[Other backends]
 ```
 
-Use Axum and Tokio for one server process serving browser assets, APIs, and connector traffic. The extension initiates an outbound WebSocket through a fixed internal proxy to a dedicated Rust listener, preserving the separate service networks. The [connector contract](../../reference/connector-contract.md) defines the implemented control transport. The server remains available when Thunderbird is disconnected and reports backend status separately from its own readiness.
+Use Axum and Tokio for one server process serving browser assets, APIs, and connector traffic. The extension initiates an outbound WebSocket through a fixed internal proxy to a dedicated Rust listener, preserving the separate service networks. The [connector contract](../../reference/connector-contract.md) defines the implemented control transport. On 2026-10-26 the [direct connector listener decision](../../decisions/20261026-thunderbird-connector.md#listener) moved connector upgrades from Axum to tokio-tungstenite. The server remains available when Thunderbird is disconnected and reports backend status separately from its own readiness.
 
 Keep browser APIs independent of Thunderbird. Define a versioned, language-neutral connector schema with runtime validation and generated or mechanically checked Rust/TypeScript types. Implement the Thunderbird adapter and a small mock backend first. Use ordinary Rust modules/traits for bundled adapters and the protocol for external connectors. A dynamic plugin loader, additional production backends, and full JMAP implementation are outside this foundation.
 

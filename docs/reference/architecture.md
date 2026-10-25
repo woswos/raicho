@@ -113,6 +113,9 @@ decisions. The
 [runtime stack decision](../decisions/20261018-foundation-runtime-stack.md)
 selects Axum, Tokio, SQLx, the initial SQLite configuration, and the independently
 built Thunderbird image. The
+[direct connector listener decision](../decisions/20261026-thunderbird-connector.md#listener)
+keeps Axum for the public listener and accepts connector WebSockets with
+tokio-tungstenite. The
 [connector plan](../planning/done/20261018-foundation-stage-two-connector.md)
 selects MV2 packaging, managed configuration, a fixed internal gateway, and a
 versioned authenticated protocol. The mail compatibility
