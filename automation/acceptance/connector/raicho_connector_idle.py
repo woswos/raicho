@@ -40,7 +40,3 @@ def observe_idle(
             next_report += 60
     assert previous > baseline['heartbeat_count'], 'Connector heartbeat did not advance'
     report('Production connector passed ten-minute idle acceptance', flush=True)
-
-
-if __name__ == '__main__':
-    observe_idle()

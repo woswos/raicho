@@ -8,7 +8,6 @@ from pathlib import Path
 from automation.raicho_paths import REPOSITORY_ROOT
 from automation.repository.raicho_check_agent_config import REQUIRED_IMPORTS
 
-REPOSITORY = REPOSITORY_ROOT
 CLEARED_ENVIRONMENT = (
     'GITHUB_EVENT_PATH',
     'PR_DESCRIPTION',
@@ -88,7 +87,7 @@ class GuardTestCase(unittest.TestCase):
         return self.run_command(command, repo.root, extra)
 
     def install_guards(self, repo):
-        source = REPOSITORY / 'automation'
+        source = REPOSITORY_ROOT / 'automation'
         directory = repo.root / 'automation'
         directory.mkdir(exist_ok=True)
         for name in ('__init__.py', 'raicho_paths.py'):
@@ -125,7 +124,7 @@ class GuardTestCase(unittest.TestCase):
         environment = os.environ.copy()
         for name in CLEARED_ENVIRONMENT:
             environment.pop(name, None)
-        environment['PYTHONPATH'] = str(REPOSITORY)
+        environment['PYTHONPATH'] = str(REPOSITORY_ROOT)
         environment.update(extra)
         return subprocess.run(
             command,

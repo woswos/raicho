@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 from automation.quality.raicho_quality_files import (
-    CONFIGURATION_FILES,
+    CONFIGURATION_SUFFIXES,
     JAVASCRIPT_SUFFIXES,
     TYPESCRIPT_SUFFIXES,
     bash_files,
@@ -20,8 +20,6 @@ from automation.quality.raicho_quality_projects import (
 from automation.quality.raicho_quality_sql import sql
 from automation.raicho_paths import REPOSITORY_ROOT
 
-TOOLING_ROOT = REPOSITORY_ROOT
-
 
 def shell(root, files, action):
     require_tools('bash', 'shellcheck', 'shfmt')
@@ -31,7 +29,10 @@ def shell(root, files, action):
     if action == 'lint':
         for source in sources:
             run(['bash', '-n', source], root)
-        run(['shellcheck', '--rcfile', TOOLING_ROOT / '.shellcheckrc', *sources], root)
+        run(
+            ['shellcheck', '--rcfile', REPOSITORY_ROOT / '.shellcheckrc', *sources],
+            root,
+        )
     else:
         mode = '-w' if action == 'format' else '-d'
         run(['shfmt', '-ln', 'bash', '-i', '4', '-ci', mode, *sources], root)
@@ -42,7 +43,7 @@ def python(root, files, action):
     sources = [path for path in files if path.suffix in {'.py', '.pyi'}]
     if not sources:
         return
-    configuration = ['--config', TOOLING_ROOT / 'pyproject.toml']
+    configuration = ['--config', REPOSITORY_ROOT / 'pyproject.toml']
     if action == 'lint':
         run(['ruff', 'check', *configuration, *sources], root)
     elif action == 'format':
@@ -77,7 +78,7 @@ def javascript(root, files, action, typed=False):
             path
             for path in files
             if path.suffix in JAVASCRIPT_SUFFIXES | TYPESCRIPT_SUFFIXES
-            or path.as_posix() in CONFIGURATION_FILES
+            or path.suffix in CONFIGURATION_SUFFIXES
         ]
         if sources:
             mode = '--write' if action == 'format' else '--check'
@@ -86,9 +87,9 @@ def javascript(root, files, action, typed=False):
                     'prettier',
                     mode,
                     '--config',
-                    TOOLING_ROOT / '.prettierrc.json',
+                    REPOSITORY_ROOT / '.prettierrc.json',
                     '--ignore-path',
-                    TOOLING_ROOT / '.prettierignore',
+                    REPOSITORY_ROOT / '.prettierignore',
                     *sources,
                 ],
                 root,
@@ -144,7 +145,7 @@ def main():
         javascript(root, files, action, typed=target == 'lint-typescript')
     if target in {'format', 'format-check', 'format-check-rust', 'lint-rust'}:
         require_tools('cargo', 'rustfmt', 'cargo-clippy')
-        rust(root, files, action, TOOLING_ROOT)
+        rust(root, files, action, REPOSITORY_ROOT)
     if target in {
         'format',
         'format-sql',
@@ -152,7 +153,7 @@ def main():
         'format-check-sql',
         'lint-sql',
     }:
-        sql(root, files, action, TOOLING_ROOT)
+        sql(root, files, action, REPOSITORY_ROOT)
 
 
 if __name__ == '__main__':

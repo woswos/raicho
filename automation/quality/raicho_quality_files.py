@@ -4,38 +4,7 @@ import subprocess
 from pathlib import Path
 
 EXCLUDED = {'.git', 'node_modules', 'target', 'dist', 'vendor', '__pycache__'}
-CONFIGURATION_FILES = {
-    'protocol/typescript/package.json',
-    'protocol/typescript/tsconfig.json',
-    'protocol/limits.json',
-    'protocol/schema/connector.schema.json',
-    'protocol/fixtures/control.json',
-    'protocol/fixtures/depth.json',
-    'protocol/fixtures/duplicates.json',
-    'protocol/fixtures/handshake.json',
-    'protocol/fixtures/malformed.json',
-    'protocol/fixtures/parsing.json',
-    'package.json',
-    '.prettierrc.json',
-    'compose/compose.tools.yaml',
-    'compose/compose.ci.yaml',
-    'compose/compose.yaml',
-    'compose/compose.admin.yaml',
-    'compose/compose.runtime_test.yaml',
-    'compose/compose.credentials.yaml',
-    'compose/compose.connector_upgrade.yaml',
-    'compose/compose.mailprobe_test.yaml',
-    'compose/compose.mailprobe_admin.yaml',
-    'extension/mailprobe/manifest.json',
-    'extension/mailprobe/package.json',
-    'extension/mailprobe/tsconfig.json',
-    'extension/manifest.json',
-    'extension/package.json',
-    'extension/tsconfig.json',
-    'web/package.json',
-    'web/tsconfig.json',
-    '.github/workflows/repository-checks.yml',
-}
+CONFIGURATION_SUFFIXES = {'.json', '.yaml', '.yml'}
 JAVASCRIPT_SUFFIXES = {'.js', '.mjs', '.cjs'}
 TYPESCRIPT_SUFFIXES = {'.ts', '.tsx', '.mts', '.cts'}
 SOURCE_SUFFIXES = (
@@ -110,7 +79,7 @@ def source_files(root):
             or not path.suffix
             or path.name == 'Cargo.toml'
             or (path.name.startswith('tsconfig') and path.suffix == '.json')
-            or path.as_posix() in CONFIGURATION_FILES
+            or path.suffix in CONFIGURATION_SUFFIXES
         ):
             raise ValueError(
                 f'Quality tools require regular source files, not symlinks: {path}'

@@ -22,6 +22,10 @@ when naming test doubles. Bash helper basenames use `raicho_<purpose>.bash`, wit
 underscore-separated purpose words. Python helpers use the same prefix and `.py`
 suffix. Their locations follow the
 [automation placement guide](../reference/project-structure.md#automation).
+Modules that run inside a fixture container on a flat import path, such as
+`extension/mailprobe/tests/` and `runtime/thunderbird/`, omit the prefix. Name
+them after their component instead, such as `probe_driver.py` or
+`thunderbird_policy.py`, so they cannot shadow each other or repository packages.
 Document filenames follow
 [documentation organisation](../contributing/documentation-organisation.md#naming).
 

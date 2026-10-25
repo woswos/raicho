@@ -1,13 +1,14 @@
+from automation.raicho_paths import REPOSITORY_ROOT
 from automation.repository.raicho_check_doc_naming import (
     check_doc_naming,
     filename_failure,
 )
-from automation.testing.raicho_guard_fixtures import REPOSITORY, GuardTestCase
+from automation.testing.raicho_guard_fixtures import GuardTestCase
 
 
 class DocNamingTests(GuardTestCase):
     def test_live_repository_names_pass(self):
-        self.assertEqual(check_doc_naming(REPOSITORY), [])
+        self.assertEqual(check_doc_naming(REPOSITORY_ROOT), [])
 
     def test_accepted_document_layout(self):
         names = [

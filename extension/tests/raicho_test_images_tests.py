@@ -4,12 +4,13 @@ import yaml
 
 from automation.raicho_paths import REPOSITORY_ROOT
 
-ROOT = REPOSITORY_ROOT
 TOOLING_IMAGE = '${RAICHO_TEST_TOOLING_IMAGE:?Set the disposable tooling image}'
 
 
 def services(filename):
-    return yaml.safe_load((ROOT / 'compose' / filename).read_text())['services']
+    return yaml.safe_load((REPOSITORY_ROOT / 'compose' / filename).read_text())[
+        'services'
+    ]
 
 
 class TestImageTests(unittest.TestCase):
