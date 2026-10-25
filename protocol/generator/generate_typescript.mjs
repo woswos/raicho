@@ -98,6 +98,10 @@ const files = {
     unreachableDefinitions: true,
     style: { singleQuote: true },
   }),
+  'diagnostics_generated.ts':
+    '// Generated from protocol/diagnostics.json.\n' +
+    `export const CONTRACT_ERRORS = ${JSON.stringify(diagnostics.contract_errors)} as const;\n` +
+    'export type ContractErrorCode = (typeof CONTRACT_ERRORS)[number];\n',
   'limits_generated.ts':
     '// Generated from protocol/limits.json.\n' +
     `export const LIMITS = ${JSON.stringify(limits)} as const;\n`,

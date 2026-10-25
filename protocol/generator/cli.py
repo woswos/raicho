@@ -19,6 +19,7 @@ OUTPUTS = {
         Path('protocol/typescript/src'),
         [
             'contract_generated.ts',
+            'diagnostics_generated.ts',
             'validator_generated.js',
             'validator_generated.d.ts',
             'limits_generated.ts',

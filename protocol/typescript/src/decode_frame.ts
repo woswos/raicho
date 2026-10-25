@@ -1,4 +1,5 @@
 import type { ConnectorMessage } from './contract_generated.js';
+import type { ContractErrorCode } from './diagnostics_generated.js';
 import { LIMITS } from './limits_generated.js';
 import { isUnambiguousJson } from './raw_json.js';
 import validate from './validator_generated.js';
@@ -10,13 +11,7 @@ export type Phase =
   | 'client_control'
   | 'server_control';
 
-export type ContractErrorCode =
-  | 'authentication_failed'
-  | 'invalid_message'
-  | 'incompatible_version'
-  | 'message_too_large'
-  | 'unexpected_message'
-  | 'stale_generation';
+export type { ContractErrorCode };
 
 export class ContractError extends Error {
   constructor(readonly code: ContractErrorCode) {

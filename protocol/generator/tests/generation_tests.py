@@ -64,6 +64,8 @@ class ProtocolGenerationTests(unittest.TestCase):
             self.diagnostics | {'backend_states': ['connected', 'connected']},
             self.diagnostics | {'backend_errors': ['Invalid-Code']},
             self.diagnostics | {'backend_errors': ['storage_unavailable']},
+            self.diagnostics | {'contract_errors': ['storage_unavailable']},
+            self.diagnostics | {'contract_errors': []},
             {'backend_states': ['connected']},
         ]:
             with self.subTest(diagnostics=diagnostics):

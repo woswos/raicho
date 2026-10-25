@@ -34,7 +34,7 @@ LIMIT_NAMES = {
     'protocol_failure_close_code',
     'session_replaced_close_code',
 }
-DIAGNOSTIC_LISTS = {'backend_states', 'backend_errors'}
+DIAGNOSTIC_LISTS = {'backend_states', 'backend_errors', 'contract_errors'}
 DIAGNOSTIC_CODE = re.compile(r'[a-z]+(?:_[a-z]+)*')
 
 
@@ -63,7 +63,9 @@ def validate_schema(schema, definitions):
 
 def validate_diagnostics(diagnostics, schema):
     if not isinstance(diagnostics, dict) or set(diagnostics) != DIAGNOSTIC_LISTS:
-        raise ValueError('Diagnostics must list backend states and errors.')
+        raise ValueError(
+            'Diagnostics must list backend states, errors, and contract errors.'
+        )
     for codes in diagnostics.values():
         if (
             not isinstance(codes, list)
@@ -75,9 +77,13 @@ def validate_diagnostics(diagnostics, schema):
             )
         ):
             raise ValueError('Diagnostic codes must be unique snake_case words.')
-    protocol_errors = schema['definitions']['ProtocolError']['properties']['code']
-    if not set(protocol_errors['enum']) <= set(diagnostics['backend_errors']):
+    protocol_errors = set(
+        schema['definitions']['ProtocolError']['properties']['code']['enum']
+    )
+    if not protocol_errors <= set(diagnostics['backend_errors']):
         raise ValueError('Every protocol error code must be a backend error.')
+    if not set(diagnostics['contract_errors']) <= protocol_errors:
+        raise ValueError('Every contract error must be a protocol error code.')
 
 
 def validate_sources(schema, limits, diagnostics):
