@@ -9,9 +9,7 @@
 !package.json
 !package-lock.json
 !eslint.config.mjs
-!extension/
-!extension/mailprobe/
-!extension/mailprobe/tests/
-!extension/mailprobe/tests/**
-extension/mailprobe/tests/check_mail_compatibility.bash
+!mailprobe/tests/probe/
+!mailprobe/tests/profile/
+!mailprobe/tests/proxy/
 **/__pycache__

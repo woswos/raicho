@@ -70,8 +70,8 @@ jobs:
           docker compose -f compose/compose.yaml -f compose/compose.credentials.yaml config --quiet
           docker compose -f compose/compose.yaml -f compose/compose.runtime_test.yaml -f compose/compose.admin.yaml -f compose/compose.credentials.yaml config --quiet
           docker compose -f compose/compose.yaml -f compose/compose.credentials.yaml -f compose/compose.runtime_test.yaml -f compose/compose.connector_upgrade.yaml --profile test config --quiet
-          docker compose -f compose/compose.mailprobe_test.yaml --profile test config --quiet
-          docker compose -f compose/compose.mailprobe_test.yaml -f compose/compose.mailprobe_admin.yaml --profile test config --quiet
+          docker compose -f mailprobe/compose.yaml --profile test config --quiet
+          docker compose -f mailprobe/compose.yaml -f mailprobe/compose.admin.yaml --profile test config --quiet
       - name: Build application images
         run: docker compose -f compose/compose.yaml build
 
@@ -161,4 +161,4 @@ jobs:
         with:
           persist-credentials: false
       - name: Verify unattended mail API compatibility
-        run: bash extension/mailprobe/tests/check_mail_compatibility.bash
+        run: bash mailprobe/tests/check_mail_compatibility.bash

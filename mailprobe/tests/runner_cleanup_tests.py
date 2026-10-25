@@ -29,7 +29,7 @@ class RunnerCleanupTests(unittest.TestCase):
                 )
 
     def interrupt_runner(self, name):
-        runner = REPOSITORY_ROOT / 'extension/mailprobe/tests' / f'check_{name}.bash'
+        runner = REPOSITORY_ROOT / 'mailprobe/tests' / f'check_{name}.bash'
         with tempfile.TemporaryDirectory() as temporary:
             docker = DockerMock(
                 temporary, [Response(('build',), terminate_parent=True)]

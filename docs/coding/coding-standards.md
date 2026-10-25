@@ -25,7 +25,7 @@ repeat the project name or the directory name, as in
 or `extension/build.mjs`. Their locations follow the
 [automation placement guide](../reference/project-structure.md#automation).
 Modules that run inside a fixture container on a flat import path, such as
-`extension/mailprobe/tests/` and `runtime/thunderbird/`, cannot rely on their
+`mailprobe/tests/` and `runtime/thunderbird/`, cannot rely on their
 directory. Name them after their component instead, such as `probe_driver.py` or
 `thunderbird_policy.py`, so they cannot shadow each other or repository packages.
 See the [helper naming decision](../decisions/20261026-naming-conventions.md#helper-files).

@@ -6,7 +6,7 @@ import { setImmediate } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
 import { TextEncoder } from 'node:util';
 
-import { probeFixture } from '../../tests/probe_fixture.mjs';
+import { probeFixture } from '../../extension/tests/probe_fixture.mjs';
 
 const { startProbeTransport } = await import(
   pathToFileURL(

@@ -73,11 +73,12 @@ See [automation placement](project-structure.md#automation) for the module layou
 and invocation convention.
 
 `lint-repo` discovers `*_tests.py` under `automation/`, `extension/tests/`,
-`runtime/credentials/tests/`, and `protocol/generator/tests/`. These component-local
-suites cover repository policy including changelog guards, quality discovery,
-extension packaging and fixture regressions, releases, the operational credential
-wrapper, and acceptance-driver support. Thunderbird runtime and probe controller
-unit suites retain the separate commands below.
+`mailprobe/tests/`, `runtime/credentials/tests/`, and `protocol/generator/tests/`.
+These component-local suites cover repository policy including changelog guards,
+quality discovery, extension and mail probe packaging and fixture regressions,
+releases, the operational credential wrapper, and acceptance-driver support.
+Thunderbird runtime and probe controller unit suites retain the separate
+commands below.
 
 Rust compilation is checked by Clippy under `lint`. While Rust or TypeScript
 sources are absent, their runners explicitly report not applicable. Once owned
@@ -282,8 +283,8 @@ documented in [CI](ci-cd.md), and runtime details in [runtime](runtime.md).
 
 ```bash
 docker compose -f compose/compose.tools.yaml run --rm check make test-mailprobe
-bash extension/mailprobe/tests/check_mail_compatibility.bash
-bash extension/mailprobe/tests/check_mail_compatibility.bash --native
+bash mailprobe/tests/check_mail_compatibility.bash
+bash mailprobe/tests/check_mail_compatibility.bash --native
 ```
 
 The separate `test-mailprobe` target compiles and tests the fixture extension.

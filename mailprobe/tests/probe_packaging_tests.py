@@ -16,7 +16,7 @@ class ProbePackagingTests(unittest.TestCase):
                 '--output',
                 str(output),
                 '--source-root',
-                str(REPOSITORY_ROOT / 'extension/mailprobe'),
+                str(REPOSITORY_ROOT / 'mailprobe'),
                 cwd=directory,
             )
             self.assertEqual(result.returncode, 0, result.stderr)

@@ -58,7 +58,7 @@ def main():
         run(['cargo', action, '--workspace', '--all-targets', '--locked'])
     elif target.endswith('extension') or target == 'test-mailprobe':
         if target == 'test-mailprobe':
-            extension(REPOSITORY_ROOT / 'extension/mailprobe', testing=True)
+            extension(REPOSITORY_ROOT / 'mailprobe', testing=True)
         else:
             extension(REPOSITORY_ROOT / 'extension', testing=target.startswith('test-'))
     else:

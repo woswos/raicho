@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPOSITORY_ROOT="$(cd "${SCRIPT_DIRECTORY}/../../.." && pwd)"
+REPOSITORY_ROOT="$(cd "${SCRIPT_DIRECTORY}/../.." && pwd)"
 cd "${REPOSITORY_ROOT}"
 
 NATIVE=false
@@ -17,9 +17,9 @@ fi
 PROJECT="raicho-mail-$(date -u +%Y%m%d%H%M%S)-${RANDOM}"
 export RAICHO_TEST_TOOLING_IMAGE="${PROJECT}:tools"
 export RAICHO_MAIL_TEST_IMAGE="${PROJECT}:thunderbird"
-COMPOSE=(docker compose -p "${PROJECT}" -f compose/compose.mailprobe_test.yaml)
+COMPOSE=(docker compose -p "${PROJECT}" -f mailprobe/compose.yaml)
 if [[ ${NATIVE} == true ]]; then
-    COMPOSE+=(-f compose/compose.mailprobe_admin.yaml)
+    COMPOSE+=(-f mailprobe/compose.admin.yaml)
 fi
 
 cleanup() {
@@ -48,9 +48,9 @@ for SUITE in proxy profile probe; do
     docker run --rm --read-only --network none --tmpfs /tmp:mode=1777 \
         --cap-drop ALL --security-opt no-new-privileges:true \
         --user 10001:10001 \
-        --env PYTHONPATH=/opt/raicho/extension/mailprobe/tests/proxy:/opt/raicho/extension/mailprobe/tests/profile:/opt/raicho/extension/mailprobe/tests/probe \
+        --env PYTHONPATH=/opt/raicho/mailprobe/tests/proxy:/opt/raicho/mailprobe/tests/profile:/opt/raicho/mailprobe/tests/probe \
         --entrypoint python3 "${RAICHO_TEST_TOOLING_IMAGE}" \
-        -B -m unittest discover -s "/opt/raicho/extension/mailprobe/tests/${SUITE}" -p '*_tests.py'
+        -B -m unittest discover -s "/opt/raicho/mailprobe/tests/${SUITE}" -p '*_tests.py'
 done
 
 "${COMPOSE[@]}" run --rm extension

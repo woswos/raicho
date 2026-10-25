@@ -8,15 +8,13 @@ TOOLING_IMAGE = '${RAICHO_TEST_TOOLING_IMAGE:?Set the disposable tooling image}'
 
 
 def services(filename):
-    return yaml.safe_load((REPOSITORY_ROOT / 'compose' / filename).read_text())[
-        'services'
-    ]
+    return yaml.safe_load((REPOSITORY_ROOT / filename).read_text())['services']
 
 
 class TestImageTests(unittest.TestCase):
     def test_mock_services_share_the_tooling_image_and_remain_isolated(self):
         configurations = {
-            'compose.mailprobe_test.yaml': (
+            'mailprobe/compose.yaml': (
                 'probe',
                 'mail-proxy',
                 'driver',
@@ -40,10 +38,10 @@ class TestImageTests(unittest.TestCase):
                     if name == 'extension':
                         self.assertEqual(service['network_mode'], 'none')
                     else:
-                        self.assertNotIn('../extension/', str(service['volumes']))
+                        self.assertEqual(service['volumes'], ['fixture:/config'])
 
     def test_mail_fixture_mounts_only_the_disposable_test_artifact(self):
-        configured = services('compose.mailprobe_test.yaml')
+        configured = services('mailprobe/compose.yaml')
         thunderbird = configured['thunderbird']
         self.assertNotEqual(thunderbird['image'], TOOLING_IMAGE)
         extension = next(
@@ -57,7 +55,7 @@ class TestImageTests(unittest.TestCase):
         artifact = extension['source']
         self.assertIn(f'{artifact}:/artifact', configured['extension']['volumes'])
         self.assertIn(
-            '../extension/mailprobe/tests/profile:/mail_profile:ro',
+            './tests/profile:/mail_profile:ro',
             thunderbird['volumes'],
         )
         self.assertEqual(

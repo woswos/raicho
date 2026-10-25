@@ -21,7 +21,7 @@ class DirectoryNamingTests(GuardTestCase):
     def test_accepts_lowercase_letters_digits_and_reserved_tool_paths(self):
         repo = self.repo()
         for name in (
-            'extension/mailprobe/tests',
+            'mailprobe/tests',
             'docs/contributing',
             'assets/brand',
             'versions/123',

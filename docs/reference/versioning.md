@@ -40,9 +40,8 @@ That includes the server, its SQL, the diagnostics page, production extension
 manifests and source, production protocol implementations in `protocol/rust/src/`
 and `protocol/typescript/src/`, gateway runtime configuration, and the Raicho,
 Thunderbird, and gateway image recipes, excluding tests. Documentation, repository
-tooling, and tests do not need an entry. The mail probe under
-`extension/mailprobe/` is a test artifact and is exempt, including its manifest
-and source.
+tooling, and tests do not need an entry. The mail probe in `mailprobe/` is a
+test artifact outside these paths, so its manifest and source are exempt.
 The `no changelog` label skips the check when a change is genuinely invisible.
 Any update to `CHANGELOG.md` in the same pull request also satisfies the check.
 

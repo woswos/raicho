@@ -1,5 +1,5 @@
 import type { MailApi } from './mail_api.js';
-import { parseConfiguration } from '../../src/configuration.js';
+import { parseConfiguration } from '../../extension/src/configuration.js';
 import { dispatchCommand } from './dispatcher.js';
 import { startProbeTransport } from './probe_transport.js';
 

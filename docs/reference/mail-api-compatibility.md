@@ -18,18 +18,18 @@ remain outside this experiment.
 | GreenMail | 2.1.14, Linux amd64 |
 | GreenMail image digest | `sha256:2bcd0470f569af3c8b98509421b23f1ad11ebb2d58c3648f4233bf450f3b5e2b` |
 
-The [test Compose deployment](../../compose/compose.mailprobe_test.yaml) creates a fresh
+The [test Compose deployment](../../mailprobe/compose.yaml) creates a fresh
 Thunderbird profile, fictional accounts, disposable credentials, and an internal
 Docker network. It has no route to real mail providers or published ports. The
-optional [administration override](../../compose/compose.mailprobe_admin.yaml) enables
+optional [administration override](../../mailprobe/compose.admin.yaml) enables
 the desktop listener only inside that fixture network.
 
-The separate [probe extension](../../extension/mailprobe/manifest.json) calls
-standard Thunderbird APIs. A [test controller](../../extension/mailprobe/tests/probe/control_server.py)
+The separate [probe extension](../../mailprobe/manifest.json) calls
+standard Thunderbird APIs. A [test controller](../../mailprobe/tests/probe/control_server.py)
 issues correlated commands without replaying them after disconnects. The
-[mail proxy](../../extension/mailprobe/tests/proxy/fault_server.py) forwards SMTP and IMAP
+[mail proxy](../../mailprobe/tests/proxy/fault_server.py) forwards SMTP and IMAP
 to GreenMail and injects bounded failures. Direct
-[IMAP inspection](../../extension/mailprobe/tests/proxy/mail_inspect.py) checks the fictional
+[IMAP inspection](../../mailprobe/tests/proxy/mail_inspect.py) checks the fictional
 mail independently of the extension's result. Only the test profile initializer
 accesses the fixture profile. Raicho's server has no profile access.
 
@@ -103,12 +103,12 @@ This is bounded experimental evidence, not a universal delivery guarantee.
 
 ## Running the experiment
 
-The [host runner](../../extension/mailprobe/tests/check_mail_compatibility.bash) orchestrates
+The [host runner](../../mailprobe/tests/check_mail_compatibility.bash) orchestrates
 Docker builds, source tests, uniquely named disposable services, and cleanup:
 
 ```bash
-bash extension/mailprobe/tests/check_mail_compatibility.bash
-bash extension/mailprobe/tests/check_mail_compatibility.bash --native
+bash mailprobe/tests/check_mail_compatibility.bash
+bash mailprobe/tests/check_mail_compatibility.bash --native
 ```
 
 The default run covers unattended draft checks. The native run adds the desktop

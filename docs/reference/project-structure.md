@@ -14,7 +14,8 @@ runtime/           Production service helpers, configuration, and component-loca
 compose/           Runtime, administration, test, tooling, and CI Compose files
 server/            Rust diagnostics, SQLite queries, migrations, and tests
 web/               TypeScript diagnostics, public files, and behavioral tests
-extension/         Production connector and separate mail API test probe
+extension/         Production connector, its packager, and its tests
+mailprobe/         Mail API compatibility probe, fixtures, Compose files, and runner
 protocol/          Control schema, limits, fixtures, generators, and implementations
 automation/        Development commands and support packages grouped by responsibility
 docs/contributing/ Contribution workflow and working agreements
@@ -34,6 +35,7 @@ Use these locations when adding files or moving existing code:
 | Compose deployments and overrides | `compose/` |
 | Production runtime helpers and service configuration | `runtime/<component>/` |
 | Application sources | Their owning `server/`, `web/`, or `extension/` component |
+| Mail API compatibility probe, its fixtures, and its runner | `mailprobe/` |
 | Shared protocol schema, limits, fixtures, and implementations | `protocol/` |
 | Protocol generation scripts and support modules | `protocol/generator/` |
 | Component-specific build scripts and packaging | The owning component's root |
@@ -111,8 +113,9 @@ and formatting, with `compose.ci.yaml` adding the GitHub event mount.
 token mount, endpoint, and live verification through the
 [credential commands](../operations/connector-credentials.md).
 `compose.connector_upgrade.yaml` mounts a version-bumped production XPI for the
-connector acceptance upgrade check. `compose.mailprobe_test.yaml` runs the separate fictional mail experiment,
-with `compose.mailprobe_admin.yaml` enabling its native UI checks.
+connector acceptance upgrade check. `mailprobe/compose.yaml` runs the separate
+fictional mail experiment, with `mailprobe/compose.admin.yaml` enabling its
+native UI checks.
 The [runtime guide](../operations/local-runtime.md) and
 [tooling commands](build-test-generate.md) show their combinations.
 
@@ -135,8 +138,7 @@ tests. Shared guard fixtures and the `docker` command mock live in `automation/t
 
 `server/tests/`, `web/tests/`, and `extension/tests/` own their respective
 application and integration tests. `extension/tests/` also owns Python packaging
-regressions, production-XPI inspection used by connector acceptance, and shared
-mail fixture-image and runner-cleanup assertions.
+regressions and production-XPI inspection used by connector acceptance.
 Rust test support lives under
 `server/tests/support/`.
 
@@ -149,17 +151,18 @@ Generator regressions live in `protocol/generator/tests/`.
 `runtime/credentials/tests/` owns the provisioning wrapper tests. Token-file
 recovery, file-safety, and live-check tests live with the Rust implementation in
 `server/tests/`. `make lint-repo` includes credential wrapper
-tests, extension packaging and fixture regressions, protocol generator
+tests, extension and mail probe packaging and fixture regressions, protocol generator
 tests, and the automation package suites.
 
 `runtime/thunderbird/tests/` tests the four production Python modules in
 `runtime/thunderbird/`. Set the source import path using the documented
 [test command](build-test-generate.md#application-tooling).
 
-`extension/mailprobe/tests/` groups the mail probe and scenarios under `probe/`,
-fictional profile setup under `profile/`, and SMTP/IMAP fault infrastructure under
-`proxy/`, with their unit tests alongside the fixture code and the host acceptance
-runner directly in `tests/`.
+`mailprobe/` is a test artifact, separate from the production extension. Its
+`tests/` groups the controller and scenarios under `probe/`, fictional profile
+setup under `profile/`, and SMTP/IMAP fault infrastructure under `proxy/`, with
+their unit tests alongside the fixture code. The host acceptance runner and the
+probe packaging, fixture-image, and runner-cleanup tests sit directly in `tests/`.
 See the [fixture commands](build-test-generate.md#mail-api-compatibility)
 for the mail test extension and profile mounts.
 

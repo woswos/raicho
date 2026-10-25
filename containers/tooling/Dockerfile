@@ -30,7 +30,7 @@ RUN python3 -m pip install --no-cache-dir --only-binary=:all: --require-hashes -
 COPY package.json package-lock.json eslint.config.mjs ./
 RUN npm ci --ignore-scripts --no-audit --no-fund && npm cache clean --force
 COPY automation/quality/tooling_entrypoint.bash /usr/local/bin/raicho-tooling
-COPY extension/mailprobe/tests/ /opt/raicho/extension/mailprobe/tests/
+COPY mailprobe/tests/ /opt/raicho/mailprobe/tests/
 RUN install -d -o 10001 -g 10001 -m 0700 /config /artifact
 
 ENV PATH="/opt/quality/node_modules/.bin:/usr/local/cargo/bin:${PATH}" \

@@ -69,7 +69,7 @@ class VersionTests(GuardTestCase):
         repo = self.repo()
         repo.write('Cargo.toml', CARGO)
         repo.write('extension/manifest.json', MANIFEST)
-        repo.write('extension/mailprobe/manifest.json', MANIFEST)
+        repo.write('mailprobe/manifest.json', MANIFEST)
         repo.write('extension/tests/manifest.json', MANIFEST.replace('0.1.0', '9.9.9'))
         repo.commit()
         self.assertEqual(check_product_version(repo.root), [])
