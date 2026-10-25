@@ -120,6 +120,23 @@ already accepted the replacement, retry uses the existing candidate. The archive
 configuration remains for operator inspection and later explicit cleanup. Do not
 restore its token as an active credential.
 
+## A connector that stops retrying
+
+The extension retries every failure with capped backoff, including rejected
+credentials, closes, and frames it cannot authenticate. It stops only when the
+server sends an authenticated `session_replaced` error, which means another
+connector with the same token connected after it. The stopped connector stays idle
+until Thunderbird restarts, so two connectors never compete for the session, and
+the diagnostics page reports the newer connection. Stop the other Thunderbird
+instance, then restart this one with the credentials override:
+
+```bash
+docker compose -f compose.yaml -f compose.credentials.yaml restart thunderbird
+```
+
+Set `RAICHO_CREDENTIAL_DIRECTORY` to the deployment's `credentials/` directory
+first, as for administration.
+
 ## Validation
 
 ```bash
