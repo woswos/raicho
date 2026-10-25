@@ -70,7 +70,7 @@ Build the tooling image and run development checks separately:
 
 ```bash
 docker compose -f automation/tooling/compose.yaml build
-docker compose -f automation/tooling/compose.yaml run --rm check make lint format-check typecheck
+docker compose -f automation/tooling/compose.yaml run --rm check make lint format-check typecheck test-python
 ```
 
 The tooling image provides the language tools and Python test fixtures, so host

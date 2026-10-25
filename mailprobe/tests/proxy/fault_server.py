@@ -4,9 +4,9 @@ import socketserver
 import threading
 from pathlib import Path
 
-from fault_state import FaultState
-from imap_proxy import ImapHandler
-from smtp_proxy import SmtpHandler
+from mailprobe.tests.proxy.fault_state import FaultState
+from mailprobe.tests.proxy.imap import ImapHandler
+from mailprobe.tests.proxy.smtp import SmtpHandler
 
 
 class FaultServer(socketserver.ThreadingTCPServer):

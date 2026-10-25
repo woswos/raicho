@@ -54,16 +54,17 @@ RUN rm /etc/apt/sources.list.d/debian.sources && \
 COPY --from=download /opt/thunderbird /opt/thunderbird
 COPY --from=download /opt/novnc /usr/share/novnc
 COPY --from=extension /artifact/ /opt/raicho/extension/
-COPY deploy/thunderbird/thunderbird_runtime.py deploy/thunderbird/thunderbird_supervisor.py \
-    deploy/thunderbird/health_check.py deploy/thunderbird/thunderbird_policy.py /opt/raicho/
+COPY deploy/thunderbird/__init__.py deploy/thunderbird/runtime.py deploy/thunderbird/supervisor.py \
+    deploy/thunderbird/health_check.py deploy/thunderbird/policy.py /opt/raicho/thunderbird/
 RUN mkdir -p /opt/thunderbird/distribution && \
     ln -s /tmp/raicho-runtime/policies.json /opt/thunderbird/distribution/policies.json
 
 ENV HOME=/config DISPLAY=:99 XDG_RUNTIME_DIR=/tmp/raicho-runtime \
     DBUS_SESSION_BUS_ADDRESS=unix:path=/tmp/raicho-runtime/bus \
-    PYTHONDONTWRITEBYTECODE=1 MOZ_ENABLE_WAYLAND=0 RAICHO_ADMIN_ENABLED=false
+    PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/opt/raicho MOZ_ENABLE_WAYLAND=0 \
+    RAICHO_ADMIN_ENABLED=false
 USER 10001:10001
 VOLUME ["/config"]
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
-    CMD ["python3", "/opt/raicho/health_check.py"]
-ENTRYPOINT ["/usr/bin/tini", "--", "python3", "/opt/raicho/thunderbird_runtime.py"]
+    CMD ["python3", "-m", "thunderbird.health_check"]
+ENTRYPOINT ["/usr/bin/tini", "--", "python3", "-m", "thunderbird.runtime"]

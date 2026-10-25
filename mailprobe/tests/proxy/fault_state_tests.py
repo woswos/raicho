@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from fault_state import FaultState, write_json
+from mailprobe.tests.proxy.fault_state import FaultState, write_json
 
 
 class FaultStateTests(unittest.TestCase):

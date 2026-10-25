@@ -55,12 +55,19 @@ class TestImageTests(unittest.TestCase):
         artifact = extension['source']
         self.assertIn(f'{artifact}:/artifact', configured['extension']['volumes'])
         self.assertIn(
-            './tests/profile:/mail_profile:ro',
+            './tests/profile:/opt/fixture/mailprobe/tests/profile:ro',
             thunderbird['volumes'],
         )
         self.assertEqual(
             thunderbird['entrypoint'],
-            ['/usr/bin/tini', '--', 'python3', '-B', '/mail_profile/profile_start.py'],
+            [
+                '/usr/bin/tini',
+                '--',
+                'python3',
+                '-B',
+                '-m',
+                'mailprobe.tests.profile.start',
+            ],
         )
         self.assertEqual(
             thunderbird['environment']['LD_LIBRARY_PATH'], '/opt/thunderbird'

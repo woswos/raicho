@@ -29,7 +29,7 @@ The workflow invokes the same commands used locally:
 ```bash
 docker compose -f automation/tooling/compose.yaml build
 docker compose -f automation/tooling/compose.yaml run --rm check \
-  make lint format-check typecheck test-tooling build-app test-app test-mailprobe test-protocol
+  make lint format-check typecheck test-python test-tooling build-app test-app test-mailprobe test-protocol
 bash automation/acceptance/connector/check_connector.bash
 bash automation/acceptance/credentials/check_credentials.bash
 bash mailprobe/tests/check_mail_compatibility.bash

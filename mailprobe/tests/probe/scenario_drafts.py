@@ -1,4 +1,4 @@
-from scenario_helpers import (
+from mailprobe.tests.probe.scenario_helpers import (
     message_parts,
     save_native_target,
     saved_message,

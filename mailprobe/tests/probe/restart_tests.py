@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, patch
 
-from scenario_restart import run
+from mailprobe.tests.probe.scenario_restart import run
 
 
 class RestartTests(unittest.TestCase):
@@ -53,7 +53,7 @@ class RestartTests(unittest.TestCase):
             {'ok': True, 'result': {'messages': []}},
             *[{'ok': True, 'result': {'messages': [restored]}}] * 3,
         ]
-        with patch('scenario_restart.time.sleep'):
+        with patch('mailprobe.tests.probe.scenario_restart.time.sleep'):
             run(client)
         self.assertEqual(client.request.call_count, 6)
         selections = []
@@ -94,8 +94,13 @@ class RestartTests(unittest.TestCase):
             clock.elapsed += duration
 
         with (
-            patch('scenario_restart.time.monotonic', side_effect=lambda: clock.elapsed),
-            patch('scenario_restart.time.sleep', side_effect=sleep),
+            patch(
+                'mailprobe.tests.probe.scenario_restart.time.monotonic',
+                side_effect=lambda: clock.elapsed,
+            ),
+            patch(
+                'mailprobe.tests.probe.scenario_restart.time.sleep', side_effect=sleep
+            ),
         ):
             with self.assertRaisesRegex(AssertionError, 'did not become queryable'):
                 run(client)

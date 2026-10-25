@@ -2,14 +2,12 @@ import os
 import sys
 from pathlib import Path
 
-from seed_profile import seed_profile
+from mailprobe.tests.profile.seed import seed_profile
 
 
 def main():
     seed_profile(Path('/config/profile'))
-    os.execv(
-        sys.executable, [sys.executable, '-B', '/opt/raicho/thunderbird_runtime.py']
-    )
+    os.execv(sys.executable, [sys.executable, '-B', '-m', 'thunderbird.runtime'])
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 import unittest
 from email.message import EmailMessage
 
-from mail_inspect import describe_message
+from mailprobe.tests.proxy.mail_inspect import describe_message
 
 
 class MailInspectTests(unittest.TestCase):

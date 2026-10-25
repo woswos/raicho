@@ -1,4 +1,8 @@
-from scenario_delivery import message_details, received_once, send_message
+from mailprobe.tests.probe.scenario_delivery import (
+    message_details,
+    received_once,
+    send_message,
+)
 
 
 def verify_fault_events(before, after, *, accepted, required=()):

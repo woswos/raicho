@@ -47,14 +47,15 @@ worktree. The source mount remains read-only for checks.
 ## Checks and formatting
 
 ```bash
-docker compose -f automation/tooling/compose.yaml run --rm check make lint format-check typecheck
+docker compose -f automation/tooling/compose.yaml run --rm check make lint format-check typecheck test-python
 docker compose -f automation/tooling/compose.yaml run --rm check make test-tooling
 ```
 
 | Target | Behavior |
 | --- | --- |
-| `lint` | Repository integrity, guard tests, language linters, and protocol generation drift |
-| `lint-repo` | Repository guards, including file, directory, and database naming, and unit suites for automation, extension packaging and fixtures, runtime credentials, and protocol generation |
+| `lint` | Repository integrity, language linters, and protocol generation drift |
+| `lint-repo` | Repository guards, including file, directory, and database naming |
+| `test-python` | Every Python unit suite, discovered as `*_tests.py` from the repository root |
 | `format-check` | Check selected source and configuration formatting without edits |
 | `typecheck` | TypeScript compiler with no emitted output |
 | `test-tooling` | Disposable passing/failing Rust, TypeScript, and SQL fixtures exercising the runners |
@@ -72,13 +73,12 @@ that repository root. The Docker/Make commands above remain the normal interface
 See [automation placement](project-structure.md#automation) for the module layout
 and invocation convention.
 
-`lint-repo` discovers `*_tests.py` under `automation/`, `extension/tests/`,
-`mailprobe/tests/`, `deploy/credentials/tests/`, and `protocol/generator/tests/`.
-These component-local suites cover repository policy including changelog guards,
-quality discovery, extension and mail probe packaging and fixture regressions,
-releases, the operational credential wrapper, and acceptance-driver support.
-Thunderbird runtime and probe controller unit suites retain the separate
-commands below.
+`test-python` runs one `unittest` discovery of `*_tests.py` from the repository
+root. Discovery enters only Python packages, so every directory on a test's
+import path needs an `__init__.py`. The suites cover repository policy including
+changelog guards, quality discovery, extension and mail probe packaging, mail
+probe fixtures, releases, the operational credential wrapper, the Thunderbird
+runtime, protocol generation, and acceptance-driver support.
 
 Rust compilation is checked by Clippy under `lint`. While Rust or TypeScript
 sources are absent, their runners explicitly report not applicable. Once owned
@@ -110,8 +110,9 @@ docker compose -f automation/tooling/compose.yaml run --rm format cargo metadata
 
 The exact scope and pins are in
 [linting and formatting](../coding/linting-and-formatting.md). CI never runs
-automatic fixes. Repository integrity checks retain standing approval during
-implementation under [workflow](../contributing/workflow.md). A plain commit
+automatic fixes. Repository integrity checks, `lint-repo` and `test-python`,
+retain standing approval during implementation under
+[workflow](../contributing/workflow.md). A plain commit
 request does not authorize checks, formatting, or hooks.
 
 ## Pull request checks
@@ -150,9 +151,6 @@ Run source builds and behavioral tests through the same tooling container:
 
 ```bash
 docker compose -f automation/tooling/compose.yaml run --rm check make build-app test-app test-protocol
-docker compose -f automation/tooling/compose.yaml run --rm \
-  -e PYTHONPATH=/workspace/deploy/thunderbird check \
-  python3 -B -m unittest discover -s deploy/thunderbird/tests -p '*_tests.py'
 ```
 
 `build-app` combines `build-server`, `build-web`, and `build-extension`. `test-app`
@@ -253,14 +251,11 @@ commit while editing continues in another checkout.
 
 ```bash
 docker compose -f automation/tooling/compose.yaml run --rm check \
-  make build-extension test-extension typecheck
-docker compose -f automation/tooling/compose.yaml run --rm \
-  -e PYTHONPATH=/workspace/deploy/thunderbird check \
-  python3 -B -m unittest discover -s deploy/thunderbird/tests -p '*_tests.py'
+  make build-extension test-extension typecheck test-python
 ```
 
 The packager stores sorted, uncompressed archive entries with fixed timestamps
-and modes. Its reproducibility and version tests run under `lint-repo`.
+and modes. Its reproducibility and version tests run under `test-python`.
 `build-extension` uses disposable output. To export an XPI, mount an empty
 output directory into the tooling container and run
 `node extension/build.mjs --output /output/raicho.xpi`. The `--version` option overrides the manifest
@@ -290,11 +285,11 @@ bash mailprobe/tests/check_mail_compatibility.bash --native
 The separate `test-mailprobe` target compiles and tests the fixture extension.
 It does not change `build-app` or the production XPI. The host runner builds
 temporary tags for the tooling image and the normal Thunderbird image. The
-tooling image runs fixture unit tests, the controller, SMTP/IMAP fault proxy,
-and test driver. A one-off tooling service builds the mail test XPI into a
+tooling image runs the controller, SMTP/IMAP fault proxy, and test driver as
+`mailprobe.tests` package modules. Their unit suites run under `test-python`. A one-off tooling service builds the mail test XPI into a
 disposable artifact volume. Thunderbird mounts it read-only over its production
 extension directory, with volume copy-up disabled, and mounts the profile setup
-source read-only. Only Thunderbird loads its own NSS library to seed credentials.
+package read-only under `/opt/fixture/`. Only Thunderbird loads its own NSS library to seed credentials.
 GreenMail retains its pinned upstream image. There is no separate mail-probe
 image recipe. The runner cleans up its own images, containers, networks, and volumes.
 The default run covers drafts and restart. After the scenarios, the runner checks
@@ -304,6 +299,6 @@ browser on the Linux Docker host for the sending permission and native draft
 checkpoints. The probe modules compile with the shared production configuration
 parser, so the mail probe XPI keeps their `mailprobe/src/` paths.
 Sending and native checks are explicitly skipped in unattended mode. CI's
-`application-test` job tests the probe sources, and `compatibility-test` runs the
-unattended experiment. The
+`application-test` job tests the probe TypeScript sources, `lint` runs its Python
+suites, and `compatibility-test` runs the unattended experiment. The
 [compatibility matrix](mail-api-compatibility.md) records limits and results.

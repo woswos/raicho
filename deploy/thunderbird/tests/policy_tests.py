@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from thunderbird_policy import write_policies
+from deploy.thunderbird.policy import write_policies
 
 
 class PolicyFixture:
@@ -80,7 +80,7 @@ class PolicyTests(PolicyFixture, unittest.TestCase):
         destination = write_policies(self.runtime, self.extension, {})
         original = destination.read_bytes()
         with patch(
-            'thunderbird_policy.os.replace',
+            'deploy.thunderbird.policy.os.replace',
             side_effect=OSError('mock replacement failure'),
         ):
             with self.assertRaises(OSError):
@@ -101,7 +101,7 @@ class PolicyTests(PolicyFixture, unittest.TestCase):
             self.assertEqual(source_path.parent, self.runtime)
             original_replace(source, destination)
 
-        with patch('thunderbird_policy.os.replace', side_effect=inspect_replace):
+        with patch('deploy.thunderbird.policy.os.replace', side_effect=inspect_replace):
             write_policies(self.runtime, self.extension, self.environment)
 
     def test_runtime_symlink_is_rejected(self):

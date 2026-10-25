@@ -1,7 +1,11 @@
 import socket
 import unittest
 
-from control_socket import ControlBudgetSocket, ControlSocket, readable
+from mailprobe.tests.probe.control_socket import (
+    ControlBudgetSocket,
+    ControlSocket,
+    readable,
+)
 
 
 class ControlSocketTests(unittest.TestCase):

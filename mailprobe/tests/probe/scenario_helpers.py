@@ -1,4 +1,4 @@
-from probe_client import wait_until
+from mailprobe.tests.probe.client import wait_until
 
 
 def query(client, subject):

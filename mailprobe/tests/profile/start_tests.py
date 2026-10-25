@@ -3,15 +3,15 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, call, patch
 
-from profile_start import main
+from mailprobe.tests.profile.start import main
 
 
 class StartTests(unittest.TestCase):
     def test_seeds_before_replacing_the_process_with_runtime(self):
         calls = Mock()
         with (
-            patch('profile_start.seed_profile', calls.seed),
-            patch('profile_start.os.execv', calls.execute),
+            patch('mailprobe.tests.profile.start.seed_profile', calls.seed),
+            patch('mailprobe.tests.profile.start.os.execv', calls.execute),
         ):
             main()
         self.assertEqual(
@@ -20,7 +20,7 @@ class StartTests(unittest.TestCase):
                 call.seed(Path('/config/profile')),
                 call.execute(
                     sys.executable,
-                    [sys.executable, '-B', '/opt/raicho/thunderbird_runtime.py'],
+                    [sys.executable, '-B', '-m', 'thunderbird.runtime'],
                 ),
             ],
         )
@@ -28,10 +28,10 @@ class StartTests(unittest.TestCase):
     def test_profile_failure_prevents_runtime_startup(self):
         with (
             patch(
-                'profile_start.seed_profile',
+                'mailprobe.tests.profile.start.seed_profile',
                 side_effect=ValueError('Unexpected profile.'),
             ),
-            patch('profile_start.os.execv') as execute,
+            patch('mailprobe.tests.profile.start.os.execv') as execute,
         ):
             with self.assertRaisesRegex(ValueError, 'Unexpected profile'):
                 main()

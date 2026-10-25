@@ -1,8 +1,9 @@
 import argparse
+import importlib
 import json
 
-from mail_inspect import ensure_mailboxes
-from probe_client import ProbeClient, wait_until
+from mailprobe.tests.probe.client import ProbeClient, wait_until
+from mailprobe.tests.proxy.mail_inspect import ensure_mailboxes
 
 
 def main():
@@ -55,18 +56,20 @@ def main():
             )
         )
     elif arguments.phase.startswith('native_'):
-        import scenario_native
+        from mailprobe.tests.probe import scenario_native
 
         getattr(scenario_native, arguments.phase.removeprefix('native_'))(client)
     elif arguments.phase in ['permission_verify', 'record_skips']:
-        import scenario_permissions
+        from mailprobe.tests.probe import scenario_permissions
 
         function = (
             'verify' if arguments.phase == 'permission_verify' else 'record_skips'
         )
         getattr(scenario_permissions, function)(client)
     else:
-        module = __import__(f'scenario_{arguments.phase}')
+        module = importlib.import_module(
+            f'mailprobe.tests.probe.scenario_{arguments.phase}'
+        )
         module.run(client)
 
 

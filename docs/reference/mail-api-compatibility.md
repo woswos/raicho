@@ -104,7 +104,8 @@ This is bounded experimental evidence, not a universal delivery guarantee.
 ## Running the experiment
 
 The [host runner](../../mailprobe/tests/check_mail_compatibility.bash) orchestrates
-Docker builds, source tests, uniquely named disposable services, and cleanup:
+Docker builds, uniquely named disposable services, and cleanup. The fixture unit
+suites run separately under `make test-python`:
 
 ```bash
 bash mailprobe/tests/check_mail_compatibility.bash

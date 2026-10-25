@@ -3,7 +3,7 @@ import socket
 import socketserver
 import threading
 
-from smtp_proxy import MESSAGE_LIMIT, read_line, write
+from mailprobe.tests.proxy.smtp import MESSAGE_LIMIT, read_line, write
 
 LITERAL = re.compile(rb'\{([0-9]+)(\+)?\}\r\n$')
 APPEND = re.compile(rb'^([^ ]+) APPEND (?:"Sent"|Sent)(?: |\r\n)', re.IGNORECASE)

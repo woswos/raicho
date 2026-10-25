@@ -10,10 +10,11 @@
 !protocol/typescript/src/
 !protocol/typescript/package.json
 !protocol/typescript/tsconfig.json
-!deploy/thunderbird/thunderbird_runtime.py
-!deploy/thunderbird/thunderbird_supervisor.py
+!deploy/thunderbird/__init__.py
+!deploy/thunderbird/runtime.py
+!deploy/thunderbird/supervisor.py
 !deploy/thunderbird/health_check.py
-!deploy/thunderbird/thunderbird_policy.py
+!deploy/thunderbird/policy.py
 **/node_modules
 **/dist
 **/__pycache__

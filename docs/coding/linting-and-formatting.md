@@ -43,16 +43,16 @@ tests rather than proving query execution or migration safety.
 
 ## Scope and enforcement
 
-`make lint-repo` runs `automation.repository.check_source_naming` and its
-package-local regression tests locally and in CI. It checks the
+`make lint-repo` runs `automation.repository.check_source_naming` locally and in
+CI, and `make test-python` runs its package-local regression tests. It checks the
 [source filename convention](coding-standards.md#source-filenames), including
 HTML and CSS names without adding them to the formatting scope. Renames are
 explicit edits, never formatter fixes.
 
 `automation.repository.check_directory_naming` enforces the separate
 [directory convention](coding-standards.md#directory-names). It also runs under
-`make lint-repo`, including regression tests for nested paths, reserved paths,
-ignored and missing files, and CLI root selection. It shares Git discovery and
+`make lint-repo`. Its regression tests under `make test-python` cover nested
+paths, reserved paths, ignored and missing files, and CLI root selection. It shares Git discovery and
 the exclusions below with the source filename guard.
 
 Add a new repository guard the same way. Create
@@ -60,7 +60,7 @@ Add a new repository guard the same way. Create
 argument, `FAIL:` diagnostics on stderr, and exit code 1 on failure. Write its
 tests first in `automation/repository/tests/<rule>_tests.py`, and add the guard
 with a failing case to `GUARDS` in `guard_cli_tests.py`. Run it from `lint-repo`
-in the Makefile, state the rule in the [coding standards](coding-standards.md),
+in the Makefile, where `test-python` picks up its tests automatically, state the rule in the [coding standards](coding-standards.md),
 describe the guard here, and record a decision.
 
 `automation.repository.check_schema_naming` enforces the

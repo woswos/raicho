@@ -4,10 +4,11 @@ import json
 import socketserver
 from pathlib import Path
 
-from control_socket import ControlSocket, readable
-from control_state import ControlState
 from websockify.websocket import WebSocketWantReadError
 from websockify.websocketserver import WebSocketRequestHandler, WebSocketServer
+
+from mailprobe.tests.probe.control_socket import ControlSocket, readable
+from mailprobe.tests.probe.control_state import ControlState
 
 
 class ControlHandler(WebSocketRequestHandler):

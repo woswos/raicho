@@ -3,8 +3,8 @@ import time
 import urllib.request
 from pathlib import Path
 
-from fault_state import write_json
-from mail_inspect import inspect_messages
+from mailprobe.tests.proxy.fault_state import write_json
+from mailprobe.tests.proxy.mail_inspect import inspect_messages
 
 
 def wait_until(attempt, timeout, failure):

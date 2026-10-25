@@ -153,13 +153,13 @@ Generator regressions live in `protocol/generator/tests/`.
 
 `deploy/credentials/tests/` owns the provisioning wrapper tests. Token-file
 recovery, file-safety, and live-check tests live with the Rust implementation in
-`server/tests/`. `make lint-repo` includes credential wrapper
-tests, extension and mail probe packaging and fixture regressions, protocol generator
-tests, and the automation package suites.
+`server/tests/`. `deploy/thunderbird/tests/` tests the production `thunderbird`
+package beside it.
 
-`deploy/thunderbird/tests/` tests the four production Python modules in
-`deploy/thunderbird/`. Set the source import path using the documented
-[test command](build-test-generate.md#application-tooling).
+Python modules are packages imported from the repository root, including those
+that run inside containers. `make test-python` discovers every `*_tests.py` in
+them, so a new Python test directory needs only the `__init__.py` files on its
+import path.
 
 `mailprobe/` is a test artifact, separate from the production extension. Its
 `tests/` groups the controller and scenarios under `probe/`, fictional profile

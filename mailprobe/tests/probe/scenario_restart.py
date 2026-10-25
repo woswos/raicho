@@ -1,6 +1,6 @@
 import time
 
-from probe_client import wait_until
+from mailprobe.tests.probe.client import wait_until
 
 
 def request_before_deadline(client, action, arguments, deadline):

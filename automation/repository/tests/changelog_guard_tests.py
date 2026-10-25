@@ -9,7 +9,7 @@ class ChangelogGuardTests(GuardTestCase):
         self.assertTrue(is_shipping('server/src/http.rs'))
         self.assertTrue(is_shipping('server/queries/read_sqlite_version.sql'))
         self.assertTrue(is_shipping('web/public/index.html'))
-        self.assertTrue(is_shipping('deploy/thunderbird/thunderbird_supervisor.py'))
+        self.assertTrue(is_shipping('deploy/thunderbird/supervisor.py'))
         for path in GATEWAY_PATHS:
             with self.subTest(path=path):
                 self.assertTrue(is_shipping(path))
@@ -20,9 +20,7 @@ class ChangelogGuardTests(GuardTestCase):
         self.assertTrue(is_shipping('protocol/typescript/src/validator_generated.js'))
         self.assertFalse(is_shipping('protocol/typescript/tests/contract.test.mjs'))
         self.assertFalse(is_shipping('server/tests/http.rs'))
-        self.assertFalse(
-            is_shipping('deploy/thunderbird/tests/thunderbird_supervisor_tests.py')
-        )
+        self.assertFalse(is_shipping('deploy/thunderbird/tests/supervisor_tests.py'))
         self.assertFalse(is_shipping('deploy/thunderbird/tests/fixture.py'))
         self.assertFalse(is_shipping('deploy/gateway/tests/nginx.conf'))
         self.assertFalse(is_shipping('deploy/gateway/tests/fixture.conf'))

@@ -40,4 +40,4 @@ ENV PATH="/opt/quality/node_modules/.bin:/usr/local/cargo/bin:${PATH}" \
     npm_config_cache=/tmp/npm HOME=/tmp/home
 WORKDIR /workspace
 ENTRYPOINT ["bash", "/usr/local/bin/raicho-tooling"]
-CMD ["make", "lint", "format-check", "typecheck"]
+CMD ["make", "lint", "format-check", "typecheck", "test-python"]

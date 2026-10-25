@@ -56,4 +56,6 @@ class WorkflowCoverageTests(unittest.TestCase):
         for target in ('build-app', 'test-app', 'test-mailprobe', 'test-protocol'):
             with self.subTest(target=target):
                 self.assertIn(target, words)
-        self.assertIn('deploy/thunderbird/tests', words)
+
+    def test_lint_job_runs_every_python_suite(self):
+        self.assertIn('test-python', self.script('lint').split())

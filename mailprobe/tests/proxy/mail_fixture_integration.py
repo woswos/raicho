@@ -4,8 +4,8 @@ import unittest
 from email.message import EmailMessage
 from pathlib import Path
 
-from fault_state import write_json
-from mail_inspect import ensure_mailboxes, inspect_messages
+from mailprobe.tests.proxy.fault_state import write_json
+from mailprobe.tests.proxy.mail_inspect import ensure_mailboxes, inspect_messages
 
 
 class MailFixtureIntegration(unittest.TestCase):

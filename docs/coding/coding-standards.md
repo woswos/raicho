@@ -24,11 +24,10 @@ repeat the project name or the directory name, as in
 `automation/repository/check_pr.py`, `automation/acceptance/connector/checks.py`,
 or `extension/build.mjs`. Their locations follow the
 [automation placement guide](../reference/project-structure.md#automation).
-Modules that run inside a fixture container on a flat import path, such as
-`mailprobe/tests/` and `deploy/thunderbird/`, cannot rely on their
-directory. Name them after their component instead, such as `probe_driver.py` or
-`thunderbird_policy.py`, so they cannot shadow each other or repository packages.
-See the [helper naming decision](../decisions/20261026-naming-conventions.md#helper-files).
+Python modules that run inside containers are packages too, such as
+`deploy/thunderbird/policy.py` and `mailprobe/tests/probe/driver.py`, so the same
+rule applies there. See the [helper naming decision](../decisions/20261026-naming-conventions.md#helper-files)
+and the [repository layout decision](../decisions/20261026-repository-layout.md).
 Document filenames follow
 [documentation organisation](../contributing/documentation-organisation.md#naming).
 

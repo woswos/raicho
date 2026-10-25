@@ -44,15 +44,6 @@ docker build --platform linux/amd64 -f automation/tooling/Dockerfile \
 docker build --platform linux/amd64 -f deploy/thunderbird/Dockerfile \
     -t "${RAICHO_MAIL_TEST_IMAGE}" .
 
-for SUITE in proxy profile probe; do
-    docker run --rm --read-only --network none --tmpfs /tmp:mode=1777 \
-        --cap-drop ALL --security-opt no-new-privileges:true \
-        --user 10001:10001 \
-        --env PYTHONPATH=/opt/raicho/mailprobe/tests/proxy:/opt/raicho/mailprobe/tests/profile:/opt/raicho/mailprobe/tests/probe \
-        --entrypoint python3 "${RAICHO_TEST_TOOLING_IMAGE}" \
-        -B -m unittest discover -s "/opt/raicho/mailprobe/tests/${SUITE}" -p '*_tests.py'
-done
-
 "${COMPOSE[@]}" run --rm extension
 "${COMPOSE[@]}" up -d --wait --wait-timeout 120 greenmail probe mail-proxy
 "${COMPOSE[@]}" run --rm driver prepare
@@ -115,5 +106,5 @@ else
 fi
 
 "${COMPOSE[@]}" run --rm driver evidence
-"${COMPOSE[@]}" exec -T mail-proxy python3 -B -m unittest mail_fixture_integration
+"${COMPOSE[@]}" exec -T mail-proxy python3 -B -m unittest mailprobe.tests.proxy.mail_fixture_integration
 echo 'Mail compatibility evidence collected. Removing the disposable deployment.'

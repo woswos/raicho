@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock
 
-from scenario_permissions import record_skips, verify
+from mailprobe.tests.probe.scenario_permissions import record_skips, verify
 
 
 class PermissionTests(unittest.TestCase):

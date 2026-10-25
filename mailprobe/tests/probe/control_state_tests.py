@@ -4,7 +4,7 @@ import time
 import unittest
 from pathlib import Path
 
-from control_state import ControlState
+from mailprobe.tests.probe.control_state import ControlState
 
 
 class ControlStateTests(unittest.TestCase):

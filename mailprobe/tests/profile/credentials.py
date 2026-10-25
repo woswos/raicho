@@ -1,7 +1,7 @@
 import json
 import uuid
 
-from nss_credentials import encrypt, encryption_library
+from mailprobe.tests.profile.nss_credentials import encrypt, encryption_library
 
 
 def write_credentials(profile):

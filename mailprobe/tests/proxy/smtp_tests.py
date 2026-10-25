@@ -1,7 +1,7 @@
 import io
 import unittest
 
-from smtp_proxy import relay_smtp
+from mailprobe.tests.proxy.smtp import relay_smtp
 
 
 class MockConnection:

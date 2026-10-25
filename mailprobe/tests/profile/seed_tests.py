@@ -4,8 +4,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from profile_settings import preferences
-from seed_profile import MARKER, seed_profile
+from mailprobe.tests.profile.seed import MARKER, seed_profile
+from mailprobe.tests.profile.settings import preferences
 
 
 class ProfileTests(unittest.TestCase):
@@ -18,7 +18,7 @@ class ProfileTests(unittest.TestCase):
         def write_credentials(profile):
             (profile / 'logins.json').write_text('{"fixture": true}')
 
-        with patch('seed_profile.write_credentials', write_credentials):
+        with patch('mailprobe.tests.profile.seed.write_credentials', write_credentials):
             return seed_profile(self.profile)
 
     def test_seed_uses_private_profile_and_two_selected_identities(self):
@@ -49,7 +49,7 @@ class ProfileTests(unittest.TestCase):
         preferences_file.write_text('fixture changed after initial startup\n')
         credentials = self.profile / 'logins.json'
         credentials.write_text('fixture credentials changed\n')
-        with patch('seed_profile.write_credentials') as writer:
+        with patch('mailprobe.tests.profile.seed.write_credentials') as writer:
             self.assertFalse(seed_profile(self.profile))
         writer.assert_not_called()
         self.assertEqual(

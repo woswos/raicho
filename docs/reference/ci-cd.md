@@ -7,15 +7,14 @@ The workflow uses a read-only token and does not retain checkout credentials.
 
 ## Jobs
 
-- `lint`: repository integrity, guard regression tests, language linting,
+- `lint`: repository integrity, every Python unit suite, language linting,
   formatting checks, TypeScript type checking, and runner fixture tests on
   pushes and PRs, including designs. `make lint` also checks protocol generation drift.
 - `pr-guards`: PR context checks on PR events only, including the changelog
   entry required for user-visible changes.
 - `application-build`: runtime and fixture Compose validation and all runtime images.
 - `application-test`: Rust, browser, extension, and shared protocol builds/tests,
-  plus Thunderbird process supervision, generated-policy tests, and separate
-  mail probe source tests.
+  plus separate mail probe TypeScript tests.
 - `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
   administrative network isolation and listener closure, and application readiness
   while Thunderbird is stopped, in a disposable project.
@@ -48,16 +47,16 @@ Disposable runner
 fixtures still verify discovery and failure behavior independently. Missing
 project configuration fails rather than silently skipping application checks.
 Automated checks do not claim visual verification of the administrative desktop.
-Extension packaging and fixture regressions also run in `lint` through `lint-repo`.
+Extension packaging and fixture regressions also run in `lint` through `test-python`.
 The Rust workspace and extension application tests exercise the same
 [connector contract fixtures](connector-contract.md). Source tests also exercise
 authentication, session replacement, heartbeat timeouts, extension retries, and
 diagnostics.
 Rust credential persistence and CLI tests run in `application-test`. Python
-automation suites, extension packaging/XPI inspection and fixture regressions,
-secret-file/wrapper verification, and protocol generation regressions run through `lint-repo`, using
-component-local `tests/` directories in
-`automation/`, `extension/`, `deploy/credentials/`, and `protocol/generator/`.
+automation suites, extension packaging/XPI inspection, mail probe fixture
+regressions, secret-file/wrapper verification, Thunderbird process supervision and
+generated-policy tests, and protocol generation regressions run through
+`test-python`, from component-local `tests/` directories.
 The [credential](build-test-generate.md#credential-persistence),
 [production connector](build-test-generate.md#production-connector), and
 [mail compatibility](build-test-generate.md#mail-api-compatibility) runners use
@@ -74,9 +73,8 @@ observations. See [acceptance evidence](connector-acceptance.md) for scope and l
 `make lint-repo` checks the AGENTS document references, directory names,
 documentation and source filenames, skill metadata/example
 paths, and the declared product version through modules in
-`automation/repository/`. Its policy tests include changelog guard regressions.
-It then runs the automation, extension packaging and fixture,
-operational credential, and protocol generator unit suites described in the
+`automation/repository/`. `make test-python` runs their policy tests, including
+changelog guard regressions, with every other Python unit suite described in the
 [command reference](build-test-generate.md#checks-and-formatting). The
 [naming guards](../coding/linting-and-formatting.md#scope-and-enforcement)
 run in the existing `lint` job and are not bypassed by skip labels.

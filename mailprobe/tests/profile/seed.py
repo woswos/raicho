@@ -2,8 +2,8 @@ import argparse
 import json
 from pathlib import Path
 
-from profile_credentials import write_credentials
-from profile_settings import preferences
+from mailprobe.tests.profile.credentials import write_credentials
+from mailprobe.tests.profile.settings import preferences
 
 MARKER = 'raicho_mail_fixture'
 MARKER_CONTENT = 'raicho-mail-fixture-v1\n'

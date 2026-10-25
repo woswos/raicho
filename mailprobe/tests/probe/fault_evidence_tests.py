@@ -1,6 +1,6 @@
 import unittest
 
-from scenario_faults import verify_fault_events
+from mailprobe.tests.probe.scenario_faults import verify_fault_events
 
 
 class FaultEvidenceTests(unittest.TestCase):

@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, call, patch
 
-from scenario_helpers import saved_message, wait_query
+from mailprobe.tests.probe.scenario_helpers import saved_message, wait_query
 
 
 class ScenarioHelpersTests(unittest.TestCase):
@@ -13,7 +13,7 @@ class ScenarioHelpersTests(unittest.TestCase):
             {'ok': True, 'result': {'messages': [{'id': 1}]}},
             {'ok': True, 'result': {'messages': [{'id': 1}, {'id': 2}]}},
         ]
-        with patch('probe_client.time.sleep'):
+        with patch('mailprobe.tests.probe.client.time.sleep'):
             self.assertEqual(saved_message(client, {'subject': 'fixture'}), {'id': 2})
         self.assertEqual(
             client.call.call_args_list,
@@ -32,8 +32,8 @@ class ScenarioHelpersTests(unittest.TestCase):
             {'ok': True, 'result': {'messages': [{'id': 1}, {'id': 2}]}},
         ]
         with (
-            patch('probe_client.time.monotonic', side_effect=[0, 31]),
-            patch('probe_client.time.sleep'),
+            patch('mailprobe.tests.probe.client.time.monotonic', side_effect=[0, 31]),
+            patch('mailprobe.tests.probe.client.time.sleep'),
         ):
             with self.assertRaisesRegex(AssertionError, 'did not become queryable'):
                 saved_message(client, {'subject': 'fixture'})
@@ -52,7 +52,7 @@ class ScenarioHelpersTests(unittest.TestCase):
                 },
             },
         ]
-        with patch('probe_client.time.sleep'):
+        with patch('mailprobe.tests.probe.client.time.sleep'):
             self.assertEqual(
                 wait_query(client, 'fixture', 1, body='updated body'), [{'id': 5}]
             )
