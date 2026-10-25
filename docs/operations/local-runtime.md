@@ -70,6 +70,26 @@ export COMPOSE_PROJECT_NAME=raicho-second RAICHO_PORT=8081 RAICHO_ADMIN_PORT=608
 docker compose up -d --wait
 ```
 
+## Upgrade
+
+Raicho and Thunderbird images come from the same checkout and are upgraded
+together, because the connector protocol version must match exactly. After
+updating the checkout, rebuild and recreate both from the repository root:
+
+```bash
+docker compose build
+docker compose up -d --wait
+```
+
+For an enrolled deployment, include `compose.credentials.yaml` and set
+`RAICHO_CREDENTIAL_DIRECTORY` for the `up` command, as for administration. Until
+both containers run the new images, a connector speaking another protocol version
+fails before authentication with `incompatible_version` and keeps retrying. No
+session state carries across the upgrade. See the
+[version policy](../decisions/20261026-thunderbird-connector.md#versioning).
+
+## Recovering a development database
+
 If Raicho fails to start because a migration's checksum or version does not
 match, its database applied an earlier version of a migration that has since
 changed. That happens only on unreleased branches, because released migrations

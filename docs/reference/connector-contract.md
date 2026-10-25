@@ -171,6 +171,16 @@ application send queue.
 The extension retries if its browser socket already has buffered data. Server
 shutdown closes sessions before releasing database ownership.
 
+## Versioning
+
+Both sides require `protocol_version` to equal the shared limit exactly. There is
+no negotiated range, because the server and Thunderbird images are built from one
+commit and upgraded together, as the
+[version policy](../decisions/20261026-thunderbird-connector.md#versioning)
+records. A version mismatch fails before authentication with
+`incompatible_version`, so a connector retries until both sides match. A protocol
+change bumps the version and ships in one release of both images.
+
 ## Parsing and limits
 
 Frame budgets count UTF-8 bytes, including whitespace, before JSON decoding.
