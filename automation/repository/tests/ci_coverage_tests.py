@@ -56,4 +56,4 @@ class WorkflowCoverageTests(unittest.TestCase):
         for target in ('build-app', 'test-app', 'test-mailprobe', 'test-protocol'):
             with self.subTest(target=target):
                 self.assertIn(target, words)
-        self.assertIn('runtime/thunderbird/tests', words)
+        self.assertIn('deploy/thunderbird/tests', words)

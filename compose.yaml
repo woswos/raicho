@@ -6,7 +6,7 @@ services:
     platform: linux/amd64
     build:
       context: .
-      dockerfile: containers/raicho/Dockerfile
+      dockerfile: deploy/raicho/Dockerfile
       args:
         RAICHO_COMMIT: ${RAICHO_COMMIT:-unknown}
     read_only: true
@@ -29,7 +29,7 @@ services:
     platform: linux/amd64
     build:
       context: .
-      dockerfile: containers/gateway/Dockerfile
+      dockerfile: deploy/gateway/Dockerfile
     read_only: true
     tmpfs:
       - /tmp:size=16m,mode=1777
@@ -44,7 +44,7 @@ services:
     platform: linux/amd64
     build:
       context: .
-      dockerfile: containers/thunderbird/Dockerfile
+      dockerfile: deploy/thunderbird/Dockerfile
     read_only: true
     tmpfs:
       - /tmp:mode=1777

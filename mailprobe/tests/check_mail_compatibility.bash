@@ -41,7 +41,7 @@ trap 'exit 143' TERM
 
 docker build --platform linux/amd64 -f automation/tooling/Dockerfile \
     -t "${RAICHO_TEST_TOOLING_IMAGE}" .
-docker build --platform linux/amd64 -f containers/thunderbird/Dockerfile \
+docker build --platform linux/amd64 -f deploy/thunderbird/Dockerfile \
     -t "${RAICHO_MAIL_TEST_IMAGE}" .
 
 for SUITE in proxy profile probe; do

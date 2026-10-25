@@ -23,7 +23,7 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 operate() {
-    bash runtime/credentials/connector.bash "${1}"
+    bash deploy/credentials/connector.bash "${1}"
 }
 
 database() {

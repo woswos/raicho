@@ -57,7 +57,7 @@ Rust credential persistence and CLI tests run in `application-test`. Python
 automation suites, extension packaging/XPI inspection and fixture regressions,
 secret-file/wrapper verification, and protocol generation regressions run through `lint-repo`, using
 component-local `tests/` directories in
-`automation/`, `extension/`, `runtime/credentials/`, and `protocol/generator/`.
+`automation/`, `extension/`, `deploy/credentials/`, and `protocol/generator/`.
 The [credential](build-test-generate.md#credential-persistence),
 [production connector](build-test-generate.md#production-connector), and
 [mail compatibility](build-test-generate.md#mail-api-compatibility) runners use

@@ -77,10 +77,11 @@ The tooling image provides the language tools and Python test fixtures, so host
 language toolchains are not required. The `check` service does not start runtime
 services.
 
-Docker recipes and their build-context filters live in `containers/`, the
-deployment in the root `compose.yaml`, and shared development automation in `automation/`,
-grouped by responsibility. Component-specific builders and tests live with their
-sources. Operational credential helpers live in `runtime/credentials/`. See the
+Each deployed service's image recipe, runtime code, and configuration live in
+`deploy/`, the deployment in the root `compose.yaml`, and shared development
+automation in `automation/`, grouped by responsibility. Component-specific
+builders and tests live with their sources. Operational credential helpers live
+in `deploy/credentials/`. See the
 [placement guide](docs/reference/project-structure.md#placement-rules) for the layout.
 The shared connector protocol has Rust and TypeScript implementations under
 `protocol/`, with generation scripts in `protocol/generator/`.

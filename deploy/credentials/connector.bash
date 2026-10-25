@@ -8,7 +8,7 @@ cd "${REPOSITORY_ROOT}"
 
 OPERATION="${1:-}"
 if [[ ${#} != 1 || ! ${OPERATION} =~ ^(init|rotate|reactivate|revoke|verify|status)$ ]]; then
-    echo 'Usage: bash runtime/credentials/connector.bash init|rotate|reactivate|revoke|verify|status' >&2
+    echo 'Usage: bash deploy/credentials/connector.bash init|rotate|reactivate|revoke|verify|status' >&2
     exit 1
 fi
 PROJECT="${RAICHO_PROJECT:-${COMPOSE_PROJECT_NAME:-raicho}}"

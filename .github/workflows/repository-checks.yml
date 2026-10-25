@@ -92,8 +92,8 @@ jobs:
       - name: Test Thunderbird process supervision
         run: >-
           docker compose -f automation/tooling/compose.yaml run --rm
-          -e PYTHONPATH=/workspace/runtime/thunderbird check
-          python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
+          -e PYTHONPATH=/workspace/deploy/thunderbird check
+          python3 -B -m unittest discover -s deploy/thunderbird/tests -p '*_tests.py'
 
   runtime-test:
     if: >-

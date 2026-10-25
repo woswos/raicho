@@ -80,7 +80,7 @@ again:
 docker compose down
 docker volume rm "${COMPOSE_PROJECT_NAME:-raicho}_raicho-data"
 docker compose up -d --wait
-bash runtime/credentials/connector.bash init
+bash deploy/credentials/connector.bash init
 ```
 
 This deletes Raicho's application state, including the connector credential.

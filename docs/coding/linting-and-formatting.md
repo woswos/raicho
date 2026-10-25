@@ -164,7 +164,7 @@ The production listener enables Axum 0.8.9's WebSocket support, uses futures-uti
 0.3.34 for socket writes, and getrandom 0.4.3 for session generations.
 Socket tests pin tokio-tungstenite 0.29.0, matching
 Axum's resolved implementation. The runtime proxy pins Nginx 1.30.6 Alpine by
-digest in `containers/gateway/Dockerfile`.
+digest in `deploy/gateway/Dockerfile`.
 
 GitHub checkout stays at v7.0.1, pinned to
 `3d3c42e5aac5ba805825da76410c181273ba90b1`. The `ubuntu-24.04` hosted runner

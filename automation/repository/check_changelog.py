@@ -37,16 +37,7 @@ def is_shipping(path):
         name == 'manifest.json' or name.endswith(('.ts', '.html', '.css'))
     ):
         return True
-    if path.startswith(
-        (
-            'containers/raicho/',
-            'containers/thunderbird/',
-            'containers/gateway/',
-            'runtime/thunderbird/',
-            'runtime/credentials/',
-            'runtime/gateway/',
-        )
-    ):
+    if path.startswith('deploy/'):
         return True
     return False
 

@@ -13,6 +13,6 @@ Notable changes to Raicho. The format follows
 - Run a fixed internal gateway that is the only network path between Raicho and
   Thunderbird.
 - Provision, rotate, revoke, and reactivate the connector credential offline
-  with `runtime/credentials/connector.bash`.
+  with `deploy/credentials/connector.bash`.
 - Show Thunderbird connection status and failure reasons on the diagnostics page
   and in `/api/status`.

@@ -40,7 +40,7 @@ class ExtensionPackagingTests(unittest.TestCase):
             self.assertNotIn('package.json', names)
             self.assertFalse(
                 any(
-                    name.startswith(('automation/', 'runtime/', 'protocol/generator/'))
+                    name.startswith(('automation/', 'deploy/', 'protocol/generator/'))
                     for name in names
                 )
             )

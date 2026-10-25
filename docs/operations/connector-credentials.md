@@ -12,7 +12,7 @@ Build the runtime images before provisioning:
 
 ```bash
 docker compose build
-bash runtime/credentials/connector.bash init
+bash deploy/credentials/connector.bash init
 ```
 
 The project is selected by `RAICHO_PROJECT`, then `COMPOSE_PROJECT_NAME`, then
@@ -24,11 +24,11 @@ directory and the named database volume paired. Set
 `RAICHO_PORT` when the selected deployment needs a different loopback port.
 
 ```bash
-bash runtime/credentials/connector.bash rotate
-bash runtime/credentials/connector.bash verify
-bash runtime/credentials/connector.bash status
-bash runtime/credentials/connector.bash revoke
-bash runtime/credentials/connector.bash reactivate
+bash deploy/credentials/connector.bash rotate
+bash deploy/credentials/connector.bash verify
+bash deploy/credentials/connector.bash status
+bash deploy/credentials/connector.bash revoke
+bash deploy/credentials/connector.bash reactivate
 ```
 
 Every command stops Raicho and Thunderbird. Successful `init`, `rotate`,
@@ -47,7 +47,7 @@ access, service health, and the live authenticated connection. The diagnostics
 page should report `Connected`. This confirms the control connection, not mail
 availability. A failed connection check retains recovery files.
 
-The operational wrapper lives in `runtime/credentials/`. Token-file management
+The operational wrapper lives in `deploy/credentials/`. Token-file management
 and the live connection check are the `raicho-server connector files` and
 `raicho-server connector wait` subcommands, so every credential service runs
 from the production server image. The disposable acceptance runner is

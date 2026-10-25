@@ -73,7 +73,7 @@ See [automation placement](project-structure.md#automation) for the module layou
 and invocation convention.
 
 `lint-repo` discovers `*_tests.py` under `automation/`, `extension/tests/`,
-`mailprobe/tests/`, `runtime/credentials/tests/`, and `protocol/generator/tests/`.
+`mailprobe/tests/`, `deploy/credentials/tests/`, and `protocol/generator/tests/`.
 These component-local suites cover repository policy including changelog guards,
 quality discovery, extension and mail probe packaging and fixture regressions,
 releases, the operational credential wrapper, and acceptance-driver support.
@@ -151,8 +151,8 @@ Run source builds and behavioral tests through the same tooling container:
 ```bash
 docker compose -f automation/tooling/compose.yaml run --rm check make build-app test-app test-protocol
 docker compose -f automation/tooling/compose.yaml run --rm \
-  -e PYTHONPATH=/workspace/runtime/thunderbird check \
-  python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
+  -e PYTHONPATH=/workspace/deploy/thunderbird check \
+  python3 -B -m unittest discover -s deploy/thunderbird/tests -p '*_tests.py'
 ```
 
 `build-app` combines `build-server`, `build-web`, and `build-extension`. `test-app`
@@ -215,7 +215,7 @@ safety, and the live connection check in `server/tests/`.
 The host runner owns a disposable Docker deployment and checks the actual
 provisioning, rotation, revocation, restart, file permissions, and mount boundary.
 The [credential runbook](../operations/connector-credentials.md) documents the
-operator commands under `runtime/credentials/` and recovery states. Successful
+operator commands under `deploy/credentials/` and recovery states. Successful
 provisioning requires a live authenticated heartbeat before removing the
 previous token file.
 
@@ -255,8 +255,8 @@ commit while editing continues in another checkout.
 docker compose -f automation/tooling/compose.yaml run --rm check \
   make build-extension test-extension typecheck
 docker compose -f automation/tooling/compose.yaml run --rm \
-  -e PYTHONPATH=/workspace/runtime/thunderbird check \
-  python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
+  -e PYTHONPATH=/workspace/deploy/thunderbird check \
+  python3 -B -m unittest discover -s deploy/thunderbird/tests -p '*_tests.py'
 ```
 
 The packager stores sorted, uncompressed archive entries with fixed timestamps

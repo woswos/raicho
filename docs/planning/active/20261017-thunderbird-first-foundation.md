@@ -90,8 +90,10 @@ Stage 1 introduces `server/` for the Rust application, persistence and migration
 Follow the current [placement guide](../../reference/project-structure.md#placement-rules)
 as later stages add code. Shared development commands and their support modules
 are grouped under `automation/`. Component-specific builders and tests remain
-with their sources, operational credential helpers under `runtime/credentials/`,
-and protocol generation under `protocol/generator/`.
+with their sources, each deployed service's recipe, runtime code, and operational
+helpers under `deploy/`, and protocol generation under `protocol/generator/`.
+On 2026-10-26 the [repository layout decision](../../decisions/20261026-repository-layout.md)
+replaced the stage 1 split between `containers/`, `runtime/`, and `compose/`.
 
 ### Approved stage 1 implementation
 

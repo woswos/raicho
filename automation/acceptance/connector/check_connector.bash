@@ -71,7 +71,7 @@ thunderbird_check() {
 docker compose -f automation/tooling/compose.yaml build
 "${COMPOSE[@]}" build raicho thunderbird gateway
 prepare_network
-bash runtime/credentials/connector.bash init
+bash deploy/credentials/connector.bash init
 connected
 SERVER="$("${COMPOSE[@]}" ps -q raicho)"
 THUNDERBIRD="$("${COMPOSE[@]}" ps -q thunderbird)"

@@ -11,21 +11,20 @@ and [build commands](build-test-generate.md) for source validation.
 
 ## Images and storage
 
-`containers/raicho/Dockerfile` builds browser assets and the Rust executable in
+`deploy/raicho/Dockerfile` builds browser assets and the Rust executable in
 separate stages. Its Debian runtime includes the executable, selected brand
 assets, compiled web files, and an explicit HTTP health probe. Its build-context
 allowlist excludes profile data, repository metadata, and unrelated artwork.
 
-`containers/thunderbird/Dockerfile` builds directly from Debian. It installs the
+`deploy/thunderbird/Dockerfile` builds directly from Debian. It installs the
 official Mozilla archive, Xvfb, Openbox, DBus, and optional noVNC/websockify support.
 Its supervisor starts Thunderbird without a viewer, terminates the other children
 if a required child exits, and forwards shutdown. The health check verifies
 processes and the internal display. A desktop HTTP response alone is insufficient.
-These modules live in `runtime/thunderbird/` as `thunderbird_runtime.py`,
-`thunderbird_supervisor.py`, `thunderbird_policy.py`, and `health_check.py`,
-separately from the image recipe.
-The operational credential wrapper lives separately in `runtime/credentials/`,
-with its tests under `tests/`. Its token-file and live-check services run the
+These modules live beside the image recipe in `deploy/thunderbird/` as
+`thunderbird_runtime.py`, `thunderbird_supervisor.py`, `thunderbird_policy.py`,
+and `health_check.py`. The operational credential wrapper lives in
+`deploy/credentials/`, with its tests under `tests/`. Its token-file and live-check services run the
 `raicho-server connector files` and `connector wait` subcommands from the server
 image. The
 [credential runbook](../operations/connector-credentials.md) documents their use.
@@ -35,8 +34,8 @@ downloaded application assets use checksums. Installed OS packages are recorded
 in `/opt/raicho/packages.tsv` inside the Raicho and Thunderbird images. Runtime
 support is Linux amd64.
 
-`containers/gateway/Dockerfile` pins Nginx 1.30.6 Alpine by digest.
-Its routing configuration lives in `runtime/gateway/nginx.conf`.
+`deploy/gateway/Dockerfile` pins Nginx 1.30.6 Alpine by digest.
+Its routing configuration lives in `deploy/gateway/nginx.conf`.
 The gateway runs as UID/GID 10001 with a read-only root, bounded temporary storage,
 no data or secret mounts, and no published port.
 

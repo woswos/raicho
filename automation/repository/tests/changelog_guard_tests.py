@@ -1,7 +1,7 @@
 from automation.repository.check_changelog import is_shipping
 from automation.testing.guard_fixtures import GuardTestCase
 
-GATEWAY_PATHS = ('runtime/gateway/nginx.conf', 'containers/gateway/Dockerfile')
+GATEWAY_PATHS = ('deploy/gateway/nginx.conf', 'deploy/gateway/Dockerfile')
 
 
 class ChangelogGuardTests(GuardTestCase):
@@ -9,31 +9,32 @@ class ChangelogGuardTests(GuardTestCase):
         self.assertTrue(is_shipping('server/src/http.rs'))
         self.assertTrue(is_shipping('server/queries/read_sqlite_version.sql'))
         self.assertTrue(is_shipping('web/public/index.html'))
-        self.assertTrue(is_shipping('runtime/thunderbird/thunderbird_supervisor.py'))
+        self.assertTrue(is_shipping('deploy/thunderbird/thunderbird_supervisor.py'))
         for path in GATEWAY_PATHS:
             with self.subTest(path=path):
                 self.assertTrue(is_shipping(path))
-        self.assertTrue(is_shipping('runtime/credentials/connector.bash'))
+        self.assertTrue(is_shipping('deploy/credentials/connector.bash'))
+        self.assertTrue(is_shipping('deploy/raicho/Dockerfile'))
         self.assertTrue(is_shipping('extension/manifest.json'))
         self.assertTrue(is_shipping('protocol/typescript/src/decode_frame.ts'))
         self.assertTrue(is_shipping('protocol/typescript/src/validator_generated.js'))
         self.assertFalse(is_shipping('protocol/typescript/tests/contract.test.mjs'))
         self.assertFalse(is_shipping('server/tests/http.rs'))
         self.assertFalse(
-            is_shipping('runtime/thunderbird/tests/thunderbird_supervisor_tests.py')
+            is_shipping('deploy/thunderbird/tests/thunderbird_supervisor_tests.py')
         )
-        self.assertFalse(is_shipping('runtime/thunderbird/tests/fixture.py'))
-        self.assertFalse(is_shipping('runtime/gateway/tests/nginx.conf'))
-        self.assertFalse(is_shipping('containers/gateway/tests/fixture.conf'))
-        self.assertFalse(is_shipping('runtime/credentials/tests/wrapper_tests.py'))
+        self.assertFalse(is_shipping('deploy/thunderbird/tests/fixture.py'))
+        self.assertFalse(is_shipping('deploy/gateway/tests/nginx.conf'))
+        self.assertFalse(is_shipping('deploy/gateway/tests/fixture.conf'))
+        self.assertFalse(is_shipping('deploy/credentials/tests/wrapper_tests.py'))
         self.assertFalse(is_shipping('mailprobe/src/dispatcher.ts'))
         self.assertFalse(is_shipping('mailprobe/manifest.json'))
         self.assertFalse(is_shipping('web/tests/status.test.mjs'))
         self.assertFalse(is_shipping('extension/tests/lifecycle.test.mjs'))
         self.assertFalse(is_shipping('automation/release/version.py'))
         self.assertFalse(is_shipping('docs/reference/versioning.md'))
-        self.assertFalse(is_shipping('containers/raicho/Dockerfile.dockerignore'))
-        self.assertFalse(is_shipping('containers/gateway/Dockerfile.dockerignore'))
+        self.assertFalse(is_shipping('deploy/raicho/Dockerfile.dockerignore'))
+        self.assertFalse(is_shipping('deploy/gateway/Dockerfile.dockerignore'))
 
     def test_shipping_change_requires_an_entry(self):
         repo, environment = self.shipping_change()

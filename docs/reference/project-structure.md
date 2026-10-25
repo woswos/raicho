@@ -10,8 +10,7 @@ compose*.yaml      Base deployment and its administration and credential overlay
 .agents/skills/    Canonical shared workflow skills
 .github/           Pull request templates and GitHub Actions workflows
 assets/brand/      Production identity masters, fonts, guides, and prototypes
-containers/        Docker recipes, build-context filters, and dependency locks
-runtime/           Production service helpers, configuration, and component-local tests
+deploy/            Per-service image recipes, runtime code, configuration, and tests
 server/            Rust diagnostics, SQLite queries, migrations, and tests
 web/               TypeScript diagnostics, public files, and behavioral tests
 extension/         Production connector, its packager, and its tests
@@ -31,11 +30,9 @@ Use these locations when adding files or moving existing code:
 
 | Material | Location |
 | --- | --- |
-| Docker recipes and image dependency metadata | `containers/<image>/` |
+| Deployed service recipe, filter, runtime code, configuration, and tests | `deploy/<service>/` |
 | Base Compose deployment and operator overlays | Repository root |
 | Test-only Compose overlays | Beside the acceptance driver that uses them |
-| Development tooling image and its Compose files | `automation/tooling/` |
-| Production runtime helpers and service configuration | `runtime/<component>/` |
 | Application sources | Their owning `server/`, `web/`, or `extension/` component |
 | Mail API compatibility probe, its fixtures, and its runner | `mailprobe/` |
 | Shared protocol schema, limits, fixtures, and implementations | `protocol/` |
@@ -43,15 +40,14 @@ Use these locations when adding files or moving existing code:
 | Component-specific build scripts and packaging | The owning component's root |
 | Shared development commands and their support modules | `automation/<responsibility>/` |
 
-Keep `containers/` focused on recipes and build metadata. Each image's
-`Dockerfile.dockerignore` lives beside its Dockerfile and selects inputs from
-their owning components. The [container input decision](../decisions/20261026-repository-layout.md#components)
-records this separation.
-
-Keep service configuration beside its runtime support, including the gateway's
-`runtime/gateway/nginx.conf`. The
-[runtime configuration decision](../decisions/20261026-repository-layout.md#components)
-records this consolidation.
+Each deployed service owns one directory under `deploy/`: `raicho/`, `gateway/`,
+`thunderbird/`, and the operational `credentials/` wrapper. The directory holds
+the image recipe, its `Dockerfile.dockerignore`, the service's runtime code and
+configuration such as `deploy/gateway/nginx.conf`, and their tests. Build filters
+list explicit files or source directories from the owning components. A bare
+parent such as `!extension/` would re-include that whole tree. The
+[repository layout decision](../decisions/20261026-repository-layout.md) records
+this organization.
 
 Shared protocol implementations belong together in `protocol/rust/` and
 `protocol/typescript/`, with their own sources and tests. Keep them independent
@@ -82,7 +78,8 @@ Do not add thin compatibility wrappers or restore a flat helper directory.
 | Responsibility | Package |
 | --- | --- |
 | Agent, naming, changelog, and pull request guards | `automation/repository/` |
-| Language linting, formatting, type checking, and tooling entrypoint | `automation/quality/` |
+| Language linting, formatting, and type checking | `automation/quality/` |
+| Development tooling image, entrypoint, and Compose files | `automation/tooling/` |
 | Cross-component application build/test dispatch | `automation/build/` |
 | Versioning, changelogs, and release preparation | `automation/release/` |
 | Cross-service disposable deployment checks | `automation/acceptance/` |
@@ -96,7 +93,7 @@ The shared repository-path helper lives at
 `automation/paths.py`.
 
 Operational credential provisioning, rotation, and live verification belong in
-`runtime/credentials/` as a host Bash wrapper around `raicho-server connector`
+`deploy/credentials/` as a host Bash wrapper around `raicho-server connector`
 subcommands.
 These commands manage a deployment and are separate from acceptance tests that
 create disposable deployments. Their procedure is in the
@@ -154,14 +151,14 @@ compile independently of the extension. See the
 [contract commands](build-test-generate.md#connector-contract).
 Generator regressions live in `protocol/generator/tests/`.
 
-`runtime/credentials/tests/` owns the provisioning wrapper tests. Token-file
+`deploy/credentials/tests/` owns the provisioning wrapper tests. Token-file
 recovery, file-safety, and live-check tests live with the Rust implementation in
 `server/tests/`. `make lint-repo` includes credential wrapper
 tests, extension and mail probe packaging and fixture regressions, protocol generator
 tests, and the automation package suites.
 
-`runtime/thunderbird/tests/` tests the four production Python modules in
-`runtime/thunderbird/`. Set the source import path using the documented
+`deploy/thunderbird/tests/` tests the four production Python modules in
+`deploy/thunderbird/`. Set the source import path using the documented
 [test command](build-test-generate.md#application-tooling).
 
 `mailprobe/` is a test artifact, separate from the production extension. Its

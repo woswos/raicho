@@ -25,7 +25,7 @@ lint-repo:
 	@python3 -B -m unittest discover -s automation -t . -p '*_tests.py'
 	@python3 -B -m unittest discover -s extension/tests -t . -p '*_tests.py'
 	@python3 -B -m unittest discover -s mailprobe/tests -t . -p '*_tests.py'
-	@python3 -B -m unittest discover -s runtime/credentials/tests -t . -p '*_tests.py'
+	@python3 -B -m unittest discover -s deploy/credentials/tests -t . -p '*_tests.py'
 	@python3 -B -m unittest discover -s protocol/generator/tests -t . -p '*_tests.py'
 
 lint-pr:
