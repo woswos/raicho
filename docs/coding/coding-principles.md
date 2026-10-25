@@ -1,7 +1,7 @@
 # Coding principles
 
 Engineering principles for Raicho. Concrete syntax and naming rules live in
-[coding standards](../coding/coding-standards.md).
+[coding standards](coding-standards.md).
 
 ## Simplicity
 

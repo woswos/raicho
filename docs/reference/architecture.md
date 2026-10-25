@@ -125,5 +125,5 @@ unattended acceptance commands described in the
 Current tooling commands and planned application commands are distinguished in
 [build, test, and generate](build-test-generate.md).
 
-See [project invariants](key-conventions.md) and the
+See [project invariants](../contributing/key-conventions.md) and the
 [architecture update rule](../contributing/workflow.md#design-changes-and-completion).

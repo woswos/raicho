@@ -77,16 +77,6 @@ The tooling image provides the language tools and Python test fixtures, so host
 language toolchains are not required. The `check` service does not start runtime
 services.
 
-Each deployed service's image recipe, runtime code, and configuration live in
-`deploy/`, the deployment in the root `compose.yaml`, and shared development
-automation in `automation/`, grouped by responsibility. Component-specific
-builders and tests live with their sources. Operational credential helpers live
-in `deploy/credentials/`. See the
-[placement guide](docs/reference/project-structure.md#placement-rules) for the layout.
-The shared connector protocol has Rust and TypeScript implementations under
-`protocol/`, with generation scripts in `protocol/generator/`.
-Repository guards enforce the [source and directory naming conventions](docs/coding/coding-standards.md).
-
 See [build, test, and generate](docs/reference/build-test-generate.md) for
 formatting, additional checks, and Git worktree setup.
 
@@ -116,10 +106,10 @@ Anyone can contribute. Start with the
 [delivery workflow](docs/contributing/workflow.md). Substantial changes begin
 with a design pull request before implementation.
 
-The [repository placement rules](docs/reference/project-structure.md#placement-rules)
-explain where image recipes, runtime code, configuration, tests, shared protocol
-implementations, and automation belong. Make remains the developer command
-interface, backed by Python modules and substantive Bash orchestration.
+The [project structure](docs/reference/project-structure.md) describes the
+repository layout and where new files belong. Repository guards enforce the
+[naming conventions](docs/coding/coding-standards.md). Make remains the developer
+command interface, backed by Python modules and substantive Bash orchestration.
 
 [AGENTS.md](AGENTS.md) is the entry point for AI-assisted work, and
 [decision records](docs/decisions/README.md) explain the project's choices.

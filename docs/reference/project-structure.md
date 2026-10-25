@@ -17,9 +17,9 @@ extension/         Production connector, its packager, and its tests
 mailprobe/         Mail API compatibility probe, fixtures, Compose files, and runner
 protocol/          Control schema, limits, fixtures, generators, and implementations
 automation/        Development commands and support packages grouped by responsibility
-docs/contributing/ Contribution workflow and working agreements
+docs/contributing/ Contribution workflow, working agreements, and project invariants
 docs/reference/    Current structure, tooling, CI, and architecture
-docs/coding/       Concrete coding and formatting conventions
+docs/coding/       Engineering principles and coding and formatting conventions
 docs/decisions/    Decision records and their template
 docs/planning/     Active and completed staged plans
 ```

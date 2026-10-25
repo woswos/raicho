@@ -7,7 +7,7 @@ from automation.paths import REPOSITORY_ROOT
 REQUIRED_IMPORTS = (
     'docs/contributing/working-agreement.md',
     'docs/contributing/workflow.md',
-    'docs/reference/key-conventions.md',
+    'docs/contributing/key-conventions.md',
     'docs/reference/architecture.md',
 )
 

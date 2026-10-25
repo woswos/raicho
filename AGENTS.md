@@ -14,14 +14,14 @@ The always-loaded workflow covers planning, implementation, and documentation up
 
 @docs/contributing/working-agreement.md
 @docs/contributing/workflow.md
-@docs/reference/key-conventions.md
+@docs/contributing/key-conventions.md
 @docs/reference/architecture.md
 
 ## Open when the task needs them
 
 - Git branches, commits, and pull requests: `docs/contributing/git-and-pull-requests.md`
 - Documentation placement: `docs/contributing/documentation-organisation.md`
-- Engineering principles: `docs/contributing/coding-principles.md`
+- Engineering principles: `docs/coding/coding-principles.md`
 - Repository layout, automation, and placement rules: `docs/reference/project-structure.md`
 - Commands: `docs/reference/build-test-generate.md`
 - Shared Rust/TypeScript protocol sources: `docs/reference/connector-contract.md`

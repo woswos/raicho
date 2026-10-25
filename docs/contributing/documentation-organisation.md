@@ -7,9 +7,9 @@ without loading them.
 
 ## Categories
 
-- `docs/contributing/`: contributor and agent working agreements.
+- `docs/contributing/`: contributor and agent working agreements and project invariants.
 - `docs/reference/`: evergreen project structure, tools, and architecture.
-- `docs/coding/`: concrete coding and formatting conventions.
+- `docs/coding/`: engineering principles and concrete coding and formatting conventions.
 - `docs/planning/active/`: in-flight staged plans.
 - `docs/planning/done/`: completed plans, moved with their final implementation.
 - `docs/decisions/`: durable [decision records](../decisions/README.md).

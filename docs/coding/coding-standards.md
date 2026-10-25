@@ -146,4 +146,4 @@ Select a UI framework only with the stage that requires it.
 Use concise sentences describing the failed operation and useful context.
 Follow existing error-format conventions within a subsystem. Never include
 account secrets or private message content. General error-handling principles
-live in [coding principles](../contributing/coding-principles.md#errors).
+live in [coding principles](coding-principles.md#errors).
