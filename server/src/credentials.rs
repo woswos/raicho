@@ -1,3 +1,4 @@
+mod live_check;
 mod token_directory;
 mod token_file;
 
@@ -8,6 +9,7 @@ use crate::error::{Error, Result};
 
 const TOKEN_HEX_LENGTH: usize = 64;
 
+pub use live_check::wait_for_connector;
 pub use token_directory::{TokenOperation, TokenState, operate_token_directory};
 pub use token_file::{Owner, SERVICE_OWNER};
 

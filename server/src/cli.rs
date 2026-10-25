@@ -3,9 +3,8 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use raicho_server::config::Config;
-use raicho_server::connector_wait::wait_for_connector;
 use raicho_server::credentials::{
-    Credential, SERVICE_OWNER, TokenOperation, operate_token_directory,
+    Credential, SERVICE_OWNER, TokenOperation, operate_token_directory, wait_for_connector,
 };
 use raicho_server::error::{Error, Result};
 use raicho_server::persistence::{CredentialStatus, CredentialStore, Database};
