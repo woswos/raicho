@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ApplicationStatus",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "database", "backend", "version", "commit"],
+  "properties": {
+    "status": {
+      "$ref": "#/definitions/Readiness"
+    },
+    "database": {
+      "$ref": "#/definitions/DatabaseStatus"
+    },
+    "backend": {
+      "$ref": "#/definitions/BackendStatus"
+    },
+    "version": {
+      "$ref": "#/definitions/Label"
+    },
+    "commit": {
+      "$ref": "#/definitions/Label"
+    }
+  },
+  "definitions": {
+    "Readiness": {
+      "type": "string",
+      "enum": ["ready", "unavailable"]
+    },
+    "Label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "pattern": "^[!-~]+$"
+    },
+    "DatabaseStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "engine", "version"],
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/Readiness"
+        },
+        "engine": {
+          "type": "string",
+          "enum": ["sqlite"]
+        },
+        "version": {
+          "$ref": "#/definitions/Label"
+        }
+      }
+    },
+    "BackendState": {
+      "type": "string",
+      "enum": [
+        "unconfigured",
+        "disconnected",
+        "connected",
+        "revoked",
+        "unavailable"
+      ]
+    },
+    "BackendError": {
+      "type": "string",
+      "enum": [
+        "authentication_failed",
+        "authentication_timeout",
+        "incompatible_version",
+        "invalid_message",
+        "message_too_large",
+        "unexpected_message",
+        "stale_generation",
+        "heartbeat_timeout",
+        "session_replaced",
+        "disconnected",
+        "storage_unavailable",
+        "server_busy"
+      ]
+    },
+    "Generation": {
+      "type": "string",
+      "minLength": 32,
+      "maxLength": 32,
+      "pattern": "^[a-f0-9]{32}$"
+    },
+    "Nothing": {
+      "type": "null"
+    },
+    "BackendStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "status",
+        "generation",
+        "last_error",
+        "heartbeat_count"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["thunderbird"]
+        },
+        "status": {
+          "$ref": "#/definitions/BackendState"
+        },
+        "generation": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/Generation"
+            },
+            {
+              "$ref": "#/definitions/Nothing"
+            }
+          ]
+        },
+        "last_error": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/BackendError"
+            },
+            {
+              "$ref": "#/definitions/Nothing"
+            }
+          ]
+        },
+        "heartbeat_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    }
+  }
+}

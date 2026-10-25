@@ -32,6 +32,12 @@ const schema = JSON.parse(
     'utf8',
   ),
 );
+const statusSchema = JSON.parse(
+  await readFile(
+    resolve(repositoryRoot, 'protocol/schema/status.schema.json'),
+    'utf8',
+  ),
+);
 const limits = JSON.parse(
   await readFile(resolve(repositoryRoot, 'protocol/limits.json'), 'utf8'),
 );
@@ -39,57 +45,69 @@ const diagnostics = JSON.parse(
   await readFile(resolve(repositoryRoot, 'protocol/diagnostics.json'), 'utf8'),
 );
 
-const validator = new Ajv({
-  strict: true,
-  allErrors: false,
-  ownProperties: true,
-  code: { source: true, esm: true },
-});
-const validate = validator.compile(schema);
-const generated = await build({
-  absWorkingDir: '/opt/quality',
-  stdin: {
-    contents: standaloneCode(validator, validate),
-    resolveDir: '/opt/quality',
-    sourcefile: 'validator_generated.js',
-  },
-  bundle: true,
-  write: false,
-  platform: 'browser',
-  format: 'esm',
-  target: 'es2022',
-  legalComments: 'none',
-});
-const validatorSource = generated.outputFiles[0]?.text;
-if (!validatorSource) {
-  throw new Error(
-    'The generated validator must be self-contained and CSP safe.',
-  );
-}
-const syntaxTree = typescript.createSourceFile(
-  'validator_generated.js',
-  validatorSource,
-  typescript.ScriptTarget.ES2022,
-  true,
-  typescript.ScriptKind.JS,
-);
-function checkStandalone(node) {
-  if (
-    typescript.isImportDeclaration(node) ||
-    (typescript.isExportDeclaration(node) && node.moduleSpecifier) ||
-    ((typescript.isCallExpression(node) || typescript.isNewExpression(node)) &&
-      (node.expression.kind === typescript.SyntaxKind.ImportKeyword ||
-        /^(?:require|eval|Function|globalThis\.(?:eval|Function))$/u.test(
-          node.expression.getText(syntaxTree),
-        )))
-  ) {
+async function standaloneValidator(source, filename) {
+  const validator = new Ajv({
+    strict: true,
+    allErrors: false,
+    ownProperties: true,
+    code: { source: true, esm: true },
+  });
+  const validate = validator.compile(source);
+  const generated = await build({
+    absWorkingDir: '/opt/quality',
+    stdin: {
+      contents: standaloneCode(validator, validate),
+      resolveDir: '/opt/quality',
+      sourcefile: filename,
+    },
+    bundle: true,
+    write: false,
+    platform: 'browser',
+    format: 'esm',
+    target: 'es2022',
+    legalComments: 'none',
+  });
+  const validatorSource = generated.outputFiles[0]?.text;
+  if (!validatorSource) {
     throw new Error(
       'The generated validator must be self-contained and CSP safe.',
     );
   }
-  typescript.forEachChild(node, checkStandalone);
+  const syntaxTree = typescript.createSourceFile(
+    filename,
+    validatorSource,
+    typescript.ScriptTarget.ES2022,
+    true,
+    typescript.ScriptKind.JS,
+  );
+  function checkStandalone(node) {
+    if (
+      typescript.isImportDeclaration(node) ||
+      (typescript.isExportDeclaration(node) && node.moduleSpecifier) ||
+      ((typescript.isCallExpression(node) ||
+        typescript.isNewExpression(node)) &&
+        (node.expression.kind === typescript.SyntaxKind.ImportKeyword ||
+          /^(?:require|eval|Function|globalThis\.(?:eval|Function))$/u.test(
+            node.expression.getText(syntaxTree),
+          )))
+    ) {
+      throw new Error(
+        'The generated validator must be self-contained and CSP safe.',
+      );
+    }
+    typescript.forEachChild(node, checkStandalone);
+  }
+  checkStandalone(syntaxTree);
+  return validatorSource;
 }
-checkStandalone(syntaxTree);
+const validatorSource = await standaloneValidator(
+  schema,
+  'validator_generated.js',
+);
+const statusValidatorSource = await standaloneValidator(
+  statusSchema,
+  'status_validator_generated.js',
+);
 
 const files = {
   'contract_generated.ts': await compile(schema, 'ConnectorMessage', {
@@ -114,10 +132,19 @@ const files = {
     'export default function validate(value: unknown): value is ConnectorMessage;\n',
 };
 const webFiles = {
-  'diagnostics_generated.ts':
-    '// Generated from protocol/diagnostics.json.\n' +
-    `export const BACKEND_STATES = ${JSON.stringify(diagnostics.backend_states)} as const;\n` +
-    `export const BACKEND_ERRORS = ${JSON.stringify(diagnostics.backend_errors)} as const;\n`,
+  'status_generated.ts': await compile(statusSchema, 'ApplicationStatus', {
+    bannerComment: '// Generated from protocol/schema/status.schema.json.',
+    unknownAny: true,
+    unreachableDefinitions: true,
+    style: { singleQuote: true },
+  }),
+  'status_validator_generated.js':
+    '// Generated from protocol/schema/status.schema.json.\n' +
+    statusValidatorSource,
+  'status_validator_generated.d.ts':
+    '// Generated from protocol/schema/status.schema.json.\n' +
+    "import type { ApplicationStatus } from './status_generated.js';\n" +
+    'export default function validate(value: unknown): value is ApplicationStatus;\n',
 };
 for (const [directory, outputs] of [
   [outputDirectory, files],

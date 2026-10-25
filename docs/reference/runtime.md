@@ -75,6 +75,14 @@ generation, accepted heartbeat count, and a fixed error code, never a token or
 raw socket error. The browser retains only the status and allowlisted error code
 and explains that mail is not yet available.
 
+[`protocol/schema/status.schema.json`](../../protocol/schema/status.schema.json)
+is the response contract, including the 503 body that reports `unavailable` when
+the application database does not respond. The server's HTTP tests validate real
+responses against it, the page validates every response with a generated
+validator, and the connector acceptance check reads its expected members from it.
+When the database is unavailable, the page still shows the connector state. See
+the [status contract decision](../decisions/20261026-protocol-contracts.md#status-api).
+
 `version` is the declared product version. `commit` is `RAICHO_COMMIT` when the
 image was built with that argument, and `unknown` otherwise. The diagnostics
 page shows the version alone when the commit is unknown. See

@@ -86,11 +86,29 @@ def validate_diagnostics(diagnostics, schema):
         raise ValueError('Every contract error must be a protocol error code.')
 
 
-def validate_sources(schema, limits, diagnostics):
-    if schema.get('$schema') != 'http://json-schema.org/draft-07/schema#':
+DRAFT_7 = 'http://json-schema.org/draft-07/schema#'
+
+
+def validate_document(schema):
+    if schema.get('$schema') != DRAFT_7:
         raise ValueError('The protocol uses JSON Schema draft 7.')
+    validate_schema(schema, schema.get('definitions', {}))
+
+
+def validate_status(status, diagnostics):
+    validate_document(status)
+    definitions = status.get('definitions', {})
+    for name, key in [
+        ('BackendState', 'backend_states'),
+        ('BackendError', 'backend_errors'),
+    ]:
+        if definitions.get(name, {}).get('enum') != diagnostics[key]:
+            raise ValueError(f'Status schema disagrees with diagnostics {key}.')
+
+
+def validate_sources(schema, limits, diagnostics):
+    validate_document(schema)
     definitions = schema.get('definitions', {})
-    validate_schema(schema, definitions)
     if set(limits) != LIMIT_NAMES or any(
         type(value) is not int or not 0 < value <= 2147483647
         for value in limits.values()

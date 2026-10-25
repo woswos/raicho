@@ -40,14 +40,19 @@ export function createStatusView() {
 
   function onStatus(status: ApplicationStatus) {
     const backend = describeBackend(status.backend);
+    const ready = status.status === 'ready';
+    const summary = ready
+      ? 'Raicho is ready'
+      : 'Raicho is running but cannot use its database';
     finish(
-      'ready',
-      'Raicho is ready',
-      `Raicho is ready. Thunderbird: ${backend.label}.`,
+      ready ? 'ready' : 'error',
+      summary,
+      `${summary}. Thunderbird: ${backend.label}.`,
     );
-    serverStatus.textContent = 'Ready';
-    serverStatus.dataset['state'] = 'ready';
-    databaseStatus.textContent = 'Ready';
+    serverStatus.textContent = ready ? 'Ready' : 'Not ready';
+    serverStatus.dataset['state'] = ready ? 'ready' : 'error';
+    databaseStatus.textContent =
+      status.database.status === 'ready' ? 'Ready' : 'Unavailable';
     databaseVersion.textContent = `SQLite ${status.database.version}`;
     applicationVersion.textContent =
       status.commit === 'unknown'

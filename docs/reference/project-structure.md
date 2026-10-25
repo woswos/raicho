@@ -15,7 +15,7 @@ server/            Rust diagnostics, SQLite queries, migrations, and tests
 web/               TypeScript diagnostics, public files, and behavioral tests
 extension/         Production connector, its packager, and its tests
 mailprobe/         Mail API compatibility probe, fixtures, Compose files, and runner
-protocol/          Control schema, limits, fixtures, generators, and implementations
+protocol/          Connector and status schemas, limits, fixtures, generators, implementations
 automation/        Development commands and support packages grouped by responsibility
 docs/contributing/ Contribution workflow, working agreements, and project invariants
 docs/reference/    Current structure, tooling, CI, and architecture
@@ -35,7 +35,7 @@ Use these locations when adding files or moving existing code:
 | Test-only Compose overlays | Beside the acceptance driver that uses them |
 | Application sources | Their owning `server/`, `web/`, or `extension/` component |
 | Mail API compatibility probe, its fixtures, and its runner | `mailprobe/` |
-| Shared protocol schema, limits, fixtures, and implementations | `protocol/` |
+| Shared connector and status schemas, limits, fixtures, and implementations | `protocol/` |
 | Protocol generation scripts and support modules | `protocol/generator/` |
 | Component-specific build scripts and packaging | The owning component's root |
 | Shared development commands and their support modules | `automation/<responsibility>/` |

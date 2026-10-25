@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 from protocol.generator.cli import ROOT, changed_outputs
-from protocol.generator.validation import validate_sources
+from protocol.generator.validation import validate_sources, validate_status
 
 
 class ProtocolGenerationTests(unittest.TestCase):
@@ -15,9 +15,25 @@ class ProtocolGenerationTests(unittest.TestCase):
         )
         self.limits = json.loads((ROOT / 'protocol/limits.json').read_text())
         self.diagnostics = json.loads((ROOT / 'protocol/diagnostics.json').read_text())
+        self.status = json.loads(
+            (ROOT / 'protocol/schema/status.schema.json').read_text()
+        )
 
     def test_canonical_sources_are_consistent(self):
         validate_sources(self.schema, self.limits, self.diagnostics)
+        validate_status(self.status, self.diagnostics)
+
+    def test_status_schema_cannot_drift_from_diagnostics(self):
+        for name in ['BackendState', 'BackendError']:
+            with self.subTest(definition=name):
+                status = copy.deepcopy(self.status)
+                status['definitions'][name]['enum'].append('private_detail')
+                with self.assertRaisesRegex(ValueError, 'disagrees'):
+                    validate_status(status, self.diagnostics)
+        status = copy.deepcopy(self.status)
+        status['definitions']['Label']['format'] = 'uri'
+        with self.assertRaisesRegex(ValueError, 'vocabulary'):
+            validate_status(status, self.diagnostics)
 
     def test_remote_file_and_missing_references_are_rejected(self):
         for reference in [

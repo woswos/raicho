@@ -9,6 +9,7 @@ class ChangelogGuardTests(GuardTestCase):
         self.assertTrue(is_shipping('server/src/http.rs'))
         self.assertTrue(is_shipping('server/queries/read_sqlite_version.sql'))
         self.assertTrue(is_shipping('web/public/index.html'))
+        self.assertTrue(is_shipping('web/src/status_validator_generated.js'))
         self.assertTrue(is_shipping('deploy/thunderbird/supervisor.py'))
         for path in GATEWAY_PATHS:
             with self.subTest(path=path):

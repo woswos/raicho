@@ -171,3 +171,36 @@ test('connected diagnostics do not claim mailbox availability', (context) => {
     'ready',
   );
 });
+
+test('a database outage keeps the connector state visible', (context) => {
+  const view = viewFixture(context);
+  const { document } = globalThis;
+  view.onStatus({
+    status: 'unavailable',
+    database: { status: 'unavailable', engine: 'sqlite', version: '3.51.3' },
+    backend: {
+      kind: 'thunderbird',
+      status: 'unavailable',
+      last_error: 'storage_unavailable',
+    },
+    version: '0.1.0',
+    commit: 'unknown',
+  });
+  assert.equal(document.getElementById('summary').dataset.state, 'error');
+  assert.equal(
+    document.getElementById('server-status').textContent,
+    'Not ready',
+  );
+  assert.equal(
+    document.getElementById('database-status').textContent,
+    'Unavailable',
+  );
+  assert.equal(
+    document.getElementById('backend-status').textContent,
+    'Unavailable',
+  );
+  assert.match(
+    document.getElementById('announcement').textContent,
+    /cannot use its database/,
+  );
+});

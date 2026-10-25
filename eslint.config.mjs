@@ -12,7 +12,7 @@ export default defineConfig(
       '**/target/**',
       '**/dist/**',
       'assets/brand/references/**',
-      'protocol/typescript/src/validator_generated.js',
+      '**/*validator_generated.js',
     ],
   },
   {

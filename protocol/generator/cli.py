@@ -7,7 +7,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from protocol.generator.validation import validate_sources
+from protocol.generator.validation import validate_sources, validate_status
 
 ROOT = Path(__file__).resolve().parents[2]
 OUTPUTS = {
@@ -25,7 +25,14 @@ OUTPUTS = {
             'limits_generated.ts',
         ],
     ),
-    'web': (Path('web/src'), ['diagnostics_generated.ts']),
+    'web': (
+        Path('web/src'),
+        [
+            'status_generated.ts',
+            'status_validator_generated.js',
+            'status_validator_generated.d.ts',
+        ],
+    ),
 }
 
 
@@ -59,16 +66,17 @@ def test_typescript():
 
 
 def generate(action):
-    validate_sources(
-        *(
-            json.loads((ROOT / 'protocol' / name).read_text())
-            for name in (
-                'schema/connector.schema.json',
-                'limits.json',
-                'diagnostics.json',
-            )
+    schema, status, limits, diagnostics = (
+        json.loads((ROOT / 'protocol' / name).read_text())
+        for name in (
+            'schema/connector.schema.json',
+            'schema/status.schema.json',
+            'limits.json',
+            'diagnostics.json',
         )
     )
+    validate_sources(schema, limits, diagnostics)
+    validate_status(status, diagnostics)
     with tempfile.TemporaryDirectory(prefix='raicho-protocol-') as temporary:
         staging = Path(temporary)
         commands = [

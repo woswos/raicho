@@ -27,7 +27,7 @@ def is_shipping(path):
         '.sql'
     ):
         return True
-    if path.startswith('web/src/') and name.endswith(('.ts', '.css')):
+    if path.startswith('web/src/') and name.endswith(('.ts', '.js', '.css')):
         return True
     if path.startswith('protocol/typescript/src/') and name.endswith(('.ts', '.js')):
         return True

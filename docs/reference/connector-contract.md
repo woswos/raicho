@@ -31,10 +31,14 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
   the WebSocket close codes the server sends.
 - [Diagnostics](../../protocol/diagnostics.json): the backend states and error
   codes that the status API reports, and the decoder error codes. They generate
-  Rust enums, including `ContractError`, the TypeScript `ContractErrorCode`, the
-  browser's validated lists in `web/src/diagnostics_generated.ts`, and the
-  acceptance check's allowed values. Every protocol error code must also be a
-  backend error, and every decoder error a protocol error code.
+  Rust enums, including `ContractError`, and the TypeScript `ContractErrorCode`.
+  Every protocol error code must also be a backend error, and every decoder error
+  a protocol error code.
+- [Status schema](../../protocol/schema/status.schema.json): the `/api/status`
+  response. Its state and error lists must equal the diagnostics. It generates
+  the browser's `web/src/status_generated.ts` types and bundled
+  `status_validator_generated.js`, and shared documents in
+  `protocol/fixtures/status/` run against the Rust and browser validators.
 - [Shared fixtures](../../protocol/fixtures/): the same accepted/rejected frames,
   phases, expected generations, and error codes run in both languages.
 - [Rust crate](../../protocol/rust/src/lib.rs): generated types and limits,

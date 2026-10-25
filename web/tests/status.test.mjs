@@ -13,7 +13,13 @@ function readyStatus() {
   return {
     status: 'ready',
     database: { status: 'ready', engine: 'sqlite', version: '3.51.3' },
-    backend: { status: 'unconfigured', kind: 'thunderbird', last_error: null },
+    backend: {
+      status: 'unconfigured',
+      kind: 'thunderbird',
+      generation: null,
+      last_error: null,
+      heartbeat_count: 0,
+    },
     version: '0.1.0',
     commit: 'unknown',
   };
@@ -22,18 +28,21 @@ function readyStatus() {
 test('accepts the server contract without claiming a connected backend', () => {
   const response = readyStatus();
   const parsed = parseStatus(response);
-  assert.deepEqual(parsed, response);
-  assert.notEqual(parsed, response);
+  assert.deepEqual(parsed, {
+    ...response,
+    backend: { status: 'unconfigured', kind: 'thunderbird', last_error: null },
+  });
   assert.notEqual(parsed.database, response.database);
 });
 
-test('ignores additional response data instead of retaining it', () => {
-  assert.deepEqual(
-    parseStatus({
-      ...readyStatus(),
-      extra: { content: 'not diagnostic data' },
-    }),
-    readyStatus(),
+test('rejects response data outside the status contract', () => {
+  assert.throws(
+    () =>
+      parseStatus({
+        ...readyStatus(),
+        extra: { content: 'not diagnostic data' },
+      }),
+    StatusResponseError,
   );
 });
 
@@ -56,7 +65,10 @@ test('rejects absent, malformed, and incompatible status fields', () => {
       database: { status: 'ready', engine: 'other', version: '3.51.3' },
     },
     { ...readyStatus(), backend: { status: 'connected', kind: 'thunderbird' } },
-    { ...readyStatus(), backend: { status: 'unconfigured', kind: 'other' } },
+    {
+      ...readyStatus(),
+      backend: { ...readyStatus().backend, kind: 'other' },
+    },
     { ...readyStatus(), backend: null },
     { ...readyStatus(), version: 1 },
     { ...readyStatus(), version: '' },

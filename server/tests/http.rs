@@ -115,3 +115,43 @@ async fn static_files_are_served_without_api_or_path_traversal_fallbacks() {
     }
     database.close().await;
 }
+
+#[tokio::test]
+async fn status_responses_follow_the_shared_contract() {
+    let schema: Value =
+        serde_json::from_str(include_str!("../../protocol/schema/status.schema.json")).unwrap();
+    let contract = jsonschema::options()
+        .with_draft(jsonschema::Draft::Draft7)
+        .build(&schema)
+        .unwrap();
+    let directory = tempdir().unwrap();
+    let database = Arc::new(Database::open(directory.path()).await.unwrap());
+    let application = router(
+        Arc::clone(&database),
+        directory.path(),
+        Connector::new(Arc::clone(&database)),
+    );
+    for (code, readiness) in [
+        (StatusCode::OK, "ready"),
+        (StatusCode::SERVICE_UNAVAILABLE, "unavailable"),
+    ] {
+        if readiness == "unavailable" {
+            database.close().await;
+        }
+        let response = application
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/api/status")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), code);
+        let body = to_bytes(response.into_body(), 4096).await.unwrap();
+        let status: Value = serde_json::from_slice(&body).unwrap();
+        assert!(contract.is_valid(&status), "{status}");
+        assert_eq!(status["status"], readiness);
+    }
+}

@@ -13,7 +13,13 @@ function response(backend) {
   return {
     status: 'ready',
     database: { status: 'ready', engine: 'sqlite', version: '3.51.3' },
-    backend: { kind: 'thunderbird', last_error: null, ...backend },
+    backend: {
+      kind: 'thunderbird',
+      generation: null,
+      last_error: null,
+      heartbeat_count: 0,
+      ...backend,
+    },
     version: '0.1.0',
     commit: 'unknown',
   };
@@ -38,7 +44,6 @@ test('retains fixed diagnostic codes but discards connection internals', () => {
       last_error: 'heartbeat_timeout',
       generation: 'a'.repeat(32),
       heartbeat_count: 7,
-      token: 'private value',
     }),
   );
   assert.deepEqual(parsed.backend, {
