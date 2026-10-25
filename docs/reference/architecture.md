@@ -41,9 +41,9 @@ server and production extension. It carries authentication and heartbeat only.
 The separate mail probe remains a test artifact.
 
 Offline credential commands acquire the database's exclusive instance lock.
-A separate Docker helper owns host secret generation and file rotation, with
+A separate Docker helper owns host token generation and file rotation, with
 one operation lock spanning database and file updates. Only the one-off
-provisioner and Thunderbird receive read-only raw credentials. Ordinary server
+provisioner and Thunderbird receive read-only raw tokens. Ordinary server
 startup never imports tokens. The operational wrapper, file helper, and live
 connection verifier live under `runtime/credentials/`, separate from disposable
 acceptance drivers under `automation/acceptance/credentials/`. See the
@@ -70,8 +70,8 @@ flowchart LR
     Browser[TypeScript diagnostics] --> Server[Rust HTTP server]
     Server --> State[(SQLite metadata)]
     Provisioner[Offline credential command] --> State
-    Secret[Private host secret] --> Provisioner
-    Secret --> Thunderbird
+    Token[Private host token] --> Provisioner
+    Token --> Thunderbird
     Admin[Optional local browser desktop] -.-> Display[Internal display]
     Display --> Thunderbird[Thunderbird]
     Thunderbird --> Profile[(Thunderbird profile)]

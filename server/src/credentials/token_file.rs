@@ -21,25 +21,25 @@ fn read_file(path: &Path, expected_owner: u32) -> Result<Credential> {
         .read(true)
         .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
         .open(path)
-        .map_err(|_| Error::message("Cannot open connector credential file"))?;
+        .map_err(|_| Error::message("Cannot open connector token file"))?;
     let metadata = file
         .metadata()
-        .map_err(|_| Error::message("Cannot inspect connector credential file"))?;
+        .map_err(|_| Error::message("Cannot inspect connector token file"))?;
     if !metadata.is_file() || metadata.uid() != expected_owner || metadata.mode() & 0o7777 != 0o600
     {
         return Err(Error::message(
-            "Connector credential file must be regular, owned by UID 10001, and mode 0600",
+            "Connector token file must be regular, owned by UID 10001, and mode 0600",
         ));
     }
     let mut contents = Vec::new();
     file.take(MAXIMUM_FILE_BYTES)
         .read_to_end(&mut contents)
-        .map_err(|_| Error::message("Cannot read connector credential file"))?;
+        .map_err(|_| Error::message("Cannot read connector token file"))?;
     if contents.last() == Some(&b'\n') {
         contents.pop();
     }
     let value = std::str::from_utf8(&contents)
-        .map_err(|_| Error::message("Connector credential must contain hexadecimal characters"))?;
+        .map_err(|_| Error::message("Connector token must contain hexadecimal characters"))?;
     Credential::parse(value)
 }
 

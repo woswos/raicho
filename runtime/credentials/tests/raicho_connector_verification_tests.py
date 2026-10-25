@@ -14,7 +14,7 @@ class ConnectorVerificationTests(unittest.TestCase):
         state.mkdir(mode=0o700)
         docker = DockerMock(
             directory / 'commands',
-            [Response(('credential_check',), status=check_status)],
+            [Response(('credential-check',), status=check_status)],
         )
         result = subprocess.run(
             ['bash', str(WRAPPER), 'verify'],
@@ -33,9 +33,9 @@ class ConnectorVerificationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='raicho-verification-') as temporary:
             result, commands = self.run_verification(Path(temporary), 1)
         self.assertNotEqual(result.returncode, 0)
-        self.assertTrue(any('credential_check' in command for command in commands))
+        self.assertTrue(any('credential-check' in command for command in commands))
         self.assertFalse(
-            any('credential_files finish' in command for command in commands)
+            any('credential-files finish' in command for command in commands)
         )
         self.assertNotIn('Services recreated.', result.stdout)
 
@@ -49,12 +49,12 @@ class ConnectorVerificationTests(unittest.TestCase):
         verify = next(
             index
             for index, command in enumerate(commands)
-            if 'credential_check' in command
+            if 'credential-check' in command
         )
         finish = next(
             index
             for index, command in enumerate(commands)
-            if 'credential_files finish' in command
+            if 'credential-files finish' in command
         )
         self.assertIn('raicho gateway thunderbird', commands[start])
         self.assertLess(start, verify)

@@ -107,7 +107,7 @@ and the fixed gateway between their networks.
 adds the isolated runtime fixture driver. `compose.tools.yaml` provides checks
 and formatting, with `compose.ci.yaml` adding the GitHub event mount.
 `compose.credentials.yaml` supplies offline provisioning and the Thunderbird
-secret mount, endpoint, and live verification through the
+token mount, endpoint, and live verification through the
 [credential commands](../operations/connector-credentials.md).
 `compose.connector_upgrade.yaml` mounts a version-bumped production XPI for the
 connector acceptance upgrade check. `compose.mailprobe_test.yaml` runs the separate fictional mail experiment,

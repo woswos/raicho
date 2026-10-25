@@ -51,7 +51,7 @@ async fn every_offline_operation_respects_the_running_instance_lock() {
 }
 
 #[test]
-fn missing_secret_and_unknown_arguments_fail_without_echoing_arguments() {
+fn missing_token_and_unknown_arguments_fail_without_echoing_arguments() {
     let directory = tempdir().unwrap();
     for arguments in [
         vec!["connector", "init", "--token-file", "/missing/secret"],

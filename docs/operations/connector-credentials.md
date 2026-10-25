@@ -42,7 +42,7 @@ The helper holds a deployment operation lock for the entire sequence. SQLite's
 instance lock independently rejects provisioning while another process owns it.
 
 `compose/compose.credentials.yaml` adds offline provisioning services and mounts
-the secret read-only into Thunderbird. It configures the fixed internal gateway
+the token read-only into Thunderbird. It configures the fixed internal gateway
 endpoint. Verification checks the SQLite digest, file permissions, UID 10001
 access, service health, and the live authenticated connection. The diagnostics
 page should report `Connected`. This confirms the control connection, not mail
@@ -53,20 +53,20 @@ modules live in `runtime/credentials/`. The disposable acceptance runner is
 under `automation/acceptance/credentials/`, as described in
 [project structure](../reference/project-structure.md#automation).
 
-## Secret ownership
+## Token ownership
 
 An isolated helper generates 32 random bytes, encoded as 64 lowercase hexadecimal
-characters. It never prints the token. The secret directory is owned by UID/GID
+characters. It never prints the token. The token directory is owned by UID/GID
 10001 with mode 0700, and token files use mode 0600. Existing insecure files are
 rejected. The one-off file helper runs as root with only the filesystem
 capabilities needed to prepare those permissions on its narrow bind mount.
 The database provisioner and both core services run as UID/GID 10001.
 
 The host files live in the ignored state directory. SQLite stores a SHA-256
-digest and backend/revocation metadata only. Ordinary Raicho mounts no secret
+digest and backend/revocation metadata only. Ordinary Raicho mounts no token
 file and never imports or re-enrolls credentials at startup. Credentials do not
 enter environment variables, command arguments, images, XPIs, or logs. Protect
-the host secret and database backups as sensitive configuration.
+the host token and database backups as sensitive configuration.
 
 ## Rotation and interrupted operations
 
@@ -102,18 +102,18 @@ The wrapper never submits this staging filename to SQLite. The next command
 deletes it when it is a regular file without links, then continues. A link or
 other file type under that name fails closed for manual investigation.
 
-Revocation needs no secret file and persists across startup. Replaying enrollment
+Revocation needs no token file and persists across startup. Replaying enrollment
 or an interrupted rotation cannot reactivate a revoked record. Automatic
 re-enrollment is deliberately unavailable. To deliberately enroll a replacement
 after revocation, run `reactivate`. It requires a different credential, and can
-recover even when the previous secret file is missing. After the database commit,
+recover even when the previous token file is missing. After the database commit,
 repeating an interrupted `reactivate` resumes the same replacement. It does not
 authorize reusing the revoked token or changing an already active, different
 credential.
 
-When the database is revoked, reactivation first renames the entire old secret
+When the database is revoked, reactivation first renames the entire old token
 directory to `revoked.<random>` alongside it in the private deployment state
-directory, synchronizes that rename, then generates a fresh credential.
+directory, synchronizes that rename, then generates a fresh token.
 This also recovers revocation during an interrupted rotation. If the database
 already accepted the replacement, retry uses the existing candidate. The archived
 configuration remains for operator inspection and later explicit cleanup. Do not
@@ -127,5 +127,5 @@ bash automation/acceptance/credentials/raicho_check_credentials.bash
 
 The runner owns a uniquely named disposable Compose project and temporary host
 state. It exercises enrollment, rotation interruptions, mismatch and permission
-failures, lock contention, restart, revocation, and secret isolation. It does not
+failures, lock contention, restart, revocation, and token isolation. It does not
 use an existing deployment, personal profile, or provider credentials.

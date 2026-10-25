@@ -1,49 +1,20 @@
 import argparse
 import os
-import re
 import secrets
-import stat
 import sys
 from pathlib import Path
 
-FILENAMES = {'connector.token', 'connector.pending', 'connector.previous'}
-STAGING = '.connector.preparing'
+from runtime.credentials.raicho_connector_file_checks import (
+    FILENAMES,
+    SERVICE_UID,
+    STAGING,
+    discard_staging,
+    validate_metadata,
+    validate_token,
+)
+
+TOKEN_BYTES = 32
 OPERATIONS = ('init', 'rotate', 'reactivate', 'publish', 'finish', 'check')
-
-
-def validate_metadata(metadata, owner_uid, owner_gid, mode):
-    if (
-        metadata.st_uid != owner_uid
-        or metadata.st_gid != owner_gid
-        or stat.S_IMODE(metadata.st_mode) != mode
-    ):
-        raise ValueError(
-            'Connector files require the configured owner and private modes'
-        )
-
-
-def validate_token(directory, filename, owner_uid, owner_gid):
-    descriptor = os.open(
-        filename, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory
-    )
-    with os.fdopen(descriptor, 'rb') as source:
-        metadata = os.fstat(source.fileno())
-        if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
-            raise ValueError('Connector secrets must be regular files without links')
-        validate_metadata(metadata, owner_uid, owner_gid, 0o600)
-        if not re.fullmatch(rb'[0-9a-f]{64}\n?', source.read(66)):
-            raise ValueError('Connector secret has an invalid format')
-
-
-def discard_staging(directory, filenames):
-    if STAGING not in filenames:
-        return filenames
-    metadata = os.stat(STAGING, dir_fd=directory, follow_symlinks=False)
-    if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
-        raise ValueError('Connector staging must be a regular file without links')
-    os.unlink(STAGING, dir_fd=directory)
-    os.fsync(directory)
-    return filenames - {STAGING}
 
 
 def prepare(directory, owner_uid, owner_gid):
@@ -57,7 +28,7 @@ def prepare(directory, owner_uid, owner_gid):
         with os.fdopen(descriptor, 'wb') as output:
             os.fchmod(output.fileno(), 0o600)
             os.fchown(output.fileno(), owner_uid, owner_gid)
-            output.write((secrets.token_hex(32) + '\n').encode('ascii'))
+            output.write((secrets.token_hex(TOKEN_BYTES) + '\n').encode('ascii'))
             output.flush()
             os.fsync(output.fileno())
         replace(directory, STAGING, 'connector.pending')
@@ -92,7 +63,7 @@ def prepare_operation(operation, directory, present, owner_uid, owner_gid):
             return 'pending'
         raise ValueError('Connector rotation files are inconsistent')
     elif not current and operation == 'rotate':
-        raise ValueError('Connector rotation requires the existing secret')
+        raise ValueError('Connector rotation requires the existing token')
     if pending:
         return 'pending'
     return prepare(directory, owner_uid, owner_gid)
@@ -102,20 +73,20 @@ def update_operation(operation, directory, present):
     current, pending, previous = present
     if operation == 'publish':
         if not pending or previous:
-            raise ValueError('Publishing requires a pending secret without a backup')
+            raise ValueError('Publishing requires a pending token without a backup')
         if current:
             replace(directory, 'connector.token', 'connector.previous')
         replace(directory, 'connector.pending', 'connector.token')
     else:
         if not current or pending or (operation == 'check' and previous):
-            raise ValueError('Connector secret files need recovery before use')
+            raise ValueError('Connector token files need recovery before use')
         if previous:
             os.unlink('connector.previous', dir_fd=directory)
             os.fsync(directory)
     return 'current'
 
 
-def operate(operation, path, owner_uid=10001, owner_gid=10001):
+def operate(operation, path, owner_uid=SERVICE_UID, owner_gid=SERVICE_UID):
     if operation not in OPERATIONS:
         raise ValueError('Unknown connector file operation')
     directory = os.open(path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
@@ -149,9 +120,7 @@ def operate(operation, path, owner_uid=10001, owner_gid=10001):
 
 
 def main(arguments=None):
-    parser = argparse.ArgumentParser(
-        description='Manage private connector secret files'
-    )
+    parser = argparse.ArgumentParser(description='Manage private connector token files')
     parser.add_argument('operation', choices=OPERATIONS)
     parser.add_argument('directory', type=Path)
     options = parser.parse_args(arguments)
@@ -162,7 +131,7 @@ def main(arguments=None):
         return 1
     except OSError:
         print(
-            'FAIL: Cannot securely access or update connector secret files',
+            'FAIL: Cannot securely access or update connector token files',
             file=sys.stderr,
         )
         return 1

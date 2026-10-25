@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Serialize offline database and secret-file changes so interrupted rotations are resumable.
+# Serialize offline database and token-file changes so interrupted rotations are resumable.
 set -euo pipefail
 
 SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -52,7 +52,7 @@ if [[ ${RAICHO_COMPOSE_TEST:-0} == 1 ]]; then
 fi
 
 files() {
-    "${COMPOSE[@]}" run --rm --no-deps -T credential_files "${1}" /credentials
+    "${COMPOSE[@]}" run --rm --no-deps -T credential-files "${1}" /credentials
 }
 
 database() {
@@ -110,6 +110,6 @@ esac
 database verify --token-file /credentials/connector.token
 "${COMPOSE[@]}" up -d --no-deps --force-recreate --wait --wait-timeout 120 raicho gateway thunderbird
 "${COMPOSE[@]}" exec -T thunderbird test -r /run/secrets/raicho_connector_token
-"${COMPOSE[@]}" run --rm --no-deps -T credential_check
+"${COMPOSE[@]}" run --rm --no-deps -T credential-check
 files finish >/dev/null
 echo 'Credential digest, Thunderbird connection, and heartbeat verified. Services recreated.'

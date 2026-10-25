@@ -31,7 +31,7 @@ database() {
 }
 
 files() {
-    "${COMPOSE[@]}" run --rm --no-deps -T credential_files "${1}" /credentials
+    "${COMPOSE[@]}" run --rm --no-deps -T credential-files "${1}" /credentials
 }
 
 prepare_rotation() {

@@ -19,7 +19,7 @@ impl Credential {
                 .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
         {
             return Err(Error::message(
-                "Connector credential must contain 64 lowercase hexadecimal characters",
+                "Connector token must contain 64 lowercase hexadecimal characters",
             ));
         }
         Ok(Self {
