@@ -19,10 +19,8 @@ services:
       - /tmp:mode=1777
     command:
       [
-        python3,
-        -B,
-        -m,
-        extension.raicho_build_extension,
+        node,
+        /workspace/extension/raicho_build_extension.mjs,
         --version,
         65535.0.0,
         --output-directory,

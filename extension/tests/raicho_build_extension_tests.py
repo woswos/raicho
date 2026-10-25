@@ -126,5 +126,5 @@ class ExtensionPackagingTests(unittest.TestCase):
                 '--output-directory',
                 str(self.directory / 'artifacts'),
             ),
-            'not allowed with argument',
+            'exactly one extension output mode',
         )

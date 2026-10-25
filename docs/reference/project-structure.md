@@ -64,7 +64,7 @@ conventions within these locations.
 ## Automation
 
 Keep component-specific builders with their sources: `web/raicho_build_web.mjs`
-and `extension/raicho_build_extension.py`. Their packaging and artifact-boundary
+and `extension/raicho_build_extension.mjs`. Their packaging and artifact-boundary
 tests belong in `extension/tests/`. The
 [component ownership decision](../decisions/20261026-repository-layout.md#tests)
 records this placement.

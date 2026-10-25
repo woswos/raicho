@@ -1,19 +1,12 @@
 FROM node:24.22.0-bookworm-slim@sha256:a5f4366e834695d5f363b920c104953a535d3a9864d1bdf74566a0ebe01daee5 AS extension
 
-RUN rm /etc/apt/sources.list.d/debian.sources && \
-    printf '%s\n' \
-      'deb [check-valid-until=no] http://snapshot.debian.org/archive/debian/20261018T000000Z/ bookworm main' \
-      'deb [check-valid-until=no] http://snapshot.debian.org/archive/debian-security/20261018T000000Z/ bookworm-security main' \
-      > /etc/apt/sources.list && \
-    apt-get update && apt-get install -y --no-install-recommends python3 && \
-    rm -rf /var/lib/apt/lists/*
 WORKDIR /build
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts --no-audit --no-fund
 ENV PATH="/build/node_modules/.bin:${PATH}"
 COPY extension/ extension/
 COPY protocol/typescript/ protocol/typescript/
-RUN python3 -B -m extension.raicho_build_extension --output-directory /artifact
+RUN node extension/raicho_build_extension.mjs --output-directory /artifact
 
 FROM debian:bookworm-slim@sha256:7c7b2c966bc9ee8cedfeef67e0e279108992c77681fa595db4a9d65c06ccc587 AS download
 

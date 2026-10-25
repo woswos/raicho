@@ -16,10 +16,8 @@ def extension(source_root, testing=False):
         output = Path(directory)
         run(
             [
-                'python3',
-                '-B',
-                '-m',
-                'extension.raicho_build_extension',
+                'node',
+                str(REPOSITORY_ROOT / 'extension/raicho_build_extension.mjs'),
                 '--source-root',
                 str(source_root),
                 '--output',

@@ -151,7 +151,7 @@ Rust uses `--workspace --all-targets --locked` and
 temporary Cargo output. The browser build uses `tsc`, copies public files and
 the selected identity assets, then runs Node's built-in tests against compiled
 modules. The web builder is `web/raicho_build_web.mjs`, and extension packaging
-uses `extension/raicho_build_extension.py`. The shared dispatcher remains in
+uses `extension/raicho_build_extension.mjs`. Both run on Node alone. The shared dispatcher remains in
 `automation/build/raicho_application.py`. All temporary build output stays
 outside the source mount.
 
@@ -242,11 +242,11 @@ docker compose -f compose/compose.tools.yaml run --rm \
   python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
 ```
 
-The packager stores sorted archive entries with fixed timestamps and modes.
-Its reproducibility and version tests run under `lint-repo`. `build-extension`
-uses disposable output. To export an XPI, mount an empty output directory into
-the tooling container and run `python3 -B -m extension.raicho_build_extension
---output /output/raicho.xpi`. The `--version` option overrides the manifest
+The packager stores sorted, uncompressed archive entries with fixed timestamps
+and modes. Its reproducibility and version tests run under `lint-repo`.
+`build-extension` uses disposable output. To export an XPI, mount an empty
+output directory into the tooling container and run
+`node extension/raicho_build_extension.mjs --output /output/raicho.xpi`. The `--version` option overrides the manifest
 version, as the connector upgrade check does. No test modules or credentials
 enter the archive.
 
