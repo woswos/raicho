@@ -77,7 +77,7 @@ services:
   thunderbird:
     <<: *runtime
     image: ${RAICHO_MAIL_TEST_IMAGE:?Set the disposable Thunderbird image}
-    entrypoint: [/usr/bin/tini, --, python3, -B, /mail_profile/start.py]
+    entrypoint: [/usr/bin/tini, --, python3, -B, /mail_profile/profile_start.py]
     depends_on:
       probe: { condition: service_healthy }
       mail-proxy: { condition: service_healthy }
@@ -104,7 +104,7 @@ services:
     <<: *fixture
     profiles: [test]
     entrypoint:
-      [python3, -B, /opt/raicho/extension/mailprobe/tests/probe/driver.py]
+      [python3, -B, /opt/raicho/extension/mailprobe/tests/probe/probe_driver.py]
     healthcheck: { disable: true }
 
   extension:

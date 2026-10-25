@@ -1,4 +1,4 @@
-import { parseCommand, objectValue } from './validation.js';
+import { COMMAND_IDENTIFIER, parseCommand, objectValue } from './validation.js';
 import type { Command } from './validation.js';
 
 export class CommandSession {
@@ -14,7 +14,7 @@ export class CommandSession {
       const candidate = objectValue(value);
       if (
         typeof candidate.id === 'string' &&
-        /^[a-zA-Z0-9_-]{1,100}$/.test(candidate.id)
+        COMMAND_IDENTIFIER.test(candidate.id)
       ) {
         identifier = candidate.id;
       }

@@ -4,9 +4,20 @@ import process from 'node:process';
 import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
 
-const { parseCommand, parseConfiguration, messageDetails } = await import(
+const { parseCommand } = await import(
   pathToFileURL(
-    resolve(process.env.RAICHO_MAIL_PROBE_BUILD_DIR, 'validation.js'),
+    resolve(
+      process.env.RAICHO_EXTENSION_BUILD_DIR,
+      'mailprobe/src/validation.js',
+    ),
+  ).href
+);
+const { messageDetails } = await import(
+  pathToFileURL(
+    resolve(
+      process.env.RAICHO_EXTENSION_BUILD_DIR,
+      'mailprobe/src/message_details.js',
+    ),
   ).href
 );
 
@@ -20,26 +31,6 @@ test('accepts a finite command with a caller-owned identity', () => {
   assert.throws(() => parseCommand({ id: '', action: 'inventory' }));
   assert.throws(() =>
     parseCommand({ id: 'first', action: 'inventory', arguments: [] }),
-  );
-});
-
-test('configuration accepts only fixture websocket endpoints and a token', () => {
-  const token = 'a'.repeat(64);
-  assert.deepEqual(
-    parseConfiguration({ endpoint: 'ws://probe:8765/mail', token }),
-    { endpoint: 'ws://probe:8765/mail', token },
-  );
-  assert.throws(() =>
-    parseConfiguration({ endpoint: 'ws://user:secret@probe/mail', token }),
-  );
-  assert.throws(() =>
-    parseConfiguration({ endpoint: 'ws://probe/mail?secret=value', token }),
-  );
-  assert.throws(() =>
-    parseConfiguration({ endpoint: 'https://probe/mail', token }),
-  );
-  assert.throws(() =>
-    parseConfiguration({ endpoint: 'ws://probe/mail', token: 'short' }),
   );
 });
 

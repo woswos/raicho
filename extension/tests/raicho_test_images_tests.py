@@ -15,7 +15,12 @@ def services(filename):
 class TestImageTests(unittest.TestCase):
     def test_mock_services_share_the_tooling_image_and_remain_isolated(self):
         configurations = {
-            'compose.mail_test.yaml': ('probe', 'mail-proxy', 'driver', 'extension'),
+            'compose.mailprobe_test.yaml': (
+                'probe',
+                'mail-proxy',
+                'driver',
+                'extension',
+            ),
         }
         for filename, names in configurations.items():
             configured = services(filename)
@@ -37,7 +42,7 @@ class TestImageTests(unittest.TestCase):
                         self.assertNotIn('../extension/', str(service['volumes']))
 
     def test_mail_fixture_mounts_only_the_disposable_test_artifact(self):
-        configured = services('compose.mail_test.yaml')
+        configured = services('compose.mailprobe_test.yaml')
         thunderbird = configured['thunderbird']
         self.assertNotEqual(thunderbird['image'], TOOLING_IMAGE)
         extension = next(
@@ -56,7 +61,7 @@ class TestImageTests(unittest.TestCase):
         )
         self.assertEqual(
             thunderbird['entrypoint'],
-            ['/usr/bin/tini', '--', 'python3', '-B', '/mail_profile/start.py'],
+            ['/usr/bin/tini', '--', 'python3', '-B', '/mail_profile/profile_start.py'],
         )
         self.assertEqual(
             thunderbird['environment']['LD_LIBRARY_PATH'], '/opt/thunderbird'

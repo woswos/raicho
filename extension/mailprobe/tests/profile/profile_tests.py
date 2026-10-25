@@ -4,8 +4,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from profile_settings import preferences
 from seed_profile import MARKER, seed_profile
-from settings import preferences
 
 
 class ProfileTests(unittest.TestCase):

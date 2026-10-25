@@ -46,7 +46,7 @@ and documentation changes. The previously approved Docker validation applies.
   ```bash
   docker compose -f compose/compose.tools.yaml build
   LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)" docker compose -f compose/compose.tools.yaml run --rm format make format
-  docker compose -f compose/compose.tools.yaml run --rm check make lint format-check typecheck build-app test-app test-protocol test-mail-probe test-tooling
+  docker compose -f compose/compose.tools.yaml run --rm check make lint format-check typecheck build-app test-app test-protocol test-mailprobe test-tooling
   docker compose -f compose/compose.tools.yaml run --rm -e PYTHONPATH=/workspace/runtime/thunderbird check python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
   ```
 

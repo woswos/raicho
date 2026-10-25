@@ -3,15 +3,15 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, call, patch
 
-from start import main
+from profile_start import main
 
 
 class StartTests(unittest.TestCase):
     def test_seeds_before_replacing_the_process_with_runtime(self):
         calls = Mock()
         with (
-            patch('start.seed_profile', calls.seed),
-            patch('start.os.execv', calls.execute),
+            patch('profile_start.seed_profile', calls.seed),
+            patch('profile_start.os.execv', calls.execute),
         ):
             main()
         self.assertEqual(
@@ -27,8 +27,11 @@ class StartTests(unittest.TestCase):
 
     def test_profile_failure_prevents_runtime_startup(self):
         with (
-            patch('start.seed_profile', side_effect=ValueError('Unexpected profile.')),
-            patch('start.os.execv') as execute,
+            patch(
+                'profile_start.seed_profile',
+                side_effect=ValueError('Unexpected profile.'),
+            ),
+            patch('profile_start.os.execv') as execute,
         ):
             with self.assertRaisesRegex(ValueError, 'Unexpected profile'):
                 main()

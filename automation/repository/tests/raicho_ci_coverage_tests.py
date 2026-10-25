@@ -36,7 +36,7 @@ class WorkflowCoverageTests(unittest.TestCase):
         script = '\n'.join(
             step.get('run', '') for step in self.jobs['application-test']['steps']
         )
-        self.assertIn('make build-app test-app test-mail-probe test-protocol', script)
+        self.assertIn('make build-app test-app test-mailprobe test-protocol', script)
         self.assertIn('PYTHONPATH=/workspace/runtime/thunderbird', script)
         self.assertIn('unittest discover -s runtime/thunderbird/tests', script)
 
@@ -51,8 +51,8 @@ class WorkflowCoverageTests(unittest.TestCase):
             step.get('run', '') for step in self.jobs['application-build']['steps']
         )
         for configuration in (
-            '-f compose/compose.mail_test.yaml',
-            '-f compose/compose.mail_test.yaml -f compose/compose.mail_admin.yaml',
+            '-f compose/compose.mailprobe_test.yaml',
+            '-f compose/compose.mailprobe_test.yaml -f compose/compose.mailprobe_admin.yaml',
         ):
             self.assertIn(f'{configuration} --profile test config --quiet', script)
 

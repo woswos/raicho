@@ -17,9 +17,9 @@ fi
 PROJECT="raicho-mail-$(date -u +%Y%m%d%H%M%S)-${RANDOM}"
 export RAICHO_TEST_TOOLING_IMAGE="${PROJECT}:tools"
 export RAICHO_MAIL_TEST_IMAGE="${PROJECT}:thunderbird"
-COMPOSE=(docker compose -p "${PROJECT}" -f compose/compose.mail_test.yaml)
+COMPOSE=(docker compose -p "${PROJECT}" -f compose/compose.mailprobe_test.yaml)
 if [[ ${NATIVE} == true ]]; then
-    COMPOSE+=(-f compose/compose.mail_admin.yaml)
+    COMPOSE+=(-f compose/compose.mailprobe_admin.yaml)
 fi
 
 cleanup() {
@@ -115,4 +115,5 @@ else
 fi
 
 "${COMPOSE[@]}" run --rm driver evidence
+"${COMPOSE[@]}" exec -T mail-proxy python3 -B -m unittest mail_fixture_integration
 echo 'Mail compatibility evidence collected. Removing the disposable deployment.'

@@ -7,6 +7,15 @@ from fault_state import write_json
 from mail_inspect import inspect_messages
 
 
+def wait_until(attempt, timeout, failure):
+    deadline = time.monotonic() + timeout
+    while (result := attempt()) is None:
+        if time.monotonic() > deadline:
+            raise AssertionError(failure)
+        time.sleep(1)
+    return result
+
+
 class ProbeClient:
     def __init__(self, directory=Path('/config')):
         self.directory = directory
@@ -25,13 +34,11 @@ class ProbeClient:
             return json.load(response)
 
     def wait_connected(self):
-        deadline = time.monotonic() + 90
-        while time.monotonic() < deadline:
+        def metadata():
             status = self.request('status')
-            if status['connected']:
-                return status['metadata']
-            time.sleep(1)
-        raise AssertionError('Mail probe did not connect.')
+            return status['metadata'] if status['connected'] else None
+
+        return wait_until(metadata, 90, 'Mail probe did not connect.')
 
     def command(self, action, arguments=None, timeout=120, drop_result=False):
         return self.request(
@@ -63,13 +70,11 @@ class ProbeClient:
         ]
 
     def wait_messages(self, subject, count, folder='INBOX', username='recipient'):
-        deadline = time.monotonic() + 30
-        while time.monotonic() < deadline:
-            messages = self.messages(subject, folder, username)
-            if len(messages) == count:
-                return messages
-            time.sleep(1)
-        raise AssertionError(f'{subject}: expected {count}, found {len(messages)}')
+        def messages():
+            found = self.messages(subject, folder, username)
+            return found if len(found) == count else None
+
+        return wait_until(messages, 30, f'{subject}: expected {count} in {folder}')
 
     def record(self, name, data):
         path = self.directory / 'evidence.json'

@@ -43,7 +43,7 @@ disposable acceptance checks. Commits and publication remain separate actions.
   regression suites, formatting, naming, generated protocol output, and builds.
   Quality gates: rebuild the tooling image, run the Docker format service, then
   `make lint format-check typecheck build-app test-app test-protocol
-  test-mail-probe test-tooling` through the Docker check service. Verify local
+  test-mailprobe test-tooling` through the Docker check service. Verify local
   documentation links and paths, rename completeness, and `git diff --check`.
   Review checkpoint: report the source validation before acceptance testing.
   Debrief: all 83 files moved, callers and documentation updated, and the Docker

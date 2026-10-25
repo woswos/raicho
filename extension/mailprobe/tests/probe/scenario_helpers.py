@@ -1,4 +1,4 @@
-import time
+from probe_client import wait_until
 
 
 def query(client, subject):
@@ -14,24 +14,25 @@ def message_parts(part):
 
 
 def wait_query(client, subject, count, body=None):
-    deadline = time.monotonic() + 30
-    while time.monotonic() < deadline:
+    def matching():
         messages = query(client, subject)
-        if len(messages) == count:
-            if body is None:
-                return messages
-            response = client.command(
-                'get_message', {'message_id': messages[0]['id']}, timeout=10
-            )
-            assert response['ok'], response
-            if any(
-                body in part.get('body', '')
-                for part in message_parts(response['result']['full'])
-            ):
-                return messages
-        time.sleep(1)
-    raise AssertionError(
-        f'Expected fixture messages did not become queryable: {subject}'
+        if len(messages) != count:
+            return None
+        if body is None:
+            return messages
+        response = client.command(
+            'get_message', {'message_id': messages[0]['id']}, timeout=10
+        )
+        assert response['ok'], response
+        if any(
+            body in part.get('body', '')
+            for part in message_parts(response['result']['full'])
+        ):
+            return messages
+        return None
+
+    return wait_until(
+        matching, 30, f'Expected fixture messages did not become queryable: {subject}'
     )
 
 
@@ -43,17 +44,16 @@ def saved_message(client, details):
     if result['messages']:
         assert len(result['messages']) == 1, result
         return result['messages'][0]
-    deadline = time.monotonic() + 30
-    while time.monotonic() < deadline:
+
+    def saved():
         matches = [
             message
             for message in query(client, details['subject'])
             if message['id'] not in before
         ]
-        if len(matches) == 1:
-            return matches[0]
-        time.sleep(1)
-    raise AssertionError('Saved fixture draft did not become queryable.')
+        return matches[0] if len(matches) == 1 else None
+
+    return wait_until(saved, 30, 'Saved fixture draft did not become queryable.')
 
 
 def save_native_target(client, details):

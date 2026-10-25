@@ -265,12 +265,12 @@ documented in [CI](ci-cd.md), and runtime details in [runtime](runtime.md).
 ## Mail API compatibility
 
 ```bash
-docker compose -f compose/compose.tools.yaml run --rm check make test-mail-probe
+docker compose -f compose/compose.tools.yaml run --rm check make test-mailprobe
 bash extension/mailprobe/tests/raicho_check_mail_compatibility.bash
 bash extension/mailprobe/tests/raicho_check_mail_compatibility.bash --native
 ```
 
-The separate `test-mail-probe` target compiles and tests the fixture extension.
+The separate `test-mailprobe` target compiles and tests the fixture extension.
 It does not change `build-app` or the production XPI. The host runner builds
 temporary tags for the tooling image and the normal Thunderbird image. The
 tooling image runs fixture unit tests, the controller, SMTP/IMAP fault proxy,
@@ -280,8 +280,12 @@ extension directory, with volume copy-up disabled, and mounts the profile setup
 source read-only. Only Thunderbird loads its own NSS library to seed credentials.
 GreenMail retains its pinned upstream image. There is no separate mail-probe
 image recipe. The runner cleans up its own images, containers, networks, and volumes.
-The default run covers drafts and restart. `--native` also requires a browser
-on the Linux Docker host for the sending permission and native draft checkpoints.
+The default run covers drafts and restart. After the scenarios, the runner checks
+fault proxy submission, rejection, lost acknowledgment, and Sent-copy rejection
+against GreenMail from inside the proxy container. `--native` also requires a
+browser on the Linux Docker host for the sending permission and native draft
+checkpoints. The probe modules compile with the shared production configuration
+parser, so the mail probe XPI keeps their `mailprobe/src/` paths.
 Sending and native checks are explicitly skipped in unattended mode. CI's
 `application-test` job tests the probe sources, and `compatibility-test` runs the
 unattended experiment. The

@@ -13,7 +13,7 @@ class ScenarioHelpersTests(unittest.TestCase):
             {'ok': True, 'result': {'messages': [{'id': 1}]}},
             {'ok': True, 'result': {'messages': [{'id': 1}, {'id': 2}]}},
         ]
-        with patch('scenario_helpers.time.sleep'):
+        with patch('probe_client.time.sleep'):
             self.assertEqual(saved_message(client, {'subject': 'fixture'}), {'id': 2})
         self.assertEqual(
             client.call.call_args_list,
@@ -32,8 +32,8 @@ class ScenarioHelpersTests(unittest.TestCase):
             {'ok': True, 'result': {'messages': [{'id': 1}, {'id': 2}]}},
         ]
         with (
-            patch('scenario_helpers.time.monotonic', side_effect=[0, 1, 31]),
-            patch('scenario_helpers.time.sleep'),
+            patch('probe_client.time.monotonic', side_effect=[0, 31]),
+            patch('probe_client.time.sleep'),
         ):
             with self.assertRaisesRegex(AssertionError, 'did not become queryable'):
                 saved_message(client, {'subject': 'fixture'})
@@ -52,7 +52,7 @@ class ScenarioHelpersTests(unittest.TestCase):
                 },
             },
         ]
-        with patch('scenario_helpers.time.sleep'):
+        with patch('probe_client.time.sleep'):
             self.assertEqual(
                 wait_query(client, 'fixture', 1, body='updated body'), [{'id': 5}]
             )

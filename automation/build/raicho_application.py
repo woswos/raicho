@@ -11,7 +11,7 @@ def run(arguments, **options):
     subprocess.run(arguments, cwd=REPOSITORY_ROOT, check=True, **options)
 
 
-def extension(source_root, testing=False, variable='RAICHO_EXTENSION_BUILD_DIR'):
+def extension(source_root, testing=False):
     with tempfile.TemporaryDirectory(prefix='raicho-extension-') as directory:
         output = Path(directory)
         run(
@@ -29,7 +29,9 @@ def extension(source_root, testing=False, variable='RAICHO_EXTENSION_BUILD_DIR')
             ]
         )
         if testing:
-            environment = os.environ | {variable: str(output / 'modules')}
+            environment = os.environ | {
+                'RAICHO_EXTENSION_BUILD_DIR': str(output / 'modules')
+            }
             tests = sorted(
                 str(path) for path in (source_root / 'tests').glob('*.test.mjs')
             )
@@ -49,22 +51,18 @@ def main():
             'test-server',
             'test-web',
             'test-extension',
-            'test-mail-probe',
+            'test-mailprobe',
         ),
     )
     target = parser.parse_args().target
     if target.endswith('server'):
         action = 'build' if target == 'build-server' else 'test'
         run(['cargo', action, '--workspace', '--all-targets', '--locked'])
-    elif target.endswith('extension') or target == 'test-mail-probe':
-        if target == 'test-mail-probe':
-            extension(
-                REPOSITORY_ROOT / 'extension/mailprobe',
-                True,
-                'RAICHO_MAIL_PROBE_BUILD_DIR',
-            )
+    elif target.endswith('extension') or target == 'test-mailprobe':
+        if target == 'test-mailprobe':
+            extension(REPOSITORY_ROOT / 'extension/mailprobe', testing=True)
         else:
-            extension(REPOSITORY_ROOT / 'extension', target.startswith('test-'))
+            extension(REPOSITORY_ROOT / 'extension', testing=target.startswith('test-'))
     else:
         with tempfile.TemporaryDirectory(prefix='raicho-web-') as directory:
             run(

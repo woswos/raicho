@@ -1,5 +1,5 @@
 import type { MailApi } from './mail_api.js';
-import { parseConfiguration } from './validation.js';
+import { parseConfiguration } from '../../src/configuration.js';
 import { dispatchCommand } from './dispatcher.js';
 import { startProbeTransport } from './probe_transport.js';
 
@@ -9,6 +9,7 @@ async function start() {
   const configuration = parseConfiguration(
     await messenger.storage.managed.get(),
   );
+  if (!configuration) throw new Error('Mail API probe is not configured.');
   const browser = await messenger.runtime.getBrowserInfo();
   const metadata = {
     type: 'mail_probe',

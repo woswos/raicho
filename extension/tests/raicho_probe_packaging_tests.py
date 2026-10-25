@@ -42,7 +42,12 @@ class ProbePackagingTests(unittest.TestCase):
                     manifest = json.loads(archive.read('manifest.json'))
                     if label == 'production':
                         self.assertEqual(manifest['permissions'], ['storage'])
-                        self.assertNotIn('dispatcher.js', archive.namelist())
+                        self.assertFalse(
+                            any(
+                                name.endswith('dispatcher.js')
+                                for name in archive.namelist()
+                            )
+                        )
                         self.assertIn(
                             'protocol/typescript/src/validator_generated.js',
                             archive.namelist(),
@@ -53,7 +58,7 @@ class ProbePackagingTests(unittest.TestCase):
                         self.assertEqual(
                             manifest['optional_permissions'], ['messages.send']
                         )
-                        self.assertIn('dispatcher.js', archive.namelist())
+                        self.assertIn('mailprobe/src/dispatcher.js', archive.namelist())
                         self.assertIn('permission.html', archive.namelist())
                         self.assertFalse(
                             any(

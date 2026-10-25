@@ -20,7 +20,10 @@ test('background send is optional-only and never requested at installation', () 
 test('send permission is requested synchronously only inside the button gesture', async () => {
   const { installPermissionPrompt } = await import(
     pathToFileURL(
-      resolve(process.env.RAICHO_MAIL_PROBE_BUILD_DIR, 'permission_prompt.js'),
+      resolve(
+        process.env.RAICHO_EXTENSION_BUILD_DIR,
+        'mailprobe/src/permission_prompt.js',
+      ),
     ).href
   );
   let click;

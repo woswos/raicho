@@ -17,10 +17,10 @@ remain outside this experiment.
 | GreenMail | 2.1.14, Linux amd64 |
 | GreenMail image digest | `sha256:2bcd0470f569af3c8b98509421b23f1ad11ebb2d58c3648f4233bf450f3b5e2b` |
 
-The [test Compose deployment](../../compose/compose.mail_test.yaml) creates a fresh
+The [test Compose deployment](../../compose/compose.mailprobe_test.yaml) creates a fresh
 Thunderbird profile, fictional accounts, disposable credentials, and an internal
 Docker network. It has no route to real mail providers or published ports. The
-optional [administration override](../../compose/compose.mail_admin.yaml) enables
+optional [administration override](../../compose/compose.mailprobe_admin.yaml) enables
 the desktop listener only inside that fixture network.
 
 The separate [probe extension](../../extension/mailprobe/manifest.json) calls

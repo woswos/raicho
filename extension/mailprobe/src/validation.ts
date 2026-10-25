@@ -1,4 +1,4 @@
-export { messageDetails } from './message_details.js';
+export const COMMAND_IDENTIFIER = /^[a-zA-Z0-9_-]{1,100}$/;
 
 const actions = new Set([
   'inventory',
@@ -49,7 +49,7 @@ export function parseCommand(value: unknown): Command {
   const command = objectValue(value);
   const identifier = stringValue(command.id);
   const action = stringValue(command.action);
-  if (!/^[a-zA-Z0-9_-]{1,100}$/.test(identifier) || !actions.has(action)) {
+  if (!COMMAND_IDENTIFIER.test(identifier) || !actions.has(action)) {
     throw new Error('Invalid probe command.');
   }
   return {
@@ -57,22 +57,4 @@ export function parseCommand(value: unknown): Command {
     action,
     arguments: objectValue(command.arguments ?? {}),
   };
-}
-
-export function parseConfiguration(value: unknown) {
-  const settings = objectValue(value);
-  const endpoint = stringValue(settings.endpoint);
-  const token = stringValue(settings.token);
-  const address = new URL(endpoint);
-  if (
-    !['ws:', 'wss:'].includes(address.protocol) ||
-    address.username ||
-    address.password ||
-    address.search ||
-    address.hash ||
-    !/^[a-f0-9]{64}$/.test(token)
-  ) {
-    throw new Error('Invalid mail probe configuration.');
-  }
-  return { endpoint, token };
 }

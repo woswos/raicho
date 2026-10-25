@@ -5,7 +5,7 @@ from contextlib import nullcontext
 from pathlib import Path
 from unittest.mock import patch
 
-from credentials import write_credentials
+from profile_credentials import write_credentials
 
 
 class CredentialTests(unittest.TestCase):
@@ -15,11 +15,11 @@ class CredentialTests(unittest.TestCase):
             library = object()
             with (
                 patch(
-                    'credentials.encryption_library',
+                    'profile_credentials.encryption_library',
                     return_value=nullcontext(library),
                 ) as initialization,
                 patch(
-                    'credentials.encrypt',
+                    'profile_credentials.encrypt',
                     side_effect=['encrypted username', 'encrypted password'],
                 ) as encryption,
             ):

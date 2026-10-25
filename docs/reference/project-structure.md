@@ -107,8 +107,8 @@ and formatting, with `compose.ci.yaml` adding the GitHub event mount.
 secret mount, endpoint, and live verification through the
 [credential commands](../operations/connector-credentials.md).
 `compose.connector_upgrade.yaml` mounts a version-bumped production XPI for the
-connector acceptance upgrade check. `compose.mail_test.yaml` runs the separate fictional mail experiment,
-with `compose.mail_admin.yaml` enabling its native UI checks.
+connector acceptance upgrade check. `compose.mailprobe_test.yaml` runs the separate fictional mail experiment,
+with `compose.mailprobe_admin.yaml` enabling its native UI checks.
 The [runtime guide](../operations/local-runtime.md) and
 [tooling commands](build-test-generate.md) show their combinations.
 

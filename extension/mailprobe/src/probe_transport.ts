@@ -41,7 +41,8 @@ export function startProbeTransport(
         throw new Error('Invalid fixture frame.');
       const value: unknown = JSON.parse(text);
       const result = await session.execute(value);
-      if (socket.readyState === 1) socket.send(JSON.stringify(result));
+      if (socket.readyState === WebSocket.OPEN)
+        socket.send(JSON.stringify(result));
     }
   }
   connect();

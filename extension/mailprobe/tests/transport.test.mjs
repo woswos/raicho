@@ -6,7 +6,10 @@ import { pathToFileURL } from 'node:url';
 
 const { CommandSession } = await import(
   pathToFileURL(
-    resolve(process.env.RAICHO_MAIL_PROBE_BUILD_DIR, 'command_session.js'),
+    resolve(
+      process.env.RAICHO_EXTENSION_BUILD_DIR,
+      'mailprobe/src/command_session.js',
+    ),
   ).href
 );
 

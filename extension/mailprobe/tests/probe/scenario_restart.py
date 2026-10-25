@@ -1,5 +1,7 @@
 import time
 
+from probe_client import wait_until
+
 
 def request_before_deadline(client, action, arguments, deadline):
     remaining = deadline - time.monotonic()
@@ -24,32 +26,27 @@ def wait_for_identity(client, baseline):
         'folderId': baseline['folder']['id'],
     }
     deadline = time.monotonic() + 30
-    initial_matches = None
-    while True:
-        remaining = deadline - time.monotonic()
-        if remaining <= 0:
-            break
+    attempts = []
+
+    def found():
         matches = request_before_deadline(
             client, 'query', {'query': identity}, deadline
         )['messages']
         assert len(matches) <= 1, {'identity': identity, 'matches': matches}
-        if initial_matches is None:
-            initial_matches = matches
-            if not matches:
-                request_before_deadline(
-                    client,
-                    'select_folder',
-                    {'folder_id': identity['folderId']},
-                    deadline,
-                )
-        if matches:
-            return matches, {
-                'initial_matches': initial_matches,
-                'folder_selection_required': not initial_matches,
-            }
-        time.sleep(min(1, max(0, deadline - time.monotonic())))
-    raise AssertionError(
-        f'Restarted fixture message did not become queryable: {identity}'
+        if not attempts and not matches:
+            request_before_deadline(
+                client, 'select_folder', {'folder_id': identity['folderId']}, deadline
+            )
+        attempts.append(matches)
+        if not matches:
+            return None
+        return matches, {
+            'initial_matches': attempts[0],
+            'folder_selection_required': not attempts[0],
+        }
+
+    return wait_until(
+        found, 30, f'Restarted fixture message did not become queryable: {identity}'
     )
 
 

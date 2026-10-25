@@ -69,8 +69,8 @@ jobs:
           docker compose -f compose/compose.yaml -f compose/compose.runtime_test.yaml -f compose/compose.admin.yaml config --quiet
           docker compose -f compose/compose.yaml -f compose/compose.credentials.yaml config --quiet
           docker compose -f compose/compose.yaml -f compose/compose.runtime_test.yaml -f compose/compose.admin.yaml -f compose/compose.credentials.yaml config --quiet
-          docker compose -f compose/compose.mail_test.yaml --profile test config --quiet
-          docker compose -f compose/compose.mail_test.yaml -f compose/compose.mail_admin.yaml --profile test config --quiet
+          docker compose -f compose/compose.mailprobe_test.yaml --profile test config --quiet
+          docker compose -f compose/compose.mailprobe_test.yaml -f compose/compose.mailprobe_admin.yaml --profile test config --quiet
       - name: Build application images
         run: docker compose -f compose/compose.yaml build
 
@@ -87,7 +87,7 @@ jobs:
       - name: Build tooling image
         run: docker compose -f compose/compose.tools.yaml build
       - name: Build and test application sources
-        run: docker compose -f compose/compose.tools.yaml run --rm check make build-app test-app test-mail-probe test-protocol
+        run: docker compose -f compose/compose.tools.yaml run --rm check make build-app test-app test-mailprobe test-protocol
       - name: Test Thunderbird process supervision
         run: >-
           docker compose -f compose/compose.tools.yaml run --rm

@@ -6,7 +6,10 @@ import { pathToFileURL } from 'node:url';
 
 const { dispatchCommand } = await import(
   pathToFileURL(
-    resolve(process.env.RAICHO_MAIL_PROBE_BUILD_DIR, 'dispatcher.js'),
+    resolve(
+      process.env.RAICHO_EXTENSION_BUILD_DIR,
+      'mailprobe/src/dispatcher.js',
+    ),
   ).href
 );
 

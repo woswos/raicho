@@ -6,15 +6,19 @@ import { setImmediate } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
 import { TextEncoder } from 'node:util';
 
+import { probeFixture } from '../../tests/probe_fixture.mjs';
+
 const { startProbeTransport } = await import(
   pathToFileURL(
-    resolve(process.env.RAICHO_MAIL_PROBE_BUILD_DIR, 'probe_transport.js'),
+    resolve(
+      process.env.RAICHO_EXTENSION_BUILD_DIR,
+      'mailprobe/src/probe_transport.js',
+    ),
   ).href
 );
 
 test('a disconnect during send loses the result without replay on reconnect', async () => {
-  const sockets = [];
-  const timers = [];
+  const fixture = probeFixture();
   let finishSend;
   let attempts = 0;
   const metadata = {
@@ -31,45 +35,28 @@ test('a disconnect during send loses the result without replay on reconnect', as
         finishSend = resolve;
       });
     },
-    {
-      connect() {
-        const socket = {
-          readyState: 1,
-          sent: [],
-          send(data) {
-            this.sent.push(JSON.parse(data));
-          },
-          close(code = 1006) {
-            this.readyState = 3;
-            this.onclose({ code });
-          },
-        };
-        sockets.push(socket);
-        return socket;
-      },
-      schedule(callback) {
-        timers.push(callback);
-      },
-    },
+    fixture.dependencies,
   );
   const command = new TextEncoder().encode(
     JSON.stringify({ id: 'send_once', action: 'send' }),
   ).buffer;
-  sockets[0].onopen();
-  sockets[0].onmessage({ data: command });
-  sockets[0].close();
+  const [first] = fixture.sockets;
+  first.open();
+  first.onmessage({ data: command });
+  first.close();
   finishSend({ mode: 'sendNow' });
   await setImmediate();
-  timers.shift()();
-  sockets[1].onopen();
+  fixture.fireTimer(1000);
+  const second = fixture.sockets[1];
+  second.open();
   await setImmediate();
-  assert.deepEqual(sockets[0].sent, [metadata]);
-  assert.deepEqual(sockets[1].sent, [metadata]);
+  assert.deepEqual(first.sent, [metadata]);
+  assert.deepEqual(second.sent, [metadata]);
   assert.equal(attempts, 1);
-  sockets[1].onmessage({ data: command });
+  second.onmessage({ data: command });
   await setImmediate();
-  assert.equal(sockets[1].sent[1].ok, false);
+  assert.equal(second.sent[1].ok, false);
   assert.equal(attempts, 1);
-  sockets[1].close(4003);
-  assert.equal(timers.length, 0);
+  second.onclose({ code: 4003 });
+  assert.equal(fixture.timers.size, 0);
 });

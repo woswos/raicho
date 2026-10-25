@@ -1,9 +1,8 @@
 import argparse
 import json
-import time
 
 from mail_inspect import ensure_mailboxes
-from probe_client import ProbeClient
+from probe_client import ProbeClient, wait_until
 
 
 def main():
@@ -31,15 +30,15 @@ def main():
     arguments = parser.parse_args()
     client = ProbeClient()
     if arguments.phase == 'prepare':
-        deadline = time.monotonic() + 60
-        while True:
+
+        def prepared():
             try:
                 ensure_mailboxes()
-                break
             except OSError:
-                if time.monotonic() > deadline:
-                    raise
-                time.sleep(1)
+                return None
+            return True
+
+        wait_until(prepared, 60, 'Fixture mailboxes did not become available.')
         return
     if arguments.phase == 'evidence':
         print(json.dumps(client.evidence(), indent=2))

@@ -320,7 +320,7 @@ The existing implementation checks are:
 ```bash
 docker compose -f compose/compose.tools.yaml build
 docker compose -f compose/compose.tools.yaml run --rm check \
-  make lint format-check typecheck test-tooling build-app test-app test-mail-probe test-protocol
+  make lint format-check typecheck test-tooling build-app test-app test-mailprobe test-protocol
 docker compose -f compose/compose.tools.yaml run --rm \
   -e PYTHONPATH=/workspace/runtime/thunderbird check \
   python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
