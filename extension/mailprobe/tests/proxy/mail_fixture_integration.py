@@ -38,9 +38,10 @@ class MailFixtureIntegration(unittest.TestCase):
             client.login('sender', 'fixture')
             client.send_message(message)
 
-    def count(self, message):
+    def count(self, message, **location):
         return sum(
-            item['message_id'] == message['Message-ID'] for item in inspect_messages()
+            item['message_id'] == message['Message-ID']
+            for item in inspect_messages(**location)
         )
 
     def test_normal_submission_arrives_once(self):
@@ -63,16 +64,16 @@ class MailFixtureIntegration(unittest.TestCase):
         self.assertEqual(self.count(message), 1)
 
     def test_sent_append_rejection_keeps_drafts_available(self):
-        message = self.message('append').as_bytes()
+        message = self.message('append')
         self.set_faults(imap='reject_sent_append')
         with imaplib.IMAP4('127.0.0.1', 3143, timeout=10) as client:
             client.login('sender', 'fixture')
-            status, _result = client.append('Sent', None, None, message)
+            status, _result = client.append('Sent', None, None, message.as_bytes())
             self.assertEqual(status, 'NO')
-            status, _result = client.append('Drafts', None, None, message)
+            status, _result = client.append('Drafts', None, None, message.as_bytes())
             self.assertEqual(status, 'OK')
-        self.assertEqual(len(inspect_messages(username='sender', folder='Sent')), 0)
-        self.assertEqual(len(inspect_messages(username='sender', folder='Drafts')), 1)
+        self.assertEqual(self.count(message, username='sender', folder='Sent'), 0)
+        self.assertEqual(self.count(message, username='sender', folder='Drafts'), 1)
 
 
 if __name__ == '__main__':
