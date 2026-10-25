@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import process from 'node:process';
 import { test } from 'node:test';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, URL } from 'node:url';
 
 const { parseConfiguration } = await import(
   pathToFileURL(
@@ -53,5 +54,37 @@ test('rejects malformed managed configuration without exposing values', () => {
     assert.throws(() => parseConfiguration(configuration), {
       message: 'Managed connector configuration is invalid.',
     });
+  }
+});
+
+test('agrees with the shared connector configuration rules', async () => {
+  const rules = JSON.parse(
+    await readFile(
+      new URL(
+        '../../protocol/fixtures/configuration/connector.json',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+  );
+  const endpoint = rules.endpoints.valid[0];
+  for (const valid of rules.tokens.valid) {
+    assert.equal(parseConfiguration({ endpoint, token: valid }).token, valid);
+  }
+  for (const invalid of rules.tokens.invalid) {
+    assert.throws(() => parseConfiguration({ endpoint, token: invalid }));
+  }
+  for (const valid of rules.endpoints.valid) {
+    assert.equal(
+      parseConfiguration({ endpoint: valid, token }).endpoint,
+      valid,
+    );
+  }
+  for (const invalid of rules.endpoints.invalid) {
+    assert.throws(
+      () => parseConfiguration({ endpoint: invalid, token }),
+      undefined,
+      JSON.stringify(invalid),
+    );
   }
 });

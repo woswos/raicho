@@ -152,6 +152,10 @@ fixtures against their respective implementations. TypeScript protocol tests
 compile independently of the extension. See the
 [contract commands](build-test-generate.md#connector-contract).
 Generator regressions live in `protocol/generator/tests/`.
+`protocol/fixtures/configuration/connector.json` lists valid and invalid connector
+tokens and endpoints. The server's `Credential::parse`, the Thunderbird policy
+writer, and the extension's managed configuration parser each test against it,
+so their separate boundary checks cannot drift.
 
 `deploy/credentials/tests/` owns the provisioning wrapper tests. Token-file
 recovery, file-safety, and live-check tests live with the Rust implementation in
