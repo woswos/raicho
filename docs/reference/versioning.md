@@ -36,10 +36,13 @@ a heading that lists several kinds separated by `|`, and a bullet that starts
 with `TODO:` are ignored.
 
 Anything an operator can notice needs an entry in one of those two places.
-That includes the server, its SQL, the diagnostics page, extension manifests
-and extension source, gateway runtime configuration, and the Raicho, Thunderbird,
-and gateway image recipes, excluding tests. Documentation, repository tooling,
-and tests do not need an entry.
+That includes the server, its SQL, the diagnostics page, production extension
+manifests and source, production protocol implementations in `protocol/rust/src/`
+and `protocol/typescript/src/`, gateway runtime configuration, and the Raicho,
+Thunderbird, and gateway image recipes, excluding tests. Documentation, repository
+tooling, and tests do not need an entry. The lifecycle and mail probes under
+`extension/lifecycleprobe/` and `extension/mailprobe/` are test artifacts and
+are exempt, including their manifests and source.
 The `no changelog` label skips the check when a change is genuinely invisible.
 Any update to `CHANGELOG.md` in the same pull request also satisfies the check.
 
