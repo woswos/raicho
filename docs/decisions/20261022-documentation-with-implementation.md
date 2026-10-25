@@ -2,7 +2,7 @@
 
 - Status: accepted
 - Date: 2026-10-22
-- Deciders: project maintainer
+- Deciders: Barkin Simsek
 
 ## Context
 

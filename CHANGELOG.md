@@ -6,7 +6,13 @@ Notable changes to Raicho. The format follows
 
 ## [Unreleased]
 
-### Changed
+### Added
 
-- Move connector credential commands to `runtime/credentials/` and organize
-  developer commands under `automation/`.
+- Connect Thunderbird to Raicho through a packaged extension that authenticates
+  with a challenge-response handshake and answers heartbeats.
+- Run a fixed internal gateway that is the only network path between Raicho and
+  Thunderbird.
+- Provision, rotate, revoke, and reactivate the connector credential offline
+  with `runtime/credentials/raicho_connector.bash`.
+- Show Thunderbird connection status and failure reasons on the diagnostics page
+  and in `/api/status`.
