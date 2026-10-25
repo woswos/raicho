@@ -2,7 +2,7 @@ mod support;
 
 use std::time::Duration;
 
-use futures_util::SinkExt;
+use futures_util::{SinkExt, StreamExt};
 use raicho_server::credentials::CredentialStore;
 use serde_json::json;
 use tokio_tungstenite::connect_async;
@@ -63,6 +63,30 @@ async fn revoked_credentials_remain_revoked_and_are_never_enrolled_by_authentica
         .unwrap();
     assert_eq!(receive(&mut socket).await["code"], "authentication_failed");
     assert_eq!(fixture.connector.snapshot().await.status, "revoked");
+    fixture.finish().await;
+}
+
+#[tokio::test]
+async fn stalled_credential_storage_is_retryable_rather_than_a_rejection() {
+    let fixture = Fixture::new().await;
+    let held = fixture.database.pool().acquire().await.unwrap();
+    let mut socket = fixture.connect().await;
+    socket
+        .send(Message::Text(authentication("a").to_string().into()))
+        .await
+        .unwrap();
+    let frame = tokio::time::timeout(Duration::from_secs(12), socket.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    let error: serde_json::Value = serde_json::from_str(frame.to_text().unwrap()).unwrap();
+    assert_eq!(error["code"], "server_busy");
+    drop(held);
+    assert_eq!(
+        fixture.connector.snapshot().await.last_error,
+        Some("storage_unavailable")
+    );
     fixture.finish().await;
 }
 

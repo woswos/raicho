@@ -1,8 +1,6 @@
 use std::sync::Arc;
-use std::time::Duration;
 
 use axum::extract::ws::WebSocket;
-use raicho_protocol::limits_generated::AUTHENTICATION_DEADLINE_MS;
 use tokio::sync::OwnedSemaphorePermit;
 
 use super::{
@@ -22,10 +20,7 @@ pub(super) async fn run(
     let authenticated = tokio::select! {
         biased;
         _ = shutdown.changed() => return,
-        result = tokio::time::timeout(
-            Duration::from_millis(AUTHENTICATION_DEADLINE_MS as u64),
-            authentication::authenticate(&mut socket, &connector),
-        ) => result.unwrap_or_else(|_| Err(Failure::new("authentication_timeout"))),
+        result = authentication::authenticate(&mut socket, &connector) => result,
     };
     let (generation, mut replaced) = match authenticated {
         Ok(session) => session,

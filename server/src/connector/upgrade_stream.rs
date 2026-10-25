@@ -15,7 +15,6 @@ pub struct UpgradeStream {
     _permit: OwnedSemaphorePermit,
     deadline: Pin<Box<Sleep>>,
     header_bytes: usize,
-    header_suffix: u32,
     upgraded: bool,
 }
 
@@ -28,7 +27,6 @@ impl UpgradeStream {
                 AUTHENTICATION_DEADLINE_MS as u64,
             ))),
             header_bytes: 0,
-            header_suffix: 0,
             upgraded: false,
         }
     }
@@ -50,19 +48,12 @@ impl AsyncRead for UpgradeStream {
         let previous = buffer.filled().len();
         let result = Pin::new(&mut stream.stream).poll_read(context, buffer);
         if !stream.upgraded && matches!(result, Poll::Ready(Ok(()))) {
-            for byte in &buffer.filled()[previous..] {
-                stream.header_bytes += 1;
-                if stream.header_bytes > 8192 {
-                    return Poll::Ready(Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        "Connector upgrade headers too large",
-                    )));
-                }
-                stream.header_suffix = (stream.header_suffix << 8) | u32::from(*byte);
-                if stream.header_suffix == 0x0d0a0d0a {
-                    stream.upgraded = true;
-                    break;
-                }
+            stream.header_bytes += buffer.filled().len() - previous;
+            if stream.header_bytes > 8192 {
+                return Poll::Ready(Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Connector upgrade headers too large",
+                )));
             }
         }
         result
@@ -75,7 +66,12 @@ impl AsyncWrite for UpgradeStream {
         context: &mut Context<'_>,
         bytes: &[u8],
     ) -> Poll<io::Result<usize>> {
-        Pin::new(&mut self.get_mut().stream).poll_write(context, bytes)
+        let stream = self.get_mut();
+        // The server's own 101 response is the only reliable end of the pre-upgrade phase.
+        if !stream.upgraded && bytes.starts_with(b"HTTP/1.1 101 ") {
+            stream.upgraded = true;
+        }
+        Pin::new(&mut stream.stream).poll_write(context, bytes)
     }
     fn poll_flush(self: Pin<&mut Self>, context: &mut Context<'_>) -> Poll<io::Result<()>> {
         Pin::new(&mut self.get_mut().stream).poll_flush(context)

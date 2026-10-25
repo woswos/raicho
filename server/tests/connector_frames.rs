@@ -78,6 +78,20 @@ async fn fragmented_messages_obey_the_transport_aggregate_budget() {
         .await
         .unwrap();
     tokio::time::sleep(Duration::from_millis(20)).await;
-    assert_eq!(fixture.connector.snapshot().await.status, "disconnected");
+    let status = fixture.connector.snapshot().await;
+    assert_eq!(status.status, "disconnected");
+    assert_eq!(status.last_error, Some("message_too_large"));
+    fixture.finish().await;
+}
+
+#[tokio::test]
+async fn abrupt_peer_loss_is_recorded_as_a_disconnection() {
+    let fixture = Fixture::new().await;
+    let (socket, _) = fixture.authenticate().await;
+    drop(socket);
+    tokio::time::sleep(Duration::from_millis(20)).await;
+    let status = fixture.connector.snapshot().await;
+    assert_eq!(status.status, "disconnected");
+    assert_eq!(status.last_error, Some("disconnected"));
     fixture.finish().await;
 }

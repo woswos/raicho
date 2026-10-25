@@ -1,5 +1,8 @@
+use std::time::Duration;
+
 use axum::extract::ws::WebSocket;
 use raicho_protocol::generated::ConnectorMessage;
+use raicho_protocol::limits_generated::AUTHENTICATION_DEADLINE_MS;
 use raicho_protocol::{Phase, decode_frame};
 use tokio::sync::watch;
 
@@ -11,7 +14,10 @@ pub(super) async fn authenticate(
     socket: &mut WebSocket,
     connector: &Connector,
 ) -> Result<(String, watch::Receiver<bool>), Failure> {
-    let message = transport::receive_text(socket).await?;
+    let deadline = Duration::from_millis(AUTHENTICATION_DEADLINE_MS as u64);
+    let message = tokio::time::timeout(deadline, transport::receive_text(socket))
+        .await
+        .map_err(|_| Failure::new("authentication_timeout"))??;
     let decoded = decode_frame(&message, Phase::Authentication, None)
         .map_err(|error| Failure::new(error.code()))?;
     let ConnectorMessage::Authenticate(authentication) = decoded else {
@@ -22,11 +28,14 @@ pub(super) async fn authenticate(
     }
     let credential = Credential::parse(&authentication.token)
         .map_err(|_| Failure::new("authentication_failed"))?;
-    if !CredentialStore::new(&connector.database)
-        .verify(&credential)
-        .await
-        .map_err(|_| Failure::new("storage_unavailable"))?
-    {
+    let verified = tokio::time::timeout(
+        deadline,
+        CredentialStore::new(&connector.database).verify(&credential),
+    )
+    .await
+    .map_err(|_| Failure::new("storage_unavailable"))?
+    .map_err(|_| Failure::new("storage_unavailable"))?;
+    if !verified {
         return Err(Failure::new("authentication_failed"));
     }
     let mut bytes = [0u8; 16];
