@@ -8,11 +8,10 @@ for storage and [connector contract](../reference/connector-contract.md) for tra
 ## Setup and commands
 
 Run from the repository root on a Linux Docker host with Bash and `flock`.
-Build all runtime images and the tooling image before provisioning:
+Build the runtime images before provisioning:
 
 ```bash
 docker compose -f compose/compose.yaml build
-docker compose -f compose/compose.tools.yaml build
 bash runtime/credentials/raicho_connector.bash init
 ```
 
@@ -48,17 +47,19 @@ access, service health, and the live authenticated connection. The diagnostics
 page should report `Connected`. This confirms the control connection, not mail
 availability. A failed connection check retains recovery files.
 
-The operational wrapper and its file-management and connection-verification
-modules live in `runtime/credentials/`. The disposable acceptance runner is
+The operational wrapper lives in `runtime/credentials/`. Token-file management
+and the live connection check are the `raicho-server connector files` and
+`raicho-server connector wait` subcommands, so every credential service runs
+from the production server image. The disposable acceptance runner is
 under `automation/acceptance/credentials/`, as described in
 [project structure](../reference/project-structure.md#automation).
 
 ## Token ownership
 
-An isolated helper generates 32 random bytes, encoded as 64 lowercase hexadecimal
-characters. It never prints the token. The token directory is owned by UID/GID
+The isolated `connector files` command generates 32 random bytes, encoded as 64
+lowercase hexadecimal characters. It never prints the token. The token directory is owned by UID/GID
 10001 with mode 0700, and token files use mode 0600. Existing insecure files are
-rejected. The one-off file helper runs as root with only the filesystem
+rejected. The one-off file service runs as root with only the filesystem
 capabilities needed to prepare those permissions on its narrow bind mount.
 The database provisioner and both core services run as UID/GID 10001.
 

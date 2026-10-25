@@ -75,8 +75,8 @@ and invocation convention.
 `lint-repo` discovers `*_tests.py` under `automation/`, `extension/tests/`,
 `runtime/credentials/tests/`, and `protocol/generator/tests/`. These component-local
 suites cover repository policy including changelog guards, quality discovery,
-extension packaging and fixture regressions, releases, operational credential
-helpers, and acceptance-driver support. Thunderbird runtime and probe controller
+extension packaging and fixture regressions, releases, the operational credential
+wrapper, and acceptance-driver support. Thunderbird runtime and probe controller
 unit suites retain the separate commands below.
 
 Rust compilation is checked by Clippy under `lint`. While Rust or TypeScript
@@ -200,7 +200,8 @@ docker compose -f compose/compose.tools.yaml run --rm check \
 bash automation/acceptance/credentials/raicho_check_credentials.bash
 ```
 
-The source checks cover credential state transitions and host-file recovery.
+The source checks cover credential state transitions, token-file recovery and
+safety, and the live connection check in `server/tests/`.
 The host runner owns a disposable Docker deployment and checks the actual
 provisioning, rotation, revocation, restart, file permissions, and mount boundary.
 The [credential runbook](../operations/connector-credentials.md) documents the

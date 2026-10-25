@@ -1,3 +1,4 @@
+mod token_directory;
 mod token_file;
 
 use raicho_protocol::authentication::ConnectorKeys;
@@ -7,17 +8,23 @@ use crate::error::{Error, Result};
 
 const TOKEN_HEX_LENGTH: usize = 64;
 
+pub use token_directory::{TokenOperation, TokenState, operate_token_directory};
+pub use token_file::{Owner, SERVICE_OWNER};
+
+fn is_canonical_token(value: &str) -> bool {
+    value.len() == TOKEN_HEX_LENGTH
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+}
+
 pub struct Credential {
     keys: ConnectorKeys,
 }
 
 impl Credential {
     pub fn parse(value: &str) -> Result<Self> {
-        if value.len() != TOKEN_HEX_LENGTH
-            || !value
-                .bytes()
-                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-        {
+        if !is_canonical_token(value) {
             return Err(Error::message(
                 "Connector token must contain 64 lowercase hexadecimal characters",
             ));

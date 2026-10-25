@@ -92,7 +92,8 @@ The shared repository-path helper lives at
 `automation/raicho_paths.py`.
 
 Operational credential provisioning, rotation, and live verification belong in
-`runtime/credentials/`, including their host Bash wrapper and Python helpers.
+`runtime/credentials/` as a host Bash wrapper around `raicho-server connector`
+subcommands.
 These commands manage a deployment and are separate from acceptance tests that
 create disposable deployments. Their procedure is in the
 [credential runbook](../operations/connector-credentials.md). The
@@ -145,8 +146,9 @@ compile independently of the extension. See the
 [contract commands](build-test-generate.md#connector-contract).
 Generator regressions live in `protocol/generator/tests/`.
 
-`runtime/credentials/tests/` owns provisioning wrapper, file recovery, and live
-verification unit tests. `make lint-repo` includes credential unit
+`runtime/credentials/tests/` owns the provisioning wrapper tests. Token-file
+recovery, file-safety, and live-check tests live with the Rust implementation in
+`server/tests/`. `make lint-repo` includes credential wrapper
 tests, extension packaging and fixture regressions, protocol generator
 tests, and the automation package suites.
 

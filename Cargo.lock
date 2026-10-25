@@ -1256,6 +1256,7 @@ dependencies = [
  "libc",
  "libsqlite3-sys",
  "raicho-protocol",
+ "rustix",
  "serde",
  "serde_json",
  "sqlx",

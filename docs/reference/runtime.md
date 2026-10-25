@@ -24,8 +24,10 @@ processes and the internal display. A desktop HTTP response alone is insufficien
 These modules live in `runtime/thunderbird/` as `thunderbird_runtime.py`,
 `thunderbird_supervisor.py`, `thunderbird_policy.py`, and `health_check.py`,
 separately from the image recipe.
-Operational credential helpers live separately in `runtime/credentials/`, with
-their provisioning, recovery, and verification tests under `tests/`. The
+The operational credential wrapper lives separately in `runtime/credentials/`,
+with its tests under `tests/`. Its token-file and live-check services run the
+`raicho-server connector files` and `connector wait` subcommands from the server
+image. The
 [credential runbook](../operations/connector-credentials.md) documents their use.
 
 Base images use digests, support packages use the 20261018 Debian snapshot, and

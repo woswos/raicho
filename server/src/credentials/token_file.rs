@@ -1,36 +1,71 @@
-use std::fs::OpenOptions;
+use std::fs::{File, OpenOptions};
 use std::io::Read;
 use std::os::unix::fs::{MetadataExt, OpenOptionsExt};
 use std::path::Path;
 
 use crate::error::{Error, Result};
 
-use super::{Credential, TOKEN_HEX_LENGTH};
+use super::{Credential, TOKEN_HEX_LENGTH, is_canonical_token};
 
-const SERVICE_UID: u32 = 10001;
 const MAXIMUM_FILE_BYTES: u64 = TOKEN_HEX_LENGTH as u64 + 2;
+
+#[derive(Clone, Copy)]
+pub struct Owner {
+    pub uid: u32,
+    pub gid: u32,
+}
+
+pub const SERVICE_OWNER: Owner = Owner {
+    uid: 10001,
+    gid: 10001,
+};
 
 impl Credential {
     pub fn read_file(path: &Path) -> Result<Self> {
-        read_file(path, SERVICE_UID)
+        Credential::parse(&read_file(path, SERVICE_OWNER)?)
     }
 }
 
-fn read_file(path: &Path, expected_owner: u32) -> Result<Credential> {
+fn read_file(path: &Path, owner: Owner) -> Result<String> {
     let file = OpenOptions::new()
         .read(true)
         .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
         .open(path)
         .map_err(|_| Error::message("Cannot open connector token file"))?;
+    read_token(file, owner)
+}
+
+pub(super) fn check_owner(
+    uid: u32,
+    gid: u32,
+    mode: u32,
+    owner: Owner,
+    expected: u32,
+) -> Result<()> {
+    if uid != owner.uid || gid != owner.gid || mode & 0o7777 != expected {
+        return Err(Error::message(
+            "Connector files require the configured owner and private modes",
+        ));
+    }
+    Ok(())
+}
+
+pub(super) fn read_token(file: File, owner: Owner) -> Result<String> {
     let metadata = file
         .metadata()
         .map_err(|_| Error::message("Cannot inspect connector token file"))?;
-    if !metadata.is_file() || metadata.uid() != expected_owner || metadata.mode() & 0o7777 != 0o600
-    {
+    if !metadata.is_file() || metadata.nlink() != 1 {
         return Err(Error::message(
-            "Connector token file must be regular, owned by UID 10001, and mode 0600",
+            "Connector tokens must be regular files without links",
         ));
     }
+    check_owner(
+        metadata.uid(),
+        metadata.gid(),
+        metadata.mode(),
+        owner,
+        0o600,
+    )?;
     let mut contents = Vec::new();
     file.take(MAXIMUM_FILE_BYTES)
         .read_to_end(&mut contents)
@@ -38,9 +73,10 @@ fn read_file(path: &Path, expected_owner: u32) -> Result<Credential> {
     if contents.last() == Some(&b'\n') {
         contents.pop();
     }
-    let value = std::str::from_utf8(&contents)
-        .map_err(|_| Error::message("Connector token must contain hexadecimal characters"))?;
-    Credential::parse(value)
+    match String::from_utf8(contents) {
+        Ok(token) if is_canonical_token(&token) => Ok(token),
+        _ => Err(Error::message("Connector token has an invalid format")),
+    }
 }
 
 #[cfg(test)]
@@ -50,24 +86,50 @@ mod tests {
 
     use tempfile::tempdir;
 
-    use super::read_file;
+    use super::{Owner, read_file};
 
     #[test]
-    fn checks_permissions_owner_type_and_canonical_contents() {
+    fn checks_permissions_owner_links_type_and_canonical_contents() {
         let directory = tempdir().unwrap();
         let path = directory.path().join("token");
-        assert!(read_file(&path, super::SERVICE_UID).is_err());
+        assert!(read_file(&path, Owner { uid: 0, gid: 0 }).is_err());
         fs::write(&path, format!("{}\n", "a".repeat(64))).unwrap();
-        let owner = fs::metadata(&path).unwrap().uid();
+        let metadata = fs::metadata(&path).unwrap();
+        let owner = Owner {
+            uid: metadata.uid(),
+            gid: metadata.gid(),
+        };
         fs::set_permissions(&path, fs::Permissions::from_mode(0o600)).unwrap();
         assert!(read_file(&path, owner).is_ok());
-        assert!(read_file(&path, owner + 1).is_err());
+        assert!(
+            read_file(
+                &path,
+                Owner {
+                    uid: owner.uid + 1,
+                    ..owner
+                }
+            )
+            .is_err()
+        );
+        assert!(
+            read_file(
+                &path,
+                Owner {
+                    gid: owner.gid + 1,
+                    ..owner
+                }
+            )
+            .is_err()
+        );
         for mode in [0o644, 0o640, 0o400, 0o660, 0o1600] {
             fs::set_permissions(&path, fs::Permissions::from_mode(mode)).unwrap();
             assert!(read_file(&path, owner).is_err());
         }
         fs::set_permissions(&path, fs::Permissions::from_mode(0o600)).unwrap();
         let link = directory.path().join("link");
+        fs::hard_link(&path, &link).unwrap();
+        assert!(read_file(&path, owner).is_err());
+        fs::remove_file(&link).unwrap();
         symlink(&path, &link).unwrap();
         assert!(read_file(&link, owner).is_err());
         assert!(read_file(directory.path(), owner).is_err());
@@ -75,6 +137,7 @@ mod tests {
             format!("{}\n\n", "a".repeat(64)),
             "a".repeat(1024),
             format!(" {}", "a".repeat(64)),
+            "A".repeat(64),
         ] {
             fs::write(&path, contents).unwrap();
             assert!(read_file(&path, owner).is_err());

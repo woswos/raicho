@@ -42,11 +42,12 @@ server and production extension. It carries authentication and heartbeat only.
 The separate mail probe remains a test artifact.
 
 Offline credential commands acquire the database's exclusive instance lock.
-A separate Docker helper owns host token generation and file rotation, with
-one operation lock spanning database and file updates. Only the one-off
+A one-off `raicho-server connector files` container owns host token generation
+and file rotation, with one operation lock spanning database and file updates. Only the one-off
 provisioner and Thunderbird receive read-only raw tokens. Ordinary server
-startup never imports tokens. The operational wrapper, file helper, and live
-connection verifier live under `runtime/credentials/`, separate from disposable
+startup never imports tokens. The operational wrapper lives under
+`runtime/credentials/`, and its file and live-check steps are server
+subcommands, separate from disposable
 acceptance drivers under `automation/acceptance/credentials/`. See the
 [credential procedure](../operations/connector-credentials.md) for recovery.
 

@@ -13,9 +13,7 @@ class ChangelogGuardTests(GuardTestCase):
         for path in GATEWAY_PATHS:
             with self.subTest(path=path):
                 self.assertTrue(is_shipping(path))
-        self.assertTrue(is_shipping('runtime/credentials/raicho_connector_files.py'))
         self.assertTrue(is_shipping('runtime/credentials/raicho_connector.bash'))
-        self.assertTrue(is_shipping('runtime/credentials/raicho_wait_connector.py'))
         self.assertTrue(is_shipping('extension/manifest.json'))
         self.assertTrue(is_shipping('protocol/typescript/src/decode_frame.ts'))
         self.assertTrue(is_shipping('protocol/typescript/src/validator_generated.js'))
@@ -28,7 +26,7 @@ class ChangelogGuardTests(GuardTestCase):
         self.assertFalse(is_shipping('runtime/gateway/tests/nginx.conf'))
         self.assertFalse(is_shipping('containers/gateway/tests/fixture.conf'))
         self.assertFalse(
-            is_shipping('runtime/credentials/tests/raicho_connector_files_tests.py')
+            is_shipping('runtime/credentials/tests/raicho_connector_wrapper_tests.py')
         )
         self.assertFalse(is_shipping('extension/mailprobe/tests/fixture.ts'))
         self.assertFalse(is_shipping('web/tests/status.test.mjs'))
