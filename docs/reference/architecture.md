@@ -18,7 +18,7 @@ the [product version](versioning.md) and the build commit. Thunderbird owns a
 separate profile volume. Its internal display starts without a viewer, and a
 local override enables browser administration. Separate Compose networks prevent
 Raicho from reaching Thunderbird's administrative listener. Both retain provider
-internet access. The image now includes a TypeScript extension with a persistent
+internet access. The image includes a TypeScript extension with a persistent
 background page and generated enterprise policy. It is inactive without managed
 configuration. With provisioned credentials it connects outbound through a fixed
 Nginx gateway to a separate Rust WebSocket listener. The gateway joins only two
@@ -35,7 +35,7 @@ profile setup code. The production XPI has no mail permissions or probe commands
 [versioned compatibility matrix](mail-api-compatibility.md) for observed behavior
 and the native consent and draft-editing gates.
 
-The [connector contract](connector-contract.md) now provides a shared control
+The [connector contract](connector-contract.md) provides a shared control
 schema, generated Rust/TypeScript bindings, and bounded decoders under
 `protocol/rust/` and `protocol/typescript/`, used by the
 server and production extension. It carries authentication and heartbeat only.
@@ -98,7 +98,8 @@ contract. Thunderbird-specific objects stay in the extension adapter. The curren
 gateway and control transport provide the connection boundary for those future operations.
 
 The foundation plan holds the target component diagram, storage rules, backup
-requirements, and stage gates. The stage 2 experiments record mail API limitations.
+requirements, and stage gates. The
+[mail API compatibility matrix](mail-api-compatibility.md) records mail API limitations.
 Runtime diagnostics derive connector status from authenticated sessions and
 heartbeats, never from a profile file or desktop listener.
 

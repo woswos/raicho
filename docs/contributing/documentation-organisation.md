@@ -48,8 +48,8 @@ enforces both, and the directory guard applies the same pattern.
 
 Only `add-*` scaffolding skills, such as `add-endpoint`, carry an `examples` list
 of one to three existing repository file paths. Each example is also cited in
-the skill body. Add such
-skills only once recurring patterns exist. Group related names with prefixes.
+the skill body. Add such skills only once recurring patterns exist. Group related
+names with prefixes.
 
 ## Maintenance
 

@@ -1,7 +1,8 @@
 # Mail API compatibility experiment
 
-This records the second slice of the
-[Stage 2 connector plan](../planning/done/20261018-foundation-stage-two-connector.md).
+This records standard Thunderbird mail API behavior observed with a separate
+probe extension, as designed in the
+[connector plan](../planning/done/20261018-foundation-stage-two-connector.md).
 Results apply to the versions below, not supported product capabilities.
 Browser compose and production mail commands
 remain outside this experiment.
@@ -36,7 +37,7 @@ The production XPI retains its separate manifest and excludes mail probe modules
 permissions, fixture accounts, and message content. Packaging tests enforce that
 boundary. This deployment is not a production mail backend or connector protocol.
 
-## Observations on 2026-10-18
+## Observed behavior of Thunderbird 153.5.0 ESR
 
 | Operation | Evidence and current result |
 | --- | --- |
@@ -116,20 +117,13 @@ Grant `messages.send` through Thunderbird's permission UI when prompted. The
 native flow is interactive and is not evidence of unattended permission granting.
 No real account, personal profile, or provider credential belongs in either run.
 
-The full interactive experiment was executed phase by phase on probe 0.1.1,
-including native consent, native editing, restart, delivery faults, and final
-settlement. The complete default runner then passed on probe 0.1.2 with the
-folder-selection follow-up. Containerized validation also passed 51 fixture
-Python tests, 15 probe TypeScript tests, and 65 repository tests including the
-production/probe packaging boundary. These local results are not a CI run.
-CI now runs probe source tests and the default unattended runner. It explicitly
+CI runs probe source tests and the default unattended runner. It explicitly
 skips consent-dependent delivery, native editing, and interactive fault checks.
-Their observations above remain the separately recorded manual evidence.
-
-The final acceptance rerun also passed unattended drafts and restart with probe
-0.1.2. All three restart queries found their draft before the folder-selection
-fallback, unlike the earlier run. This does not remove the previously observed
-synchronization dependency or establish a general background discovery strategy.
+Their observations above remain the separately recorded manual evidence. Some
+unattended runs find every restarted draft before the folder-selection fallback,
+so that synchronization dependency is intermittent rather than resolved. The
+[connector plan](../planning/done/20261018-foundation-stage-two-connector.md#acceptance-evidence)
+records the individual runs.
 
 The controller stores observations only in the disposable fixture volume. Review
 its evidence before cleanup and update this matrix with actual results. A timeout

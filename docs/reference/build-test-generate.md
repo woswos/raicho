@@ -205,7 +205,7 @@ The host runner owns a disposable Docker deployment and checks the actual
 provisioning, rotation, revocation, restart, file permissions, and mount boundary.
 The [credential runbook](../operations/connector-credentials.md) documents the
 operator commands under `runtime/credentials/` and recovery states. Successful
-provisioning now requires a live authenticated heartbeat before removing the
+provisioning requires a live authenticated heartbeat before removing the
 previous token file.
 
 ## Production connector

@@ -90,7 +90,8 @@ transport bounds are defined in the [connector contract](connector-contract.md).
 `compose/compose.admin.yaml` enables it and publishes loopback port `RAICHO_ADMIN_PORT`,
 default 6080. This administrative interface has no application authentication.
 Keep it local, close it by recreating Thunderbird without the override, and use
-the Raicho page for diagnostics. Remote deployment and browser login are stage 3.
+the Raicho page for diagnostics. Remote deployment and browser login are planned
+in the [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md).
 
 ## Extension installation
 
@@ -173,4 +174,4 @@ Stop the server before copying the complete state directory, including journal
 files, unless using a supported consistent SQLite snapshot. Stop Thunderbird
 before copying its complete profile and external mail directories. Image rollback
 does not reverse database or profile migrations. Automated restore procedures
-remain stage 7 work.
+are planned in the [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md).

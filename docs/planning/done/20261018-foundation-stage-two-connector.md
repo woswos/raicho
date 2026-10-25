@@ -363,6 +363,50 @@ The first real-image run showed that websockify rejects text frames. The fixture
 listener then adapted text frames to its pinned decoder. Production transport
 never used that listener.
 
+## Acceptance evidence
+
+The first local acceptance ran on 2026-10-18. It used Linux amd64, Thunderbird
+153.5.0 ESR, build
+`20261013011825`, source stamp `9d5971ae648b0d17ab57509dcdcb0a06d3fdbe14`,
+and production extension 0.2.0. The image-packaged XPI SHA-256 is
+`a79470ab63de7d277cec9cf9ba655062294f72c7f26a3278ca240678550154b2`.
+The proxy used the digest-pinned Nginx version in its Dockerfile.
+
+Before publication, this stage integrated the product-versioning work from PR #3.
+Default production and probe manifests shared the declared product version,
+then 0.1.0. Versions 0.2.0 and 0.1.2 and the XPI checksum above identify the
+earlier local artifacts. The implementation PR's CI repeated unattended acceptance
+against the product-aligned builds. Explicit lifecycle upgrade versions remained
+test overrides.
+
+| Check | Local result |
+| --- | --- |
+| Source and generated contract | Lint, formatting, type checks, protocol drift, tooling fixtures, application builds, and Rust/browser/production/lifecycle/mail probe tests passed. |
+| Repository and acceptance regressions | 107 tests passed, including idle session changes/stalls, token/mail leakage, archive boundaries, CI coverage/labels, and cleanup on termination. |
+| Thunderbird supervision and policy | 26 tests passed. |
+| Basic runtime | Unconfigured startup, HTTP routing, SQLite/profile persistence across recreation, real-IP administrative isolation, listener closure, and readiness with Thunderbird stopped passed. |
+| Production connector | One generation remained connected for 600 seconds, heartbeat count 1 to 41. Invalid-token/mail-payload rejection preserved the active session. Restart/recreation of every service, network interruption, changed Raicho IP without proxy recreation, browser-route isolation, and real-IP administrative isolation passed. Logs, diagnostics, and SQLite retained neither raw token nor mail canaries. |
+| Credential operations | Provisioning, persistence, rotation interruption at both publication points, revocation/restart rejection, explicit reactivation, file access, and token exclusion passed. |
+| Separate lifecycle fixture | 20 fixture tests and unattended 0.1.0 installation, 90-second same-session idle, restart, and 0.1.1 upgrade preserving the profile passed. |
+| Unattended mail experiment | 51 fixture tests, draft/identity/attachment checks, and rediscovery after restart passed. Native and delivery-dependent phases reported `not_run`. |
+
+Stage 5 had an unclassified rejection and a failed network recovery attempt.
+Native WebSocket Ping/Pong rejection was independently reproduced and fixed,
+but the earlier failures lacked evidence to establish their cause. Preserve
+that uncertainty rather than attributing those failures to the later fix.
+Neither failure recurred in the final Stage 5 or Stage 6 suites.
+
+The full interactive mail experiment ran phase by phase on probe 0.1.1,
+including native consent, native editing, restart, delivery faults, and final
+settlement. The complete default runner then passed on probe 0.1.2 with the
+folder-selection follow-up. Containerized validation also passed 51 fixture
+Python tests, 15 probe TypeScript tests, and 65 repository tests including the
+production/probe packaging boundary. These local results are not a CI run.
+The final acceptance rerun also passed unattended drafts and restart with probe
+0.1.2. All three restart queries found their draft before the folder-selection
+fallback, unlike the earlier run. This does not remove the previously observed
+synchronization dependency or establish a general background discovery strategy.
+
 ## Notes
 
 - Review follow-up: authentication became a challenge-response that keeps the
