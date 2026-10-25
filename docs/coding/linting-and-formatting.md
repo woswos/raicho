@@ -43,13 +43,13 @@ tests rather than proving query execution or migration safety.
 
 ## Scope and enforcement
 
-`make lint-repo` runs `automation.repository.raicho_check_source_naming` and its
+`make lint-repo` runs `automation.repository.check_source_naming` and its
 package-local regression tests locally and in CI. It checks the
 [source filename convention](coding-standards.md#source-filenames), including
 HTML and CSS names without adding them to the formatting scope. Renames are
 explicit edits, never formatter fixes.
 
-`automation.repository.raicho_check_directory_naming` enforces the separate
+`automation.repository.check_directory_naming` enforces the separate
 [directory convention](coding-standards.md#directory-names). It also runs under
 `make lint-repo`, including regression tests for nested paths, reserved paths,
 ignored and missing files, and CLI root selection. It shares Git discovery and
@@ -121,7 +121,7 @@ Python tooling dependencies and their wheel hashes are locked in
 The image installs them with `pip --require-hashes --only-binary=:all:`.
 Refresh this lock inside Docker when upgrading SQLFluff or test dependencies,
 review all dependency changes, and rebuild the image. The entrypoint at
-`automation/quality/raicho_tooling_entrypoint.bash` detects a stale requirements
+`automation/quality/tooling_entrypoint.bash` detects a stale requirements
 file.
 The [websockify release](https://pypi.org/project/websockify/0.13.0/) supplies
 the WebSocket fixture server. Thunderbird's optional desktop support retains its

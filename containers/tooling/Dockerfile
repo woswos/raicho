@@ -29,7 +29,7 @@ COPY containers/tooling/requirements.txt ./requirements.txt
 RUN python3 -m pip install --no-cache-dir --only-binary=:all: --require-hashes -r requirements.txt
 COPY package.json package-lock.json eslint.config.mjs ./
 RUN npm ci --ignore-scripts --no-audit --no-fund && npm cache clean --force
-COPY automation/quality/raicho_tooling_entrypoint.bash /usr/local/bin/raicho-tooling
+COPY automation/quality/tooling_entrypoint.bash /usr/local/bin/raicho-tooling
 COPY extension/mailprobe/tests/ /opt/raicho/extension/mailprobe/tests/
 RUN install -d -o 10001 -g 10001 -m 0700 /config /artifact
 

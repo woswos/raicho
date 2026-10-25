@@ -12,7 +12,7 @@ Build the runtime images before provisioning:
 
 ```bash
 docker compose -f compose/compose.yaml build
-bash runtime/credentials/raicho_connector.bash init
+bash runtime/credentials/connector.bash init
 ```
 
 The project is selected by `RAICHO_PROJECT`, then `COMPOSE_PROJECT_NAME`, then
@@ -24,11 +24,11 @@ directory and the named database volume paired. Set
 `RAICHO_PORT` when the selected deployment needs a different loopback port.
 
 ```bash
-bash runtime/credentials/raicho_connector.bash rotate
-bash runtime/credentials/raicho_connector.bash verify
-bash runtime/credentials/raicho_connector.bash status
-bash runtime/credentials/raicho_connector.bash revoke
-bash runtime/credentials/raicho_connector.bash reactivate
+bash runtime/credentials/connector.bash rotate
+bash runtime/credentials/connector.bash verify
+bash runtime/credentials/connector.bash status
+bash runtime/credentials/connector.bash revoke
+bash runtime/credentials/connector.bash reactivate
 ```
 
 Every command stops Raicho and Thunderbird. Successful `init`, `rotate`,
@@ -123,7 +123,7 @@ restore its token as an active credential.
 ## Validation
 
 ```bash
-bash automation/acceptance/credentials/raicho_check_credentials.bash
+bash automation/acceptance/credentials/check_credentials.bash
 ```
 
 The runner owns a uniquely named disposable Compose project and temporary host

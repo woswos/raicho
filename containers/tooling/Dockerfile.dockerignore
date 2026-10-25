@@ -5,7 +5,7 @@
 !containers/tooling/requirements.txt
 !automation/
 !automation/quality/
-!automation/quality/raicho_tooling_entrypoint.bash
+!automation/quality/tooling_entrypoint.bash
 !package.json
 !package-lock.json
 !eslint.config.mjs
@@ -13,5 +13,5 @@
 !extension/mailprobe/
 !extension/mailprobe/tests/
 !extension/mailprobe/tests/**
-extension/mailprobe/tests/raicho_check_mail_compatibility.bash
+extension/mailprobe/tests/check_mail_compatibility.bash
 **/__pycache__

@@ -18,14 +18,17 @@ over unexplained abbreviations, while retaining standard protocol acronyms.
 
 Use lower camel case for JavaScript variables/functions, upper snake case for
 Bash variables, and snake case for Python identifiers. Use `mock`, not `fake`,
-when naming test doubles. Bash helper basenames use `raicho_<purpose>.bash`, with
-underscore-separated purpose words. Python helpers use the same prefix and `.py`
-suffix. Their locations follow the
+when naming test doubles. Name helper scripts and modules after their role
+within their directory, which already supplies the project and component. Do not
+repeat the project name or the directory name, as in
+`automation/repository/check_pr.py`, `automation/acceptance/connector/checks.py`,
+or `extension/build.mjs`. Their locations follow the
 [automation placement guide](../reference/project-structure.md#automation).
 Modules that run inside a fixture container on a flat import path, such as
-`extension/mailprobe/tests/` and `runtime/thunderbird/`, omit the prefix. Name
-them after their component instead, such as `probe_driver.py` or
+`extension/mailprobe/tests/` and `runtime/thunderbird/`, cannot rely on their
+directory. Name them after their component instead, such as `probe_driver.py` or
 `thunderbird_policy.py`, so they cannot shadow each other or repository packages.
+See the [helper naming decision](../decisions/20261026-naming-conventions.md#helper-files).
 Document filenames follow
 [documentation organisation](../contributing/documentation-organisation.md#naming).
 

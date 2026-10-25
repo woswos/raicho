@@ -48,7 +48,7 @@ Any update to `CHANGELOG.md` in the same pull request also satisfies the check.
 
 Added or Removed selects the next minor version. Every other kind selects the
 next patch. A major bump is never inferred. Ask for it with
-`python3 -B -m automation.release.raicho_cut_release --major` or the major-release
+`python3 -B -m automation.release.cut_release --major` or the major-release
 workflow, which requires the confirmation text `MAJOR` and must be dispatched on
 `main`.
 
@@ -59,8 +59,8 @@ and pushing stay outside it, so a dry run is safe. Run these module commands fro
 the repository root:
 
 ```bash
-python3 -B -m automation.release.raicho_cut_release
-python3 -B -m automation.release.raicho_cut_release --write
+python3 -B -m automation.release.cut_release
+python3 -B -m automation.release.cut_release --write
 ```
 
 `--write` dates `CHANGELOG.md` and stores the new version in `Cargo.toml`,
@@ -83,7 +83,7 @@ provides both the description and labels, so a failed label read cannot silently
 ignore `no changelog`.
 
 ```bash
-python3 -B -m automation.release.raicho_release_notes 0.1.0
+python3 -B -m automation.release.notes 0.1.0
 ```
 
 That command prints one dated section and fails when the section is missing.

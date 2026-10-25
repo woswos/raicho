@@ -47,11 +47,11 @@ jobs:
         if: steps.token.outputs.have == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 -B -m automation.release.raicho_cut_release --write
+        run: python3 -B -m automation.release.cut_release --write
 
       - name: Check the notes read back
         if: steps.cut.outputs.released == 'true'
-        run: python3 -B -m automation.release.raicho_release_notes "${{ steps.cut.outputs.version }}" >/dev/null
+        run: python3 -B -m automation.release.notes "${{ steps.cut.outputs.version }}" >/dev/null
 
       - name: Commit and tag
         if: steps.cut.outputs.released == 'true'

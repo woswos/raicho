@@ -14,8 +14,7 @@ services:
     profiles: [test]
     networks: [application]
     working_dir: /workspace
-    entrypoint:
-      [python3, -B, -m, automation.acceptance.runtime.raicho_runtime_checks]
+    entrypoint: [python3, -B, -m, automation.acceptance.runtime.checks]
     user: '10001:10001'
     read_only: true
     tmpfs:

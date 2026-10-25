@@ -93,7 +93,7 @@ It restores Thunderbird without administration before returning.
   docker compose up -d --force-recreate --wait --wait-timeout 120 raicho thunderbird
   docker compose run --rm smoke http
   docker compose run --rm smoke persistence
-  bash automation/acceptance/runtime/raicho_check_admin_isolation.bash
+  bash automation/acceptance/runtime/check_admin_isolation.bash
   docker compose stop thunderbird
   docker compose run --rm smoke http
 )

@@ -2,7 +2,7 @@
 !package.json
 !package-lock.json
 !extension/
-!extension/raicho_build_extension.mjs
+!extension/build.mjs
 !extension/src/
 !extension/src/**
 !extension/background.html

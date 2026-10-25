@@ -63,8 +63,8 @@ conventions within these locations.
 
 ## Automation
 
-Keep component-specific builders with their sources: `web/raicho_build_web.mjs`
-and `extension/raicho_build_extension.mjs`. Their packaging and artifact-boundary
+Keep component-specific builders with their sources: `web/build.mjs`
+and `extension/build.mjs`. Their packaging and artifact-boundary
 tests belong in `extension/tests/`. The
 [component ownership decision](../decisions/20261026-repository-layout.md#tests)
 records this placement.
@@ -86,10 +86,10 @@ Do not add thin compatibility wrappers or restore a flat helper directory.
 
 Cross-service acceptance drivers use `connector/`, `credentials/`, and `runtime/`
 subpackages. The connector and credential runners source
-`automation/acceptance/raicho_credential_deployment.bash` for their disposable
+`automation/acceptance/credential_deployment.bash` for their disposable
 project, state directory, and fixture container.
 The shared repository-path helper lives at
-`automation/raicho_paths.py`.
+`automation/paths.py`.
 
 Operational credential provisioning, rotation, and live verification belong in
 `runtime/credentials/` as a host Bash wrapper around `raicho-server connector`

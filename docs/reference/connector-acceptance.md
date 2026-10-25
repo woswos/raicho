@@ -30,9 +30,9 @@ The workflow invokes the same commands used locally:
 docker compose -f compose/compose.tools.yaml build
 docker compose -f compose/compose.tools.yaml run --rm check \
   make lint format-check typecheck test-tooling build-app test-app test-mailprobe test-protocol
-bash automation/acceptance/connector/raicho_check_connector.bash
-bash automation/acceptance/credentials/raicho_check_credentials.bash
-bash extension/mailprobe/tests/raicho_check_mail_compatibility.bash
+bash automation/acceptance/connector/check_connector.bash
+bash automation/acceptance/credentials/check_credentials.bash
+bash extension/mailprobe/tests/check_mail_compatibility.bash
 ```
 
 The `runtime-test` job also checks unconfigured startup, persistence,

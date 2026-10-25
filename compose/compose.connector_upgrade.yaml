@@ -20,7 +20,7 @@ services:
     command:
       [
         node,
-        /workspace/extension/raicho_build_extension.mjs,
+        /workspace/extension/build.mjs,
         --version,
         65535.0.0,
         --output-directory,

@@ -18,7 +18,7 @@ docker compose -f compose/compose.tools.yaml build
 The image's build-context allowlist is
 `containers/tooling/Dockerfile.dockerignore`. Fixture sources come from the
 component-local directories listed in [project structure](project-structure.md#test-code).
-The tooling entrypoint lives at `automation/quality/raicho_tooling_entrypoint.bash`.
+The tooling entrypoint lives at `automation/quality/tooling_entrypoint.bash`.
 
 The entrypoint also compares `package.json`, `package-lock.json`,
 `eslint.config.mjs`, and `containers/tooling/requirements.txt` with the image
@@ -150,9 +150,9 @@ combines `test-server`, `test-web`, and `test-extension`.
 Rust uses `--workspace --all-targets --locked` and
 temporary Cargo output. The browser build uses `tsc`, copies public files and
 the selected identity assets, then runs Node's built-in tests against compiled
-modules. The web builder is `web/raicho_build_web.mjs`, and extension packaging
-uses `extension/raicho_build_extension.mjs`. Both run on Node alone. The shared dispatcher remains in
-`automation/build/raicho_application.py`. All temporary build output stays
+modules. The web builder is `web/build.mjs`, and extension packaging
+uses `extension/build.mjs`. Both run on Node alone. The shared dispatcher remains in
+`automation/build/application.py`. All temporary build output stays
 outside the source mount.
 
 Tooling defaults to no Rust debug symbols or incremental output, keeping the
@@ -197,7 +197,7 @@ for sources, parsing rules, and integration responsibilities.
 ```bash
 docker compose -f compose/compose.tools.yaml run --rm check \
   make test-server lint-repo lint-sql format-check-sql
-bash automation/acceptance/credentials/raicho_check_credentials.bash
+bash automation/acceptance/credentials/check_credentials.bash
 ```
 
 The source checks cover credential state transitions, token-file recovery and
@@ -213,7 +213,7 @@ previous token file.
 
 ```bash
 docker compose -f compose/compose.tools.yaml run --rm check make test-server test-extension test-web
-bash automation/acceptance/connector/raicho_check_connector.bash
+bash automation/acceptance/connector/check_connector.bash
 ```
 
 The host runner owns a fresh `raicho-connector-...` deployment and credentials.
@@ -247,7 +247,7 @@ The packager stores sorted, uncompressed archive entries with fixed timestamps
 and modes. Its reproducibility and version tests run under `lint-repo`.
 `build-extension` uses disposable output. To export an XPI, mount an empty
 output directory into the tooling container and run
-`node extension/raicho_build_extension.mjs --output /output/raicho.xpi`. The `--version` option overrides the manifest
+`node extension/build.mjs --output /output/raicho.xpi`. The `--version` option overrides the manifest
 version, as the connector upgrade check does. No test modules or credentials
 enter the archive.
 
@@ -257,7 +257,7 @@ Product versions are cut from the changelog. The commands and the bump rules
 are in [versioning](versioning.md). A dry run writes nothing:
 
 ```bash
-python3 -B -m automation.release.raicho_cut_release
+python3 -B -m automation.release.cut_release
 ```
 
 Authorization follows [workflow](../contributing/workflow.md). CI behavior is
@@ -267,8 +267,8 @@ documented in [CI](ci-cd.md), and runtime details in [runtime](runtime.md).
 
 ```bash
 docker compose -f compose/compose.tools.yaml run --rm check make test-mailprobe
-bash extension/mailprobe/tests/raicho_check_mail_compatibility.bash
-bash extension/mailprobe/tests/raicho_check_mail_compatibility.bash --native
+bash extension/mailprobe/tests/check_mail_compatibility.bash
+bash extension/mailprobe/tests/check_mail_compatibility.bash --native
 ```
 
 The separate `test-mailprobe` target compiles and tests the fixture extension.
