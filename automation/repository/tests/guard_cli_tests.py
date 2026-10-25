@@ -8,6 +8,7 @@ GUARDS = (
     'doc_naming',
     'source_naming',
     'directory_naming',
+    'schema_naming',
     'skills',
     'design_link',
     'pr',
@@ -58,6 +59,10 @@ class GuardCliTests(GuardTestCase):
             'doc_naming': ('docs/Bad Name.md', '# Invalid\n'),
             'source_naming': ('bad-name.py', ''),
             'directory_naming': ('bad_directory/file.txt', ''),
+            'schema_naming': (
+                'server/migrations/0000_bad_names.sql',
+                'CREATE TABLE BadName (identifier INTEGER);\n',
+            ),
             'skills': ('.agents/skills/test/SKILL.md', '# Missing frontmatter\n'),
             'design_link': None,
             'pr': None,

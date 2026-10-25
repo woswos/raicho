@@ -88,6 +88,18 @@ historical references use the [tooling exclusions](linting-and-formatting.md#sco
 The [directory naming decision](../decisions/20261026-naming-conventions.md#directories)
 records the rationale and migration.
 
+## Database names
+
+Name every table, column, index, view, and trigger in lowercase `snake_case`:
+lowercase letters and digits in words separated by one underscore, starting with
+a letter, such as `connector_credentials.stored_key`. Never quote an identifier
+to admit spaces, capitals, or a leading digit. `make lint-repo` applies
+`server/migrations/` in order to an in-memory SQLite database and checks every
+name the migrations introduce, attributing each failure to its migration.
+SQLite's own `sqlite_` objects and the SQLx `_sqlx_migrations` table are not
+created by migrations and are outside the rule. See the
+[database naming decision](../decisions/20261026-naming-conventions.md#database-identifiers).
+
 ## Comments and prose
 
 Default to no comments. Explain only a non-obvious reason, not the code itself,

@@ -19,6 +19,7 @@ lint-repo:
 	@python3 -B -m automation.repository.check_doc_naming
 	@python3 -B -m automation.repository.check_source_naming
 	@python3 -B -m automation.repository.check_directory_naming
+	@python3 -B -m automation.repository.check_schema_naming
 	@python3 -B -m automation.repository.check_skills
 	@python3 -B -m automation.release.version
 	@python3 -B -m unittest discover -s automation -t . -p '*_tests.py'

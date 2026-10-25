@@ -55,6 +55,12 @@ explicit edits, never formatter fixes.
 ignored and missing files, and CLI root selection. It shares Git discovery and
 the exclusions below with the source filename guard.
 
+`automation.repository.check_schema_naming` enforces the
+[database naming convention](coding-standards.md#database-names) under
+`make lint-repo`. It builds the schema from `server/migrations/` with Python's
+`sqlite3` instead of parsing SQL, so it also covers quoted identifiers that
+SQLFluff's capitalization rules ignore.
+
 Check and format commands discover tracked and non-ignored untracked source
 through Git. Disposable fixture directories use filesystem discovery. Scope
 includes Bash (`.bash`, `.sh`, and shell shebangs), Python (`.py`, `.pyi`),

@@ -159,6 +159,8 @@ The connector migration records backend configuration and credential state.
 No mail data is stored. Add versioned SQL files under
 `server/migrations/` with the feature that uses them, following the
 [sequential filename convention](../coding/coding-standards.md#source-filenames).
+Name their tables, columns, indexes, views, and triggers in
+[snake_case](../coding/coding-standards.md#database-names).
 Embedded migration changes trigger recompilation. Do not rename, renumber, or
 edit an applied migration, including formatting or whitespace, because SQLx
 checks its version and checksums its bytes. Format new migrations before
