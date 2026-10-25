@@ -196,6 +196,19 @@ class ConnectorSecretFilesTests(unittest.TestCase):
         self.assertEqual(list(self.directory.iterdir()), [self.path('token')])
         self.assertEqual(self.path('token').read_bytes(), original)
 
+    def test_killed_preparation_leaves_a_recoverable_directory(self):
+        original = self.initialized()
+        staging = self.directory / '.connector.preparing'
+        staging.write_bytes(b'partial')
+        self.assertEqual(self.operate('rotate'), 'pending')
+        self.assertFalse(staging.exists())
+        self.assertEqual(self.path('token').read_bytes(), original)
+        self.path('pending').unlink()
+        staging.symlink_to(self.path('token'))
+        with self.assertRaises(ValueError):
+            self.operate('check')
+        self.assertTrue(staging.is_symlink())
+
     def test_rejects_unexpected_files_and_cli_never_prints_secret(self):
         secret = self.initialized()
         (self.directory / 'unexpected').touch()

@@ -98,17 +98,9 @@ backup only as a deliberate administrative recovery, accounting for any
 revocation that occurred after that backup.
 
 An interruption while generating randomness can leave `.connector.preparing`.
-The wrapper never submits this staging filename to SQLite. With both services
-stopped, preserve it outside `credentials/` before rerunning the interrupted
-command. For the default deployment, after making the backup described above:
-
-```bash
-sudo mv -- .raicho/raicho/credentials/.connector.preparing \
-  .raicho/raicho/interrupted-token
-```
-
-This keeps the original private mode and owner. Do not move `connector.pending`,
-`connector.previous`, or `connector.token` using this procedure.
+The wrapper never submits this staging filename to SQLite. The next command
+deletes it when it is a regular file without links, then continues. A link or
+other file type under that name fails closed for manual investigation.
 
 Revocation needs no secret file and persists across startup. Replaying enrollment
 or an interrupted rotation cannot reactivate a revoked record. Automatic

@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 FILENAMES = {'connector.token', 'connector.pending', 'connector.previous'}
+STAGING = '.connector.preparing'
 OPERATIONS = ('init', 'rotate', 'reactivate', 'publish', 'finish', 'check')
 
 
@@ -34,10 +35,20 @@ def validate_token(directory, filename, owner_uid, owner_gid):
             raise ValueError('Connector secret has an invalid format')
 
 
+def discard_staging(directory, filenames):
+    if STAGING not in filenames:
+        return filenames
+    metadata = os.stat(STAGING, dir_fd=directory, follow_symlinks=False)
+    if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
+        raise ValueError('Connector staging must be a regular file without links')
+    os.unlink(STAGING, dir_fd=directory)
+    os.fsync(directory)
+    return filenames - {STAGING}
+
+
 def prepare(directory, owner_uid, owner_gid):
-    staging = '.connector.preparing'
     descriptor = os.open(
-        staging,
+        STAGING,
         os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
         0o600,
         dir_fd=directory,
@@ -49,10 +60,10 @@ def prepare(directory, owner_uid, owner_gid):
             output.write((secrets.token_hex(32) + '\n').encode('ascii'))
             output.flush()
             os.fsync(output.fileno())
-        replace(directory, staging, 'connector.pending')
+        replace(directory, STAGING, 'connector.pending')
     finally:
         try:
-            os.unlink(staging, dir_fd=directory)
+            os.unlink(STAGING, dir_fd=directory)
             os.fsync(directory)
         except FileNotFoundError:
             pass
@@ -115,6 +126,7 @@ def operate(operation, path, owner_uid=10001, owner_gid=10001):
             os.fchown(directory, owner_uid, owner_gid)
             os.fsync(directory)
         validate_metadata(os.fstat(directory), owner_uid, owner_gid, 0o700)
+        filenames = discard_staging(directory, filenames)
         if filenames - FILENAMES:
             raise ValueError('Connector directory contains unexpected files')
         for filename in filenames:
