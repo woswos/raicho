@@ -46,6 +46,12 @@ and source.
 The `no changelog` label skips the check when a change is genuinely invisible.
 Any update to `CHANGELOG.md` in the same pull request also satisfies the check.
 
+Write `Unreleased` entries against the last release, not the branch history.
+Describe what an operator gains, loses, or must do differently. Do not record
+moves, renames, or refactors that happen entirely within the pull request,
+because no release ever contained the earlier state. The kinds chosen also set
+the version bump, so a feature listed only under Changed ships as a patch.
+
 Added or Removed selects the next minor version. Every other kind selects the
 next patch. A major bump is never inferred. Ask for it with
 `python3 -B -m automation.release.cut_release --major` or the major-release

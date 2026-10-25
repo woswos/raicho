@@ -69,6 +69,22 @@ export COMPOSE_PROJECT_NAME=raicho-second RAICHO_PORT=8081 RAICHO_ADMIN_PORT=608
 docker compose -f compose/compose.yaml up -d --wait
 ```
 
+If Raicho fails to start because a migration's checksum or version does not
+match, its database applied an earlier version of a migration that has since
+changed. That happens only on unreleased branches, because released migrations
+are never edited. For a development deployment, remove the volume and provision
+again:
+
+```bash
+docker compose -f compose/compose.yaml down
+docker volume rm "${COMPOSE_PROJECT_NAME:-raicho}_raicho-data"
+docker compose -f compose/compose.yaml up -d --wait
+bash runtime/credentials/connector.bash init
+```
+
+This deletes Raicho's application state, including the connector credential.
+Thunderbird's profile volume is untouched.
+
 ## Disposable automated checks
 
 These commands create their own project, build the same images as CI, and remove

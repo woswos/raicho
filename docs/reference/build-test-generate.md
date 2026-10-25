@@ -98,6 +98,15 @@ For SQL alone, use `check make lint-sql format-check-sql` or
 SQL checks need no database connection. Applied migration files must retain
 their original bytes, as explained in the [runtime reference](runtime.md#sqlite-initialization-and-migrations).
 
+A new or changed Rust dependency also changes `Cargo.lock`. The `check` service
+mounts the checkout read-only and builds use `--locked`, so refresh the lockfile
+through the writable service first:
+
+```bash
+LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)" \
+docker compose -f compose/compose.tools.yaml run --rm format cargo metadata --format-version 1
+```
+
 The exact scope and pins are in
 [linting and formatting](../coding/linting-and-formatting.md). CI never runs
 automatic fixes. Repository integrity checks retain standing approval during
@@ -218,7 +227,7 @@ bash automation/acceptance/connector/check_connector.bash
 
 The host runner owns a fresh `raicho-connector-...` deployment and credentials.
 It tests authenticated heartbeat, restart and recreation of all three services,
-network interruption, changed server IP without proxy recreation, rejected tokens,
+network interruption, changed server IP without proxy recreation, rejected proofs,
 proxy route restrictions, the separate browser listener, and administrative
 isolation by actual container IP. It checks logs, database contents, and mount
 boundaries before removing its resources. It uses the production XPI and no
@@ -232,6 +241,12 @@ and a profile sentinel across restarts. Finally it builds the production XPI as
 version 65535.0.0 into a disposable volume, mounts it over the image's extension
 directory, and requires the same profile to activate that version and reconnect.
 It runs unchanged in CI's `connector-test` job alongside the credential runner. See [acceptance evidence](connector-acceptance.md).
+
+The connector runner takes about 20 minutes because of its idle observation. The
+credential runner takes about 6 minutes and the mail runner about 3, after cached
+image builds. Each owns a uniquely named project and networks, so they can run
+concurrently. They run unchanged from a linked worktree, which tests a fixed
+commit while editing continues in another checkout.
 
 ## Extension packaging
 

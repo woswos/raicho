@@ -96,6 +96,11 @@ Where behavioral tests apply, add the planned tests before the implementation.
 Record red/green evidence when execution is authorized. For documentation and
 assets, use the plan's explicit validation instead of artificial tests.
 
+Every plan starts in `active/`. Never add a plan directly to `done/`. When review
+of an unmerged implementation changes the design of a plan that is already in
+`done/`, add a dated follow-up note to that plan, and record the change in a new
+decision record rather than rewriting the original stages.
+
 After the last stage, move the plan from `active/` to `done/` with `git mv` in the
 final implementation commit. Keep the PR's `Design:` line pointing at the path
 that exists on the target branch. The verification skill finds the completed

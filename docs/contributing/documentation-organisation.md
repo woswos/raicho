@@ -22,6 +22,11 @@ see-also links, principles or decisions, then necessary details. For systems in
 transition, state current behavior, target behavior, and migration status with a
 link to the plan. Runbooks explain when to use them, steps, and verification.
 
+Keep reference documents evergreen. Describe current behavior and link to plans
+for targets, without dated run results, stage numbers, pull request numbers, or
+words such as "now" and "currently". Record dated evidence in an evidence section
+of the relevant plan, or in a decision record.
+
 ## Naming
 
 Use lowercase `kebab-slug.md` filenames. Plans and ADRs use a `YYYYMMDD-` creation

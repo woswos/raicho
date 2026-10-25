@@ -22,6 +22,14 @@ Decompose behavior into focused functions and design boundaries for testing.
 Prefer the standard library. Justify a new dependency and prefer maintained
 projects with an established community.
 
+## Consistency
+
+Give each rule one source. Generate vocabularies and limits that several
+languages share from `protocol/`, pin shared algorithms with one test vector
+that every implementation runs, and keep a single implementation of each
+validation rule. Operational commands run from runtime images. The tooling
+image is for development and tests only.
+
 ## Collaboration
 
 Raise unclear requirements and material design alternatives before proceeding.

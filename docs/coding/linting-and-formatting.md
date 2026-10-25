@@ -55,6 +55,14 @@ explicit edits, never formatter fixes.
 ignored and missing files, and CLI root selection. It shares Git discovery and
 the exclusions below with the source filename guard.
 
+Add a new repository guard the same way. Create
+`automation/repository/check_<rule>.py` with an optional repository-root
+argument, `FAIL:` diagnostics on stderr, and exit code 1 on failure. Write its
+tests first in `automation/repository/tests/<rule>_tests.py`, and add the guard
+with a failing case to `GUARDS` in `guard_cli_tests.py`. Run it from `lint-repo`
+in the Makefile, state the rule in the [coding standards](coding-standards.md),
+describe the guard here, and record a decision.
+
 `automation.repository.check_schema_naming` enforces the
 [database naming convention](coding-standards.md#database-names) under
 `make lint-repo`. It builds the schema from `server/migrations/` with Python's
