@@ -2,9 +2,9 @@ from automation.repository.raicho_check_changelog import is_shipping
 from automation.testing.raicho_guard_fixtures import GuardTestCase
 
 RUST_PROTOCOL_PATHS = (
-    'protocol/rust/src/decode.rs',
-    'protocol/rust/src/parse.rs',
-    'protocol/rust/src/preflight.rs',
+    'protocol/rust/src/decode_frame.rs',
+    'protocol/rust/src/raw_json.rs',
+    'protocol/rust/src/diagnostics_generated.rs',
 )
 PROBE_PATHS = tuple(
     f'extension/{probe}/{path}'
@@ -49,7 +49,10 @@ class ProtocolChangelogTests(GuardTestCase):
                 self.assertIn('no shipping change', result.stdout)
 
     def test_mixed_probe_and_production_changes_require_an_entry(self):
-        for path in ('extension/src/background.ts', 'protocol/rust/src/decode.rs'):
+        for path in (
+            'extension/src/background.ts',
+            'protocol/rust/src/decode_frame.rs',
+        ):
             with self.subTest(path=path):
                 repo, environment = self.pull_request_for([*PROBE_PATHS, path])
                 result = self.run_guard(repo, 'raicho_check_pr.py', environment)

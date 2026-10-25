@@ -1,5 +1,6 @@
 mod support;
 
+use raicho_protocol::diagnostics_generated::BackendState;
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
@@ -90,6 +91,9 @@ async fn shutdown_cancels_idle_sessions_and_releases_database_users() {
     tokio::time::timeout(Duration::from_secs(2), fixture.connector.shutdown())
         .await
         .unwrap();
-    assert_eq!(fixture.connector.snapshot().await.status, "disconnected");
+    assert_eq!(
+        fixture.connector.snapshot().await.status,
+        BackendState::Disconnected
+    );
     fixture.finish().await;
 }

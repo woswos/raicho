@@ -4,6 +4,8 @@ import time
 import urllib.error
 import urllib.request
 
+from automation.raicho_paths import REPOSITORY_ROOT
+
 
 def status():
     with urllib.request.urlopen('http://raicho:8080/api/status', timeout=5) as response:
@@ -49,29 +51,11 @@ def wait_for_status(arguments):
 
 def snapshot():
     backend = status()
-    allowed_states = {
-        'unconfigured',
-        'connected',
-        'disconnected',
-        'revoked',
-        'unavailable',
-    }
-    allowed_errors = {
-        None,
-        'authentication_failed',
-        'authentication_timeout',
-        'incompatible_version',
-        'invalid_message',
-        'message_too_large',
-        'unexpected_message',
-        'stale_generation',
-        'heartbeat_timeout',
-        'disconnected',
-        'storage_unavailable',
-        'server_busy',
-    }
-    assert backend['status'] in allowed_states
-    assert backend['last_error'] in allowed_errors
+    diagnostics = json.loads(
+        (REPOSITORY_ROOT / 'protocol/diagnostics.json').read_text()
+    )
+    assert backend['status'] in diagnostics['backend_states']
+    assert backend['last_error'] in [None, *diagnostics['backend_errors']]
     assert type(backend['heartbeat_count']) is int
     print(
         json.dumps(

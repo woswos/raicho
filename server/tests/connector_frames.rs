@@ -1,5 +1,6 @@
 mod support;
 
+use raicho_protocol::diagnostics_generated::{BackendError, BackendState};
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
@@ -41,7 +42,7 @@ async fn fragmented_authentication_cannot_extend_the_absolute_deadline() {
     assert_eq!(error["code"], "authentication_failed");
     assert_eq!(
         fixture.connector.snapshot().await.last_error,
-        Some("authentication_timeout")
+        Some(BackendError::AuthenticationTimeout)
     );
     fixture.finish().await;
 }
@@ -79,8 +80,8 @@ async fn fragmented_messages_obey_the_transport_aggregate_budget() {
         .unwrap();
     tokio::time::sleep(Duration::from_millis(20)).await;
     let status = fixture.connector.snapshot().await;
-    assert_eq!(status.status, "disconnected");
-    assert_eq!(status.last_error, Some("message_too_large"));
+    assert_eq!(status.status, BackendState::Disconnected);
+    assert_eq!(status.last_error, Some(BackendError::MessageTooLarge));
     fixture.finish().await;
 }
 
@@ -91,7 +92,7 @@ async fn abrupt_peer_loss_is_recorded_as_a_disconnection() {
     drop(socket);
     tokio::time::sleep(Duration::from_millis(20)).await;
     let status = fixture.connector.snapshot().await;
-    assert_eq!(status.status, "disconnected");
-    assert_eq!(status.last_error, Some("disconnected"));
+    assert_eq!(status.status, BackendState::Disconnected);
+    assert_eq!(status.last_error, Some(BackendError::Disconnected));
     fixture.finish().await;
 }

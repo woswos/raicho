@@ -1,5 +1,6 @@
 mod support;
 
+use raicho_protocol::diagnostics_generated::{BackendError, BackendState};
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
@@ -21,7 +22,10 @@ async fn native_ping_and_pong_are_transport_controls_before_and_after_authentica
     assert_eq!(receive(&mut socket).await["type"], "welcome");
     native_ping(&mut socket).await;
     socket.send(Message::Pong(vec![2].into())).await.unwrap();
-    assert_eq!(fixture.connector.snapshot().await.status, "connected");
+    assert_eq!(
+        fixture.connector.snapshot().await.status,
+        BackendState::Connected
+    );
     assert_eq!(fixture.connector.snapshot().await.heartbeat_count, 0);
     fixture.finish().await;
 }
@@ -38,7 +42,7 @@ async fn native_controls_do_not_restart_the_authentication_deadline() {
     assert_eq!(receive(&mut socket).await["code"], "authentication_failed");
     assert_eq!(
         fixture.connector.snapshot().await.last_error,
-        Some("authentication_timeout")
+        Some(BackendError::AuthenticationTimeout)
     );
     fixture.finish().await;
 }

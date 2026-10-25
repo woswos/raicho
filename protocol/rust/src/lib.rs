@@ -1,11 +1,11 @@
-pub mod generated;
+pub mod contract_generated;
+pub mod diagnostics_generated;
 pub mod limits_generated;
 
-mod decode;
+mod decode_frame;
 mod error;
-mod parse;
-mod preflight;
+mod raw_json;
 mod schema;
 
-pub use decode::{Phase, decode_frame};
+pub use decode_frame::{Phase, decode_frame};
 pub use error::ContractError;

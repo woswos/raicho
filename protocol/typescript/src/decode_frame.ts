@@ -21,12 +21,9 @@ export class ContractError extends Error {
 }
 
 function hasValidWireValues(value: unknown): boolean {
-  const pending: { value: unknown; depth: number }[] = [{ value, depth: 0 }];
+  const pending: unknown[] = [value];
   while (pending.length !== 0) {
-    const entry = pending.pop();
-    if (!entry) return false;
-    const { value: current, depth } = entry;
-    if (depth > LIMITS.maximum_json_depth) return false;
+    const current = pending.pop();
     if (typeof current === 'string') {
       if (/[^\x20-\x7e]/u.test(current)) return false;
     } else if (typeof current === 'number') {
@@ -34,7 +31,7 @@ function hasValidWireValues(value: unknown): boolean {
     } else if (current !== null && typeof current === 'object') {
       for (const [key, child] of Object.entries(current)) {
         if (/[^\x20-\x7e]/u.test(key)) return false;
-        pending.push({ value: child, depth: depth + 1 });
+        pending.push(child);
       }
     }
   }
@@ -99,8 +96,8 @@ export function decodeFrame(
 ): ConnectorMessage {
   const maximumBytes =
     phase === 'authentication'
-      ? LIMITS.authentication_max_bytes
-      : LIMITS.control_max_bytes;
+      ? LIMITS.maximum_authentication_bytes
+      : LIMITS.maximum_control_bytes;
   if (
     raw.length > maximumBytes ||
     new TextEncoder().encode(raw).byteLength > maximumBytes

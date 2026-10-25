@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -7,13 +8,12 @@ import tempfile
 from pathlib import Path
 
 from protocol.generator.raicho_protocol_schema import validate_sources
-from protocol.generator.raicho_protocol_typescript import test_typescript
 
 ROOT = Path(__file__).resolve().parents[2]
 OUTPUTS = {
     'rust': (
         Path('protocol/rust/src'),
-        ['generated.rs', 'limits_generated.rs'],
+        ['contract_generated.rs', 'limits_generated.rs', 'diagnostics_generated.rs'],
     ),
     'typescript': (
         Path('protocol/typescript/src'),
@@ -24,6 +24,7 @@ OUTPUTS = {
             'limits_generated.ts',
         ],
     ),
+    'web': (Path('web/src'), ['diagnostics_generated.ts']),
 }
 
 
@@ -36,10 +37,36 @@ def changed_outputs(generated, committed, filenames):
     ]
 
 
+def test_typescript():
+    source = ROOT / 'protocol/typescript'
+    with tempfile.TemporaryDirectory(prefix='raicho-protocol-typescript-') as directory:
+        subprocess.run(
+            ['tsc', '--project', str(source / 'tsconfig.json'), '--outDir', directory],
+            cwd=ROOT,
+            check=True,
+        )
+        shutil.copyfile(source / 'package.json', f'{directory}/package.json')
+        tests = sorted(str(path) for path in (source / 'tests').glob('*.test.mjs'))
+        if not tests:
+            raise ValueError('No TypeScript protocol tests were found.')
+        subprocess.run(
+            ['node', '--test', *tests],
+            cwd=ROOT,
+            env=os.environ | {'RAICHO_PROTOCOL_BUILD_DIR': directory},
+            check=True,
+        )
+
+
 def generate(action):
     validate_sources(
-        json.loads((ROOT / 'protocol/schema/connector.schema.json').read_text()),
-        json.loads((ROOT / 'protocol/limits.json').read_text()),
+        *(
+            json.loads((ROOT / 'protocol' / name).read_text())
+            for name in (
+                'schema/connector.schema.json',
+                'limits.json',
+                'diagnostics.json',
+            )
+        )
     )
     with tempfile.TemporaryDirectory(prefix='raicho-protocol-') as temporary:
         staging = Path(temporary)
@@ -57,6 +84,7 @@ def generate(action):
                 'node',
                 str(ROOT / 'protocol/generator/raicho_generate_protocol.mjs'),
                 str(staging / 'typescript'),
+                str(staging / 'web'),
             ],
         ]
         for command in commands:
@@ -86,20 +114,7 @@ def main():
     action = parser.parse_args().action
     try:
         if action == 'test':
-            subprocess.run(
-                [
-                    'cargo',
-                    'test',
-                    '--locked',
-                    '--package',
-                    'raicho-protocol',
-                    '--package',
-                    'raicho-protocol-generator',
-                ],
-                cwd=ROOT,
-                check=True,
-            )
-            test_typescript(ROOT)
+            test_typescript()
         else:
             generate(action)
     except (OSError, ValueError, subprocess.CalledProcessError) as error:

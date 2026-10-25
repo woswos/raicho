@@ -2,6 +2,15 @@ import type { Configuration } from './configuration.js';
 import { connectorSession, type Metadata } from './connector_session.js';
 import { LIMITS } from '../../protocol/typescript/src/limits_generated.js';
 
+const INITIAL_RETRY_DELAY_MS = 1000;
+const MAXIMUM_RETRY_DELAY_MS = 30000;
+const MAXIMUM_BACKOFF_EXPONENT = 5;
+const TERMINAL_CLOSE_CODES: readonly number[] = [
+  LIMITS.authentication_failure_close_code,
+  LIMITS.protocol_failure_close_code,
+  LIMITS.session_replaced_close_code,
+];
+
 interface Dependencies {
   connect: (endpoint: string) => WebSocket;
   schedule: (callback: () => void, delay: number) => number;
@@ -53,8 +62,10 @@ export function startConnectorTransport(
     detachSocket();
     if (stopped) return;
     const delay = Math.min(
-      30000,
-      1000 * 2 ** Math.min(failures++, 5) * (1 + dependencies.random()),
+      MAXIMUM_RETRY_DELAY_MS,
+      INITIAL_RETRY_DELAY_MS *
+        2 ** Math.min(failures++, MAXIMUM_BACKOFF_EXPONENT) *
+        (1 + dependencies.random()),
     );
     timer = dependencies.schedule(connect, delay);
   }
@@ -75,9 +86,9 @@ export function startConnectorTransport(
       };
       const send = (message: string) => {
         if (
-          current.readyState !== 1 ||
+          current.readyState !== WebSocket.OPEN ||
           current.bufferedAmount !== 0 ||
-          message.length > LIMITS.control_max_bytes
+          message.length > LIMITS.maximum_control_bytes
         ) {
           throw new Error('Connector sender is unavailable.');
         }
@@ -126,7 +137,7 @@ export function startConnectorTransport(
       };
       current.onclose = (event) => {
         if (!active()) return;
-        if ([4001, 4002, 4003].includes(event.code)) stop();
+        if (TERMINAL_CLOSE_CODES.includes(event.code)) stop();
         else retry();
       };
       current.onerror = () => {

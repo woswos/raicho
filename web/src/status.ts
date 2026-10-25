@@ -1,28 +1,9 @@
-const backendStates = [
-  'unconfigured',
-  'disconnected',
-  'connected',
-  'revoked',
-  'unavailable',
-] as const;
-const backendErrors = [
-  'authentication_failed',
-  'authentication_timeout',
-  'incompatible_version',
-  'invalid_message',
-  'message_too_large',
-  'unexpected_message',
-  'stale_generation',
-  'heartbeat_timeout',
-  'disconnected',
-  'storage_unavailable',
-  'server_busy',
-] as const;
+import { BACKEND_ERRORS, BACKEND_STATES } from './diagnostics_generated.js';
 
 export interface BackendStatus {
-  status: (typeof backendStates)[number];
+  status: (typeof BACKEND_STATES)[number];
   kind: 'thunderbird';
-  last_error: (typeof backendErrors)[number] | null;
+  last_error: (typeof BACKEND_ERRORS)[number] | null;
 }
 
 export interface ApplicationStatus {
@@ -71,13 +52,13 @@ export function parseStatus(value: unknown): ApplicationStatus {
     throw new StatusResponseError();
   }
 
-  const backendState = backendStates.find(
+  const backendState = BACKEND_STATES.find(
     (state) => state === backend['status'],
   );
   const backendError =
     backend['last_error'] === null
       ? null
-      : backendErrors.find((error) => error === backend['last_error']);
+      : BACKEND_ERRORS.find((error) => error === backend['last_error']);
   if (backendState === undefined || backendError === undefined) {
     throw new StatusResponseError();
   }

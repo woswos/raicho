@@ -52,5 +52,5 @@ generate-protocol:
 	@python3 -B -m protocol.generator.raicho_protocol generate
 check-protocol:
 	@python3 -B -m protocol.generator.raicho_protocol check
-test-protocol: test-extension
+test-protocol:
 	@python3 -B -m protocol.generator.raicho_protocol test

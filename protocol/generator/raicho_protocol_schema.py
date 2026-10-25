@@ -1,3 +1,5 @@
+import re
+
 VOCABULARY = {
     '$schema',
     '$ref',
@@ -21,15 +23,19 @@ VOCABULARY = {
 LIMIT_NAMES = {
     'protocol_version',
     'authentication_deadline_ms',
-    'authentication_max_bytes',
-    'control_max_bytes',
+    'maximum_authentication_bytes',
+    'maximum_control_bytes',
     'maximum_json_depth',
     'heartbeat_interval_ms',
     'heartbeat_timeout_ms',
     'maximum_active_connections',
     'maximum_pending_authentications',
-    'maximum_queued_messages',
+    'authentication_failure_close_code',
+    'protocol_failure_close_code',
+    'session_replaced_close_code',
 }
+DIAGNOSTIC_LISTS = {'backend_states', 'backend_errors'}
+DIAGNOSTIC_CODE = re.compile(r'[a-z]+(?:_[a-z]+)*')
 
 
 def validate_schema(schema, definitions):
@@ -55,7 +61,26 @@ def validate_schema(schema, definitions):
         validate_schema(schema['additionalProperties'], definitions)
 
 
-def validate_sources(schema, limits):
+def validate_diagnostics(diagnostics, schema):
+    if not isinstance(diagnostics, dict) or set(diagnostics) != DIAGNOSTIC_LISTS:
+        raise ValueError('Diagnostics must list backend states and errors.')
+    for codes in diagnostics.values():
+        if (
+            not isinstance(codes, list)
+            or not codes
+            or len(set(codes)) != len(codes)
+            or not all(
+                isinstance(code, str) and DIAGNOSTIC_CODE.fullmatch(code)
+                for code in codes
+            )
+        ):
+            raise ValueError('Diagnostic codes must be unique snake_case words.')
+    protocol_errors = schema['definitions']['ProtocolError']['properties']['code']
+    if not set(protocol_errors['enum']) <= set(diagnostics['backend_errors']):
+        raise ValueError('Every protocol error code must be a backend error.')
+
+
+def validate_sources(schema, limits, diagnostics):
     if schema.get('$schema') != 'http://json-schema.org/draft-07/schema#':
         raise ValueError('The protocol uses JSON Schema draft 7.')
     definitions = schema.get('definitions', {})
@@ -74,7 +99,8 @@ def validate_sources(schema, limits):
         ]:
             if name in properties and properties[name].get('enum') != [limits[name]]:
                 raise ValueError(f'Protocol schema disagrees with limit {name}.')
-    if limits['authentication_max_bytes'] > limits['control_max_bytes']:
+    if limits['maximum_authentication_bytes'] > limits['maximum_control_bytes']:
         raise ValueError('Authentication frames cannot exceed the control limit.')
     if limits['heartbeat_interval_ms'] >= limits['heartbeat_timeout_ms']:
         raise ValueError('Heartbeat timeout must exceed its interval.')
+    validate_diagnostics(diagnostics, schema)

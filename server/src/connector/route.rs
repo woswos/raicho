@@ -7,7 +7,7 @@ use axum::http::{HeaderMap, Method, StatusCode, Uri};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
 use axum::routing::get;
-use raicho_protocol::limits_generated::{AUTHENTICATION_MAX_BYTES, CONTROL_MAX_BYTES};
+use raicho_protocol::limits_generated::{MAXIMUM_AUTHENTICATION_BYTES, MAXIMUM_CONTROL_BYTES};
 
 use super::{Connector, session};
 
@@ -57,11 +57,11 @@ async fn upgrade(
         return StatusCode::SERVICE_UNAVAILABLE.into_response();
     }
     upgrade
-        .read_buffer_size(AUTHENTICATION_MAX_BYTES)
+        .read_buffer_size(MAXIMUM_AUTHENTICATION_BYTES)
         .write_buffer_size(0)
-        .max_write_buffer_size(CONTROL_MAX_BYTES + 1024)
-        .max_frame_size(CONTROL_MAX_BYTES)
-        .max_message_size(CONTROL_MAX_BYTES)
+        .max_write_buffer_size(MAXIMUM_CONTROL_BYTES + 1024)
+        .max_frame_size(MAXIMUM_CONTROL_BYTES)
+        .max_message_size(MAXIMUM_CONTROL_BYTES)
         .on_upgrade(move |socket| async move {
             let _connection = connection;
             session::run(socket, connector, pending).await;

@@ -67,6 +67,7 @@ def javascript(root, files, action, typed=False):
                     '/opt/quality/eslint.config.mjs',
                     '--max-warnings',
                     '0',
+                    '--no-warn-ignored',
                     *sources,
                 ],
                 root,

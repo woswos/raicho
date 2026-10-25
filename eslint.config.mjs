@@ -12,20 +12,12 @@ export default defineConfig(
       '**/target/**',
       '**/dist/**',
       'assets/brand/references/**',
+      'protocol/typescript/src/validator_generated.js',
     ],
   },
   {
     files: ['**/*.{js,mjs,cjs}'],
     extends: [javascript.configs.recommended],
-  },
-  {
-    files: ['protocol/typescript/src/validator_generated.js'],
-    rules: {
-      'no-redeclare': 'off',
-      'no-unused-vars': 'off',
-      'no-unreachable': 'off',
-      'no-useless-assignment': 'off',
-    },
   },
   {
     files: ['assets/brand/showcase/*.js'],

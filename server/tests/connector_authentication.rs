@@ -1,5 +1,6 @@
 mod support;
 
+use raicho_protocol::diagnostics_generated::{BackendError, BackendState};
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
@@ -13,7 +14,10 @@ use support::{Fixture, ORIGIN, authentication, receive};
 #[tokio::test]
 async fn authentication_registers_one_session_and_replacement_fences_old_cleanup() {
     let fixture = Fixture::new().await;
-    assert_eq!(fixture.connector.snapshot().await.status, "disconnected");
+    assert_eq!(
+        fixture.connector.snapshot().await.status,
+        BackendState::Disconnected
+    );
     let (mut first, first_welcome) = fixture.authenticate().await;
     let (mut replacement, next_welcome) = fixture.authenticate().await;
     assert_ne!(first_welcome["generation"], next_welcome["generation"]);
@@ -21,11 +25,14 @@ async fn authentication_registers_one_session_and_replacement_fences_old_cleanup
     drop(first);
     tokio::time::sleep(Duration::from_millis(20)).await;
     let status = fixture.connector.snapshot().await;
-    assert_eq!(status.status, "connected");
+    assert_eq!(status.status, BackendState::Connected);
     assert_eq!(status.generation.unwrap(), next_welcome["generation"]);
     replacement.close(None).await.unwrap();
     tokio::time::sleep(Duration::from_millis(20)).await;
-    assert_eq!(fixture.connector.snapshot().await.status, "disconnected");
+    assert_eq!(
+        fixture.connector.snapshot().await.status,
+        BackendState::Disconnected
+    );
     fixture.finish().await;
 }
 
@@ -43,7 +50,7 @@ async fn rejected_credentials_do_not_displace_an_authenticated_session() {
         "authentication_failed"
     );
     let status = fixture.connector.snapshot().await;
-    assert_eq!(status.status, "connected");
+    assert_eq!(status.status, BackendState::Connected);
     assert_eq!(status.generation.unwrap(), welcome["generation"]);
     assert_eq!(status.last_error, None);
     fixture.finish().await;
@@ -62,7 +69,10 @@ async fn revoked_credentials_remain_revoked_and_are_never_enrolled_by_authentica
         .await
         .unwrap();
     assert_eq!(receive(&mut socket).await["code"], "authentication_failed");
-    assert_eq!(fixture.connector.snapshot().await.status, "revoked");
+    assert_eq!(
+        fixture.connector.snapshot().await.status,
+        BackendState::Revoked
+    );
     fixture.finish().await;
 }
 
@@ -85,7 +95,7 @@ async fn stalled_credential_storage_is_retryable_rather_than_a_rejection() {
     drop(held);
     assert_eq!(
         fixture.connector.snapshot().await.last_error,
-        Some("storage_unavailable")
+        Some(BackendError::StorageUnavailable)
     );
     fixture.finish().await;
 }
@@ -141,6 +151,9 @@ async fn authentication_rejects_version_direction_duplicate_and_oversized_messag
         socket.send(Message::Text(frame.into())).await.unwrap();
         assert_eq!(receive(&mut socket).await["code"], expected);
     }
-    assert_eq!(fixture.connector.snapshot().await.status, "disconnected");
+    assert_eq!(
+        fixture.connector.snapshot().await.status,
+        BackendState::Disconnected
+    );
     fixture.finish().await;
 }

@@ -6,6 +6,9 @@ import socket
 import struct
 
 from automation.acceptance.connector.raicho_connector_privacy import MAIL_CANARIES
+from automation.raicho_paths import REPOSITORY_ROOT
+
+LIMITS = json.loads((REPOSITORY_ROOT / 'protocol/limits.json').read_text())
 
 
 def receive(connection, length):
@@ -96,7 +99,11 @@ def reject(mail=False):
         )
         opcode, contents = frame(connection)
         assert opcode == 8
-        assert struct.unpack('!H', contents[:2])[0] == (4002 if mail else 4001)
+        assert struct.unpack('!H', contents[:2])[0] == (
+            LIMITS['protocol_failure_close_code']
+            if mail
+            else LIMITS['authentication_failure_close_code']
+        )
         send(connection, 8, contents)
     print('Gateway forwarded the bounded rejection without reflecting input')
 

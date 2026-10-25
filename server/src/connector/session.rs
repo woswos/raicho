@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use axum::extract::ws::WebSocket;
+use raicho_protocol::diagnostics_generated::BackendError;
 use tokio::sync::OwnedSemaphorePermit;
 
 use super::{
@@ -37,7 +38,7 @@ pub(super) async fn run(
     let result = tokio::select! {
         biased;
         _ = shutdown.changed() => None,
-        _ = replaced.changed() => Some(Failure::new("session_replaced")),
+        _ = replaced.changed() => Some(Failure::new(BackendError::SessionReplaced)),
         result = async {
             match wire::welcome(&mut socket, &generation).await {
                 Ok(()) => heartbeat::run(&mut socket, &connector, &generation).await,
@@ -47,7 +48,7 @@ pub(super) async fn run(
     };
     connector.disconnect(
         &generation,
-        result.map_or("disconnected", |failure| failure.diagnostic),
+        result.map_or(BackendError::Disconnected, |failure| failure.diagnostic),
     );
     if let Some(failure) = result {
         tokio::select! {

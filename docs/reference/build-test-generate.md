@@ -183,11 +183,11 @@ docker compose -f compose/compose.tools.yaml run --rm check make check-protocol 
 
 Use the caller's UID/GID for writable generation as above. `generate-protocol`
 builds both generators into temporary output, then updates committed bindings,
-limits, and the standalone validator. Python orchestration and JavaScript
+limits, diagnostics, and the standalone validator. Python orchestration and JavaScript
 generation scripts live in `protocol/generator/`. `check-protocol` compares fresh
 output without editing sources and runs under `lint` in CI. `test-protocol` runs the
-Rust contract/generator tests, independently compiled TypeScript protocol tests,
-and production extension tests through its `test-extension` dependency.
+independently compiled TypeScript protocol tests. The Rust contract and generator
+tests run with the workspace under `test-server`.
 CI runs `test-protocol` alongside `test-app`, which covers the application and
 extension suites. See the [contract reference](connector-contract.md)
 for sources, parsing rules, and integration responsibilities.

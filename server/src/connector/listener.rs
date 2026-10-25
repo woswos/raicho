@@ -7,6 +7,7 @@ use raicho_protocol::limits_generated::MAXIMUM_PENDING_AUTHENTICATIONS;
 use tokio::net::TcpListener;
 use tokio::sync::Semaphore;
 
+use super::CONNECTION_LIMIT;
 use super::upgrade_stream::UpgradeStream;
 
 pub struct ConnectorListener {
@@ -18,7 +19,9 @@ impl ConnectorListener {
     pub fn new(listener: TcpListener) -> Self {
         Self {
             listener,
-            connections: Arc::new(Semaphore::new(MAXIMUM_PENDING_AUTHENTICATIONS * 2 + 1)),
+            connections: Arc::new(Semaphore::new(
+                CONNECTION_LIMIT + MAXIMUM_PENDING_AUTHENTICATIONS,
+            )),
         }
     }
 }

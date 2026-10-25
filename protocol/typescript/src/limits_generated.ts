@@ -2,12 +2,14 @@
 export const LIMITS = {
   protocol_version: 1,
   authentication_deadline_ms: 5000,
-  authentication_max_bytes: 4096,
-  control_max_bytes: 65536,
+  maximum_authentication_bytes: 4096,
+  maximum_control_bytes: 65536,
   maximum_json_depth: 64,
   heartbeat_interval_ms: 15000,
   heartbeat_timeout_ms: 45000,
   maximum_active_connections: 1,
   maximum_pending_authentications: 4,
-  maximum_queued_messages: 8,
+  authentication_failure_close_code: 4001,
+  protocol_failure_close_code: 4002,
+  session_replaced_close_code: 4003,
 } as const;

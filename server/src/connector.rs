@@ -11,7 +11,10 @@ mod wire;
 use std::sync::{Arc, Mutex};
 
 use axum::Router;
-use raicho_protocol::limits_generated::MAXIMUM_PENDING_AUTHENTICATIONS;
+use raicho_protocol::diagnostics_generated::{BackendError, BackendState};
+use raicho_protocol::limits_generated::{
+    MAXIMUM_ACTIVE_CONNECTIONS, MAXIMUM_PENDING_AUTHENTICATIONS,
+};
 use tokio::sync::{Semaphore, watch};
 
 use crate::credentials::{CredentialStatus, CredentialStore};
@@ -20,7 +23,7 @@ use crate::persistence::Database;
 pub use listener::ConnectorListener;
 pub use state::BackendStatus;
 
-const CONNECTION_LIMIT: usize = MAXIMUM_PENDING_AUTHENTICATIONS + 1;
+const CONNECTION_LIMIT: usize = MAXIMUM_PENDING_AUTHENTICATIONS + MAXIMUM_ACTIVE_CONNECTIONS;
 
 pub struct Connector {
     database: Arc<Database>,
@@ -49,11 +52,11 @@ impl Connector {
         let credential_status = CredentialStore::new(&self.database).status().await;
         let state = self.state.lock().expect("Connector state lock poisoned");
         let status = match credential_status {
-            Ok(CredentialStatus::Unconfigured) => "unconfigured",
-            Ok(CredentialStatus::Revoked) => "revoked",
-            Ok(CredentialStatus::Active) if state.active.is_some() => "connected",
-            Ok(CredentialStatus::Active) => "disconnected",
-            Err(_) => "unavailable",
+            Ok(CredentialStatus::Unconfigured) => BackendState::Unconfigured,
+            Ok(CredentialStatus::Revoked) => BackendState::Revoked,
+            Ok(CredentialStatus::Active) if state.active.is_some() => BackendState::Connected,
+            Ok(CredentialStatus::Active) => BackendState::Disconnected,
+            Err(_) => BackendState::Unavailable,
         };
         BackendStatus {
             kind: "thunderbird",
@@ -61,9 +64,9 @@ impl Connector {
             generation: state
                 .active
                 .as_ref()
-                .map(|active| active.generation.clone()),
-            last_error: if status == "unavailable" {
-                Some("storage_unavailable")
+                .map(|active| active.generation.to_string()),
+            last_error: if status == BackendState::Unavailable {
+                Some(BackendError::StorageUnavailable)
             } else {
                 state.last_error
             },

@@ -15,13 +15,15 @@ const repositoryRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
   '../..',
 );
-const outputDirectory = process.argv[2];
+const [outputDirectory, webDirectory] = process.argv.slice(2);
 if (
   !outputDirectory ||
+  !webDirectory ||
   !isAbsolute(outputDirectory) ||
-  process.argv.length !== 3
+  !isAbsolute(webDirectory) ||
+  process.argv.length !== 4
 ) {
-  throw new Error('Supply one absolute protocol output directory.');
+  throw new Error('Supply absolute protocol and web output directories.');
 }
 
 const schema = JSON.parse(
@@ -33,22 +35,9 @@ const schema = JSON.parse(
 const limits = JSON.parse(
   await readFile(resolve(repositoryRoot, 'protocol/limits.json'), 'utf8'),
 );
-
-function checkLocalReferences(value) {
-  if (!value || typeof value !== 'object') return;
-  for (const [key, child] of Object.entries(value)) {
-    if (
-      key === '$ref' &&
-      (typeof child !== 'string' || !child.startsWith('#/'))
-    ) {
-      throw new Error(
-        'Protocol generation accepts only local schema references.',
-      );
-    }
-    checkLocalReferences(child);
-  }
-}
-checkLocalReferences(schema);
+const diagnostics = JSON.parse(
+  await readFile(resolve(repositoryRoot, 'protocol/diagnostics.json'), 'utf8'),
+);
 
 const validator = new Ajv({
   strict: true,
@@ -120,13 +109,24 @@ const files = {
     "import type { ConnectorMessage } from './contract_generated.js';\n" +
     'export default function validate(value: unknown): value is ConnectorMessage;\n',
 };
-await mkdir(outputDirectory, { recursive: true });
-for (const [filename, content] of Object.entries(files)) {
-  await writeFile(
-    resolve(outputDirectory, filename),
-    await format(content, {
-      parser: filename.endsWith('.js') ? 'babel' : 'typescript',
-      singleQuote: true,
-    }),
-  );
+const webFiles = {
+  'diagnostics_generated.ts':
+    '// Generated from protocol/diagnostics.json.\n' +
+    `export const BACKEND_STATES = ${JSON.stringify(diagnostics.backend_states)} as const;\n` +
+    `export const BACKEND_ERRORS = ${JSON.stringify(diagnostics.backend_errors)} as const;\n`,
+};
+for (const [directory, outputs] of [
+  [outputDirectory, files],
+  [webDirectory, webFiles],
+]) {
+  await mkdir(directory, { recursive: true });
+  for (const [filename, content] of Object.entries(outputs)) {
+    await writeFile(
+      resolve(directory, filename),
+      await format(content, {
+        parser: filename.endsWith('.js') ? 'babel' : 'typescript',
+        singleQuote: true,
+      }),
+    );
+  }
 }

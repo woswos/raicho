@@ -24,7 +24,12 @@ authentication frame. An incoming frame never enrolls a token.
 - [Schema](../../protocol/schema/connector.schema.json): Draft 7, closed tagged
   objects and local definitions only. The generation guard restricts its vocabulary.
 - [Limits](../../protocol/limits.json): shared constants, including frame sizes,
-  authentication deadline, heartbeat timing, nesting, and connection budgets.
+  authentication deadline, heartbeat timing, nesting, connection budgets, and
+  the terminal WebSocket close codes.
+- [Diagnostics](../../protocol/diagnostics.json): the backend states and error
+  codes that the status API reports. They generate Rust enums, the browser's
+  validated lists in `web/src/diagnostics_generated.ts`, and the acceptance
+  check's allowed values. Every protocol error code must also be a backend error.
 - [Shared fixtures](../../protocol/fixtures/): the same accepted/rejected frames,
   phases, expected generations, and error codes run in both languages.
 - [Rust crate](../../protocol/rust/src/lib.rs): generated types and limits,
@@ -116,7 +121,7 @@ a close frame is recorded as `disconnected`, and a frame over the transport limi
 as `message_too_large`. The WebSocket allocation
 limit is 64 KiB even before authentication, and control frames have the same
 64 KiB limit. Writes are bounded to five seconds. Neither endpoint maintains an
-application send queue, which is stricter than the shared eight-envelope ceiling.
+application send queue.
 The extension retries if its browser socket already has buffered data. Server
 shutdown closes sessions before releasing database ownership.
 
@@ -156,12 +161,15 @@ docker compose -f compose/compose.tools.yaml run --rm check make check-protocol 
 Set `LOCAL_UID` and `LOCAL_GID` for writable generation as described in
 [build commands](build-test-generate.md#checks-and-formatting). Generation builds
 both language outputs in temporary directories before publishing changed files.
-The check regenerates and compares bytes without changing the checkout. Schema
+The check regenerates and compares bytes without changing the checkout. The
+Python entry point validates every source before either generator runs. Schema
 constants must agree with the limits file. Remote, file, and missing references
 fail before generation. Review schema, generated changes, and corpus together.
 
-`make lint` includes generation drift checks. Existing application tests cover
-the Rust workspace and compiled extension, including shared contract fixtures.
+`make lint` includes generation drift checks. `test-protocol` runs the
+independently compiled TypeScript protocol suite. `test-server` covers the Rust
+protocol crate and generator with the rest of the workspace, and `test-extension`
+covers the compiled extension, including shared contract fixtures.
 Packaging tests require the production validator and exclude it from the separate
 mail probe. The CSP test loads the standalone artifact with dynamic code
 generation disabled. The [acceptance record](connector-acceptance.md) describes

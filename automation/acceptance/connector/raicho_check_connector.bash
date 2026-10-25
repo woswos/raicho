@@ -17,7 +17,8 @@ COMPOSE=(docker compose -p "${RAICHO_PROJECT}" -f compose/compose.yaml
 HOLDER="${RAICHO_PROJECT}-address-holder"
 PROBE=(docker run --rm -i --read-only --user 10001:10001 --cap-drop ALL
     --security-opt no-new-privileges:true
-    --workdir / --mount "type=bind,source=${REPOSITORY_ROOT}/automation,target=/automation,readonly")
+    --workdir / --mount "type=bind,source=${REPOSITORY_ROOT}/automation,target=/automation,readonly"
+    --mount "type=bind,source=${REPOSITORY_ROOT}/protocol,target=/protocol,readonly")
 
 fixture() {
     docker run --rm -i --network none --read-only --user 0:0 \

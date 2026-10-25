@@ -38,6 +38,8 @@ const errors: Record<NonNullable<BackendStatus['last_error']>, string> = {
   stale_generation: protocolFailure,
   heartbeat_timeout:
     'Thunderbird stopped responding. Raicho is waiting for it to reconnect.',
+  session_replaced:
+    'A newer Thunderbird connection replaced this one. Raicho is waiting for it to reconnect.',
   disconnected:
     'The Thunderbird connection was interrupted. Raicho is waiting for it to reconnect.',
   storage_unavailable:

@@ -2,41 +2,76 @@ use std::time::Duration;
 
 use axum::extract::ws::{CloseFrame, Message, WebSocket};
 use futures_util::{Sink, SinkExt};
-use raicho_protocol::generated::{
+use raicho_protocol::ContractError;
+use raicho_protocol::contract_generated::{
     Capabilities, Generation, Ping, PingType, ProtocolError, ProtocolErrorCode, ProtocolErrorType,
     Welcome, WelcomeType,
 };
+use raicho_protocol::diagnostics_generated::BackendError;
 use raicho_protocol::limits_generated::{
-    AUTHENTICATION_DEADLINE_MS, HEARTBEAT_INTERVAL_MS, HEARTBEAT_TIMEOUT_MS,
+    AUTHENTICATION_DEADLINE_MS, AUTHENTICATION_FAILURE_CLOSE_CODE, HEARTBEAT_INTERVAL_MS,
+    HEARTBEAT_TIMEOUT_MS, PROTOCOL_FAILURE_CLOSE_CODE, PROTOCOL_VERSION,
+    SESSION_REPLACED_CLOSE_CODE,
 };
 use serde::Serialize;
 
+const TRY_AGAIN_LATER_CLOSE_CODE: u16 = 1013;
+
 #[derive(Clone, Copy)]
 pub(super) struct Failure {
-    pub diagnostic: &'static str,
+    pub diagnostic: BackendError,
     pub code: ProtocolErrorCode,
 }
 
 impl Failure {
-    pub fn new(diagnostic: &'static str) -> Self {
+    pub fn new(diagnostic: BackendError) -> Self {
         let code = match diagnostic {
-            "authentication_timeout" => "authentication_failed",
-            "disconnected" | "storage_unavailable" => "server_busy",
-            value => value,
-        }
-        .parse()
-        .expect("Fixed connector error code");
+            BackendError::AuthenticationFailed | BackendError::AuthenticationTimeout => {
+                ProtocolErrorCode::AuthenticationFailed
+            }
+            BackendError::IncompatibleVersion => ProtocolErrorCode::IncompatibleVersion,
+            BackendError::InvalidMessage => ProtocolErrorCode::InvalidMessage,
+            BackendError::MessageTooLarge => ProtocolErrorCode::MessageTooLarge,
+            BackendError::UnexpectedMessage => ProtocolErrorCode::UnexpectedMessage,
+            BackendError::StaleGeneration => ProtocolErrorCode::StaleGeneration,
+            BackendError::HeartbeatTimeout => ProtocolErrorCode::HeartbeatTimeout,
+            BackendError::SessionReplaced => ProtocolErrorCode::SessionReplaced,
+            BackendError::Disconnected
+            | BackendError::StorageUnavailable
+            | BackendError::ServerBusy => ProtocolErrorCode::ServerBusy,
+        };
         Self { diagnostic, code }
     }
 
     fn close_code(self) -> u16 {
-        match self.code {
-            ProtocolErrorCode::AuthenticationFailed => 4001,
-            ProtocolErrorCode::SessionReplaced => 4003,
-            ProtocolErrorCode::HeartbeatTimeout | ProtocolErrorCode::ServerBusy => 1013,
-            _ => 4002,
-        }
+        let code = match self.code {
+            ProtocolErrorCode::AuthenticationFailed => AUTHENTICATION_FAILURE_CLOSE_CODE,
+            ProtocolErrorCode::SessionReplaced => SESSION_REPLACED_CLOSE_CODE,
+            ProtocolErrorCode::HeartbeatTimeout | ProtocolErrorCode::ServerBusy => {
+                return TRY_AGAIN_LATER_CLOSE_CODE;
+            }
+            _ => PROTOCOL_FAILURE_CLOSE_CODE,
+        };
+        code as u16
     }
+}
+
+impl From<ContractError> for Failure {
+    fn from(error: ContractError) -> Self {
+        Self::new(match error {
+            ContractError::InvalidMessage => BackendError::InvalidMessage,
+            ContractError::MessageTooLarge => BackendError::MessageTooLarge,
+            ContractError::IncompatibleVersion => BackendError::IncompatibleVersion,
+            ContractError::UnexpectedMessage => BackendError::UnexpectedMessage,
+            ContractError::StaleGeneration => BackendError::StaleGeneration,
+        })
+    }
+}
+
+fn protocol_version<Version: TryFrom<i64, Error: std::fmt::Debug>>() -> Version {
+    (PROTOCOL_VERSION as i64)
+        .try_into()
+        .expect("Shared protocol version")
 }
 
 pub(super) async fn send(
@@ -49,23 +84,26 @@ pub(super) async fn send(
         socket.send(Message::Text(text.into())),
     )
     .await
-    .map_err(|_| Failure::new("disconnected"))?
-    .map_err(|_| Failure::new("disconnected"))
+    .map_err(|_| Failure::new(BackendError::Disconnected))?
+    .map_err(|_| Failure::new(BackendError::Disconnected))
 }
 
-pub(super) async fn welcome(socket: &mut WebSocket, generation: &str) -> Result<(), Failure> {
+pub(super) async fn welcome(
+    socket: &mut WebSocket,
+    generation: &Generation,
+) -> Result<(), Failure> {
     send(
         socket,
         &Welcome {
             capabilities: Capabilities(Vec::new()),
-            generation: generation.parse().expect("Random generation is canonical"),
+            generation: generation.clone(),
             heartbeat_interval_ms: (HEARTBEAT_INTERVAL_MS as i64)
                 .try_into()
                 .expect("Shared heartbeat interval"),
             heartbeat_timeout_ms: (HEARTBEAT_TIMEOUT_MS as i64)
                 .try_into()
                 .expect("Shared heartbeat timeout"),
-            protocol_version: 1.try_into().expect("Shared protocol version"),
+            protocol_version: protocol_version(),
             type_: WelcomeType::Welcome,
         },
     )
@@ -74,14 +112,14 @@ pub(super) async fn welcome(socket: &mut WebSocket, generation: &str) -> Result<
 
 pub(super) async fn ping(
     socket: &mut WebSocket,
-    generation: &str,
+    generation: &Generation,
     sequence: u64,
 ) -> Result<(), Failure> {
     send(
         socket,
         &Ping {
-            generation: generation.parse().expect("Random generation is canonical"),
-            protocol_version: 1.try_into().expect("Shared protocol version"),
+            generation: generation.clone(),
+            protocol_version: protocol_version(),
             sequence: sequence.try_into().expect("Positive heartbeat sequence"),
             type_: PingType::Ping,
         },
@@ -89,13 +127,15 @@ pub(super) async fn ping(
     .await
 }
 
-pub(super) async fn terminate(socket: &mut WebSocket, generation: Option<&str>, failure: Failure) {
-    let generation: Option<Generation> =
-        generation.map(|value| value.parse().expect("Canonical generation"));
+pub(super) async fn terminate(
+    socket: &mut WebSocket,
+    generation: Option<&Generation>,
+    failure: Failure,
+) {
     let frame = ProtocolError {
         code: failure.code,
-        generation,
-        protocol_version: 1.try_into().expect("Shared protocol version"),
+        generation: generation.cloned(),
+        protocol_version: protocol_version(),
         type_: ProtocolErrorType::Error,
     };
     let _ = tokio::time::timeout(
@@ -121,6 +161,7 @@ mod tests {
     use std::time::Duration;
 
     use futures_util::sink;
+    use raicho_protocol::diagnostics_generated::BackendError;
     use raicho_protocol::limits_generated::AUTHENTICATION_DEADLINE_MS;
     use tokio::time::Instant;
 
@@ -134,7 +175,7 @@ mod tests {
             .await
             .err()
             .unwrap();
-        assert_eq!(failure.diagnostic, "disconnected");
+        assert_eq!(failure.diagnostic, BackendError::Disconnected);
         assert_eq!(
             started.elapsed(),
             Duration::from_millis(AUTHENTICATION_DEADLINE_MS as u64)
