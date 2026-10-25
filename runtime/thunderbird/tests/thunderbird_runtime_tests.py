@@ -7,10 +7,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from healthcheck import healthy
-from supervisor import Supervisor, process_identity
-
-from runtime import admin_enabled, commands
+from health_check import healthy
+from thunderbird_runtime import admin_enabled, commands
+from thunderbird_supervisor import Supervisor, process_identity
 
 
 class RuntimeTests(unittest.TestCase):
@@ -82,7 +81,7 @@ class RuntimeTests(unittest.TestCase):
                 for name in ('dbus', 'display', 'window-manager', 'thunderbird')
             ]
             state_path.write_text(json.dumps(state))
-            with patch('healthcheck.subprocess.run') as display:
+            with patch('health_check.subprocess.run') as display:
                 display.return_value.returncode = 0
                 self.assertTrue(healthy(state_path))
                 display.return_value.returncode = 1

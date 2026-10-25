@@ -20,7 +20,7 @@ class StartTests(unittest.TestCase):
                 call.seed(Path('/config/profile')),
                 call.execute(
                     sys.executable,
-                    [sys.executable, '-B', '/opt/raicho/runtime.py'],
+                    [sys.executable, '-B', '/opt/raicho/thunderbird_runtime.py'],
                 ),
             ],
         )

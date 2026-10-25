@@ -17,10 +17,10 @@
 !protocol/typescript/tsconfig.json
 !runtime/
 !runtime/thunderbird/
-!runtime/thunderbird/runtime.py
-!runtime/thunderbird/supervisor.py
-!runtime/thunderbird/healthcheck.py
-!runtime/thunderbird/policy.py
+!runtime/thunderbird/thunderbird_runtime.py
+!runtime/thunderbird/thunderbird_supervisor.py
+!runtime/thunderbird/health_check.py
+!runtime/thunderbird/thunderbird_policy.py
 **/node_modules
 **/dist
 **/__pycache__

@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from supervisor import Supervisor
+from thunderbird_supervisor import Supervisor
 
 
 class ShutdownTests(unittest.TestCase):
@@ -48,8 +48,11 @@ class ShutdownTests(unittest.TestCase):
                 (name, process_for(index)) for index, name in enumerate(names, 10)
             ]
             with (
-                patch('supervisor.time.monotonic', side_effect=lambda: elapsed[0]),
-                patch('supervisor.os.killpg', side_effect=record_signal),
+                patch(
+                    'thunderbird_supervisor.time.monotonic',
+                    side_effect=lambda: elapsed[0],
+                ),
+                patch('thunderbird_supervisor.os.killpg', side_effect=record_signal),
             ):
                 supervisor.stop()
         self.assertEqual(signals[0], (13, signal.SIGTERM))

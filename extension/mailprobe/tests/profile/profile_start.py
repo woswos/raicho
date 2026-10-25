@@ -7,7 +7,9 @@ from seed_profile import seed_profile
 
 def main():
     seed_profile(Path('/config/profile'))
-    os.execv(sys.executable, [sys.executable, '-B', '/opt/raicho/runtime.py'])
+    os.execv(
+        sys.executable, [sys.executable, '-B', '/opt/raicho/thunderbird_runtime.py']
+    )
 
 
 if __name__ == '__main__':

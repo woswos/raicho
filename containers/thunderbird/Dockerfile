@@ -61,8 +61,8 @@ RUN rm /etc/apt/sources.list.d/debian.sources && \
 COPY --from=download /opt/thunderbird /opt/thunderbird
 COPY --from=download /opt/novnc /usr/share/novnc
 COPY --from=extension /artifact/ /opt/raicho/extension/
-COPY runtime/thunderbird/runtime.py runtime/thunderbird/supervisor.py \
-    runtime/thunderbird/healthcheck.py runtime/thunderbird/policy.py /opt/raicho/
+COPY runtime/thunderbird/thunderbird_runtime.py runtime/thunderbird/thunderbird_supervisor.py \
+    runtime/thunderbird/health_check.py runtime/thunderbird/thunderbird_policy.py /opt/raicho/
 RUN mkdir -p /opt/thunderbird/distribution && \
     ln -s /tmp/raicho-runtime/policies.json /opt/thunderbird/distribution/policies.json
 
@@ -72,5 +72,5 @@ ENV HOME=/config DISPLAY=:99 XDG_RUNTIME_DIR=/tmp/raicho-runtime \
 USER 10001:10001
 VOLUME ["/config"]
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
-    CMD ["python3", "/opt/raicho/healthcheck.py"]
-ENTRYPOINT ["/usr/bin/tini", "--", "python3", "/opt/raicho/runtime.py"]
+    CMD ["python3", "/opt/raicho/health_check.py"]
+ENTRYPOINT ["/usr/bin/tini", "--", "python3", "/opt/raicho/thunderbird_runtime.py"]

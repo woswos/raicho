@@ -2,8 +2,8 @@ import json
 import os
 import unittest
 
-from policy import write_policies
-from policy_tests import PolicyFixture
+from thunderbird_policy import write_policies
+from thunderbird_policy_tests import PolicyFixture
 
 
 class PolicyValidationTests(PolicyFixture, unittest.TestCase):

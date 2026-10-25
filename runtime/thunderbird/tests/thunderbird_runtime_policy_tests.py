@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from runtime import main
+from thunderbird_runtime import main
 
 
 class RuntimePolicyTests(unittest.TestCase):
@@ -26,11 +26,11 @@ class RuntimePolicyTests(unittest.TestCase):
 
     def invoke(self, policy_writer):
         with (
-            patch('runtime.Path', side_effect=self.paths.__getitem__),
-            patch('runtime.Supervisor', return_value=self.supervisor),
-            patch('runtime.signal.signal'),
-            patch('runtime.write_policies', policy_writer),
-            patch('runtime.os.environ', {'RAICHO_ADMIN_ENABLED': 'false'}),
+            patch('thunderbird_runtime.Path', side_effect=self.paths.__getitem__),
+            patch('thunderbird_runtime.Supervisor', return_value=self.supervisor),
+            patch('thunderbird_runtime.signal.signal'),
+            patch('thunderbird_runtime.write_policies', policy_writer),
+            patch('thunderbird_runtime.os.environ', {'RAICHO_ADMIN_ENABLED': 'false'}),
         ):
             return main()
 

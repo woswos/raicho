@@ -4,8 +4,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from policy import write_policies
-from supervisor import Supervisor
+from thunderbird_policy import write_policies
+from thunderbird_supervisor import Supervisor
 
 
 def admin_enabled(value):
