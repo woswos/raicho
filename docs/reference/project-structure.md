@@ -45,7 +45,9 @@ Each deployed service owns one directory under `deploy/`: `raicho/`, `gateway/`,
 the image recipe, its `Dockerfile.dockerignore`, the service's runtime code and
 configuration such as `deploy/gateway/nginx.conf`, and their tests. Build filters
 list explicit files or source directories from the owning components. A bare
-parent such as `!extension/` would re-include that whole tree. The
+parent such as `!extension/` would re-include that whole tree. `credentials/` is
+the exception: it builds no image and runs no service of its own. Its host
+wrapper drives one-off containers from the Raicho server image. The
 [repository layout decision](../decisions/20261026-repository-layout.md) records
 this organization.
 
