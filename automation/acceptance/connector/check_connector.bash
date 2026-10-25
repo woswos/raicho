@@ -86,7 +86,7 @@ for NETWORK in connector-application connector-thunderbird; do
 done
 docker inspect "${SERVER}" "${THUNDERBIRD}" | fixture mounts
 fixture database --revision 1
-"${COMPOSE[@]}" exec -T thunderbird python3 -B - <"${REPOSITORY_ROOT}/extension/tests/inspect_connector_xpi.py"
+"${COMPOSE[@]}" exec -T thunderbird python3 -B - <"${REPOSITORY_ROOT}/automation/acceptance/connector/inspect_xpi.py"
 thunderbird_check seed
 check idle
 check browser

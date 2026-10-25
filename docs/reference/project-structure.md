@@ -141,7 +141,9 @@ tests. Shared guard fixtures and the `docker` command mock live in `automation/t
 
 `server/tests/`, `web/tests/`, and `extension/tests/` own their respective
 application and integration tests. `extension/tests/` also owns Python packaging
-regressions and production-XPI inspection used by connector acceptance.
+regressions. The production-XPI inspector that connector acceptance runs inside
+Thunderbird lives with that driver as `automation/acceptance/connector/inspect_xpi.py`,
+and the packaging boundary tests reuse it.
 Rust test support lives under
 `server/tests/support/`.
 

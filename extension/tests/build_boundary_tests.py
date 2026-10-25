@@ -5,8 +5,8 @@ import unittest
 import zipfile
 from pathlib import Path
 
+from automation.acceptance.connector.inspect_xpi import inspect_archive
 from extension.tests.build_runner import run_builder
-from extension.tests.inspect_connector_xpi import inspect_archive
 
 
 class ExtensionBoundaryTests(unittest.TestCase):

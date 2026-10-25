@@ -4,7 +4,7 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from extension.tests.inspect_connector_xpi import inspect_archive
+from automation.acceptance.connector.inspect_xpi import inspect_archive
 
 
 class ProductionArchiveTests(unittest.TestCase):

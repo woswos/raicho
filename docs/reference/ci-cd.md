@@ -53,7 +53,7 @@ The Rust workspace and extension application tests exercise the same
 authentication, session replacement, heartbeat timeouts, extension retries, and
 diagnostics.
 Rust credential persistence and CLI tests run in `application-test`. Python
-automation suites, extension packaging/XPI inspection, mail probe fixture
+automation suites, extension packaging, XPI inspection, mail probe fixture
 regressions, secret-file/wrapper verification, Thunderbird process supervision and
 generated-policy tests, and protocol generation regressions run through
 `test-python`, from component-local `tests/` directories.
