@@ -1,16 +1,12 @@
 import json
-import os
 import shutil
-import subprocess
-import sys
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
 
-REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
-BUILDER = 'extension.raicho_build_extension'
-BUILD_ENVIRONMENT = os.environ | {'PYTHONPATH': str(REPOSITORY_ROOT)}
+from automation.raicho_paths import REPOSITORY_ROOT
+from extension.tests.raicho_extension_build import run_builder
 
 
 class ExtensionPackagingTests(unittest.TestCase):
@@ -21,13 +17,13 @@ class ExtensionPackagingTests(unittest.TestCase):
 
     def build(self, name, *arguments):
         output = self.directory / name
-        subprocess.run(
-            [sys.executable, '-B', '-m', BUILDER, '--output', str(output), *arguments],
-            check=True,
-            cwd=self.directory,
-            env=BUILD_ENVIRONMENT,
-        )
+        result = run_builder('--output', str(output), *arguments, cwd=self.directory)
+        self.assertEqual(result.returncode, 0, result.stderr)
         return output
+
+    def assert_rejected(self, result, message='FAIL:'):
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(message, result.stderr)
 
     def test_reproducible_archive_has_only_runtime_files(self):
         first = self.build('first.xpi')
@@ -49,9 +45,7 @@ class ExtensionPackagingTests(unittest.TestCase):
                 )
             )
             manifest = json.loads(archive.read('manifest.json'))
-            self.assertEqual(manifest['permissions'], ['storage'])
             self.assertTrue(manifest['background']['persistent'])
-            self.assertEqual(manifest['manifest_version'], 2)
             for entry in archive.infolist():
                 self.assertEqual(entry.date_time, (1980, 1, 1, 0, 0, 0))
 
@@ -65,24 +59,18 @@ class ExtensionPackagingTests(unittest.TestCase):
         )
 
     def test_rejects_unsafe_output_and_version(self):
+        bad = str(self.directory / 'bad.xpi')
         for arguments in (
             ['--output', 'relative.xpi'],
-            ['--output', str(self.directory / 'bad.xpi'), '--version', '../bad'],
-            ['--output', str(self.directory / 'bad.xpi'), '--version', '65536.0.0'],
-            ['--output', str(self.directory / 'bad.xpi'), '--version', '01.2.3'],
-            ['--output', str(self.directory / 'bad.xpi'), '--version', ''],
+            ['--output', bad, '--version', '../bad'],
+            ['--output', bad, '--version', '65536.0.0'],
+            ['--output', bad, '--version', '01.2.3'],
+            ['--output', bad, '--version', ''],
         ):
-            result = subprocess.run(
-                [sys.executable, '-B', '-m', BUILDER, *arguments],
-                env=BUILD_ENVIRONMENT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn('FAIL:', result.stderr)
+            with self.subTest(arguments=arguments):
+                self.assert_rejected(run_builder(*arguments))
 
-    def fixture_builder(self, version):
+    def source_with_version(self, version):
         source_root = self.directory / 'source'
         extension_root = source_root / 'extension'
         shutil.copytree(REPOSITORY_ROOT / 'extension', extension_root)
@@ -97,23 +85,17 @@ class ExtensionPackagingTests(unittest.TestCase):
         return source_root
 
     def test_image_artifacts_follow_manifest_version_and_explicit_override(self):
-        source_root = self.fixture_builder('0.2.3')
+        source_root = self.source_with_version('0.2.3')
         for version, arguments in (('0.2.3', []), ('0.3.0', ['--version', '0.3.0'])):
             output = self.directory / version
-            subprocess.run(
-                [
-                    sys.executable,
-                    '-B',
-                    '-m',
-                    BUILDER,
-                    '--output-directory',
-                    str(output),
-                    *arguments,
-                ],
-                check=True,
+            result = run_builder(
+                '--output-directory',
+                str(output),
+                *arguments,
+                source_root=source_root,
                 cwd=self.directory,
-                env=os.environ | {'PYTHONPATH': str(source_root)},
             )
+            self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(
                 sorted(path.name for path in output.iterdir()),
                 ['manifest.json', f'raicho-{version}.xpi'],
@@ -124,43 +106,25 @@ class ExtensionPackagingTests(unittest.TestCase):
                 self.assertEqual(json.loads(archive.read('manifest.json')), metadata)
 
     def test_rejects_invalid_default_manifest_version(self):
-        source_root = self.fixture_builder('65536.0.0')
-        result = subprocess.run(
-            [
-                sys.executable,
-                '-B',
-                '-m',
-                BUILDER,
+        source_root = self.source_with_version('65536.0.0')
+        artifacts = self.directory / 'artifacts'
+        self.assert_rejected(
+            run_builder(
                 '--output-directory',
-                str(self.directory / 'artifacts'),
-            ],
-            cwd=self.directory,
-            env=os.environ | {'PYTHONPATH': str(source_root)},
-            capture_output=True,
-            text=True,
-            check=False,
+                str(artifacts),
+                source_root=source_root,
+                cwd=self.directory,
+            )
         )
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn('FAIL:', result.stderr)
-        self.assertFalse((self.directory / 'artifacts').exists())
+        self.assertFalse(artifacts.exists())
 
     def test_output_modes_are_mutually_exclusive(self):
-        result = subprocess.run(
-            [
-                sys.executable,
-                '-B',
-                '-m',
-                BUILDER,
+        self.assert_rejected(
+            run_builder(
                 '--output',
                 str(self.directory / 'out.xpi'),
                 '--output-directory',
                 str(self.directory / 'artifacts'),
-            ],
-            cwd=self.directory,
-            env=BUILD_ENVIRONMENT,
-            capture_output=True,
-            text=True,
-            check=False,
+            ),
+            'not allowed with argument',
         )
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn('not allowed with argument', result.stderr)

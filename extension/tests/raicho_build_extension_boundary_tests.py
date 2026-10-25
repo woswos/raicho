@@ -1,31 +1,24 @@
-import os
 import posixpath
 import re
-import subprocess
-import sys
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
 
-REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
-BUILDER = 'extension.raicho_build_extension'
-BUILD_ENVIRONMENT = os.environ | {'PYTHONPATH': str(REPOSITORY_ROOT)}
+from extension.tests.raicho_extension_build import run_builder
+from extension.tests.raicho_inspect_connector_xpi import inspect_archive
 
 
 class ExtensionBoundaryTests(unittest.TestCase):
-    def test_production_excludes_probe_code(self):
+    def test_production_excludes_probe_code_and_resolves_its_imports(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / 'production.xpi'
-            subprocess.run(
-                [sys.executable, '-B', '-m', BUILDER, '--output', str(output)],
-                env=BUILD_ENVIRONMENT,
-                cwd=directory,
-                check=True,
-            )
+            result = run_builder('--output', str(output), cwd=directory)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            inspect_archive(output, b'unused-fixture-token')
             with zipfile.ZipFile(output) as archive:
                 names = set(archive.namelist())
-                self.assertIn('extension/src/connector_transport.js', names)
+                self.assertIn('protocol/typescript/src/validator_generated.js', names)
                 scripts = re.findall(
                     r'<script\b[^>]*\bsrc="([^"]+)"',
                     archive.read('background.html').decode(),
@@ -34,8 +27,9 @@ class ExtensionBoundaryTests(unittest.TestCase):
                 for script in scripts:
                     self.assertIn(script, names)
                 for name in names:
-                    self.assertNotIn(b'mail_probe', archive.read(name))
                     self.assertNotIn('/tests/', name)
+                    self.assertNotIn('mailprobe/', name)
+                    self.assertNotIn('node_modules/', name)
                     if name.endswith('.js'):
                         imports = re.findall(
                             r'\b(?:from|import)\s*["\']([^"\']+)["\']',

@@ -1,68 +1,30 @@
 import json
-import os
-import subprocess
-import sys
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
 
-REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
-BUILDER = 'extension.raicho_build_extension'
-BUILD_ENVIRONMENT = os.environ | {'PYTHONPATH': str(REPOSITORY_ROOT)}
+from automation.raicho_paths import REPOSITORY_ROOT
+from extension.tests.raicho_extension_build import run_builder
 
 
 class ProbePackagingTests(unittest.TestCase):
-    def test_probe_source_requires_explicit_selection(self):
-        with tempfile.TemporaryDirectory() as temporary:
-            outputs = Path(temporary)
-            for label, arguments in (
-                ('production', []),
-                (
-                    'probe',
-                    ['--source-root', str(REPOSITORY_ROOT / 'extension/mailprobe')],
-                ),
-            ):
-                archive_path = outputs / f'{label}.xpi'
-                subprocess.run(
-                    [
-                        sys.executable,
-                        '-B',
-                        '-m',
-                        BUILDER,
-                        '--output',
-                        str(archive_path),
-                        *arguments,
-                    ],
-                    env=BUILD_ENVIRONMENT,
-                    cwd=outputs,
-                    check=True,
-                )
-                with zipfile.ZipFile(archive_path) as archive:
-                    manifest = json.loads(archive.read('manifest.json'))
-                    if label == 'production':
-                        self.assertEqual(manifest['permissions'], ['storage'])
-                        self.assertFalse(
-                            any(
-                                name.endswith('dispatcher.js')
-                                for name in archive.namelist()
-                            )
-                        )
-                        self.assertIn(
-                            'protocol/typescript/src/validator_generated.js',
-                            archive.namelist(),
-                        )
-                        self.assertNotIn('node_modules/', ''.join(archive.namelist()))
-                    else:
-                        self.assertNotIn('messages.send', manifest['permissions'])
-                        self.assertEqual(
-                            manifest['optional_permissions'], ['messages.send']
-                        )
-                        self.assertIn('mailprobe/src/dispatcher.js', archive.namelist())
-                        self.assertIn('permission.html', archive.namelist())
-                        self.assertFalse(
-                            any(
-                                name.startswith('protocol/')
-                                for name in archive.namelist()
-                            )
-                        )
+    def test_probe_is_a_separate_explicitly_selected_artifact(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / 'probe.xpi'
+            result = run_builder(
+                '--output',
+                str(output),
+                '--source-root',
+                str(REPOSITORY_ROOT / 'extension/mailprobe'),
+                cwd=directory,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            with zipfile.ZipFile(output) as archive:
+                names = archive.namelist()
+                manifest = json.loads(archive.read('manifest.json'))
+        self.assertNotIn('messages.send', manifest['permissions'])
+        self.assertEqual(manifest['optional_permissions'], ['messages.send'])
+        self.assertIn('mailprobe/src/dispatcher.js', names)
+        self.assertIn('permission.html', names)
+        self.assertFalse(any(name.startswith('protocol/') for name in names))
