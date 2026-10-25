@@ -21,9 +21,9 @@ The workflow uses a read-only token and does not retain checkout credentials.
   while Thunderbird is stopped, in a disposable project.
 - `connector-test`: production XPI inspection, ten minutes of uninterrupted
   authenticated heartbeat, service/network recovery, DNS refresh, administrative
-  isolation, privacy canaries, and credential rotation/revocation recovery.
-- `compatibility-test`: separate lifecycle installation/idle/restart/upgrade
-  fixture and unattended GreenMail draft/restart experiment.
+  isolation, same-profile upgrade, privacy canaries, and credential
+  rotation/revocation recovery.
+- `compatibility-test`: unattended GreenMail draft/restart experiment.
 
 There are no coverage, image publication, or deployment jobs. Changelog
 releases are separate workflows described below. Runtime tests
@@ -52,15 +52,14 @@ Extension packaging and fixture regressions also run in `lint` through `lint-rep
 The Rust workspace and extension application tests exercise the same
 [connector contract fixtures](connector-contract.md). Source tests also exercise
 authentication, session replacement, heartbeat timeouts, extension retries, and
-diagnostics. The separate lifecycle artifact is included in extension unit tests.
+diagnostics.
 Rust credential persistence and CLI tests run in `application-test`. Python
 automation suites, extension packaging/XPI inspection and fixture regressions,
 secret-file/wrapper verification, and protocol generation regressions run through `lint-repo`, using
 component-local `tests/` directories in
 `automation/`, `extension/`, `runtime/credentials/`, and `protocol/generator/`.
 The [credential](build-test-generate.md#credential-persistence),
-[production connector](build-test-generate.md#production-connector),
-[lifecycle](build-test-generate.md#extension-lifecycle), and
+[production connector](build-test-generate.md#production-connector), and
 [mail compatibility](build-test-generate.md#mail-api-compatibility) runners use
 the same commands locally and in their dedicated jobs. Each owns its disposable
 project and traps exit, including failures, to remove its resources.

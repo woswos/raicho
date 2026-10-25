@@ -27,8 +27,8 @@ Browser login and mail operations remain planned.
 
 A separate test-only extension and disposable GreenMail deployment exercise
 mail API compatibility. A fixed SMTP/IMAP fault proxy and test controller run
-on an internal network with a fresh fictional profile. These Python helpers and
-the lifecycle helpers share the development tooling image. Thunderbird uses its
+on an internal network with a fresh fictional profile. These Python helpers
+share the development tooling image. Thunderbird uses its
 normal runtime image with read-only mounts for the mail test extension and
 profile setup code. The production XPI has no mail permissions or probe commands. See the
 [versioned compatibility matrix](mail-api-compatibility.md) for observed behavior
@@ -38,7 +38,7 @@ The [connector contract](connector-contract.md) now provides a shared control
 schema, generated Rust/TypeScript bindings, and bounded decoders under
 `protocol/rust/` and `protocol/typescript/`, used by the
 server and production extension. It carries authentication and heartbeat only.
-Separate lifecycle and mail probes remain test artifacts.
+The separate mail probe remains a test artifact.
 
 Offline credential commands acquire the database's exclusive instance lock.
 A separate Docker helper owns host secret generation and file rotation, with
@@ -112,8 +112,8 @@ selects Axum, Tokio, SQLx, the initial SQLite configuration, and the independent
 built Thunderbird image. The
 [connector plan](../planning/done/20261018-foundation-stage-two-connector.md)
 selects MV2 packaging, managed configuration, a fixed internal gateway, and a
-versioned authenticated protocol. The lifecycle fixture, mail compatibility
-fixture, and control contract have separate implementations.
+versioned authenticated protocol. The mail compatibility
+fixture and control contract have separate implementations.
 Credential persistence, offline provisioning, production control transport, gateway,
 and connection diagnostics are implemented. Dedicated CI jobs run the source and
 unattended acceptance commands described in the

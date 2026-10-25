@@ -187,7 +187,7 @@ limits, and the standalone validator. Python orchestration and JavaScript
 generation scripts live in `protocol/generator/`. `check-protocol` compares fresh
 output without editing sources and runs under `lint` in CI. `test-protocol` runs the
 Rust contract/generator tests, independently compiled TypeScript protocol tests,
-and production/lifecycle extension tests through its `test-extension` dependency.
+and production extension tests through its `test-extension` dependency.
 CI runs `test-protocol` alongside `test-app`, which covers the application and
 extension suites. See the [contract reference](connector-contract.md)
 for sources, parsing rules, and integration responsibilities.
@@ -232,9 +232,7 @@ version 65535.0.0 into a disposable volume, mounts it over the image's extension
 directory, and requires the same profile to activate that version and reconnect.
 It runs unchanged in CI's `connector-test` job alongside the credential runner. See [acceptance evidence](connector-acceptance.md).
 
-## Extension lifecycle
-
-Run the focused source checks through the tooling image:
+## Extension packaging
 
 ```bash
 docker compose -f compose/compose.tools.yaml run --rm check \
@@ -242,32 +240,15 @@ docker compose -f compose/compose.tools.yaml run --rm check \
 docker compose -f compose/compose.tools.yaml run --rm \
   -e PYTHONPATH=/workspace/runtime/thunderbird check \
   python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
-bash extension/lifecycleprobe/tests/raicho_check_extension_lifecycle.bash
 ```
-
-The separate artifact comes from `extension/lifecycleprobe/`, never the production
-XPI. `test-extension` runs both production and lifecycle unit suites.
-The host Bash runner orchestrates Docker only. It creates a unique
-`raicho-lifecycle-...` project, builds extension versions 0.1.0 and 0.1.1 into
-separate temporary Thunderbird images, and uses an internal network and fresh
-profile/credential volumes. It verifies installation without a viewer, managed
-configuration, a 90-second idle session, restart, and image upgrade preserving
-the profile. `RAICHO_EXTENSION_IDLE_SECONDS` accepts 60 through 3600 seconds.
-The runner removes its own containers, volumes, and image tags on exit. It never
-uses the default deployment or a personal profile.
 
 The packager stores sorted archive entries with fixed timestamps and modes.
 Its reproducibility and version tests run under `lint-repo`. `build-extension`
 uses disposable output. To export an XPI, mount an empty output directory into
 the tooling container and run `python3 -B -m extension.raicho_build_extension
---output /output/raicho.xpi`; `--version` selects the version for an upgrade test.
-No test modules or credentials enter the archive.
-
-The lifecycle fixture controller, check driver, and fixture unit tests use the
-same tooling image as language checks. It packages their sources and the pinned
-websockify dependency. The lifecycle runner rebuilds that image before running
-the fixture. CI's `compatibility-test` job runs the same command. The production
-ten-minute check is separate from this historical fixture.
+--output /output/raicho.xpi`. The `--version` option overrides the manifest
+version, as the connector upgrade check does. No test modules or credentials
+enter the archive.
 
 ## Releases
 

@@ -18,7 +18,6 @@ class WorkflowCoverageTests(unittest.TestCase):
                 'bash runtime/credentials/tests/acceptance/raicho_check_credentials.bash',
             ),
             'compatibility-test': (
-                'bash extension/lifecycleprobe/tests/raicho_check_extension_lifecycle.bash',
                 'bash extension/mailprobe/tests/raicho_check_mail_compatibility.bash',
             ),
         }
@@ -52,7 +51,6 @@ class WorkflowCoverageTests(unittest.TestCase):
             step.get('run', '') for step in self.jobs['application-build']['steps']
         )
         for configuration in (
-            '-f compose/compose.extension_test.yaml',
             '-f compose/compose.mail_test.yaml',
             '-f compose/compose.mail_test.yaml -f compose/compose.mail_admin.yaml',
         ):

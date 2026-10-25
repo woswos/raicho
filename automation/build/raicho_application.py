@@ -65,8 +65,6 @@ def main():
             )
         else:
             extension(REPOSITORY_ROOT / 'extension', target.startswith('test-'))
-            if target == 'test-extension':
-                extension(REPOSITORY_ROOT / 'extension/lifecycleprobe', True)
     else:
         with tempfile.TemporaryDirectory(prefix='raicho-web-') as directory:
             run(

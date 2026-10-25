@@ -28,7 +28,6 @@ def inspect_archive(path, token):
                 marker not in contents
                 for marker in (
                     token,
-                    b'lifecycle_probe',
                     b'mail_probe',
                     b'fixture@raicho.test',
                 )

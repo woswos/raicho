@@ -176,7 +176,7 @@ dependent compose work. Do not silently substitute save-new/delete-old behavior.
 These experiment gates have the following bounded outcomes:
 
 - The pinned image loads generated policy, activates the XPI without a viewer,
-  and upgrades it on an existing profile. See [lifecycle evidence](../../reference/extension-lifecycle.md).
+  and upgrades it on an existing profile. See [lifecycle evidence](#lifecycle-fixture-evidence).
 - Origin is `moz-extension://<profile-specific UUID>`. The persistent MV2
   background passes idle and reconnection checks. See
   [production acceptance](../../reference/connector-acceptance.md).
@@ -210,7 +210,7 @@ with their corresponding slice, and run through Docker locally and in CI.
   and the isolated lifecycle fixture. Docker checks and the real 153.5.0 image
   passed unattended install, 90-second idle, restart, and 0.1.0-to-0.1.1 upgrade
   preserving the profile. Recorded the test listener's text-frame adapter and
-  observed Origin in [lifecycle evidence](../../reference/extension-lifecycle.md).
+  observed Origin in [lifecycle evidence](#lifecycle-fixture-evidence).
   Production transport, mail APIs, and the ten-minute acceptance remain later slices.
 - [x] Stage 2: Run the mail API compatibility experiment.
   Add the isolated GreenMail deployment and separate probe artifact. Test plain
@@ -326,7 +326,6 @@ docker compose -f compose/compose.tools.yaml run --rm \
   python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
 bash automation/acceptance/connector/raicho_check_connector.bash
 bash runtime/credentials/tests/acceptance/raicho_check_credentials.bash
-bash extension/lifecycleprobe/tests/raicho_check_extension_lifecycle.bash
 bash extension/mailprobe/tests/raicho_check_mail_compatibility.bash
 ```
 
@@ -342,8 +341,33 @@ separates local results, configured CI coverage, and earlier manual evidence.
 The original design PR needed documentation and PR-policy checks only. The
 implementation slices additionally ran the source and runtime checks above.
 
+## Lifecycle fixture evidence
+
+Stage 1 used a separate fixture extension with a persistent MV2 background page,
+only the `storage` permission, and a temporary lifecycle protocol carrying
+version, session, and sequence metadata. It ran in the production Thunderbird
+image on an isolated internal network with its own profile and generated token,
+without host ports or a desktop viewer. On 2026-10-18, Linux amd64 with
+Thunderbird 153.5.0 ESR, UID/GID 10001, and a read-only root observed:
+
+| Check | Observed result |
+| --- | --- |
+| Clean permanent installation | Unsigned extension 0.1.0 connected and sent two heartbeats over 20 seconds. |
+| Managed settings and policy symlink | Authentication used the runtime token. Policy path, mode 0600, directory mode 0700, force installation, and disabled automatic updates passed inspection. |
+| Persistent background idle | Nine heartbeats over 90 seconds, with one background session and one connection. |
+| Container restart | A new background session connected with version 0.1.0. The profile marker remained. |
+| Image upgrade on the same profile | Version 0.1.1 connected with a new background session. The profile marker remained. |
+| Origin | `moz-extension://<profile-specific UUID>`, unchanged across restart and upgrade. |
+
+The first real-image run showed that websockify rejects text frames. The fixture
+listener then adapted text frames to its pinned decoder. Production transport
+never used that listener.
+
 ## Notes
 
+- Review follow-up: the lifecycle fixture was removed after production
+  acceptance gained the runtime policy, profile persistence, and same-profile
+  upgrade checks. Its results remain in the section above.
 - Fixture follow-up: the [shared test image decision](../../decisions/20261026-repository-layout.md#tooling-image)
   replaces the dedicated mail-probe image recipe. Python fixture sources now live
   under `tests/`, and their helpers use the same tooling image as language checks.

@@ -1,7 +1,6 @@
 import select
 
-from probe_server import ProbeSocket
-from websockify.websocket import WebSocket
+from websockify.websocketserver import HttpWebSocket
 
 
 class ControlBudgetSocket:
@@ -20,9 +19,16 @@ class ControlBudgetSocket:
         return content
 
 
-class ControlSocket(ProbeSocket):
+class ControlSocket(HttpWebSocket):
     def accept(self, connection, headers):
-        WebSocket.accept(self, ControlBudgetSocket(connection), headers)
+        super().accept(ControlBudgetSocket(connection), headers)
+
+    def _decode_hybi(self, content):
+        frame = super()._decode_hybi(content)
+        # Websockify normally rejects text frames because VNC uses binary data.
+        if frame is not None and frame['opcode'] == 1:
+            frame['opcode'] = 2
+        return frame
 
 
 def readable(connection, timeout=0.1):

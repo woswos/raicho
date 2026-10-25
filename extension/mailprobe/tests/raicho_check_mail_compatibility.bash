@@ -48,7 +48,7 @@ for SUITE in proxy profile probe; do
     docker run --rm --read-only --network none --tmpfs /tmp:mode=1777 \
         --cap-drop ALL --security-opt no-new-privileges:true \
         --user 10001:10001 \
-        --env PYTHONPATH=/opt/raicho/extension/mailprobe/tests/proxy:/opt/raicho/extension/mailprobe/tests/profile:/opt/raicho/extension/mailprobe/tests/probe:/opt/raicho/extension/lifecycleprobe/tests \
+        --env PYTHONPATH=/opt/raicho/extension/mailprobe/tests/proxy:/opt/raicho/extension/mailprobe/tests/profile:/opt/raicho/extension/mailprobe/tests/probe \
         --entrypoint python3 "${RAICHO_TEST_TOOLING_IMAGE}" \
         -B -m unittest discover -s "/opt/raicho/extension/mailprobe/tests/${SUITE}" -p '*_tests.py'
 done

@@ -67,7 +67,7 @@ existing naming conventions. See the
 
 Use ASCII lowercase letters and digits only for every owned directory name
 inside the repository, matching `[a-z0-9]+`. Join words without separators,
-such as `mailprobe` and `lifecycleprobe`. This includes source, documentation,
+such as `mailprobe`. This includes source, documentation,
 and asset directories. Skill directories use kebab-case instead, as the
 [skill rules](../contributing/documentation-organisation.md#skills) define.
 The exact reserved tool paths `.agents`,

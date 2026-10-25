@@ -14,7 +14,7 @@ runtime/           Production service helpers, configuration, and component-loca
 compose/           Runtime, administration, test, tooling, and CI Compose files
 server/            Rust diagnostics, SQLite queries, migrations, and tests
 web/               TypeScript diagnostics, public files, and behavioral tests
-extension/         Production connector and separate lifecycle/mail API test probes
+extension/         Production connector and separate mail API test probe
 protocol/          Control schema, limits, fixtures, generators, and implementations
 automation/        Development commands and support packages grouped by responsibility
 docs/contributing/ Contribution workflow and working agreements
@@ -106,8 +106,8 @@ and formatting, with `compose.ci.yaml` adding the GitHub event mount.
 `compose.credentials.yaml` supplies offline provisioning and the Thunderbird
 secret mount, endpoint, and live verification through the
 [credential commands](../operations/connector-credentials.md).
-`compose.extension_test.yaml` is a standalone disposable extension lifecycle
-fixture. `compose.mail_test.yaml` runs the separate fictional mail experiment,
+`compose.connector_upgrade.yaml` mounts a version-bumped production XPI for the
+connector acceptance upgrade check. `compose.mail_test.yaml` runs the separate fictional mail experiment,
 with `compose.mail_admin.yaml` enabling its native UI checks.
 The [runtime guide](../operations/local-runtime.md) and
 [tooling commands](build-test-generate.md) show their combinations.
@@ -132,7 +132,7 @@ tests. Shared guard fixtures live in `automation/testing/`.
 `server/tests/`, `web/tests/`, and `extension/tests/` own their respective
 application and integration tests. `extension/tests/` also owns Python packaging
 regressions, production-XPI inspection used by connector acceptance, and shared
-lifecycle/mail fixture-image and runner-cleanup assertions.
+mail fixture-image and runner-cleanup assertions.
 Rust test support lives under
 `server/tests/support/`.
 
@@ -152,8 +152,6 @@ tests, and the automation package suites.
 `runtime/thunderbird/`. Set the source import path using the documented
 [test command](build-test-generate.md#application-tooling).
 
-`extension/lifecycleprobe/tests/` owns the lifecycle fixture controller, host
-acceptance runner, runtime checker, and unit tests.
 `extension/mailprobe/tests/` groups the mail probe and scenarios under `probe/`,
 fictional profile setup under `profile/`, and SMTP/IMAP fault infrastructure under
 `proxy/`, with their unit tests alongside the fixture code and the host acceptance

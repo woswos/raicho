@@ -9,13 +9,6 @@
 !extension/manifest.json
 !extension/package.json
 !extension/tsconfig.json
-!extension/lifecycleprobe/
-!extension/lifecycleprobe/src/
-!extension/lifecycleprobe/src/**
-!extension/lifecycleprobe/background.html
-!extension/lifecycleprobe/manifest.json
-!extension/lifecycleprobe/package.json
-!extension/lifecycleprobe/tsconfig.json
 !protocol/
 !protocol/typescript/
 !protocol/typescript/src/

@@ -10,11 +10,6 @@ from automation.raicho_paths import REPOSITORY_ROOT
 class RunnerCleanupTests(unittest.TestCase):
     def test_ci_termination_removes_the_owned_project_and_image_tags(self):
         for name, prefix, tags in (
-            (
-                'extension_lifecycle',
-                'raicho-lifecycle-',
-                ('initial', 'upgrade', 'tools'),
-            ),
             ('mail_compatibility', 'raicho-mail-', ('thunderbird', 'tools')),
         ):
             with self.subTest(runner=name):
@@ -33,13 +28,8 @@ class RunnerCleanupTests(unittest.TestCase):
                 )
 
     def interrupt_runner(self, name):
-        probe = 'lifecycleprobe' if name == 'extension_lifecycle' else 'mailprobe'
         runner = (
-            REPOSITORY_ROOT
-            / 'extension'
-            / probe
-            / 'tests'
-            / f'raicho_check_{name}.bash'
+            REPOSITORY_ROOT / 'extension/mailprobe/tests' / f'raicho_check_{name}.bash'
         )
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)

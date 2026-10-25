@@ -13,7 +13,7 @@ x-fixture: &fixture
   <<: *runtime
   image: ${RAICHO_TEST_TOOLING_IMAGE:?Set the disposable tooling image}
   environment:
-    PYTHONPATH: /opt/raicho/extension/lifecycleprobe/tests:/opt/raicho/extension/mailprobe/tests/proxy:/opt/raicho/extension/mailprobe/tests/probe
+    PYTHONPATH: /opt/raicho/extension/mailprobe/tests/proxy:/opt/raicho/extension/mailprobe/tests/probe
   volumes: [fixture:/config]
   networks: [mail-test]
 

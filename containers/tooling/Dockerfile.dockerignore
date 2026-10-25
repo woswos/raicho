@@ -10,13 +10,8 @@
 !package-lock.json
 !eslint.config.mjs
 !extension/
-!extension/lifecycleprobe/
-!extension/lifecycleprobe/tests/
-!extension/lifecycleprobe/tests/**
 !extension/mailprobe/
 !extension/mailprobe/tests/
 !extension/mailprobe/tests/**
-extension/lifecycleprobe/tests/raicho_check_extension_lifecycle.bash
-extension/lifecycleprobe/tests/raicho_extension_runtime_check.py
 extension/mailprobe/tests/raicho_check_mail_compatibility.bash
 **/__pycache__

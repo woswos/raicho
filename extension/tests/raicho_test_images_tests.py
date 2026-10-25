@@ -15,7 +15,6 @@ def services(filename):
 class TestImageTests(unittest.TestCase):
     def test_mock_services_share_the_tooling_image_and_remain_isolated(self):
         configurations = {
-            'compose.extension_test.yaml': ('probe', 'check'),
             'compose.mail_test.yaml': ('probe', 'mail-proxy', 'driver', 'extension'),
         }
         for filename, names in configurations.items():

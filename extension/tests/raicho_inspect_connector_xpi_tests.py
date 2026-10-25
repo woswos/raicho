@@ -25,7 +25,7 @@ class ProductionArchiveTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)
             inspect_archive(self.archive(directory), b'private-token')
-            for contents in (b'private-token', b'lifecycle_probe', b'mail_probe'):
+            for contents in (b'private-token', b'mail_probe'):
                 with self.assertRaises(AssertionError):
                     inspect_archive(self.archive(directory, contents), b'private-token')
 

@@ -21,7 +21,7 @@ def is_shipping(path):
         return False
     if '.test.' in name or name.endswith('.dockerignore'):
         return False
-    if path.startswith(('extension/lifecycleprobe/', 'extension/mailprobe/')):
+    if path.startswith('extension/mailprobe/'):
         return False
     if path.startswith(('server/src/', 'protocol/rust/src/')) and name.endswith('.rs'):
         return True

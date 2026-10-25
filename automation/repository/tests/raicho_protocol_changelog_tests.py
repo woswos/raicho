@@ -8,7 +8,7 @@ RUST_PROTOCOL_PATHS = (
 )
 PROBE_PATHS = tuple(
     f'extension/{probe}/{path}'
-    for probe in ('lifecycleprobe', 'mailprobe')
+    for probe in ('mailprobe',)
     for path in ('src/background.ts', 'manifest.json', 'background.html')
 )
 DECISION_PATH = 'docs/decisions/20261025-protocol-changelog.md'
