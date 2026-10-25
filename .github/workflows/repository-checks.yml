@@ -147,7 +147,7 @@ jobs:
       - name: Verify production connector and ten-minute idle acceptance
         run: bash automation/acceptance/connector/raicho_check_connector.bash
       - name: Verify credential rotation, recovery, and revocation
-        run: bash runtime/credentials/tests/acceptance/raicho_check_credentials.bash
+        run: bash automation/acceptance/credentials/raicho_check_credentials.bash
 
   compatibility-test:
     if: >-

@@ -84,7 +84,10 @@ Do not add thin compatibility wrappers or restore a flat helper directory.
 | Cross-service disposable deployment checks | `automation/acceptance/` |
 | Fixtures shared by automation tests | `automation/testing/` |
 
-Cross-service acceptance drivers use `connector/` and `runtime/` subpackages.
+Cross-service acceptance drivers use `connector/`, `credentials/`, and `runtime/`
+subpackages. The connector and credential runners source
+`automation/acceptance/raicho_credential_deployment.bash` for their disposable
+project, state directory, and fixture container.
 The shared repository-path helper lives at
 `automation/raicho_paths.py`.
 
@@ -143,8 +146,7 @@ compile independently of the extension. See the
 Generator regressions live in `protocol/generator/tests/`.
 
 `runtime/credentials/tests/` owns provisioning wrapper, file recovery, and live
-verification unit tests. Its `acceptance/` subtree owns the disposable credential
-deployment runner and fixture checks. `make lint-repo` includes credential unit
+verification unit tests. `make lint-repo` includes credential unit
 tests, extension packaging and fixture regressions, protocol generator
 tests, and the automation package suites.
 

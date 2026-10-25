@@ -15,7 +15,7 @@ class WorkflowCoverageTests(unittest.TestCase):
         expected = {
             'connector-test': (
                 'bash automation/acceptance/connector/raicho_check_connector.bash',
-                'bash runtime/credentials/tests/acceptance/raicho_check_credentials.bash',
+                'bash automation/acceptance/credentials/raicho_check_credentials.bash',
             ),
             'compatibility-test': (
                 'bash extension/mailprobe/tests/raicho_check_mail_compatibility.bash',

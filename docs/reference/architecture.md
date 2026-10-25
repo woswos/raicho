@@ -46,7 +46,7 @@ one operation lock spanning database and file updates. Only the one-off
 provisioner and Thunderbird receive read-only raw credentials. Ordinary server
 startup never imports tokens. The operational wrapper, file helper, and live
 connection verifier live under `runtime/credentials/`, separate from disposable
-acceptance drivers under `runtime/credentials/tests/acceptance/`. See the
+acceptance drivers under `automation/acceptance/credentials/`. See the
 [credential procedure](../operations/connector-credentials.md) for recovery.
 
 The [runtime reference](runtime.md) describes endpoints, storage, migrations,

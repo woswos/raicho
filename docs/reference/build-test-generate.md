@@ -197,7 +197,7 @@ for sources, parsing rules, and integration responsibilities.
 ```bash
 docker compose -f compose/compose.tools.yaml run --rm check \
   make test-server lint-repo lint-sql format-check-sql
-bash runtime/credentials/tests/acceptance/raicho_check_credentials.bash
+bash automation/acceptance/credentials/raicho_check_credentials.bash
 ```
 
 The source checks cover credential state transitions and host-file recovery.

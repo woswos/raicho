@@ -50,8 +50,8 @@ availability. A failed connection check retains recovery files.
 
 The operational wrapper and its file-management and connection-verification
 modules live in `runtime/credentials/`. The disposable acceptance runner is
-under `runtime/credentials/tests/acceptance/`, as described in
-[project structure](../reference/project-structure.md#test-code).
+under `automation/acceptance/credentials/`, as described in
+[project structure](../reference/project-structure.md#automation).
 
 ## Secret ownership
 
@@ -122,7 +122,7 @@ restore its token as an active credential.
 ## Validation
 
 ```bash
-bash runtime/credentials/tests/acceptance/raicho_check_credentials.bash
+bash automation/acceptance/credentials/raicho_check_credentials.bash
 ```
 
 The runner owns a uniquely named disposable Compose project and temporary host

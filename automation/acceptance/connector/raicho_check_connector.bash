@@ -5,30 +5,14 @@ set -euo pipefail
 SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPOSITORY_ROOT="$(cd "${SCRIPT_DIRECTORY}/../../.." && pwd)"
 cd "${REPOSITORY_ROOT}"
-export RAICHO_PROJECT
-RAICHO_PROJECT="raicho-connector-$(date -u +%Y%m%d%H%M%S)-${RANDOM}"
-export RAICHO_STATE_DIRECTORY
-RAICHO_STATE_DIRECTORY="$(mktemp -d /tmp/raicho-connector.XXXXXXXX)"
-export RAICHO_CREDENTIAL_DIRECTORY="${RAICHO_STATE_DIRECTORY}/credentials"
-export RAICHO_COMPOSE_TEST=1
-mkdir -m 700 "${RAICHO_CREDENTIAL_DIRECTORY}"
-COMPOSE=(docker compose -p "${RAICHO_PROJECT}" -f compose/compose.yaml
-    -f compose/compose.credentials.yaml -f compose/compose.runtime_test.yaml)
+# shellcheck source=automation/acceptance/raicho_credential_deployment.bash
+source automation/acceptance/raicho_credential_deployment.bash
+prepare_credential_deployment connector
 HOLDER="${RAICHO_PROJECT}-address-holder"
 PROBE=(docker run --rm -i --read-only --user 10001:10001 --cap-drop ALL
     --security-opt no-new-privileges:true
     --workdir / --mount "type=bind,source=${REPOSITORY_ROOT}/automation,target=/automation,readonly"
     --mount "type=bind,source=${REPOSITORY_ROOT}/protocol,target=/protocol,readonly")
-
-fixture() {
-    docker run --rm -i --network none --read-only --user 0:0 \
-        --cap-drop ALL --cap-add CHOWN --cap-add DAC_OVERRIDE --cap-add FOWNER \
-        --security-opt no-new-privileges:true \
-        --mount "type=bind,source=${REPOSITORY_ROOT}/runtime/credentials/tests/acceptance/raicho_credential_checks.py,target=/checks.py,readonly" \
-        --mount "type=bind,source=${RAICHO_STATE_DIRECTORY},target=/fixture" \
-        --mount "type=volume,source=${RAICHO_PROJECT}_raicho-data,target=/database" \
-        --entrypoint python3 raicho-tools:local -B /checks.py "${@}"
-}
 
 check() {
     "${PROBE[@]}" --network "${RAICHO_PROJECT}_application" --entrypoint python3 \
@@ -63,10 +47,7 @@ cleanup() {
         check snapshot || true
     fi
     docker rm -f "${HOLDER}" >/dev/null 2>&1 || true
-    if ! fixture mutate cleanup; then RESULT=1; fi
-    if ! "${COMPOSE[@]}" down --volumes --remove-orphans; then RESULT=1; fi
-    rm -f -- "${RAICHO_STATE_DIRECTORY}/operation.lock"
-    rmdir -- "${RAICHO_STATE_DIRECTORY}" || RESULT=1
+    remove_credential_deployment || RESULT=1
     exit "${RESULT}"
 }
 trap cleanup EXIT
@@ -151,7 +132,6 @@ COMPOSE+=(-f compose/compose.connector_upgrade.yaml)
 connected
 thunderbird_check persist 65535.0.0
 echo 'Thunderbird upgraded the managed connector in the same profile'
-"${COMPOSE[@]}" logs --no-color raicho thunderbird gateway | fixture logs
 fixture database --revision 1
 "${COMPOSE[@]}" logs --no-color raicho thunderbird gateway | privacy logs
 privacy diagnostics

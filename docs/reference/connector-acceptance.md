@@ -50,7 +50,7 @@ docker compose -f compose/compose.tools.yaml build
 docker compose -f compose/compose.tools.yaml run --rm check \
   make lint format-check typecheck test-tooling build-app test-app test-mailprobe
 bash automation/acceptance/connector/raicho_check_connector.bash
-bash runtime/credentials/tests/acceptance/raicho_check_credentials.bash
+bash automation/acceptance/credentials/raicho_check_credentials.bash
 bash extension/mailprobe/tests/raicho_check_mail_compatibility.bash
 ```
 
