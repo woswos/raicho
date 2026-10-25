@@ -77,6 +77,11 @@ connected() {
     echo 'Production connector is authenticated and heartbeating'
 }
 
+thunderbird_check() {
+    "${COMPOSE[@]}" exec -T thunderbird python3 -B - "${@}" \
+        <"${REPOSITORY_ROOT}/automation/acceptance/connector/raicho_thunderbird_checks.py"
+}
+
 docker compose -f compose/compose.tools.yaml build
 "${COMPOSE[@]}" build raicho thunderbird gateway
 prepare_network
@@ -90,6 +95,7 @@ docker inspect "${SERVER}" "${THUNDERBIRD}" "${GATEWAY}" | check deployment
 docker inspect "${SERVER}" "${THUNDERBIRD}" | fixture mounts
 fixture database --revision 1
 "${COMPOSE[@]}" exec -T thunderbird python3 -B - <"${REPOSITORY_ROOT}/extension/tests/raicho_inspect_connector_xpi.py"
+thunderbird_check seed
 check idle
 check browser
 "${PROBE[@]}" --network "${RAICHO_PROJECT}_thunderbird" --entrypoint python3 \
@@ -108,6 +114,7 @@ for SERVICE in thunderbird gateway raicho; do
     "${COMPOSE[@]}" up -d --no-deps --force-recreate --wait --wait-timeout 120 "${SERVICE}"
     connected
 done
+thunderbird_check persist
 
 THUNDERBIRD="$("${COMPOSE[@]}" ps -q thunderbird)"
 docker network disconnect "${RAICHO_PROJECT}_thunderbird" "${THUNDERBIRD}"
@@ -136,9 +143,16 @@ echo 'Gateway dynamically resolved a recreated Raicho container at a different a
 
 COMPOSE_PROJECT_NAME="${RAICHO_PROJECT}" bash automation/acceptance/runtime/raicho_check_admin_isolation.bash
 connected
+
+COMPOSE+=(-f compose/compose.connector_upgrade.yaml)
+"${COMPOSE[@]}" run --rm upgrade-extension
+"${COMPOSE[@]}" up -d --no-deps --force-recreate --wait --wait-timeout 120 thunderbird
+connected
+thunderbird_check persist 65535.0.0
+echo 'Thunderbird upgraded the managed connector in the same profile'
 "${COMPOSE[@]}" logs --no-color raicho thunderbird gateway | fixture logs
 fixture database --revision 1
 "${COMPOSE[@]}" logs --no-color raicho thunderbird gateway | privacy logs
 privacy diagnostics
 privacy database
-echo 'Connector passed: ten-minute idle, authentication, recovery, DNS refresh, isolation, and privacy'
+echo 'Connector passed: ten-minute idle, authentication, recovery, DNS refresh, isolation, upgrade, and privacy'

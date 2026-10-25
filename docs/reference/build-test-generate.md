@@ -226,8 +226,11 @@ observes one authenticated generation for at least 600 seconds, requiring ongoin
 heartbeat progress. A reconnect, counter reset, or heartbeat stall fails the check.
 Rejected payloads carry fictional mail canaries. The runner checks that those
 canaries and the raw token are absent from logs, diagnostics, and SQLite, and
-rejects unexpected application tables. It runs unchanged in CI's `connector-test`
-job alongside the credential runner. See [acceptance evidence](connector-acceptance.md).
+rejects unexpected application tables. It checks the Thunderbird runtime policy
+and a profile sentinel across restarts. Finally it builds the production XPI as
+version 65535.0.0 into a disposable volume, mounts it over the image's extension
+directory, and requires the same profile to activate that version and reconnect.
+It runs unchanged in CI's `connector-test` job alongside the credential runner. See [acceptance evidence](connector-acceptance.md).
 
 ## Extension lifecycle
 

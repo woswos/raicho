@@ -1,0 +1,40 @@
+services:
+  thunderbird:
+    volumes:
+      - type: volume
+        source: upgrade-extension
+        target: /opt/raicho/extension
+        read_only: true
+        volume:
+          nocopy: true
+
+  upgrade-extension:
+    image: raicho-tools:local
+    platform: linux/amd64
+    profiles: [test]
+    user: '10001:10001'
+    network_mode: none
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777
+    command:
+      [
+        python3,
+        -B,
+        -m,
+        extension.raicho_build_extension,
+        --version,
+        65535.0.0,
+        --output-directory,
+        /artifact,
+      ]
+    volumes:
+      - ..:/workspace:ro
+      - upgrade-extension:/artifact
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      disable: true
+
+volumes:
+  upgrade-extension:

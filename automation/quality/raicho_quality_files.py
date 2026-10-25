@@ -23,6 +23,7 @@ CONFIGURATION_FILES = {
     'compose/compose.admin.yaml',
     'compose/compose.runtime_test.yaml',
     'compose/compose.credentials.yaml',
+    'compose/compose.connector_upgrade.yaml',
     'compose/compose.extension_test.yaml',
     'compose/compose.mail_test.yaml',
     'compose/compose.mail_admin.yaml',
