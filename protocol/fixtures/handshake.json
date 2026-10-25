@@ -6,7 +6,8 @@
     "message": {
       "type": "authenticate",
       "protocol_version": 1,
-      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "thunderbird",
       "backend_version": "153.5.0",
       "connector_version": "0.1.0",
@@ -20,11 +21,121 @@
     "message": {
       "type": "authenticate",
       "protocol_version": 1,
-      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "another_backend",
       "backend_version": "153.5.0",
       "connector_version": "0.1.0",
       "capabilities": []
+    }
+  },
+  {
+    "name": "challenge",
+    "phase": "challenge",
+    "valid": true,
+    "message": {
+      "type": "challenge",
+      "protocol_version": 1,
+      "server_nonce": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    }
+  },
+  {
+    "name": "challenge error server_busy",
+    "phase": "challenge",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "server_busy"
+    }
+  },
+  {
+    "name": "challenge error cannot claim generation",
+    "phase": "challenge",
+    "valid": false,
+    "error": "unexpected_message",
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "server_busy",
+      "generation": "0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "welcome before challenge",
+    "phase": "challenge",
+    "valid": false,
+    "error": "unexpected_message",
+    "message": {
+      "type": "welcome",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "capabilities": [],
+      "heartbeat_interval_ms": 15000,
+      "heartbeat_timeout_ms": 45000,
+      "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  },
+  {
+    "name": "challenge after authentication",
+    "phase": "handshake",
+    "valid": false,
+    "error": "unexpected_message",
+    "message": {
+      "type": "challenge",
+      "protocol_version": 1,
+      "server_nonce": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    }
+  },
+  {
+    "name": "challenge from connector",
+    "phase": "authentication",
+    "valid": false,
+    "error": "unexpected_message",
+    "message": {
+      "type": "challenge",
+      "protocol_version": 1,
+      "server_nonce": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    }
+  },
+  {
+    "name": "short server nonce",
+    "phase": "challenge",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "challenge",
+      "protocol_version": 1,
+      "server_nonce": "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    }
+  },
+  {
+    "name": "welcome without server signature",
+    "phase": "handshake",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "welcome",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "capabilities": [],
+      "heartbeat_interval_ms": 15000,
+      "heartbeat_timeout_ms": 45000
+    }
+  },
+  {
+    "name": "raw token is not accepted",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": [],
+      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     }
   },
   {
@@ -37,7 +148,8 @@
       "generation": "0123456789abcdef0123456789abcdef",
       "capabilities": [],
       "heartbeat_interval_ms": 15000,
-      "heartbeat_timeout_ms": 45000
+      "heartbeat_timeout_ms": 45000,
+      "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
     }
   },
   {
@@ -138,7 +250,8 @@
     "message": {
       "type": "authenticate",
       "protocol_version": 2,
-      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "thunderbird",
       "backend_version": "153.5.0",
       "connector_version": "0.1.0",
@@ -153,7 +266,8 @@
     "message": {
       "type": "authenticate",
       "protocol_version": "1",
-      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "thunderbird",
       "backend_version": "153.5.0",
       "connector_version": "0.1.0",
@@ -168,7 +282,8 @@
     "message": {
       "type": "authenticate",
       "protocol_version": 0,
-      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "thunderbird",
       "backend_version": "153.5.0",
       "connector_version": "0.1.0",
@@ -183,7 +298,8 @@
     "message": {
       "type": "authenticate",
       "protocol_version": 1.5,
-      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "thunderbird",
       "backend_version": "153.5.0",
       "connector_version": "0.1.0",
@@ -198,7 +314,8 @@
     "message": {
       "type": "authenticate",
       "protocol_version": 1e100,
-      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "thunderbird",
       "backend_version": "153.5.0",
       "connector_version": "0.1.0",
@@ -206,13 +323,14 @@
     }
   },
   {
-    "name": "token missing",
+    "name": "client proof missing",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
     "message": {
       "type": "authenticate",
       "protocol_version": 1,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "backend_kind": "thunderbird",
       "backend_version": "153.5.0",
       "connector_version": "0.1.0",
@@ -220,14 +338,15 @@
     }
   },
   {
-    "name": "short token",
+    "name": "short client nonce",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
     "message": {
       "type": "authenticate",
       "protocol_version": 1,
-      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "client_nonce": "ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "thunderbird",
       "backend_version": "153.5.0",
       "connector_version": "0.1.0",
@@ -235,14 +354,15 @@
     }
   },
   {
-    "name": "noncanonical token",
+    "name": "noncanonical client proof",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
     "message": {
       "type": "authenticate",
       "protocol_version": 1,
-      "token": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
       "backend_kind": "thunderbird",
       "backend_version": "153.5.0",
       "connector_version": "0.1.0",
@@ -257,7 +377,8 @@
     "message": {
       "type": "authenticate",
       "protocol_version": 1,
-      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "",
       "backend_version": "153.5.0",
       "connector_version": "0.1.0",
@@ -272,7 +393,8 @@
     "message": {
       "type": "authenticate",
       "protocol_version": 1,
-      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "thunderbird",
       "backend_version": "153.5.0",
       "connector_version": "0.1.0",
@@ -288,7 +410,8 @@
     "message": {
       "type": "authenticate",
       "protocol_version": 1,
-      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "thunderbird",
       "backend_version": "153.5.0",
       "connector_version": "0.1.0",
@@ -306,7 +429,8 @@
       "generation": "0123456789abcdef0123456789abcdef",
       "capabilities": ["mail"],
       "heartbeat_interval_ms": 15000,
-      "heartbeat_timeout_ms": 45000
+      "heartbeat_timeout_ms": 45000,
+      "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
     }
   },
   {
@@ -320,7 +444,8 @@
       "generation": "0123456789abcdef0123456789abcdef",
       "capabilities": [],
       "heartbeat_interval_ms": 1000,
-      "heartbeat_timeout_ms": 45000
+      "heartbeat_timeout_ms": 45000,
+      "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
     }
   },
   {
@@ -334,7 +459,8 @@
       "generation": "0123456789abcdef0123456789abcdef",
       "capabilities": [],
       "heartbeat_interval_ms": 15000,
-      "heartbeat_timeout_ms": 0
+      "heartbeat_timeout_ms": 0,
+      "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
     }
   },
   {

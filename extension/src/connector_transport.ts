@@ -94,31 +94,17 @@ export function startConnectorTransport(
         }
         current.send(message);
       };
-      current.onopen = () => {
-        if (!active()) return;
-        let authentication: string;
-        try {
-          authentication = session.authenticate();
-        } catch {
-          stop();
-          return;
-        }
-        try {
-          send(authentication);
-          deadline(LIMITS.authentication_deadline_ms);
-        } catch {
-          retry();
-        }
-      };
-      current.onmessage = (event) => {
-        if (!active()) return;
+      const handle = async (data: unknown) => {
         let received;
         try {
-          received = session.receive(event.data);
+          received = await session.receive(data);
         } catch {
-          stop();
+          if (!active()) return;
+          if (session.proven) stop();
+          else retry();
           return;
         }
+        if (!active()) return;
         if (received.action === 'stop') {
           stop();
           return;
@@ -130,14 +116,25 @@ export function startConnectorTransport(
         try {
           if (received.reply !== undefined) send(received.reply);
           if (received.action === 'heartbeat') failures = 0;
-          deadline(LIMITS.heartbeat_timeout_ms);
+          deadline(
+            received.action === 'authenticate'
+              ? LIMITS.authentication_deadline_ms
+              : LIMITS.heartbeat_timeout_ms,
+          );
         } catch {
           retry();
         }
       };
+      let processing = Promise.resolve();
+      current.onmessage = (event) => {
+        processing = processing.then(() =>
+          active() ? handle(event.data) : undefined,
+        );
+        return processing;
+      };
       current.onclose = (event) => {
         if (!active()) return;
-        if (TERMINAL_CLOSE_CODES.includes(event.code)) stop();
+        if (session.proven && TERMINAL_CLOSE_CODES.includes(event.code)) stop();
         else retry();
       };
       current.onerror = () => {

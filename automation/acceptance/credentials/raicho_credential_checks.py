@@ -1,5 +1,6 @@
 import argparse
 import hashlib
+import hmac
 import json
 import re
 import sqlite3
@@ -39,20 +40,26 @@ def database_check(arguments):
         f'file:{DATABASE_DIRECTORY}/raicho.sqlite3?mode=ro', uri=True
     ) as connection:
         rows = connection.execute(
-            'SELECT backend_kind, token_digest, revoked, revision '
+            'SELECT backend_kind, stored_key, server_key, revoked, revision '
             'FROM connector_credentials'
         ).fetchall()
         assert connection.execute('PRAGMA integrity_check').fetchone() == ('ok',)
     assert len(rows) == 1, 'Exactly one connector credential must exist'
-    backend, digest, revoked, revision = rows[0]
+    backend, stored_key, server_key, revoked, revision = rows[0]
     assert backend == 'thunderbird', 'Unexpected persisted backend kind'
-    assert digest == hashlib.sha256(selected).digest(), 'File and digest differ'
+    client_key = hmac.digest(selected, b'raicho connector client key', 'sha256')
+    assert stored_key == hashlib.sha256(client_key).digest(), (
+        'Token and stored key differ'
+    )
+    assert server_key == hmac.digest(
+        selected, b'raicho connector server key', 'sha256'
+    ), 'Token and server key differ'
     assert revoked == int(arguments.revoked), 'Persisted revocation state differs'
     assert revision == arguments.revision, 'Credential revision differs'
     for path in DATABASE_DIRECTORY.iterdir():
         if path.is_file():
             assert selected not in path.read_bytes(), 'Database leaked the raw token'
-    print('Credential digest, permissions, persistence, and token isolation passed')
+    print('Credential keys, permissions, persistence, and token isolation passed')
 
 
 def mount_check():

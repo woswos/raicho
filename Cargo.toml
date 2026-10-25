@@ -12,6 +12,7 @@ license = "MIT"
 axum = { version = "=0.8.9", default-features = false, features = ["http1", "json", "tokio", "ws"] }
 futures-util = { version = "=0.3.34", features = ["sink"] }
 getrandom = "=0.4.3"
+hmac = "=0.13.0"
 jsonschema = { version = "=0.59.0", default-features = false }
 libc = "=0.2.191"
 libsqlite3-sys = { version = "=0.37.0", default-features = false }

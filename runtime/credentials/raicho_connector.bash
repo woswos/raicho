@@ -112,4 +112,4 @@ database verify --token-file /credentials/connector.token
 "${COMPOSE[@]}" exec -T thunderbird test -r /run/secrets/raicho_connector_token
 "${COMPOSE[@]}" run --rm --no-deps -T credential-check
 files finish >/dev/null
-echo 'Credential digest, Thunderbird connection, and heartbeat verified. Services recreated.'
+echo 'Credential keys, Thunderbird connection, and heartbeat verified. Services recreated.'

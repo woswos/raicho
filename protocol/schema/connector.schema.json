@@ -2,11 +2,24 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ConnectorMessage",
   "oneOf": [
-    { "$ref": "#/definitions/Authenticate" },
-    { "$ref": "#/definitions/Welcome" },
-    { "$ref": "#/definitions/Ping" },
-    { "$ref": "#/definitions/Pong" },
-    { "$ref": "#/definitions/ProtocolError" }
+    {
+      "$ref": "#/definitions/Challenge"
+    },
+    {
+      "$ref": "#/definitions/Authenticate"
+    },
+    {
+      "$ref": "#/definitions/Welcome"
+    },
+    {
+      "$ref": "#/definitions/Ping"
+    },
+    {
+      "$ref": "#/definitions/Pong"
+    },
+    {
+      "$ref": "#/definitions/ProtocolError"
+    }
   ],
   "definitions": {
     "Generation": {
@@ -15,11 +28,43 @@
       "maxLength": 32,
       "pattern": "^[a-f0-9]{32}$"
     },
+    "Nonce": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "Signature": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "pattern": "^[a-f0-9]{64}$"
+    },
     "Capabilities": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "maxItems": 0,
       "uniqueItems": true
+    },
+    "Challenge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "protocol_version", "server_nonce"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["challenge"]
+        },
+        "protocol_version": {
+          "type": "integer",
+          "enum": [1]
+        },
+        "server_nonce": {
+          "$ref": "#/definitions/Nonce"
+        }
+      }
     },
     "Authenticate": {
       "type": "object",
@@ -27,20 +72,21 @@
       "required": [
         "type",
         "protocol_version",
-        "token",
         "backend_kind",
         "backend_version",
         "connector_version",
-        "capabilities"
+        "capabilities",
+        "client_nonce",
+        "client_proof"
       ],
       "properties": {
-        "type": { "type": "string", "enum": ["authenticate"] },
-        "protocol_version": { "type": "integer", "enum": [1] },
-        "token": {
+        "type": {
           "type": "string",
-          "minLength": 64,
-          "maxLength": 64,
-          "pattern": "^[a-f0-9]{64}$"
+          "enum": ["authenticate"]
+        },
+        "protocol_version": {
+          "type": "integer",
+          "enum": [1]
         },
         "backend_kind": {
           "type": "string",
@@ -60,7 +106,15 @@
           "maxLength": 64,
           "pattern": "^[ -~]+$"
         },
-        "capabilities": { "$ref": "#/definitions/Capabilities" }
+        "capabilities": {
+          "$ref": "#/definitions/Capabilities"
+        },
+        "client_nonce": {
+          "$ref": "#/definitions/Nonce"
+        },
+        "client_proof": {
+          "$ref": "#/definitions/Signature"
+        }
       }
     },
     "Welcome": {
@@ -72,15 +126,35 @@
         "generation",
         "capabilities",
         "heartbeat_interval_ms",
-        "heartbeat_timeout_ms"
+        "heartbeat_timeout_ms",
+        "server_signature"
       ],
       "properties": {
-        "type": { "type": "string", "enum": ["welcome"] },
-        "protocol_version": { "type": "integer", "enum": [1] },
-        "generation": { "$ref": "#/definitions/Generation" },
-        "capabilities": { "$ref": "#/definitions/Capabilities" },
-        "heartbeat_interval_ms": { "type": "integer", "enum": [15000] },
-        "heartbeat_timeout_ms": { "type": "integer", "enum": [45000] }
+        "type": {
+          "type": "string",
+          "enum": ["welcome"]
+        },
+        "protocol_version": {
+          "type": "integer",
+          "enum": [1]
+        },
+        "generation": {
+          "$ref": "#/definitions/Generation"
+        },
+        "capabilities": {
+          "$ref": "#/definitions/Capabilities"
+        },
+        "heartbeat_interval_ms": {
+          "type": "integer",
+          "enum": [15000]
+        },
+        "heartbeat_timeout_ms": {
+          "type": "integer",
+          "enum": [45000]
+        },
+        "server_signature": {
+          "$ref": "#/definitions/Signature"
+        }
       }
     },
     "Ping": {
@@ -88,10 +162,22 @@
       "additionalProperties": false,
       "required": ["type", "protocol_version", "generation", "sequence"],
       "properties": {
-        "type": { "type": "string", "enum": ["ping"] },
-        "protocol_version": { "type": "integer", "enum": [1] },
-        "generation": { "$ref": "#/definitions/Generation" },
-        "sequence": { "type": "integer", "minimum": 1, "maximum": 2147483647 }
+        "type": {
+          "type": "string",
+          "enum": ["ping"]
+        },
+        "protocol_version": {
+          "type": "integer",
+          "enum": [1]
+        },
+        "generation": {
+          "$ref": "#/definitions/Generation"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        }
       }
     },
     "Pong": {
@@ -99,10 +185,22 @@
       "additionalProperties": false,
       "required": ["type", "protocol_version", "generation", "sequence"],
       "properties": {
-        "type": { "type": "string", "enum": ["pong"] },
-        "protocol_version": { "type": "integer", "enum": [1] },
-        "generation": { "$ref": "#/definitions/Generation" },
-        "sequence": { "type": "integer", "minimum": 1, "maximum": 2147483647 }
+        "type": {
+          "type": "string",
+          "enum": ["pong"]
+        },
+        "protocol_version": {
+          "type": "integer",
+          "enum": [1]
+        },
+        "generation": {
+          "$ref": "#/definitions/Generation"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        }
       }
     },
     "ProtocolError": {
@@ -110,9 +208,17 @@
       "additionalProperties": false,
       "required": ["type", "protocol_version", "code"],
       "properties": {
-        "type": { "type": "string", "enum": ["error"] },
-        "protocol_version": { "type": "integer", "enum": [1] },
-        "generation": { "$ref": "#/definitions/Generation" },
+        "type": {
+          "type": "string",
+          "enum": ["error"]
+        },
+        "protocol_version": {
+          "type": "integer",
+          "enum": [1]
+        },
+        "generation": {
+          "$ref": "#/definitions/Generation"
+        },
         "code": {
           "type": "string",
           "enum": [

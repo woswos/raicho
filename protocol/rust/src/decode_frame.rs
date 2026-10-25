@@ -13,6 +13,7 @@ use crate::{
 #[serde(rename_all = "snake_case")]
 pub enum Phase {
     Authentication,
+    Challenge,
     Handshake,
     ClientControl,
     ServerControl,
@@ -84,12 +85,11 @@ fn check_phase(
     generation: Option<&str>,
 ) -> Result<(), ContractError> {
     let message_type = message["type"].as_str();
+    let unclaimed_error = message_type == Some("error") && message.get("generation").is_none();
     let permitted = match phase {
         Phase::Authentication => message_type == Some("authenticate"),
-        Phase::Handshake => {
-            message_type == Some("welcome")
-                || (message_type == Some("error") && message.get("generation").is_none())
-        }
+        Phase::Challenge => message_type == Some("challenge") || unclaimed_error,
+        Phase::Handshake => message_type == Some("welcome") || unclaimed_error,
         Phase::ClientControl => message_type == Some("pong"),
         Phase::ServerControl => matches!(message_type, Some("ping" | "error")),
     };

@@ -68,10 +68,14 @@ def reject(mail=False):
             )
         }
         assert headers[b'sec-websocket-accept'] == accept
+        opcode, contents = frame(connection)
+        assert opcode == 1
+        assert json.loads(contents)['type'] == 'challenge'
         payload = {
             'type': 'authenticate',
             'protocol_version': 1,
-            'token': '0' * 64,
+            'client_nonce': secrets.token_hex(32),
+            'client_proof': secrets.token_hex(32),
             'backend_kind': 'thunderbird',
             'backend_version': 'fixture',
             'connector_version': 'fixture',

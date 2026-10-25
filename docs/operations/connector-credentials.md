@@ -43,7 +43,7 @@ instance lock independently rejects provisioning while another process owns it.
 
 `compose/compose.credentials.yaml` adds offline provisioning services and mounts
 the token read-only into Thunderbird. It configures the fixed internal gateway
-endpoint. Verification checks the SQLite digest, file permissions, UID 10001
+endpoint. Verification checks the SQLite keys, file permissions, UID 10001
 access, service health, and the live authenticated connection. The diagnostics
 page should report `Connected`. This confirms the control connection, not mail
 availability. A failed connection check retains recovery files.
@@ -62,8 +62,8 @@ rejected. The one-off file helper runs as root with only the filesystem
 capabilities needed to prepare those permissions on its narrow bind mount.
 The database provisioner and both core services run as UID/GID 10001.
 
-The host files live in the ignored state directory. SQLite stores a SHA-256
-digest and backend/revocation metadata only. Ordinary Raicho mounts no token
+The host files live in the ignored state directory. SQLite stores the two keys derived
+from the token and backend/revocation metadata only. Ordinary Raicho mounts no token
 file and never imports or re-enrolls credentials at startup. Credentials do not
 enter environment variables, command arguments, images, XPIs, or logs. Protect
 the host token and database backups as sensitive configuration.
@@ -71,7 +71,7 @@ the host token and database backups as sensitive configuration.
 ## Rotation and interrupted operations
 
 The files below describe the recoverable transaction. Each file creation,
-rename, and removal is synchronized to disk. Only one digest is valid in SQLite.
+rename, and removal is synchronized to disk. Only one credential is valid in SQLite.
 
 | Files under `credentials/` | Meaning and action |
 | --- | --- |
@@ -81,7 +81,7 @@ rename, and removal is synchronized to disk. Only one digest is valid in SQLite.
 | `connector.pending` and `connector.previous`, no current token | Interrupted publication, rerun `rotate` to restore the old filename and resume |
 | `connector.token` and `connector.previous` | New token is published, rerun `rotate` to verify it and recreate services before discarding the previous file |
 
-Rotation prepares `connector.pending`, commits its digest in SQLite, renames
+Rotation prepares `connector.pending`, commits its keys in SQLite, renames
 the old token to `connector.previous`, and publishes the pending token. It then
 verifies the new file against SQLite and force-recreates services so a file bind
 mount cannot retain an old inode. Thunderbird reloads managed policy only at

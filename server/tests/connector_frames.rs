@@ -15,7 +15,7 @@ use support::{Fixture, receive, receive_within};
 #[tokio::test]
 async fn fragmented_authentication_cannot_extend_the_absolute_deadline() {
     let fixture = Fixture::new().await;
-    let mut socket = fixture.connect().await;
+    let (mut socket, _) = fixture.connect().await;
     socket
         .send(Message::Frame(Frame::message(
             vec![b'{'],
@@ -45,7 +45,7 @@ async fn fragmented_authentication_cannot_extend_the_absolute_deadline() {
 #[tokio::test]
 async fn binary_frames_are_terminal_before_authentication() {
     let fixture = Fixture::new().await;
-    let mut socket = fixture.connect().await;
+    let (mut socket, _) = fixture.connect().await;
     socket.send(Message::Binary(vec![1].into())).await.unwrap();
     assert_eq!(receive(&mut socket).await["code"], "unexpected_message");
     fixture.finish().await;

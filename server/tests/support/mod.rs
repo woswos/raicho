@@ -2,6 +2,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
+use raicho_protocol::authentication::{authentication_message, client_proof, to_hex};
+use raicho_protocol::contract_generated::Authenticate;
 use raicho_server::connector::{Connector, ConnectorListener};
 use raicho_server::credentials::Credential;
 use raicho_server::persistence::{CredentialStore, Database};
@@ -58,14 +60,20 @@ impl Fixture {
         request
     }
 
-    pub async fn connect(&self) -> Socket {
-        connect_async(self.request()).await.unwrap().0
+    pub async fn connect(&self) -> (Socket, String) {
+        let mut socket = connect_async(self.request()).await.unwrap().0;
+        let challenge = receive(&mut socket).await;
+        assert_eq!(challenge["type"], "challenge");
+        let server_nonce = challenge["server_nonce"].as_str().unwrap().to_owned();
+        (socket, server_nonce)
     }
 
     pub async fn authenticate(&self) -> (Socket, Value) {
-        let mut socket = self.connect().await;
+        let (mut socket, server_nonce) = self.connect().await;
         socket
-            .send(Message::Text(authentication("a").to_string().into()))
+            .send(Message::Text(
+                authentication("a", &server_nonce).to_string().into(),
+            ))
             .await
             .unwrap();
         let welcome = receive(&mut socket).await;
@@ -81,10 +89,16 @@ impl Fixture {
     }
 }
 
-pub fn authentication(character: &str) -> Value {
-    json!({"type":"authenticate", "protocol_version":1, "token":character.repeat(64),
+pub fn authentication(character: &str, server_nonce: &str) -> Value {
+    let token = character.repeat(64);
+    let mut message = json!({"type":"authenticate", "protocol_version":1,
         "backend_kind":"thunderbird", "backend_version":"140.4.0",
-        "connector_version":"0.1.0", "capabilities":[]})
+        "connector_version":"0.1.0", "capabilities":[],
+        "client_nonce":"c".repeat(64), "client_proof":"0".repeat(64)});
+    let fields: Authenticate = serde_json::from_value(message.clone()).unwrap();
+    let transcript = authentication_message(server_nonce, &fields);
+    message["client_proof"] = json!(to_hex(&client_proof(&token, &transcript)));
+    message
 }
 
 pub async fn receive(socket: &mut Socket) -> Value {

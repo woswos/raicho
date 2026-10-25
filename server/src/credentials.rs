@@ -1,6 +1,6 @@
 mod token_file;
 
-use sha2::{Digest, Sha256};
+use raicho_protocol::authentication::ConnectorKeys;
 use subtle::ConstantTimeEq;
 
 use crate::error::{Error, Result};
@@ -8,7 +8,7 @@ use crate::error::{Error, Result};
 const TOKEN_HEX_LENGTH: usize = 64;
 
 pub struct Credential {
-    digest: [u8; 32],
+    keys: ConnectorKeys,
 }
 
 impl Credential {
@@ -23,16 +23,20 @@ impl Credential {
             ));
         }
         Ok(Self {
-            digest: Sha256::digest(value.as_bytes()).into(),
+            keys: ConnectorKeys::derive(value),
         })
     }
 
-    pub(crate) fn digest(&self) -> &[u8] {
-        &self.digest
+    pub(crate) fn stored_key(&self) -> &[u8] {
+        &self.keys.stored_key
     }
 
-    pub(crate) fn matches(&self, digest: &[u8]) -> bool {
-        bool::from(self.digest.as_slice().ct_eq(digest))
+    pub(crate) fn server_key(&self) -> &[u8] {
+        &self.keys.server_key
+    }
+
+    pub(crate) fn matches(&self, stored_key: &[u8]) -> bool {
+        bool::from(self.keys.stored_key.as_slice().ct_eq(stored_key))
     }
 }
 
@@ -56,17 +60,10 @@ mod tests {
     }
 
     #[test]
-    fn digest_has_a_known_sha256_value() {
+    fn credentials_compare_by_stored_key_only() {
         let credential = Credential::parse(&"a".repeat(64)).unwrap();
-        assert_eq!(
-            credential.digest,
-            [
-                0xff, 0xe0, 0x54, 0xfe, 0x7a, 0xe0, 0xcb, 0x6d, 0xc6, 0x5c, 0x3a, 0xf9, 0xb6, 0x1d,
-                0x52, 0x09, 0xf4, 0x39, 0x85, 0x1d, 0xb4, 0x3d, 0x0b, 0xa5, 0x99, 0x73, 0x37, 0xdf,
-                0x15, 0x46, 0x68, 0xeb,
-            ]
-        );
-        assert!(credential.matches(&credential.digest));
-        assert!(!credential.matches(&Credential::parse(&"b".repeat(64)).unwrap().digest));
+        assert!(credential.matches(credential.stored_key()));
+        assert!(!credential.matches(credential.server_key()));
+        assert!(!credential.matches(Credential::parse(&"b".repeat(64)).unwrap().stored_key()));
     }
 }

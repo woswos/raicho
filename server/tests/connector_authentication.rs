@@ -9,6 +9,10 @@ use serde_json::json;
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::{Message, client::IntoClientRequest};
 
+use raicho_protocol::authentication::{
+    ConnectorKeys, authentication_message, server_signature, to_hex,
+};
+use raicho_protocol::contract_generated::Authenticate;
 use support::{Fixture, ORIGIN, authentication, receive, receive_within};
 
 #[tokio::test]
@@ -40,9 +44,11 @@ async fn authentication_registers_one_session_and_replacement_fences_old_cleanup
 async fn rejected_credentials_do_not_displace_an_authenticated_session() {
     let fixture = Fixture::new().await;
     let (_active, welcome) = fixture.authenticate().await;
-    let mut rejected = fixture.connect().await;
+    let (mut rejected, server_nonce) = fixture.connect().await;
     rejected
-        .send(Message::Text(authentication("b").to_string().into()))
+        .send(Message::Text(
+            authentication("b", &server_nonce).to_string().into(),
+        ))
         .await
         .unwrap();
     assert_eq!(
@@ -63,9 +69,11 @@ async fn revoked_credentials_remain_revoked_and_are_never_enrolled_by_authentica
         .revoke()
         .await
         .unwrap();
-    let mut socket = fixture.connect().await;
+    let (mut socket, server_nonce) = fixture.connect().await;
     socket
-        .send(Message::Text(authentication("a").to_string().into()))
+        .send(Message::Text(
+            authentication("a", &server_nonce).to_string().into(),
+        ))
         .await
         .unwrap();
     assert_eq!(receive(&mut socket).await["code"], "authentication_failed");
@@ -80,9 +88,11 @@ async fn revoked_credentials_remain_revoked_and_are_never_enrolled_by_authentica
 async fn stalled_credential_storage_is_retryable_rather_than_a_rejection() {
     let fixture = Fixture::new().await;
     let held = fixture.database.pool().acquire().await.unwrap();
-    let mut socket = fixture.connect().await;
+    let (mut socket, server_nonce) = fixture.connect().await;
     socket
-        .send(Message::Text(authentication("a").to_string().into()))
+        .send(Message::Text(
+            authentication("a", &server_nonce).to_string().into(),
+        ))
         .await
         .unwrap();
     let error = receive_within(&mut socket, Duration::from_secs(12)).await;
@@ -91,6 +101,38 @@ async fn stalled_credential_storage_is_retryable_rather_than_a_rejection() {
     assert_eq!(
         fixture.connector.snapshot().await.last_error,
         Some(BackendError::StorageUnavailable)
+    );
+    fixture.finish().await;
+}
+
+#[tokio::test]
+async fn welcome_proves_the_server_and_proofs_cannot_be_replayed() {
+    let fixture = Fixture::new().await;
+    let (mut first, first_nonce) = fixture.connect().await;
+    let frame = authentication("a", &first_nonce);
+    let (mut replayed, replayed_nonce) = fixture.connect().await;
+    assert_ne!(first_nonce, replayed_nonce);
+    replayed
+        .send(Message::Text(frame.to_string().into()))
+        .await
+        .unwrap();
+    assert_eq!(
+        receive(&mut replayed).await["code"],
+        "authentication_failed"
+    );
+    first
+        .send(Message::Text(frame.to_string().into()))
+        .await
+        .unwrap();
+    let welcome = receive(&mut first).await;
+    let fields: Authenticate = serde_json::from_value(frame).unwrap();
+    let keys = ConnectorKeys::derive(&"a".repeat(64));
+    assert_eq!(
+        welcome["server_signature"],
+        to_hex(&server_signature(
+            &keys.server_key,
+            &authentication_message(&first_nonce, &fields)
+        ))
     );
     fixture.finish().await;
 }
@@ -135,7 +177,7 @@ async fn route_requires_exact_path_origin_and_no_query_or_subprotocol() {
 #[tokio::test]
 async fn authentication_rejects_version_direction_duplicate_and_oversized_messages() {
     let fixture = Fixture::new().await;
-    let mut unsupported = authentication("a");
+    let mut unsupported = authentication("a", &"0".repeat(64));
     unsupported["protocol_version"] = json!(2);
     for (frame, expected) in [
         (unsupported.to_string(), "incompatible_version"),
@@ -150,7 +192,7 @@ async fn authentication_rejects_version_direction_duplicate_and_oversized_messag
             "unexpected_message",
         ),
     ] {
-        let mut socket = fixture.connect().await;
+        let (mut socket, _) = fixture.connect().await;
         socket.send(Message::Text(frame.into())).await.unwrap();
         assert_eq!(receive(&mut socket).await["code"], expected);
     }

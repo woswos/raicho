@@ -12,11 +12,13 @@ use support::{Fixture, Socket, authentication, elapse, receive};
 #[tokio::test]
 async fn native_ping_and_pong_are_transport_controls_before_and_after_authentication() {
     let fixture = Fixture::new().await;
-    let mut socket = fixture.connect().await;
+    let (mut socket, server_nonce) = fixture.connect().await;
     socket.send(Message::Pong(vec![1].into())).await.unwrap();
     native_ping(&mut socket).await;
     socket
-        .send(Message::Text(authentication("a").to_string().into()))
+        .send(Message::Text(
+            authentication("a", &server_nonce).to_string().into(),
+        ))
         .await
         .unwrap();
     assert_eq!(receive(&mut socket).await["type"], "welcome");
@@ -33,7 +35,7 @@ async fn native_ping_and_pong_are_transport_controls_before_and_after_authentica
 #[tokio::test]
 async fn native_controls_do_not_restart_the_authentication_deadline() {
     let fixture = Fixture::new().await;
-    let mut socket = fixture.connect().await;
+    let (mut socket, _) = fixture.connect().await;
     for _ in 0..2 {
         elapse(2000).await;
         native_ping(&mut socket).await;

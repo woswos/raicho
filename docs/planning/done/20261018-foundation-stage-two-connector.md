@@ -365,6 +365,9 @@ never used that listener.
 
 ## Notes
 
+- Review follow-up: authentication became a challenge-response that keeps the
+  token off the wire and proves the server. See the
+  [handshake decision](../../decisions/20261026-thunderbird-connector.md#handshake).
 - Review follow-up: the gateway moved to two internal networks so its dynamic
   upstream lookup cannot fall back to outside DNS. See the
   [network decision](../../decisions/20261026-thunderbird-connector.md#network-isolation).

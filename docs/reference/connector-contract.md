@@ -12,12 +12,13 @@ See [architecture](architecture.md) for component boundaries and
 No fixture command, account identity, message handle, or mail content belongs in
 this contract. The backend kind is an identifier, not a Thunderbird-specific type.
 
-Offline [credential provisioning](../operations/connector-credentials.md) now
-persists one active digest or a revoked record. The Rust `Credential::parse`
-boundary hashes the canonical 64-byte lowercase hexadecimal text with SHA-256,
-and `CredentialStore::verify` compares digests in constant time while rejecting
-revoked records. The transport reuses these boundaries after decoding an
-authentication frame. An incoming frame never enrolls a token.
+Offline [credential provisioning](../operations/connector-credentials.md)
+persists one active credential or a revoked record. The Rust `Credential::parse`
+boundary derives two keys from the canonical 64-character lowercase hexadecimal
+token. The stored key verifies the connector's proof, and the server key signs
+the server's reply. Neither key lets a database copy produce a connector proof.
+The token never crosses the connection, and an incoming frame never enrolls a
+token. See the [handshake decision](../decisions/20261026-thunderbird-connector.md#handshake).
 
 ## Sources and generated outputs
 
@@ -50,7 +51,7 @@ tests are excluded from production packaging.
 Use the boundary decoder on untrusted input. Deserializing a generated type or
 calling the schema validator alone does not enforce frame size, phase, generation,
 duplicate-member, or parsing rules. A valid authentication frame does not prove
-that its token is accepted. Wire structs omit Rust `Debug`, and decoder errors
+that its proof is accepted. Wire structs omit Rust `Debug`, and decoder errors
 contain fixed codes without rejected input.
 
 ## Envelopes and direction
@@ -61,13 +62,14 @@ list only. Heartbeat is mandatory connection control, not an advertised mail fea
 
 | Type | Direction and phase | Fields beyond the common envelope |
 | --- | --- | --- |
-| `authenticate` | Connector to server, `authentication` | 256-bit lowercase hexadecimal token, backend kind/version, connector version, empty capabilities |
-| `welcome` | Server to connector, `handshake` | Server-issued generation, empty capabilities, fixed heartbeat interval/timeout |
+| `challenge` | Server to connector, `challenge` | 256-bit server nonce |
+| `authenticate` | Connector to server, `authentication` | 256-bit client nonce and proof, backend kind/version, connector version, empty capabilities |
+| `welcome` | Server to connector, `handshake` | Server-issued generation, server signature, empty capabilities, fixed heartbeat interval/timeout |
 | `ping` | Server to connector, `server_control` | Current generation and bounded positive sequence |
 | `pong` | Connector to server, `client_control` | Current generation and echoed sequence |
-| `error` | Server to connector, handshake or control | Enumerated code, generation only after negotiation |
+| `error` | Server to connector, challenge, handshake, or control | Enumerated code, generation only after negotiation |
 
-The decoder rejects a handshake error carrying a generation. A control error
+The decoder rejects a challenge or handshake error carrying a generation. A control error
 requires the current generation. A connector cannot send an error envelope.
 Error codes contain no free-text details or echoed credential. Supported codes
 are defined in the schema, rather than accepted as arbitrary strings.
@@ -82,15 +84,26 @@ additional boundary check, not a substitute for the credential.
 sequenceDiagram
     participant Connector
     participant Server
-    Connector->>Server: authenticate
-    Note over Server: Verify token and protocol before registration
-    Server->>Connector: welcome with new generation
+    Server->>Connector: challenge with server nonce
+    Connector->>Server: authenticate with client nonce and proof
+    Note over Server: Verify proof and protocol before registration
+    Server->>Connector: welcome with new generation and server signature
+    Note over Connector: Verify signature before trusting the server
     Server->>Connector: ping with generation and sequence
     Connector->>Server: pong with the same generation and sequence
 ```
 
-The server accepts one authentication frame within the shared deadline. It verifies
-the credential digest before issuing a fresh random 128-bit generation and
+The server sends a fresh challenge as soon as the upgrade completes, then accepts
+one authentication frame within the shared deadline. Both sides build the same
+transcript from the two nonces and the authentication metadata, as defined in
+`protocol/rust/src/authentication.rs` and `protocol/typescript/src/authentication.ts`
+and pinned by `protocol/fixtures/authentication/vector.json`. The connector key
+is an HMAC-SHA256 of a fixed label under the token, and the stored key is its
+SHA-256. The proof is the connector key XOR an HMAC of the transcript under the
+stored key. The server recovers the connector key, checks its hash against the
+stored key in constant time, and signs the transcript with the server key. A
+replayed proof fails because each connection has a new server nonce. The server
+verifies the proof before issuing a fresh random 128-bit generation and
 registering the connection. The generation belongs to this connection, is never a
 durable backend identity, and changes on replacement. Fencing and stale cleanup
 compare it. Startup with an active credential begins disconnected. An authenticated
@@ -102,9 +115,13 @@ and 45-second timeout and reconnects before sequence overflow. The decoder check
 generation and range, while the transport checks the outstanding sequence and
 elapsed time.
 
-An error is terminal for the connection. Authentication or protocol-version
-rejection stops reconnect attempts until the extension restarts. Session replacement
-also stops retries to avoid competing reconnect loops. Transient disconnects use
+An error is terminal for the connection. Until the welcome signature proves the
+server knows the token, the connector treats every error, decoding failure, and
+close code as untrusted and retries with backoff, so a spoofed endpoint cannot
+stop it. A wrong token therefore retries at the capped interval while the server
+records `authentication_failed`. After proof, protocol-version, invalid-message,
+and authentication errors stop reconnect attempts until the extension restarts.
+Session replacement also stops retries to avoid competing reconnect loops. Transient disconnects use
 exponential backoff with jitter capped at 30 seconds, reset after a valid heartbeat.
 Managed policy changes require Thunderbird restart. No command or mail operation
 is replayed.

@@ -95,7 +95,8 @@
     "message": {
       "type": "authenticate",
       "protocol_version": 1,
-      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "thunderbird",
       "backend_version": "153.5.0",
       "connector_version": "0.1.0",
@@ -114,7 +115,8 @@
       "generation": "0123456789abcdef0123456789abcdef",
       "capabilities": [],
       "heartbeat_interval_ms": 15000,
-      "heartbeat_timeout_ms": 45000
+      "heartbeat_timeout_ms": 45000,
+      "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
     }
   },
   {
@@ -128,7 +130,8 @@
       "generation": "0123456789abcdef0123456789abcdef",
       "capabilities": [],
       "heartbeat_interval_ms": 15000,
-      "heartbeat_timeout_ms": 45000
+      "heartbeat_timeout_ms": 45000,
+      "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
     }
   },
   {
@@ -139,7 +142,8 @@
     "message": {
       "type": "authenticate",
       "protocol_version": 1,
-      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "thunderbird",
       "backend_version": "153.5.0",
       "connector_version": "0.1.0",

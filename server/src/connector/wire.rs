@@ -2,8 +2,8 @@ use std::time::Duration;
 
 use axum::extract::ws::{CloseFrame, Message, WebSocket};
 use raicho_protocol::contract_generated::{
-    Capabilities, Generation, Ping, PingType, ProtocolError, ProtocolErrorType, Welcome,
-    WelcomeType,
+    Capabilities, Challenge, ChallengeType, Generation, Nonce, Ping, PingType, ProtocolError,
+    ProtocolErrorType, Signature, Welcome, WelcomeType,
 };
 use raicho_protocol::limits_generated::{
     AUTHENTICATION_DEADLINE_MS, HEARTBEAT_INTERVAL_MS, HEARTBEAT_TIMEOUT_MS, PROTOCOL_VERSION,
@@ -18,15 +18,29 @@ fn protocol_version<Version: TryFrom<i64, Error: std::fmt::Debug>>() -> Version 
         .expect("Shared protocol version")
 }
 
+pub(super) async fn challenge(socket: &mut WebSocket, server_nonce: &Nonce) -> Result<(), Failure> {
+    send(
+        socket,
+        &Challenge {
+            protocol_version: protocol_version(),
+            server_nonce: server_nonce.clone(),
+            type_: ChallengeType::Challenge,
+        },
+    )
+    .await
+}
+
 pub(super) async fn welcome(
     socket: &mut WebSocket,
     generation: &Generation,
+    server_signature: &Signature,
 ) -> Result<(), Failure> {
     send(
         socket,
         &Welcome {
             capabilities: Capabilities(Vec::new()),
             generation: generation.clone(),
+            server_signature: server_signature.clone(),
             heartbeat_interval_ms: (HEARTBEAT_INTERVAL_MS as i64)
                 .try_into()
                 .expect("Shared heartbeat interval"),

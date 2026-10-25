@@ -1,3 +1,4 @@
+pub mod authentication;
 pub mod contract_generated;
 pub mod diagnostics_generated;
 pub mod limits_generated;

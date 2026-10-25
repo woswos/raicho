@@ -5,9 +5,10 @@ pub struct Authenticate {
     pub backend_kind: AuthenticateBackendKind,
     pub backend_version: AuthenticateBackendVersion,
     pub capabilities: Capabilities,
+    pub client_nonce: Nonce,
+    pub client_proof: Signature,
     pub connector_version: AuthenticateConnectorVersion,
     pub protocol_version: AuthenticateProtocolVersion,
-    pub token: AuthenticateToken,
     #[serde(rename = "type")]
     pub type_: AuthenticateType,
 }
@@ -219,64 +220,6 @@ impl<'de> ::serde::Deserialize<'de> for AuthenticateProtocolVersion {
             .map_err(|e| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
 }
-///`AuthenticateToken`
-#[derive(::serde::Serialize, Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[serde(transparent)]
-pub struct AuthenticateToken(::std::string::String);
-impl ::std::ops::Deref for AuthenticateToken {
-    type Target = ::std::string::String;
-    fn deref(&self) -> &::std::string::String {
-        &self.0
-    }
-}
-impl ::std::convert::From<AuthenticateToken> for ::std::string::String {
-    fn from(value: AuthenticateToken) -> Self {
-        value.0
-    }
-}
-impl ::std::str::FromStr for AuthenticateToken {
-    type Err = self::error::ConversionError;
-    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
-        if value.chars().count() > 64usize {
-            return Err("longer than 64 characters".into());
-        }
-        if value.chars().count() < 64usize {
-            return Err("shorter than 64 characters".into());
-        }
-        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
-            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-f0-9]{64}$").unwrap());
-        if PATTERN.find(value).is_none() {
-            return Err("doesn't match pattern \"^[a-f0-9]{64}$\"".into());
-        }
-        Ok(Self(value.to_string()))
-    }
-}
-impl ::std::convert::TryFrom<&str> for AuthenticateToken {
-    type Error = self::error::ConversionError;
-    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
-        value.parse()
-    }
-}
-impl ::std::convert::TryFrom<::std::string::String> for AuthenticateToken {
-    type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
-        value.parse()
-    }
-}
-impl<'de> ::serde::Deserialize<'de> for AuthenticateToken {
-    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
-    where
-        D: ::serde::Deserializer<'de>,
-    {
-        ::std::string::String::deserialize(deserializer)?
-            .parse()
-            .map_err(|e: self::error::ConversionError| {
-                <D::Error as ::serde::de::Error>::custom(e.to_string())
-            })
-    }
-}
 ///`AuthenticateType`
 #[derive(
     ::serde::Deserialize, ::serde::Serialize, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd,
@@ -335,15 +278,102 @@ impl ::std::convert::From<::std::vec::Vec<::std::string::String>> for Capabiliti
         Self(value)
     }
 }
+///`Challenge`
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct Challenge {
+    pub protocol_version: ChallengeProtocolVersion,
+    pub server_nonce: Nonce,
+    #[serde(rename = "type")]
+    pub type_: ChallengeType,
+}
+///`ChallengeProtocolVersion`
+#[derive(::serde::Serialize, Clone)]
+#[serde(transparent)]
+pub struct ChallengeProtocolVersion(i64);
+impl ::std::ops::Deref for ChallengeProtocolVersion {
+    type Target = i64;
+    fn deref(&self) -> &i64 {
+        &self.0
+    }
+}
+impl ::std::convert::From<ChallengeProtocolVersion> for i64 {
+    fn from(value: ChallengeProtocolVersion) -> Self {
+        value.0
+    }
+}
+impl ::std::convert::TryFrom<i64> for ChallengeProtocolVersion {
+    type Error = self::error::ConversionError;
+    fn try_from(value: i64) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if ![1_i64].contains(&value) {
+            Err("invalid value".into())
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ChallengeProtocolVersion {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        Self::try_from(<i64>::deserialize(deserializer)?)
+            .map_err(|e| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+///`ChallengeType`
+#[derive(
+    ::serde::Deserialize, ::serde::Serialize, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd,
+)]
+pub enum ChallengeType {
+    #[serde(rename = "challenge")]
+    Challenge,
+}
+impl ::std::fmt::Display for ChallengeType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Challenge => f.write_str("challenge"),
+        }
+    }
+}
+impl ::std::str::FromStr for ChallengeType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "challenge" => Ok(Self::Challenge),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ChallengeType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ChallengeType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 ///`ConnectorMessage`
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone)]
 #[serde(untagged)]
 pub enum ConnectorMessage {
+    Challenge(Challenge),
     Authenticate(Authenticate),
     Welcome(Welcome),
     Ping(Ping),
     Pong(Pong),
     ProtocolError(ProtocolError),
+}
+impl ::std::convert::From<Challenge> for ConnectorMessage {
+    fn from(value: Challenge) -> Self {
+        Self::Challenge(value)
+    }
 }
 impl ::std::convert::From<Authenticate> for ConnectorMessage {
     fn from(value: Authenticate) -> Self {
@@ -417,6 +447,64 @@ impl ::std::convert::TryFrom<::std::string::String> for Generation {
     }
 }
 impl<'de> ::serde::Deserialize<'de> for Generation {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+///`Nonce`
+#[derive(::serde::Serialize, Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct Nonce(::std::string::String);
+impl ::std::ops::Deref for Nonce {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<Nonce> for ::std::string::String {
+    fn from(value: Nonce) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for Nonce {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 64usize {
+            return Err("shorter than 64 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-f0-9]{64}$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-f0-9]{64}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for Nonce {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for Nonce {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for Nonce {
     fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
     where
         D: ::serde::Deserializer<'de>,
@@ -745,6 +833,64 @@ impl ::std::convert::TryFrom<::std::string::String> for ProtocolErrorType {
         value.parse()
     }
 }
+///`Signature`
+#[derive(::serde::Serialize, Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct Signature(::std::string::String);
+impl ::std::ops::Deref for Signature {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<Signature> for ::std::string::String {
+    fn from(value: Signature) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for Signature {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 64usize {
+            return Err("longer than 64 characters".into());
+        }
+        if value.chars().count() < 64usize {
+            return Err("shorter than 64 characters".into());
+        }
+        static PATTERN: ::std::sync::LazyLock<::regress::Regex> =
+            ::std::sync::LazyLock::new(|| ::regress::Regex::new("^[a-f0-9]{64}$").unwrap());
+        if PATTERN.find(value).is_none() {
+            return Err("doesn't match pattern \"^[a-f0-9]{64}$\"".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for Signature {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for Signature {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for Signature {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
 ///`Welcome`
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone)]
 #[serde(deny_unknown_fields)]
@@ -754,6 +900,7 @@ pub struct Welcome {
     pub heartbeat_interval_ms: WelcomeHeartbeatIntervalMs,
     pub heartbeat_timeout_ms: WelcomeHeartbeatTimeoutMs,
     pub protocol_version: WelcomeProtocolVersion,
+    pub server_signature: Signature,
     #[serde(rename = "type")]
     pub type_: WelcomeType,
 }

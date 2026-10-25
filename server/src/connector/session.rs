@@ -20,7 +20,11 @@ pub(super) async fn run(
         _ = shutdown.changed() => return,
         result = authentication::authenticate(&mut socket, &connector) => result,
     };
-    let (generation, mut replaced) = match authenticated {
+    let authentication::Authenticated {
+        generation,
+        mut replaced,
+        server_signature,
+    } = match authenticated {
         Ok(session) => session,
         Err(failure) => {
             connector.reject(failure.diagnostic);
@@ -37,7 +41,7 @@ pub(super) async fn run(
         _ = shutdown.changed() => None,
         _ = replaced.changed() => Some(Failure::new(BackendError::SessionReplaced)),
         result = async {
-            match wire::welcome(&mut socket, &generation).await {
+            match wire::welcome(&mut socket, &generation, &server_signature).await {
                 Ok(()) => heartbeat::run(&mut socket, &connector, &generation).await,
                 Err(error) => error,
             }

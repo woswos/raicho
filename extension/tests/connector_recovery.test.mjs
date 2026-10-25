@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { connectorFixture, ping, welcome } from './connector_fixture.mjs';
+import {
+  challenge,
+  connectorFixture,
+  generation,
+  ping,
+} from './connector_fixture.mjs';
 
 test('uses bounded exponential retry for connection and handshake timeouts', () => {
   const fixture = connectorFixture();
@@ -15,30 +20,27 @@ test('uses bounded exponential retry for connection and handshake timeouts', () 
   fixture.stop();
 });
 
-test('adds jitter and resets backoff only after a valid heartbeat', () => {
+test('adds jitter and resets backoff only after a valid heartbeat', async () => {
   const fixture = connectorFixture();
   fixture.dependencies.random = () => 0.5;
   fixture.fireTimer(5000);
   fixture.fireTimer(1500);
   const socket = fixture.sockets[1];
-  socket.open();
-  socket.receive(welcome);
+  await socket.handshake();
   socket.close();
   fixture.fireTimer(3000);
   const active = fixture.sockets[2];
-  active.open();
-  active.receive(welcome);
-  active.receive(ping);
+  await active.handshake();
+  await active.receive(ping);
   active.close();
   fixture.fireTimer(1500);
   fixture.stop();
 });
 
-test('drops a silent peer and ignores every captured stale socket callback', () => {
+test('drops a silent peer and ignores every captured stale socket callback', async () => {
   const fixture = connectorFixture();
   const first = fixture.sockets[0];
-  first.open();
-  first.receive(welcome);
+  await first.handshake();
   const stale = {
     open: first.onopen,
     close: first.onclose,
@@ -48,45 +50,52 @@ test('drops a silent peer and ignores every captured stale socket callback', () 
   fixture.fireTimer(45000);
   fixture.fireTimer(1000);
   const second = fixture.sockets[1];
-  second.open();
-  second.receive(welcome);
-  stale.open();
+  await second.handshake();
+  stale.open?.();
   stale.close({ code: 4001 });
   stale.error();
-  stale.message({ data: JSON.stringify(ping) });
+  await stale.message({ data: JSON.stringify(ping) });
   assert.equal(second.sent.length, 1);
   assert.equal(second.readyState, 1);
-  second.receive(ping);
+  await second.receive(ping);
   assert.equal(second.sent.length, 2);
   fixture.stop();
 });
 
 for (const code of [4001, 4002, 4003]) {
-  test(`stops after close ${code} without retrying`, () => {
-    const fixture = connectorFixture();
-    fixture.sockets[0].onclose({ code });
-    assert.equal(fixture.timers.size, 0);
+  test(`retries unproven close ${code} but stops on it after proof`, async () => {
+    const unproven = connectorFixture();
+    unproven.sockets[0].onclose({ code });
+    assert.equal(unproven.timers.size, 1);
+    const proven = connectorFixture();
+    await proven.sockets[0].handshake();
+    proven.sockets[0].onclose({ code });
+    assert.equal(proven.timers.size, 0);
   });
 }
 
-test('retries server busy and heartbeat timeout without an application queue', () => {
+test('retries server busy and heartbeat timeout without an application queue', async () => {
   for (const code of ['server_busy', 'heartbeat_timeout']) {
     const fixture = connectorFixture();
     const socket = fixture.sockets[0];
-    socket.open();
-    socket.receive({ type: 'error', protocol_version: 1, code });
+    await socket.handshake();
+    await socket.receive({
+      type: 'error',
+      protocol_version: 1,
+      code,
+      generation,
+    });
     fixture.fireTimer(1000);
     fixture.stop();
   }
 });
 
-test('closes congested senders and handles connection and send failures', () => {
+test('closes congested senders and handles connection and send failures', async () => {
   const fixture = connectorFixture();
   const socket = fixture.sockets[0];
-  socket.open();
-  socket.receive(welcome);
+  await socket.handshake();
   socket.bufferedAmount = 1;
-  socket.receive(ping);
+  await socket.receive(ping);
   assert.equal(socket.readyState, 3);
   fixture.dependencies.connect = () => {
     throw new Error('Private endpoint');
@@ -100,6 +109,8 @@ test('closes congested senders and handles connection and send failures', () => 
     throw new Error('Private data');
   };
   failed.sockets[0].open();
+  await failed.sockets[0].receive(challenge);
   assert.equal(failed.timers.size, 1);
+  assert.equal(failed.sockets[0].readyState, 3);
   failed.stop();
 });

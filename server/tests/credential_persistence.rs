@@ -1,3 +1,4 @@
+use raicho_protocol::authentication::ConnectorKeys;
 use raicho_server::credentials::Credential;
 use raicho_server::persistence::{CredentialStatus, CredentialStore, Database};
 use tempfile::tempdir;
@@ -112,13 +113,23 @@ async fn database_and_wal_never_contain_raw_credential() {
                 .any(|window| window == raw.as_bytes())
         );
     }
-    let (backend, length, revision): (String, i64, i64) = sqlx::query_as(
-        "SELECT backend_kind, length(token_digest), revision FROM connector_credentials",
-    )
-    .fetch_one(database.pool())
-    .await
-    .unwrap();
-    assert_eq!((backend.as_str(), length, revision), ("thunderbird", 32, 1));
+    let (backend, stored_key, server_key, revision): (String, Vec<u8>, Vec<u8>, i64) =
+        sqlx::query_as(
+            "SELECT backend_kind, stored_key, server_key, revision FROM connector_credentials",
+        )
+        .fetch_one(database.pool())
+        .await
+        .unwrap();
+    let keys = ConnectorKeys::derive(&raw);
+    assert_eq!(
+        (backend.as_str(), stored_key, server_key, revision),
+        (
+            "thunderbird",
+            keys.stored_key.to_vec(),
+            keys.server_key.to_vec(),
+            1
+        )
+    );
     database.close().await;
 }
 

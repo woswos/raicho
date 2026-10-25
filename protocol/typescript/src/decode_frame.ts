@@ -4,7 +4,11 @@ import { isUnambiguousJson } from './raw_json.js';
 import validate from './validator_generated.js';
 
 export type Phase =
-  'authentication' | 'handshake' | 'client_control' | 'server_control';
+  | 'authentication'
+  | 'challenge'
+  | 'handshake'
+  | 'client_control'
+  | 'server_control';
 
 export type ContractErrorCode =
   | 'invalid_message'
@@ -67,6 +71,7 @@ function checkPhase(
 ): void {
   const accepted = {
     authentication: ['authenticate'],
+    challenge: ['challenge', 'error'],
     handshake: ['welcome', 'error'],
     client_control: ['pong'],
     server_control: ['ping', 'error'],
@@ -74,7 +79,10 @@ function checkPhase(
   if (!accepted[phase].includes(message.type)) {
     throw new ContractError('unexpected_message');
   }
-  if (phase === 'handshake' && message.type === 'error') {
+  if (
+    (phase === 'challenge' || phase === 'handshake') &&
+    message.type === 'error'
+  ) {
     if (message.generation !== undefined) {
       throw new ContractError('unexpected_message');
     }

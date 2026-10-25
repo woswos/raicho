@@ -107,7 +107,7 @@ The runtime reads a 64-character lowercase hexadecimal token from that file and
 provides endpoint/token through managed storage. Partial or invalid configuration
 fails before Thunderbird starts. Neither value is baked into an image or XPI.
 The [credential procedure](../operations/connector-credentials.md) provisions
-the production token and SQLite digest. The credentials override mounts the
+the production token and SQLite keys. The credentials override mounts the
 file into Thunderbird and selects `ws://gateway:8081/connector/v1`.
 Managed policy is read at startup. Thunderbird does not support managed-storage
 change events, so policy changes and terminal authentication failures require

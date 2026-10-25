@@ -16,7 +16,7 @@ async fn silent_authentication_expires_and_pending_connections_are_bounded() {
     let fixture = Fixture::new().await;
     let mut pending = Vec::new();
     for _ in 0..4 {
-        pending.push(fixture.connect().await);
+        pending.push(fixture.connect().await.0);
     }
     assert!(connect_async(fixture.request()).await.is_err());
     let error = receive_within(&mut pending[0], Duration::from_secs(6)).await;

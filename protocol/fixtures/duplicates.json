@@ -4,35 +4,35 @@
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"token\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[],\"connector_version\":\"0.1.0\"}"
+    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[],\"connector_version\":\"0.1.0\"}"
   },
   {
     "name": "escaped duplicate key",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"token\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[],\"connector_versio\\u006e\":\"0.1.0\"}"
+    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[],\"connector_versio\\u006e\":\"0.1.0\"}"
   },
   {
     "name": "overwritten unpaired surrogate",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"connector_version\":\"\\ud800\",\"type\":\"authenticate\",\"protocol_version\":1,\"token\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
+    "raw": "{\"connector_version\":\"\\ud800\",\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
   },
   {
     "name": "overwritten non finite number",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"connector_version\":1e400,\"type\":\"authenticate\",\"protocol_version\":1,\"token\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
+    "raw": "{\"connector_version\":1e400,\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
   },
   {
     "name": "overwritten deep value",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"connector_version\":[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[0]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]],\"type\":\"authenticate\",\"protocol_version\":1,\"token\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
+    "raw": "{\"connector_version\":[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[0]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]],\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
   },
   {
     "name": "duplicate before unsupported version",
@@ -45,13 +45,13 @@
     "name": "near integer decimal rounds consistently",
     "phase": "authentication",
     "valid": true,
-    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1.00000000000000011102230246251565404236316680908203125,\"token\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
+    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1.00000000000000011102230246251565404236316680908203125,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
   },
   {
     "name": "decimal above midpoint is fractional",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1.00000000000000011102230246251565404236316680908203126,\"token\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
+    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1.00000000000000011102230246251565404236316680908203126,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
   }
 ]

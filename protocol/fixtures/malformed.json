@@ -82,7 +82,8 @@
     "message": {
       "type": "authenticate",
       "protocol_version": 1,
-      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "thunderbird",
       "backend_version": "雷鳥",
       "connector_version": "0.1.0",
@@ -97,7 +98,8 @@
     "message": {
       "type": "authenticate",
       "protocol_version": 1,
-      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "thunderbird\n",
       "backend_version": "153.5.0",
       "connector_version": "0.1.0",
@@ -112,7 +114,8 @@
     "message": {
       "type": "authenticate",
       "protocol_version": 1,
-      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "thunderbird",
       "backend_version": "153.5.0\n",
       "connector_version": "0.1.0",
@@ -124,7 +127,7 @@
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"token\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"\\ud800\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
+    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"\\ud800\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
   },
   {
     "name": "overflowing numeric value",
@@ -146,16 +149,16 @@
     "name": "authentication exact byte limit",
     "phase": "authentication",
     "valid": true,
-    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"token\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}",
-    "padding": 3874
+    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}",
+    "padding": 3785
   },
   {
     "name": "authentication over byte limit",
     "phase": "authentication",
     "valid": false,
     "error": "message_too_large",
-    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"token\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}",
-    "padding": 3875
+    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}",
+    "padding": 3786
   },
   {
     "name": "control exact byte limit",
@@ -179,6 +182,6 @@
     "phase": "authentication",
     "valid": false,
     "error": "message_too_large",
-    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"token\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
+    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
   }
 ]
