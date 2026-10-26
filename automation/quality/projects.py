@@ -1,6 +1,5 @@
 import hashlib
 import json
-import os
 from pathlib import Path
 
 from automation.quality.files import TYPESCRIPT_SUFFIXES, run
@@ -84,8 +83,6 @@ def typecheck(root, files):
 def rust(root, files, action, tooling_root):
     for manifest in rust_projects(root, files):
         if action == 'lint':
-            workspace_key = hashlib.sha256(str(manifest).encode()).hexdigest()
-            target = Path(os.environ.get('CARGO_TARGET_DIR', '/tmp/raicho-target')) / workspace_key
             run(
                 [
                     'cargo',
@@ -95,8 +92,6 @@ def rust(root, files, action, tooling_root):
                     '--workspace',
                     '--all-targets',
                     '--locked',
-                    '--target-dir',
-                    target,
                 ],
                 root,
             )

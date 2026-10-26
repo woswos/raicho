@@ -202,10 +202,17 @@ uses `extension/build.mjs`. Both run on Node alone. The shared dispatcher remain
 `automation/build/application.py`. All temporary build output stays
 outside the source mount.
 
-Tooling defaults to no Rust debug symbols or incremental output, keeping the
-build cache small. These settings affect check containers, not release images. Set
-`CARGO_PROFILE_DEV_DEBUG=2`, `CARGO_PROFILE_TEST_DEBUG=2`, or `CARGO_INCREMENTAL=1`
-before running Make when that output is needed for local debugging.
+Tooling defaults to no Rust debug symbols, keeping the build cache small, and to
+incremental compilation, which halves a typical edit and rebuild. CI turns
+incremental output off in `compose.ci.yaml`, because each run starts from its
+restored cache. These settings affect check containers, not release images. Set
+`CARGO_PROFILE_DEV_DEBUG=2` or `CARGO_PROFILE_TEST_DEBUG=2` before running Make
+for debugger symbols, or `CARGO_INCREMENTAL=0` to match CI.
+
+Every debug Cargo command uses the same `--workspace --all-targets --locked`
+selection and the shared target directory: builds, tests, Clippy, and the protocol
+generator, which `check-protocol` runs from that directory. A different selection
+resolves different dependency features and compiles duplicate copies of them.
 
 `make images`, which `make build` runs last on the host, builds the runtime images
 with `docker compose build`. This compiles release artifacts and installs the independently packaged Thunderbird runtime.

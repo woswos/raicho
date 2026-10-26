@@ -2,6 +2,7 @@ services:
   check:
     environment:
       GITHUB_EVENT_PATH: /tmp/github-event.json
+      CARGO_INCREMENTAL: '0'
     volumes:
       - type: bind
         source: ${GITHUB_EVENT_PATH:?GITHUB_EVENT_PATH must name the GitHub event JSON file}

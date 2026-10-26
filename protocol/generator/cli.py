@@ -11,6 +11,8 @@ from protocol.generator.validation import validate_sources, validate_status
 
 ROOT = Path(__file__).resolve().parents[2]
 NODE_REPORTER = f'--test-reporter={ROOT / "automation/build/node_reporter.mjs"}'
+# The same selection as every other debug build reuses its artifacts.
+CARGO_BUILD = ['cargo', 'build', '--workspace', '--all-targets', '--locked']
 OUTPUTS = {
     'rust': (
         Path('protocol/rust/src'),
@@ -91,16 +93,10 @@ def generate(action):
     validate_status(status, diagnostics)
     with tempfile.TemporaryDirectory(prefix='raicho-protocol-') as temporary:
         staging = Path(temporary)
+        generator = Path(os.environ.get('CARGO_TARGET_DIR', ROOT / 'target')) / 'debug/raicho-protocol-generator'
         commands = [
-            [
-                'cargo',
-                'run',
-                '--locked',
-                '--package',
-                'raicho-protocol-generator',
-                '--',
-                str(staging / 'rust'),
-            ],
+            CARGO_BUILD,
+            [str(generator), str(staging / 'rust')],
             [
                 'node',
                 str(ROOT / 'protocol/generator/generate_typescript.mjs'),
