@@ -80,6 +80,7 @@ async fn static_files_are_served_without_api_or_path_traversal_fallbacks() {
             .await
             .unwrap();
         assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(response.headers()["cache-control"], "no-cache", "{path}");
     }
     for path in [
         "/api/missing",
@@ -94,6 +95,34 @@ async fn static_files_are_served_without_api_or_path_traversal_fallbacks() {
             .await
             .unwrap();
         assert_eq!(response.status(), StatusCode::NOT_FOUND, "{path}");
+    }
+    database.close().await;
+}
+
+#[tokio::test]
+async fn every_response_carries_the_security_headers() {
+    let directory = tempdir().unwrap();
+    fs::write(directory.path().join("index.html"), "<h1>Raicho diagnostics</h1>").unwrap();
+    let database = Arc::new(Database::open(directory.path()).await.unwrap());
+    let application = router(
+        Arc::clone(&database),
+        directory.path(),
+        Connector::new(Arc::clone(&database)),
+    );
+    for path in ["/", "/api/status", "/health/live", "/missing.js", "/connector/v1"] {
+        let response = application
+            .clone()
+            .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        let headers = response.headers();
+        assert_eq!(
+            headers["content-security-policy"],
+            "default-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'",
+            "{path}"
+        );
+        assert_eq!(headers["x-content-type-options"], "nosniff", "{path}");
+        assert_eq!(headers["referrer-policy"], "no-referrer", "{path}");
     }
     database.close().await;
 }
