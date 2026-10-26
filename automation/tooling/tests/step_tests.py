@@ -58,6 +58,7 @@ class StepTests(unittest.TestCase):
             'check-protocol': ('checking protocol bindings', 'checked protocol bindings'),
             'check-patch-coverage': ('checking patch coverage', 'checked patch coverage'),
             'coverage': ('measuring coverage', 'measured coverage'),
+            'benchmark': ('benchmarking Rust code', 'benchmarked Rust code'),
             'clean': ('cleaning up', 'cleaned up'),
         }
         for target, (started, finished) in cases.items():

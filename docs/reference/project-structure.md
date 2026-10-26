@@ -156,7 +156,9 @@ Rust test support lives under
 fixtures against their respective implementations. TypeScript protocol tests
 compile independently of the extension. See the
 [contract commands](build-test-generate.md#connector-contract).
-Generator regressions live in `protocol/generator/tests/`.
+Generator regressions live in `protocol/generator/tests/`. Rust benchmarks live in
+the owning crate's `benches/` directory, such as `protocol/rust/benches/`, and
+reuse the shared protocol fixtures.
 `protocol/fixtures/configuration/connector.json` lists valid and invalid connector
 tokens and endpoints. The server's `Credential::parse`, the Thunderbird policy
 writer, and the extension's managed configuration parser each test against it,

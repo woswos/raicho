@@ -45,6 +45,7 @@ xterm terminal.
 | `generate` | Regenerate the committed protocol outputs |
 | `coverage` | Line coverage of the source suites |
 | `check-patch-coverage` | Fail when changed lines are below the coverage threshold |
+| `benchmark` | Rust benchmarks, each compared with its previous run |
 | `images` | Runtime images only |
 | `acceptance` | Every disposable deployment suite, on the host |
 | `clean` | Remove ignored build output, interrupted acceptance runs, and this project's images, on the host |
@@ -262,7 +263,7 @@ guard copies that tests run from temporary repositories, with its settings under
 `[tool.coverage]` in `pyproject.toml`. The lcov reports stay in
 `/tmp/raicho-coverage` inside the container.
 
-Tests, generated files, dependencies, the acceptance drivers in
+Tests, benchmarks, generated files, dependencies, the acceptance drivers in
 `automation/acceptance/`, and the `mailprobe/` test artifact are not measured. A
 source that no test loads, such as a browser entry point, is absent from the
 reports rather than reported as uncovered.
@@ -274,6 +275,26 @@ the uncovered lines. The threshold is `fail_under` under `[tool.diff_cover]` in
 `PR_BASE_SHA`, otherwise the merge base with `origin/main`. Uncommitted changes
 count. The [patch coverage decision](../decisions/20261026-repository-layout.md#patch-coverage)
 records the tool choices.
+
+## Benchmarks
+
+```bash
+make benchmark
+```
+
+`benchmark` runs every Rust benchmark target with `cargo bench`, using
+[Criterion](https://github.com/criterion-rs/criterion.rs) under the
+[benchmark decision](../decisions/20261026-rust-benchmarks.md). Each benchmark
+prints its time range, its change from the previous run, and any outliers.
+Criterion keeps those baselines in the Cargo cache volume, so `make clean` resets
+them. Its progress lines appear only with `VERBOSE=1` or when the run fails.
+
+`protocol/rust/benches/frames.rs` measures the connector's per-frame work:
+decoding an authentication and a ping frame, sealing and opening a ping through
+`Channel`, and computing and verifying a client proof. `make lint` checks
+benchmark code with Clippy, and `make test` runs each benchmark once as a test,
+so a broken benchmark fails before anyone times it. CI does not run benchmarks,
+because shared runners make timings too noisy to compare.
 
 ## Connector contract
 
