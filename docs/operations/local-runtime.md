@@ -19,7 +19,8 @@ docker compose --env-file .env config --quiet
 
 ## Start and inspect
 
-From the repository root:
+From the repository root, `make deploy` prints an overview of the deployment
+targets and the deployment they would act on. To start it:
 
 ```bash
 make deploy-up

@@ -47,6 +47,7 @@ xterm terminal.
 | `check-patch-coverage` | Fail when changed lines are below the coverage threshold |
 | `benchmark` | Rust benchmarks, each compared with its previous run |
 | `images` | Runtime images only |
+| `deploy` | Print the deployment guide and the selected deployment's project, state directory, enrollment, and address |
 | `deploy-up` | Build the runtime images, then start or upgrade the deployment, on the host |
 | `deploy-admin` | `deploy-up` with the Thunderbird desktop, on the host |
 | `deploy-down` | Stop the deployment and keep its volumes, on the host |
