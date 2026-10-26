@@ -3,7 +3,9 @@
 [repository-checks.yml](../../.github/workflows/repository-checks.yml) runs on
 pushes to `main` and PR activity: opened, synchronized, reopened, edited,
 labeled, unlabeled, and ready for review. Body and label edits rerun the guard.
-The workflow uses a read-only token and does not retain checkout credentials.
+The workflow uses a read-only token and does not retain checkout credentials. A newer run for the same pull
+request cancels the older one, while runs for pushes to `main` and the release
+workflows always finish.
 
 ## Jobs
 

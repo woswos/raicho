@@ -6,6 +6,7 @@ import yaml
 from automation.paths import REPOSITORY_ROOT
 
 WORKFLOW = REPOSITORY_ROOT / '.github/workflows/repository-checks.yml'
+PULL_REQUEST_EVENT = "${{ github.event_name == 'pull_request' }}"
 
 
 class WorkflowCoverageTests(unittest.TestCase):
@@ -36,6 +37,17 @@ class WorkflowCoverageTests(unittest.TestCase):
         for target in ('build-app', 'test-app'):
             with self.subTest(target=target):
                 self.assertIn(target, words)
+
+    def test_newer_pull_request_runs_cancel_older_ones(self):
+        for path in sorted(WORKFLOW.parent.glob('*.yml')):
+            workflow = yaml.load(path.read_text(), Loader=yaml.BaseLoader)
+            if 'pull_request' not in workflow['on']:
+                continue
+            with self.subTest(workflow=path.name):
+                concurrency = workflow['concurrency']
+                self.assertIn('github.event.pull_request.number', concurrency['group'])
+                cancels = concurrency['cancel-in-progress']
+                self.assertIn(cancels, ('true', PULL_REQUEST_EVENT))
 
     def test_lint_job_runs_every_python_suite(self):
         self.assertIn('test-python', self.script('lint').split())
