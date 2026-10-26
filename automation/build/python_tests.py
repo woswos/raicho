@@ -1,8 +1,10 @@
 import argparse
 import io
+import multiprocessing
 import os
 import sys
 import unittest
+from concurrent.futures import ProcessPoolExecutor
 
 from automation import output
 
@@ -11,6 +13,24 @@ def summary(start, ran, skipped):
     location = '' if start == '.' else f' in {start}'
     skipped_text = f', {skipped} skipped' if skipped else ''
     return f'Python: {ran - skipped} tests passed{skipped_text}{location}'
+
+
+def modules(suite, names, broken):
+    for test in suite:
+        if isinstance(test, unittest.TestSuite):
+            modules(test, names, broken)
+        elif isinstance(test, unittest.loader._FailedTest):
+            broken.addTest(test)
+        elif type(test).__module__ not in names:
+            names.append(type(test).__module__)
+    return names
+
+
+def run_module(name, verbose):
+    report = io.StringIO()
+    suite = unittest.defaultTestLoader.loadTestsFromName(name)
+    result = unittest.TextTestRunner(stream=report, buffer=not verbose, verbosity=2 if verbose else 1).run(suite)
+    return result.testsRun, len(result.skipped), result.wasSuccessful(), report.getvalue()
 
 
 def main():
@@ -22,16 +42,26 @@ def main():
     # Tests must not inherit the caller's output mode.
     os.environ.pop('VERBOSE', None)
     suite = unittest.defaultTestLoader.discover(arguments.start, pattern=arguments.pattern, top_level_dir='.')
-    report = sys.stdout if verbose else io.StringIO()
-    result = unittest.TextTestRunner(stream=report, buffer=not verbose, verbosity=2 if verbose else 1).run(suite)
-    if not result.wasSuccessful():
-        if not verbose:
-            sys.stdout.write(report.getvalue())
+    broken = unittest.TestSuite()
+    names = modules(suite, [], broken)
+    ran = skipped = 0
+    successful = True
+    if broken.countTestCases():
+        successful = unittest.TextTestRunner(stream=sys.stdout).run(broken).wasSuccessful()
+    # Modules run in separate processes, so their tests share no interpreter state.
+    with ProcessPoolExecutor(max_workers=os.cpu_count(), mp_context=multiprocessing.get_context('fork')) as pool:
+        for count, skips, passed, report in pool.map(run_module, names, [verbose] * len(names)):
+            ran += count
+            skipped += skips
+            successful = successful and passed
+            if verbose or not passed:
+                sys.stdout.write(report)
+    if not successful:
         return 1
-    if result.testsRun == 0:
+    if ran == 0:
         print(f'FAIL: no tests matched {arguments.pattern} in {arguments.start}', file=sys.stderr)
         return 1
-    print(summary(arguments.start, result.testsRun, len(result.skipped)))
+    print(summary(arguments.start, ran, skipped))
     return 0
 
 
