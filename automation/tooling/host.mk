@@ -47,3 +47,6 @@ acceptance-mail:
 
 clean:
 	@$(STEP) $@ bash $(REPOSITORY_ROOT)automation/tooling/clean.bash
+
+mrproper:
+	@$(STEP) $@ bash $(REPOSITORY_ROOT)automation/tooling/mrproper.bash
