@@ -20,10 +20,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/images
-        with:
-          images: tools
-          write: 'true'
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ env.RAICHO_CACHE_DIRECTORY }}
@@ -41,9 +37,6 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: ./.github/actions/images
-        with:
-          images: tools
       - name: Check pull request policy
         run: make lint-pr
 
@@ -91,9 +84,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/images
-        with:
-          images: tools
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ env.RAICHO_CACHE_DIRECTORY }}
@@ -114,9 +104,6 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: ./.github/actions/images
-        with:
-          images: tools
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ env.RAICHO_CACHE_DIRECTORY }}
@@ -145,7 +132,7 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/images
         with:
-          images: tools server gateway thunderbird
+          images: server gateway thunderbird
       - name: Verify startup, persistence, isolation, and independent readiness
         run: make acceptance-runtime
 
@@ -161,7 +148,7 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/images
         with:
-          images: tools server gateway thunderbird
+          images: server gateway thunderbird
       - name: Verify production connector and ten-minute idle acceptance
         run: make acceptance-connector
       - name: Verify credential rotation, recovery, and revocation
@@ -177,8 +164,5 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/images
-        with:
-          images: tools thunderbird
       - name: Verify unattended mail API compatibility
         run: make acceptance-mail

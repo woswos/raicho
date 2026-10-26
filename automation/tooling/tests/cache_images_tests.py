@@ -25,7 +25,7 @@ class CacheImagesTests(unittest.TestCase):
             return docker.commands(), result
 
     def test_images_match_their_compose_builds(self):
-        commands, _ = self.build('tools', 'server')
+        commands, _ = self.build('gateway', 'server')
         self.assertEqual(
             commands,
             [
@@ -36,9 +36,9 @@ class CacheImagesTests(unittest.TestCase):
                     '--progress',
                     'quiet',
                     '--file',
-                    'automation/tooling/Dockerfile',
+                    'deploy/gateway/Dockerfile',
                     '--tag',
-                    'raicho-tools:local',
+                    'raicho-gateway:local',
                     '.',
                 ],
                 [
@@ -66,9 +66,12 @@ class CacheImagesTests(unittest.TestCase):
         self.assertIn('type=gha,scope=gateway,mode=max', commands[0])
 
     def test_unknown_images_fail(self):
-        commands, result = self.build('database', status=1)
-        self.assertEqual(commands, [])
-        self.assertIn('FAIL: unknown image database', result.stderr)
+        # The tooling image builds about as fast as it loads from the cache.
+        for image in ('database', 'tools'):
+            with self.subTest(image=image):
+                commands, result = self.build(image, status=1)
+                self.assertEqual(commands, [])
+                self.assertIn(f'FAIL: unknown image {image}', result.stderr)
 
 
 if __name__ == '__main__':

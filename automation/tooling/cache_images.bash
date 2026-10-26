@@ -6,7 +6,6 @@ cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 for IMAGE in "${@}"; do
     ARGUMENTS=()
     case "${IMAGE}" in
-        tools) ARGUMENTS=(--file automation/tooling/Dockerfile --tag raicho-tools:local) ;;
         server)
             ARGUMENTS=(--file deploy/raicho/Dockerfile --tag raicho-server:local
                 --build-arg "RAICHO_COMMIT=${RAICHO_COMMIT:-unknown}")
