@@ -1,4 +1,5 @@
 import argparse
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -21,6 +22,15 @@ from automation.quality.projects import (
 from automation.quality.sql import sql
 
 
+def shfmt_options():
+    configuration = REPOSITORY_ROOT / '.shfmt'
+    if not configuration.is_file() or configuration.is_symlink():
+        raise ValueError(
+            f'shfmt configuration is missing or not a regular file: {configuration}'
+        )
+    return shlex.split(configuration.read_text(), comments=True)
+
+
 def shell(root, files, action):
     require_tools('bash', 'shellcheck', 'shfmt')
     sources = bash_files(root, files)
@@ -34,8 +44,8 @@ def shell(root, files, action):
             root,
         )
     else:
-        mode = '-w' if action == 'format' else '-d'
-        run(['shfmt', '-ln', 'bash', '-i', '4', '-ci', mode, *sources], root)
+        mode = '--write' if action == 'format' else '--diff'
+        run(['shfmt', '--list', mode, *shfmt_options(), *sources], root)
 
 
 def python(root, files, action):
