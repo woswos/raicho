@@ -1,7 +1,7 @@
 # Thunderbird-first foundation
 
-Status: stages 1 and 2 implementation and local Docker acceptance are complete.
-Stage 2 CI integration is configured, with hosted results tracked on its implementation PR.
+Status: stage 1 is complete. Stage 2 is in progress: its connector contract is
+implemented, and its remaining pieces land with their own implementation pull requests.
 Later foundation stages require their own authorization.
 
 The accepted constraints are recorded in the
@@ -40,7 +40,7 @@ flowchart LR
     Backend -. future adapters .-> Other[Other backends]
 ```
 
-Use Axum and Tokio for one server process serving browser assets, APIs, and connector traffic. The extension initiates an outbound WebSocket through a fixed internal proxy to a dedicated Rust listener, preserving the separate service networks. The [connector contract](../../reference/connector-contract.md) defines the implemented control transport. On 2026-10-26 the [direct connector listener decision](../../decisions/20261026-thunderbird-connector.md#listener) moved connector upgrades from Axum to tokio-tungstenite. The server remains available when Thunderbird is disconnected and reports backend status separately from its own readiness.
+Use Axum and Tokio for one server process serving browser assets, APIs, and connector traffic. The extension initiates an outbound WebSocket through a fixed internal gateway to a dedicated Rust listener, preserving the separate service networks. The [connector contract](../../reference/connector-contract.md) defines the implemented control transport. On 2026-10-26 the [direct connector listener decision](../../decisions/20261026-thunderbird-connector.md#listener) moved connector upgrades from Axum to tokio-tungstenite. The server remains available when Thunderbird is disconnected and reports backend status separately from its own readiness.
 
 Keep browser APIs independent of Thunderbird. Define a versioned, language-neutral connector schema with runtime validation and generated or mechanically checked Rust/TypeScript types. Implement the Thunderbird adapter and a small mock backend first. Use ordinary Rust modules/traits for bundled adapters and the protocol for external connectors. A dynamic plugin loader, additional production backends, and full JMAP implementation are outside this foundation.
 
@@ -120,7 +120,7 @@ the stage implementation approval.
 ## Open questions
 
 - Stage 1 stack choices are resolved in the runtime decision above. ARM64 requires a separately validated packaging route.
-- Stage 2 resolves installation/upgrade, background lifetime, reconnect, credential provisioning, and administrative isolation for the pinned MV2 runtime. The [acceptance record](../../reference/connector-acceptance.md) defines the tested scope and remaining mail API limits. It does not establish MV3 behavior or future-version support.
+- Stage 2 resolves installation/upgrade, background lifetime, reconnect, credential provisioning, and administrative isolation for the pinned MV2 runtime. The acceptance record (`docs/reference/connector-acceptance.md`) defines the tested scope and remaining mail API limits. It does not establish MV3 behavior or future-version support.
 - Before stage 3: settle browser login/bootstrap, HTTPS deployment details, and the UI framework. Before stage 4: select the safe message-rendering approach. Ground these choices in the diagnostic client and brand assets.
 - Before stages 4 and 6: record supported search, draft, and send semantics for the pinned Thunderbird version, including attachment limits and any native compose interaction. Do not claim the newest background-send API exists in an older container image.
 - These are implementation gates, not reopened product choices. Resolve each before its dependent stage. If a solution requires a mail replica, duplicated filters, a privileged Experiment, or a separate host daemon, stop and propose a revised design.
@@ -134,8 +134,8 @@ Each stage includes focused behavioral tests where applicable and ends with a re
   Verification: validate Compose, build/start a disposable deployment, open diagnostics, inspect Thunderbird through the administrative endpoint, and recreate containers to check profile and SQLite persistence and startup without a viewer. Exercise fresh database initialization, migration success/failure, and rejection of unsupported schemas without data loss.
   Quality gate: `docker compose config --quiet`, `docker compose build`, and Rust format/Clippy, TypeScript type/build, repository checks, and focused persistence/migration tests inside tooling containers. Record image/version/platform evidence. Stop for review of the runnable foundation and stage 2 experiment.
   Debrief (2026-10-18): implemented Rust/SQLite diagnostics, the TypeScript page, and our own Debian-based Thunderbird image as explicitly requested. All 88 repository/tooling/application/supervisor tests and quality checks passed in Docker. Disposable recreation preserved SQLite contents and Thunderbird preferences, Raicho remained ready with Thunderbird stopped, and browser inspection confirmed desktop/mobile diagnostics and the native administrative desktop. No extension or mail workflow is claimed. Stage 2 awaits review.
-- [x] Stage 2: Prove the extension lifecycle and connector.
-  Implementation follows the completed [connector design](../done/20261018-foundation-stage-two-connector.md), including packaging, lifecycle, production protocol, proxy, credentials, and separate mail experiments.
+- [ ] Stage 2: Prove the extension lifecycle and connector.
+  Implementation follows the [connector design](20261018-foundation-stage-two-connector.md), including packaging, lifecycle, production protocol, gateway, credentials, and separate mail experiments.
   Package/install the extension, authenticate its outbound connection, define the minimal versioned handshake/capability schema, and report connection state in diagnostics. Add migrations for Raicho-owned connector configuration and pairing state in SQLite. Keep mail APIs unavailable to the browser. Exercise the selected version's draft/send APIs against local test infrastructure to identify incompatibilities early.
   Verification: extension activation without a viewer, invalid credentials/protocol rejection, idle-background behavior, restart either container, network interruption, bounded backoff, credential persistence/rotation, draft save/reopen/edit/resave, and queued versus sent outcomes. Record limitations and resolve the lifecycle/transport gate.
   Quality gate: containerized Rust/TypeScript checks and focused protocol/recovery tests. No real-provider sends. Stop for review of protocol evidence, pairing design, and compatibility matrix.
@@ -147,7 +147,7 @@ Each stage includes focused behavioral tests where applicable and ends with a re
   passed. CI invokes the same unattended commands. Earlier native consent,
   draft-editing, and sending-fault evidence remains separate. Programmatic draft
   replacement, synchronization behavior, and uncertain sending remain gates
-  before dependent mail workflows. See [acceptance](../../reference/connector-acceptance.md).
+  before dependent mail workflows. See acceptance (`docs/reference/connector-acceptance.md`).
 - [ ] Stage 3: Deliver authenticated account and mailbox browsing.
   Implement single-user login, session protection, the backend contract, Thunderbird adapter, mock backend, account identities, mailbox listing, and paginated message summaries in the selected UI framework. Enforce ownership/capabilities and session-scoped handles. Add SQLite migrations for login/session state and application preferences within the ownership boundary above.
   Verification: login/logout, unauthorized browser/connector access, persisted settings and session revocation across restarts, concurrent browser sessions, mailbox pagination, mock-adapter substitution, stale handles after restart/message move/folder rename, disconnect status, and absence of mail data in SQLite/logs/browser persistence.

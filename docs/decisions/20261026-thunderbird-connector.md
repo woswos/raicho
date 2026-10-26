@@ -26,13 +26,13 @@ listener that serves the browser and connection diagnostics. The generated,
 versioned [control contract](../reference/connector-contract.md) carries
 authentication and heartbeat, and production mail capabilities stay empty. SQLite
 stores the credential keys and revocation state. The
-[credential procedure](../operations/connector-credentials.md) owns private host
+credential procedure (`docs/operations/connector-credentials.md`) owns private host
 files, offline changes, interruption recovery, and live verification.
 
 The same Docker source and unattended acceptance commands run locally and in CI.
 The mail probe stays a separate test artifact. Native consent, draft
 interoperability, and interactive fault observations remain separately identified
-evidence in the [compatibility matrix](../reference/mail-api-compatibility.md).
+evidence in the compatibility matrix (`docs/reference/mail-api-compatibility.md`).
 
 ### Network isolation
 
@@ -103,7 +103,9 @@ captured proof cannot be replayed, and a spoofed endpoint can neither learn a
 usable secret nor stop the connector. Injected, altered, replayed, reordered, and
 reflected frames fail, and mail commands can use the same channel without another
 protocol change. A database copy can impersonate the server and derive session
-keys, but cannot impersonate the connector. A wrong token or a genuine protocol
+keys. Alone it cannot impersonate the connector, but with one captured
+authentication exchange it recovers the connector key, as in SCRAM, and can then
+authenticate as the connector until the credential is rotated. A wrong token or a genuine protocol
 rejection retries at the capped interval instead of stopping. Policy changes, and
 a connector stopped by an authenticated `session_replaced`, require restarting
 Thunderbird.
@@ -120,4 +122,4 @@ operations add maintenance.
 The API experiment leaves programmatic draft replacement unproven. Future compose
 work must resolve that limitation, native send consent, and uncertain send outcomes
 before exposing mail operations. See the
-[acceptance evidence](../reference/connector-acceptance.md) for measured scope.
+acceptance evidence (`docs/reference/connector-acceptance.md`) for measured scope.

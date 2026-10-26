@@ -23,8 +23,7 @@ browser login yet.
 
 The [connector contract](connector-contract.md) provides a shared control
 schema, generated Rust/TypeScript bindings, and bounded decoders under
-`protocol/rust/` and `protocol/typescript/`. No runtime component uses them yet.
-It carries authentication and heartbeat only,
+`protocol/rust/` and `protocol/typescript/`. It carries authentication and heartbeat only,
 and every frame after the handshake carries a MAC under a per-session key.
 
 The [runtime reference](runtime.md) describes endpoints, storage, migrations,

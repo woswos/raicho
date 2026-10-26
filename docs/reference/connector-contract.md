@@ -2,7 +2,7 @@
 
 The first connector contract defines connection control only. Its Rust crate and
 TypeScript project provide generated bindings and boundary decoders for
-authentication and heartbeat. No runtime component uses them yet. The
+authentication and heartbeat. The
 [connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
 records the approved design.
 
@@ -12,8 +12,12 @@ this contract. The backend kind is an identifier, not a Thunderbird-specific typ
 
 The shared authentication derives two keys from a canonical 64-character
 lowercase hexadecimal token. The stored key verifies the connector's proof, and
-the server key signs the server's reply and keys every later frame. Neither key
-lets a database copy produce a connector proof. The token never crosses the
+the server key signs the server's reply and keys every later frame. A database
+copy alone cannot produce a connector proof. Combined with one captured
+`authenticate` frame and its challenge, though, the stored key recovers the
+connector key, because the proof is that key XOR an HMAC under the stored key, and
+the server key derives every session key from the public transcript. Rotate the
+credential when the database may have leaked. The token never crosses the
 connection, and an incoming frame never enrolls a token. See the
 [handshake decision](../decisions/20261026-thunderbird-connector.md#handshake) and
 the [frame authentication decision](../decisions/20261026-thunderbird-connector.md#frame-authentication).
@@ -34,7 +38,8 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
   response. Its state and error lists must equal the diagnostics. It generates
   the browser's `web/src/status_generated.ts` types and bundled
   `status_validator_generated.js`, and shared documents in
-  `protocol/fixtures/status/` run against the Rust and browser validators.
+  `protocol/fixtures/status/` run against the schema in Rust tests. The server and
+  the diagnostics page keep their own status types.
 - [Shared fixtures](../../protocol/fixtures/): the same accepted/rejected frames,
   phases, expected generations, and error codes run in both languages.
 - [Rust crate](../../protocol/rust/src/lib.rs): generated types and limits, and a

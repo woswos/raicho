@@ -1,14 +1,13 @@
 # Foundation Stage 2: Thunderbird connector
 
 Status: approved design [PR #2](https://github.com/woswos/raicho/pull/2) merged on
-2026-10-18. All six implementation slices and local Docker acceptance are complete.
-CI runs the same unattended commands. Hosted results are tracked on the implementation PR.
-Mail compatibility limitations remain gates before dependent compose work. See
-[acceptance evidence](../../reference/connector-acceptance.md).
+2026-10-18. Stage 3, the connector contract, is implemented. The other stages land
+with their own implementation pull requests, and their debriefs below record the
+results of the full implementation.
 
 ## Goal
 
-Complete Stage 2 of the [foundation plan](../active/20261017-thunderbird-first-foundation.md)
+Complete Stage 2 of the [foundation plan](20261017-thunderbird-first-foundation.md)
 with an unattended, authenticated connection between the packaged Thunderbird
 extension and Raicho. Demonstrate installation, upgrades, bounded recovery,
 credential management, and diagnostic status against the pinned Thunderbird
@@ -22,10 +21,10 @@ Acceptance requires review of the evidence and unresolved API limitations.
 Keep the accepted single-user Rust/SQLite architecture and Thunderbird ownership
 boundary in the foundation plan. This stage adds `extension/`, `protocol/`,
 connector modules under `server/src/`, application-state migrations and queries,
-and a gateway recipe under `containers/`. Extend runtime configuration
-under `compose/`, the diagnostics in `web/`, Docker tooling, and CI as needed.
+and a gateway recipe under `deploy/`. Extend the root Compose files, the
+diagnostics in `web/`, Docker tooling, and CI as needed.
 
-The existing `runtime/thunderbird/runtime.py` owns Thunderbird startup and
+The existing `deploy/thunderbird/runtime.py` owns Thunderbird startup and
 will gain policy preparation. The Rust server never mounts or edits its profile.
 Production Stage 2 exposes connection diagnostics only. Mail probes and their permissions
 belong to a separate test artifact. Browser login, mailbox APIs, rendering, and
@@ -95,7 +94,7 @@ Draft 7, empty capabilities, strict duplicate-member rejection, bounded JSON
 depth, printable ASCII control fields, and phase/generation validation. Its Ajv
 standalone output is bundled with build-only esbuild so Thunderbird needs no
 runtime imports or dynamic code generation. The production listener and extension
-now call these decoders, with separate credential verification before registration.
+must call these decoders, with separate credential verification before registration.
 
 Define authentication, protocol negotiation, capabilities, heartbeat, connection
 generation, and error messages. Advertise only implemented capabilities. Keep
@@ -104,8 +103,9 @@ five-second authentication deadline, a 4 KiB authentication message, 64 KiB
 control messages, and bounded connection counts, buffers, and queues. Reject
 invalid versions and messages before registering an active connector.
 
-Authenticate with a random 256-bit per-installation token in the first message,
-never in URLs or subprotocol names. Compare credential digests in constant time.
+Authenticate with a random 256-bit per-installation token through a
+challenge-response proof that never sends the token, and never put it in URLs or
+subprotocol names. Compare credential digests in constant time.
 Origin checks supplement authentication and reject ordinary browser origins.
 Determine the extension's actual Origin behavior in the lifecycle experiment.
 Private same-host Compose traffic uses `ws://`. Remote connectors require a
@@ -131,7 +131,7 @@ An explicit `connector reactivate` recovery operation may enroll a different
 token after revocation. Normal initialization and rotation retries cannot clear
 revocation. Preserve the previous host configuration separately while preparing
 the replacement, and verify the fresh token before recreating services. The
-[credential runbook](../../operations/connector-credentials.md) defines the
+credential runbook (`docs/operations/connector-credentials.md`) defines the
 implemented file states and interruption recovery.
 
 Persist backend configuration and credential digests/revocation state, without
@@ -162,7 +162,7 @@ native consent on the pinned runtime. Keep unattended draft checks separate
 from the interactive sending checks. Record native-tab selection when needed
 to make IMAP drafts queryable after restart. Neither behavior establishes a
 production permission or folder-initialization strategy. See the
-[compatibility matrix](../../reference/mail-api-compatibility.md).
+compatibility matrix (`docs/reference/mail-api-compatibility.md`).
 
 Draft creation does not establish draft replacement. `compose.beginNew(id)`
 documents editing as a new message. Test reopening and resaving explicitly for
@@ -179,13 +179,13 @@ These experiment gates have the following bounded outcomes:
   and upgrades it on an existing profile. See [lifecycle evidence](#lifecycle-fixture-evidence).
 - Origin is `moz-extension://<profile-specific UUID>`. The persistent MV2
   background passes idle and reconnection checks. See
-  [production acceptance](../../reference/connector-acceptance.md).
+  production acceptance (`docs/reference/connector-acceptance.md`).
 - Native draft reopen/edit/resave works. Standard programmatic replacement
   remains unproven, and background saves can duplicate drafts. This remains a
   design gate before dependent compose work, not an implemented capability.
 - SMTP submission and Sent-copy success are separate. The API returned success
   despite an injected copy failure. Lost results retain `unknown` and are never
-  automatically replayed. See the [compatibility matrix](../../reference/mail-api-compatibility.md).
+  automatically replayed. See the compatibility matrix (`docs/reference/mail-api-compatibility.md`).
 
 Future dependent work must resolve the recorded API limitations. Stop and revise
 its design if it requires a mail replica, privileged Experiment, host daemon,
@@ -198,7 +198,7 @@ tree, and a review checkpoint. Follow the [delivery workflow](../../contributing
 for commit and continuation authorization. Proposed targets below become real
 with their corresponding slice, and run through Docker locally and in CI.
 
-- [x] Stage 1: Prove packaging and lifecycle.
+- [ ] Stage 1: Prove packaging and lifecycle.
   Add the extension TypeScript project, deterministic XPI build, policy generation,
   and a minimal test connection. Keep the initial test listener outside production.
   Test clean installation, managed settings, nonroot/read-only startup, viewer-free
@@ -212,7 +212,7 @@ with their corresponding slice, and run through Docker locally and in CI.
   preserving the profile. Recorded the test listener's text-frame adapter and
   observed Origin in [lifecycle evidence](#lifecycle-fixture-evidence).
   Production transport, mail APIs, and the ten-minute acceptance remain later slices.
-- [x] Stage 2: Run the mail API compatibility experiment.
+- [ ] Stage 2: Run the mail API compatibility experiment.
   Add the isolated GreenMail deployment and separate probe artifact. Test plain
   text, HTML, selected identity, a small attachment, and draft rediscovery after
   Thunderbird restart. Check reopen/edit/resave and duplicate behavior, including
@@ -244,7 +244,7 @@ with their corresponding slice, and run through Docker locally and in CI.
   tests, generation drift, lint/format/type checks, packaging boundaries, and the
   server Docker build stage passed. Runtime credential checks, registration,
   generation fencing, and heartbeat timing remain later integration work.
-- [x] Stage 4: Implement credential provisioning and persistence.
+- [ ] Stage 4: Implement credential provisioning and persistence.
   Add migrations and standalone SQL queries for backend and credential state.
   Provide containerized setup, rotation, revocation, and recovery commands. Test
   first install, existing database, lock contention, missing secrets, UID access,
@@ -263,7 +263,7 @@ with their corresponding slice, and run through Docker locally and in CI.
   missing-secret recovery, UID access, mount isolation, and token exclusion from
   SQLite and service logs. Its containers, volumes, networks, and host state were
   removed. Live authentication remains Stage 5.
-- [x] Stage 5: Connect production services and diagnostics.
+- [ ] Stage 5: Connect production services and diagnostics.
   Add the internal Rust listener, fixed proxy, extension transport, and connection
   status in the existing web diagnostics. Test authentication expiry/rejection,
   malformed and oversized input, slow peers, bounded retries, duplicate sessions,
@@ -290,7 +290,7 @@ with their corresponding slice, and run through Docker locally and in CI.
   was reproduced in source tests and corrected, but those earlier failures lacked
   enough evidence to establish their cause. Neither recurred in the final suites.
   Managed policy reload requires Thunderbird restart. CI acceptance remains Stage 6.
-- [x] Stage 6: Integrate CI and record acceptance evidence.
+- [ ] Stage 6: Integrate CI and record acceptance evidence.
   Extend the existing Docker source and runtime jobs using the same local commands.
   Include a ten-minute idle test, production-XPI inspection, and checks that logs,
   diagnostics, and SQLite contain neither mail content nor raw credentials.
@@ -318,15 +318,12 @@ with their corresponding slice, and run through Docker locally and in CI.
 The existing implementation checks are:
 
 ```bash
-docker compose -f compose/compose.tools.yaml build
-docker compose -f compose/compose.tools.yaml run --rm check \
-  make lint format-check typecheck test-tooling build-app test-app test-mailprobe test-protocol
-docker compose -f compose/compose.tools.yaml run --rm \
-  -e PYTHONPATH=/workspace/runtime/thunderbird check \
-  python3 -B -m unittest discover -s runtime/thunderbird/tests -p '*_tests.py'
-bash automation/acceptance/connector/raicho_check_connector.bash
-bash runtime/credentials/tests/acceptance/raicho_check_credentials.bash
-bash extension/mailprobe/tests/raicho_check_mail_compatibility.bash
+docker compose -f automation/tooling/compose.yaml build
+docker compose -f automation/tooling/compose.yaml run --rm check \
+  make lint format-check typecheck test-python test-tooling build-app test-app test-mailprobe test-protocol
+bash automation/acceptance/connector/check_connector.bash
+bash automation/acceptance/credentials/check_credentials.bash
+bash mailprobe/tests/check_mail_compatibility.bash
 ```
 
 The extension is included in `build-app` and `test-app`, while protocol drift runs
@@ -335,7 +332,7 @@ protocol suite. Host runners orchestrate Docker outside the read-only tooling
 container, which has no Docker socket. They own uniquely named disposable
 projects, never use personal profiles or provider credentials, and clean up
 only their own resources. The existing CI labels and independent readiness
-are preserved. The [acceptance record](../../reference/connector-acceptance.md)
+are preserved. The acceptance record (`docs/reference/connector-acceptance.md`)
 separates local results, configured CI coverage, and earlier manual evidence.
 
 The original design PR needed documentation and PR-policy checks only. The

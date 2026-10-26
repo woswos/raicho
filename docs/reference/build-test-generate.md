@@ -176,8 +176,7 @@ startup, administration, persistence checks, and cleanup.
 
 `automation/tooling/compose.yaml` remains a development-only configuration and does
 not start the application. Application state belongs to the runtime volumes, not the
-checkout. Control-contract generation is described below. Mail commands remain
-outside the production contract.
+checkout. Control-contract generation is described below.
 
 ## Connector contract
 

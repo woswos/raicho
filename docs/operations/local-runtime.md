@@ -61,37 +61,6 @@ export COMPOSE_PROJECT_NAME=raicho-second RAICHO_PORT=8081 RAICHO_ADMIN_PORT=608
 docker compose up -d --wait
 ```
 
-## Upgrade
-
-Raicho and Thunderbird images come from the same checkout and are upgraded
-together. After updating the checkout, rebuild and recreate both from the
-repository root:
-
-```bash
-docker compose build
-docker compose up -d --wait
-```
-
-No connector session state carries across the upgrade. See the
-[version policy](../decisions/20261026-thunderbird-connector.md#versioning).
-
-## Recovering a development database
-
-If Raicho fails to start because a migration's checksum or version does not
-match, its database applied an earlier version of a migration that has since
-changed. That happens only on unreleased branches, because released migrations
-are never edited. For a development deployment, remove the volume and start
-again:
-
-```bash
-docker compose down
-docker volume rm "${COMPOSE_PROJECT_NAME:-raicho}_raicho-data"
-docker compose up -d --wait
-```
-
-This deletes Raicho's application state, including the connector credential.
-Thunderbird's profile volume is untouched.
-
 ## Disposable automated checks
 
 These commands create their own project, build the same images as CI, and remove
