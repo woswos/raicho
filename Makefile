@@ -13,8 +13,8 @@ HOST_TARGETS := images acceptance acceptance-runtime acceptance-connector accept
 .DEFAULT_GOAL := lint
 .PHONY: $(CONTAINER_TARGETS) $(HOST_TARGETS)
 
-ifeq ($(wildcard /opt/quality/package-lock.json),)
-include $(REPOSITORY_ROOT)automation/tooling/host.mk
-else
+ifdef RAICHO_TOOLING_CONTAINER
 include $(REPOSITORY_ROOT)automation/tooling/container.mk
+else
+include $(REPOSITORY_ROOT)automation/tooling/host.mk
 endif

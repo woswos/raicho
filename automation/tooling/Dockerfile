@@ -37,7 +37,7 @@ ENV PATH="/opt/quality/node_modules/.bin:/usr/local/cargo/bin:${PATH}" \
     RUSTUP_HOME=/usr/local/rustup CARGO_HOME=/tmp/cargo \
     CARGO_TARGET_DIR=/tmp/raicho-target CARGO_BUILD_WARNINGS=deny \
     PYTHONDONTWRITEBYTECODE=1 RUFF_CACHE_DIR=/tmp/ruff \
-    npm_config_cache=/tmp/npm HOME=/tmp/home
+    npm_config_cache=/tmp/npm HOME=/tmp/home RAICHO_TOOLING_CONTAINER=1
 WORKDIR /workspace
 ENTRYPOINT ["bash", "/usr/local/bin/raicho-tooling"]
 CMD ["make", "lint", "format-check", "typecheck", "test-python"]
