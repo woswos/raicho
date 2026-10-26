@@ -37,11 +37,7 @@ class WorkflowCoverageTests(unittest.TestCase):
             if path.name != 'check_admin_isolation.bash'
         )
         self.assertTrue(runners)
-        recipes = (
-            HOST_MAKEFILE.read_text()
-            .replace('$(ACCEPTANCE)', 'bash $(REPOSITORY_ROOT)')
-            .replace('$(REPOSITORY_ROOT)', '')
-        )
+        recipes = HOST_MAKEFILE.read_text().replace('$(ACCEPTANCE) $@ ', '').replace('$(REPOSITORY_ROOT)', '')
         targets = {
             target
             for target, recipe in re.findall(r'^(acceptance-[a-z]+):\n\t@(.*)$', recipes, re.MULTILINE)
