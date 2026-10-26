@@ -171,7 +171,11 @@ backend. The instance lock stays held for the process lifetime.
 The connector migration records backend configuration and credential state.
 No mail data is stored. Add versioned SQL files under
 `server/migrations/` with the feature that uses them, following the
-[sequential filename convention](../coding/coding-standards.md#source-filenames).
+[sequential filename convention](../coding/coding-standards.md#source-filenames),
+and list each one in `server/src/persistence/migrations.rs` with its version and
+the file name's description. The server embeds them without SQLx's compile-time
+macros, which would build a second copy of SQLite. A unit test fails when a file
+is missing from that list, and another pins the checksums of applied migrations.
 Name their tables, columns, indexes, views, and triggers in
 [snake_case](../coding/coding-standards.md#database-names).
 Embedded migration changes trigger recompilation. Do not rename, renumber, or
