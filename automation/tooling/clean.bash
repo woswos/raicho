@@ -37,7 +37,7 @@ list() {
 }
 
 remove_project() {
-    local PROJECT="${1}" KIND LISTED IDS
+    local PROJECT="${1}" KIND LISTED KEPT IDS
     shift
     for KIND in "${@}"; do
         LISTED="$(list "${KIND}" --quiet --filter "label=${PROJECT_LABEL}=${PROJECT}")" || return 1
@@ -45,11 +45,17 @@ remove_project() {
         if ((${#IDS[@]} == 0)); then
             continue
         fi
-        # A graceful stop protects the volumes that mrproper keeps.
         if [[ ${KIND} == container ]]; then
+            # Docker is already deleting a --rm container when stop returns, so removing it again fails.
+            KEPT="$(docker container inspect --format '{{if not .HostConfig.AutoRemove}}{{.Id}}{{end}}' \
+                "${IDS[@]}")" || return 1
+            # A graceful stop protects the volumes that mrproper keeps.
             docker container stop "${IDS[@]}" >/dev/null || return 1
+            mapfile -t IDS < <(grep . <<<"${KEPT}")
         fi
-        docker "${KIND}" rm "${IDS[@]}" >/dev/null || return 1
+        if ((${#IDS[@]} > 0)); then
+            docker "${KIND}" rm "${IDS[@]}" >/dev/null || return 1
+        fi
         echo "Removed the ${KIND}s of ${PROJECT}"
     done
 }

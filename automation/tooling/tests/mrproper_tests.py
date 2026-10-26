@@ -3,9 +3,17 @@ import unittest
 from automation.testing.docker_mock import Response
 from automation.tooling.tests.cleanup_fixture import PROJECT_FILTER, CleanupFixture
 
+WORKING_DIRECTORY_FORMAT = (
+    '{{.Label "com.docker.compose.project"}}\\t{{.Label "com.docker.compose.project.working_dir"}}'
+)
+
 
 def listing(kind, project, output):
     return Response((kind, '--quiet', f'{PROJECT_FILTER}{project}'), output=output)
+
+
+def removable(*containers):
+    return Response(('container', 'inspect', *containers), output=''.join(f'{name}\n' for name in containers))
 
 
 class MrproperTests(CleanupFixture):
@@ -23,6 +31,9 @@ class MrproperTests(CleanupFixture):
             listing('network', 'raicho', 'deployment-network\n'),
             listing('container', 'staging', 'staging\n'),
             listing('container', 'raicho-tools', 'tooling\n'),
+            removable('deployment'),
+            removable('staging'),
+            removable('tooling'),
         )
         for container in ('deployment', 'staging', 'tooling'):
             with self.subTest(container=container):
@@ -53,6 +64,35 @@ class MrproperTests(CleanupFixture):
         )
         self.assertNotIn('image', {command[0] for command in commands})
         self.assertNotIn('Mrproper finished', result.stdout)
+
+    def test_stops_projects_started_from_the_checkout_without_a_state_directory(self):
+        root = self.root
+        commands, _ = self.mrproper(
+            Response(
+                ('container', WORKING_DIRECTORY_FORMAT),
+                output=f'preview\t{root}\ntooling\t{root}/automation/tooling\nother\t/elsewhere\n'
+                f'sibling\t{root}-copy\nInvalid Name\t{root}\n',
+            ),
+            listing('container', 'preview', 'preview-server\n'),
+        )
+        self.assertIn(['container', 'stop', 'preview-server'], commands)
+        projects = {
+            word.removeprefix(PROJECT_FILTER)
+            for command in commands
+            if command[:2] == ['container', 'ls']
+            for word in command
+            if word.startswith(PROJECT_FILTER)
+        }
+        self.assertEqual(projects, {'raicho', 'preview', 'tooling', 'raicho-tools'})
+
+    def test_containers_that_remove_themselves_are_only_stopped(self):
+        commands, _ = self.mrproper(
+            listing('container', 'raicho-tools', 'tooling-run\ntooling\n'),
+            Response(('container', 'inspect', 'tooling-run', 'tooling'), output='\ntooling\n'),
+            Response(('container', 'rm', 'tooling-run'), status=1),
+        )
+        self.assertIn(['container', 'stop', 'tooling-run', 'tooling'], commands)
+        self.assertIn(['container', 'rm', 'tooling'], commands)
 
     def test_removes_project_images_after_cleaning(self):
         commands, result = self.mrproper(Response(('image', 'rm', 'raicho-server:local'), status=1))

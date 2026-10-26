@@ -199,8 +199,8 @@ make test
 
 `test` runs every source suite, building what each one needs. `build-server`,
 `build-web`, and `build-extension` build one component without testing it. There
-is no aggregate `build` target: `make images` builds the deliverables. Rust uses `--workspace --all-targets --locked` and
-temporary Cargo output. The browser build uses `tsc`, copies public files and
+is no aggregate `build` target: `make images` builds the deliverables. The Rust
+build selection and target directory are described below. The browser build uses `tsc`, copies public files and
 the selected identity assets, then runs Node's built-in tests against compiled
 modules. The web builder is `web/build.mjs`, and extension packaging
 uses `extension/build.mjs`. Both run on Node alone. The shared dispatcher remains in
@@ -279,12 +279,12 @@ cannot list resources.
 
 `mrproper` runs `automation/tooling/mrproper.bash`. It stops and removes the
 containers and networks of the `raicho` deployment, of every deployment with a
-`.raicho/<project>` directory, and of the `raicho-tools` project, including
-running tooling containers. It cannot find a deployment that runs under another
-project name without a state directory, so stop that one first with
-`make deploy-down` under its project name. It then runs every `clean` step and
-removes the four project images. An image that another project's container still
-uses is kept and reported. Deployment volumes and `.raicho/` are never removed.
+`.raicho/<project>` directory, of every other Compose project whose working-directory
+label lies in this checkout, such as a deployment that was never enrolled, and of the
+`raicho-tools` project, including running tooling containers. It then runs every
+`clean` step and removes the four project images. An image that another project's
+container still uses is kept and reported. Deployment volumes and `.raicho/` are
+never removed.
 
 Neither target prunes the Docker build cache, which the default builder cannot
 limit to one project. The next `make` rebuilds the tooling image.
