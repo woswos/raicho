@@ -23,7 +23,7 @@ def make(*arguments, **environment):
     host = {name: value for name, value in os.environ.items() if name not in SELECTION}
     return subprocess.run(
         ['make', '--no-print-directory', '-f', str(REPOSITORY_ROOT / 'Makefile'), *arguments],
-        env=host | environment,
+        env=host | {'TERM': 'dumb'} | environment,
         capture_output=True,
         text=True,
         check=True,
@@ -95,6 +95,8 @@ class DeploymentTests(unittest.TestCase):
                 elif target != 'deploy':
                     self.assertIn(f'make {target} ', guide)
         self.assertIn('make deploy-connector-<command>', guide)
+        self.assertTrue(guide.startswith('Raicho deployment\n'))
+        self.assertNotIn('\n# ', guide)
         self.assertEqual(docker.commands(), [])
 
     def test_the_guide_describes_the_selected_deployment(self):
@@ -110,6 +112,13 @@ class DeploymentTests(unittest.TestCase):
         self.assertIn('http://127.0.0.1:8081', guide)
         (self.state / 'credentials').mkdir()
         self.assertIn('connector          enrolled', make('deploy', RAICHO_STATE_DIRECTORY=str(self.state)))
+
+    def test_the_guide_is_colored_only_on_xterm_terminals(self):
+        (self.state / 'credentials').mkdir()
+        colored = make('deploy', TERM='xterm', RAICHO_STATE_DIRECTORY=str(self.state))
+        for text in ('\x1b[36mStart and stop', '\x1b[32mmake deploy-up', '\x1b[33mRAICHO_PROJECT', '\x1b[32menrolled'):
+            self.assertIn(text, colored)
+        self.assertNotIn('\x1b', make('deploy', RAICHO_STATE_DIRECTORY=str(self.state)))
 
 
 if __name__ == '__main__':

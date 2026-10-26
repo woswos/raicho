@@ -9,13 +9,8 @@ DEPLOYED_COMPOSE := $(strip $(DEPLOYMENT_COMPOSE) $(if $(ENROLLED),-f $(REPOSITO
 APPLICATION_ADDRESS := echo "Raicho: http://127.0.0.1:$${RAICHO_PORT:-8080}"
 
 deploy:
-	@cat $(REPOSITORY_ROOT)automation/tooling/deployment_help.txt
-	@echo
-	@echo 'Current deployment'
-	@echo '  project            $(DEPLOYMENT_PROJECT)'
-	@echo '  state directory    $(DEPLOYMENT_STATE)'
-	@echo '  connector          $(if $(ENROLLED),enrolled,not enrolled)'
-	@echo "  address            http://127.0.0.1:$${RAICHO_PORT:-8080}"
+	@DEPLOYMENT_PROJECT='$(DEPLOYMENT_PROJECT)' DEPLOYMENT_STATE='$(DEPLOYMENT_STATE)' DEPLOYMENT_ENROLLED='$(ENROLLED)' \
+	    bash $(REPOSITORY_ROOT)automation/tooling/deployment_help.bash
 
 deploy-up: images
 	@$(DEPLOYMENT) $@ $(DEPLOYED_COMPOSE) up -d --wait
