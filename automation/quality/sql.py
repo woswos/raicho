@@ -1,7 +1,7 @@
 import tempfile
 from pathlib import Path
 
-from raicho_quality_files import require_tools, run
+from automation.quality.files import require_tools, run
 
 
 def sql(root, files, action, tooling_root):

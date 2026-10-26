@@ -4,19 +4,7 @@ import subprocess
 from pathlib import Path
 
 EXCLUDED = {'.git', 'node_modules', 'target', 'dist', 'vendor', '__pycache__'}
-CONFIGURATION_FILES = {
-    'package.json',
-    '.prettierrc.json',
-    'compose/compose.tools.yaml',
-    'compose/compose.ci.yaml',
-    'compose/compose.yaml',
-    'compose/compose.admin.yaml',
-    'compose/compose.test.yaml',
-    'web/package.json',
-    'web/tsconfig.json',
-    'containers/thunderbird/policies.json',
-    '.github/workflows/repository-checks.yml',
-}
+CONFIGURATION_SUFFIXES = {'.json', '.yaml', '.yml'}
 JAVASCRIPT_SUFFIXES = {'.js', '.mjs', '.cjs'}
 TYPESCRIPT_SUFFIXES = {'.ts', '.tsx', '.mts', '.cts'}
 SOURCE_SUFFIXES = (
@@ -91,7 +79,7 @@ def source_files(root):
             or not path.suffix
             or path.name == 'Cargo.toml'
             or (path.name.startswith('tsconfig') and path.suffix == '.json')
-            or path.as_posix() in CONFIGURATION_FILES
+            or path.suffix in CONFIGURATION_SUFFIXES
         ):
             raise ValueError(
                 f'Quality tools require regular source files, not symlinks: {path}'

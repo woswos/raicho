@@ -3,6 +3,10 @@ import re
 import sys
 from pathlib import Path
 
+from automation.paths import REPOSITORY_ROOT
+
+SKILL_NAME = r'[a-z0-9]+(?:-[a-z0-9]+)*'
+
 
 def scalar(value):
     value = value.strip()
@@ -29,7 +33,7 @@ def scalar(value):
 def inspect_skill(root, directory):
     if directory.is_symlink() or not directory.is_dir():
         raise ValueError('skills root must contain only regular skill directories')
-    if not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', directory.name):
+    if not re.fullmatch(SKILL_NAME, directory.name):
         raise ValueError('invalid skill directory name')
     entries = list(directory.iterdir())
     path = directory / 'SKILL.md'
@@ -105,11 +109,7 @@ def main():
     if len(sys.argv) > 2:
         print('FAIL: expected at most one repository root argument', file=sys.stderr)
         return 1
-    root = (
-        Path(sys.argv[1]).resolve()
-        if len(sys.argv) == 2
-        else Path(__file__).resolve().parents[1]
-    )
+    root = Path(sys.argv[1]).resolve() if len(sys.argv) == 2 else REPOSITORY_ROOT
     failures = check_skills(root)
     for failure in failures:
         print(f'FAIL: {failure}', file=sys.stderr)

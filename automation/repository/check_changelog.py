@@ -10,8 +10,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-from raicho_changelog import parse_description_entries
-from raicho_pr_context import changed_paths, load_context
+from automation.paths import REPOSITORY_ROOT
+from automation.release.changelog import parse_description_entries
+from automation.repository.pr_context import changed_paths, load_context
 
 
 def is_shipping(path):
@@ -20,13 +21,15 @@ def is_shipping(path):
         return False
     if '.test.' in name or name.endswith('.dockerignore'):
         return False
-    if path.startswith('server/src/') and name.endswith('.rs'):
+    if path.startswith(('server/src/', 'protocol/rust/src/')) and name.endswith('.rs'):
         return True
     if path.startswith(('server/queries/', 'server/migrations/')) and name.endswith(
         '.sql'
     ):
         return True
-    if path.startswith('web/src/') and name.endswith(('.ts', '.css')):
+    if path.startswith('web/src/') and name.endswith(('.ts', '.js', '.css')):
+        return True
+    if path.startswith('protocol/typescript/src/') and name.endswith(('.ts', '.js')):
         return True
     if path.startswith('web/public/') and name.endswith(('.html', '.css', '.svg')):
         return True
@@ -34,7 +37,7 @@ def is_shipping(path):
         name == 'manifest.json' or name.endswith(('.ts', '.html', '.css'))
     ):
         return True
-    if path.startswith(('containers/raicho/', 'containers/thunderbird/')):
+    if path.startswith('deploy/'):
         return True
     return False
 
@@ -70,11 +73,7 @@ def main():
     if len(sys.argv) > 2:
         print('FAIL: expected at most one repository root argument', file=sys.stderr)
         return 1
-    root = (
-        Path(sys.argv[1]).resolve()
-        if len(sys.argv) == 2
-        else Path(__file__).resolve().parents[1]
-    )
+    root = Path(sys.argv[1]).resolve() if len(sys.argv) == 2 else REPOSITORY_ROOT
     try:
         context = load_context(root)
         check_pull_request_changelog(context, changed_paths(context, root))

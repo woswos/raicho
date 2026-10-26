@@ -3,7 +3,7 @@ import json
 import os
 from pathlib import Path
 
-from raicho_quality_files import TYPESCRIPT_SUFFIXES, run
+from automation.quality.files import TYPESCRIPT_SUFFIXES, run
 
 
 def rust_projects(root, files):

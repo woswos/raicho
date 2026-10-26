@@ -5,7 +5,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-MAKEFILE = Path(__file__).resolve().parents[1] / 'Makefile'
+from automation.paths import REPOSITORY_ROOT
+
+MAKEFILE = REPOSITORY_ROOT / 'Makefile'
 RUST_SOURCE = 'pub fn answer() -> u32 {\n    42\n}\n'
 TYPESCRIPT_SOURCE = 'export const answer = 42;\n'
 CARGO_MANIFEST = (

@@ -25,11 +25,12 @@ COPY --from=shellcheck /bin/shellcheck /usr/local/bin/shellcheck
 COPY --from=shfmt /bin/shfmt /usr/local/bin/shfmt
 
 WORKDIR /opt/quality
-COPY containers/tooling/requirements.txt ./requirements.txt
+COPY automation/tooling/requirements.txt ./requirements.txt
 RUN python3 -m pip install --no-cache-dir --only-binary=:all: --require-hashes -r requirements.txt
 COPY package.json package-lock.json eslint.config.mjs ./
 RUN npm ci --ignore-scripts --no-audit --no-fund && npm cache clean --force
-COPY devbin/raicho_tooling_entrypoint.bash /usr/local/bin/raicho-tooling
+COPY automation/tooling/entrypoint.bash /usr/local/bin/raicho-tooling
+RUN install -d -o 10001 -g 10001 -m 0700 /config /artifact
 
 ENV PATH="/opt/quality/node_modules/.bin:/usr/local/cargo/bin:${PATH}" \
     RUSTUP_HOME=/usr/local/rustup CARGO_HOME=/tmp/cargo \
@@ -38,4 +39,4 @@ ENV PATH="/opt/quality/node_modules/.bin:/usr/local/cargo/bin:${PATH}" \
     npm_config_cache=/tmp/npm HOME=/tmp/home
 WORKDIR /workspace
 ENTRYPOINT ["bash", "/usr/local/bin/raicho-tooling"]
-CMD ["make", "lint", "format-check", "typecheck"]
+CMD ["make", "lint", "format-check", "typecheck", "test-python"]

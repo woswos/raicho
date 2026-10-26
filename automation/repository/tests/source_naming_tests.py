@@ -1,9 +1,9 @@
 import tempfile
 from pathlib import Path
 
-from raicho_guard_fixtures import DEVBIN, GuardTestCase
+from automation.testing.guard_fixtures import GuardTestCase, module_name
 
-SCRIPT = 'raicho_check_source_naming.py'
+SCRIPT = 'check_source_naming.py'
 EXTENSIONS = (
     'rs',
     'py',
@@ -32,7 +32,8 @@ class SourceNamingTests(GuardTestCase):
         repo = self.repo()
         for extension in EXTENSIONS:
             repo.write(f'source-directory/valid_name.{extension}', '')
-        repo.write('server/migrations/20261018_create_state.sql', '')
+        repo.write('server/migrations/0000_create_state.sql', '')
+        repo.write('source/1234_valid_name.sql', '')
         result = self.check(repo)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('source-naming check passed', result.stdout)
@@ -157,7 +158,7 @@ class SourceNamingTests(GuardTestCase):
 
     def test_invalid_root_fails_clearly(self):
         with tempfile.TemporaryDirectory() as directory:
-            command = ['python3', '-B', str(DEVBIN / SCRIPT), directory]
+            command = ['python3', '-B', '-m', module_name(SCRIPT), directory]
             result = self.run_command(command, Path(directory), {})
         self.assertEqual(result.returncode, 1)
         self.assertIn('FAIL:', result.stderr)

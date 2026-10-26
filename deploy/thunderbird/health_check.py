@@ -3,7 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from supervisor import process_identity
+from .supervisor import process_identity
 
 
 def healthy(state_path=Path('/tmp/raicho-runtime/processes.json')):

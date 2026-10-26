@@ -5,7 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from raicho_version_lock import replace_lock_version
+from automation.paths import REPOSITORY_ROOT
+from automation.release.version_lock import replace_lock_version
 
 VERSION_TEXT = re.compile(
     r'(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})'
@@ -172,11 +173,7 @@ def main():
     if len(sys.argv) > 2:
         print('FAIL: expected at most one repository root argument', file=sys.stderr)
         return 1
-    root = (
-        Path(sys.argv[1]).resolve()
-        if len(sys.argv) == 2
-        else Path(__file__).resolve().parents[1]
-    )
+    root = Path(sys.argv[1]).resolve() if len(sys.argv) == 2 else REPOSITORY_ROOT
     failures = check_product_version(root)
     for failure in failures:
         print(f'FAIL: {failure}', file=sys.stderr)

@@ -36,25 +36,35 @@ a heading that lists several kinds separated by `|`, and a bullet that starts
 with `TODO:` are ignored.
 
 Anything an operator can notice needs an entry in one of those two places.
-That includes the server, its SQL, the diagnostics page, extension manifests
-and extension source, and the Raicho and Thunderbird image recipes, excluding
-tests. Documentation, repository tooling, and tests do not need an entry.
+That includes the server, its SQL, the diagnostics page, production extension
+manifests and source, production protocol implementations in `protocol/rust/src/`
+and `protocol/typescript/src/`, gateway runtime configuration, and the Raicho,
+Thunderbird, and gateway image recipes, excluding tests. Documentation, repository
+tooling, and tests do not need an entry.
 The `no changelog` label skips the check when a change is genuinely invisible.
 Any update to `CHANGELOG.md` in the same pull request also satisfies the check.
 
+Write `Unreleased` entries against the last release, not the branch history.
+Describe what an operator gains, loses, or must do differently. Do not record
+moves, renames, or refactors that happen entirely within the pull request,
+because no release ever contained the earlier state. The kinds chosen also set
+the version bump, so a feature listed only under Changed ships as a patch.
+
 Added or Removed selects the next minor version. Every other kind selects the
 next patch. A major bump is never inferred. Ask for it with
-`devbin/raicho_cut_release.py --major` or the major-release workflow, which
-requires the confirmation text `MAJOR` and must be dispatched on `main`.
+`python3 -B -m automation.release.cut_release --major` or the major-release
+workflow, which requires the confirmation text `MAJOR` and must be dispatched on
+`main`.
 
 ## Cutting a release
 
 The cutter only reads the repository and rewrites files. Committing, tagging,
-and pushing stay outside it, so a dry run is safe:
+and pushing stay outside it, so a dry run is safe. Run these module commands from
+the repository root:
 
 ```bash
-python3 -B devbin/raicho_cut_release.py
-python3 -B devbin/raicho_cut_release.py --write
+python3 -B -m automation.release.cut_release
+python3 -B -m automation.release.cut_release --write
 ```
 
 `--write` dates `CHANGELOG.md` and stores the new version in `Cargo.toml`,
@@ -77,7 +87,7 @@ provides both the description and labels, so a failed label read cannot silently
 ignore `no changelog`.
 
 ```bash
-python3 -B devbin/raicho_release_notes.py 0.1.0
+python3 -B -m automation.release.notes 0.1.0
 ```
 
 That command prints one dated section and fails when the section is missing.
@@ -90,7 +100,7 @@ image. Leave it unset and the commit is `unknown`, which the page shows as the
 version alone. Set it to the full git commit to record the build:
 
 ```bash
-RAICHO_COMMIT="$(git rev-parse HEAD)" docker compose -f compose/compose.yaml build
+RAICHO_COMMIT="$(git rev-parse HEAD)" docker compose build
 ```
 
 The commit text must fit in 80 characters, which a full git object name does.

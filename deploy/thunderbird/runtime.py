@@ -4,7 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from supervisor import Supervisor
+from .supervisor import Supervisor
 
 
 def admin_enabled(value):

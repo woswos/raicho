@@ -4,9 +4,9 @@ This reads git and, when the environment allows, pull request descriptions.
 It does not commit, tag, or push. Pass --write to date CHANGELOG.md and store
 the new version in Cargo.toml, Cargo.lock, and any extension manifests.
 
-    python3 -B devbin/raicho_cut_release.py
-    python3 -B devbin/raicho_cut_release.py --write
-    python3 -B devbin/raicho_cut_release.py --write --major
+    python3 -B -m automation.release.cut_release
+    python3 -B -m automation.release.cut_release --write
+    python3 -B -m automation.release.cut_release --write --major
 """
 
 import os
@@ -15,15 +15,16 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-from raicho_changelog import (
+from automation.paths import REPOSITORY_ROOT
+from automation.release.changelog import (
     date_changelog,
     next_version,
     release_section,
     requests_minor,
     unreleased_body,
 )
-from raicho_release_requests import collect_entries
-from raicho_version import parse_version, write_product_version
+from automation.release.pull_requests import collect_entries
+from automation.release.version import parse_version, write_product_version
 
 
 def latest_release(root):
@@ -73,7 +74,7 @@ def parse_args(argv):
         else:
             raise ValueError('expected at most one repository root')
     if root is None:
-        root = Path(__file__).resolve().parents[1]
+        root = REPOSITORY_ROOT
     return write, major, root.resolve()
 
 

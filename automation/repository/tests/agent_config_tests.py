@@ -1,18 +1,22 @@
-from raicho_check_agent_config import REQUIRED_IMPORTS, check_agent_config
-from raicho_check_skills import check_skills
-from raicho_guard_fixtures import REPOSITORY, GuardTestCase
+from automation.paths import REPOSITORY_ROOT
+from automation.repository.check_agent_config import (
+    REQUIRED_IMPORTS,
+    check_agent_config,
+)
+from automation.repository.check_skills import check_skills
+from automation.testing.guard_fixtures import GuardTestCase
 
 
 class AgentConfigTests(GuardTestCase):
     def test_live_repository_matches_the_loader_contract(self):
         imported = [
             line[1:]
-            for line in (REPOSITORY / 'AGENTS.md').read_text().splitlines()
+            for line in (REPOSITORY_ROOT / 'AGENTS.md').read_text().splitlines()
             if line.startswith('@')
         ]
         self.assertEqual(imported, list(REQUIRED_IMPORTS))
-        self.assertEqual(check_agent_config(REPOSITORY), [])
-        self.assertEqual(check_skills(REPOSITORY), [])
+        self.assertEqual(check_agent_config(REPOSITORY_ROOT), [])
+        self.assertEqual(check_skills(REPOSITORY_ROOT), [])
 
     def test_instruction_fixture_passes(self):
         self.assertEqual(check_agent_config(self.instructions().root), [])

@@ -1,5 +1,5 @@
-from raicho_guard_fixtures import GuardTestCase
-from raicho_version import write_product_version
+from automation.release.version import write_product_version
+from automation.testing.guard_fixtures import GuardTestCase
 
 CARGO = """[workspace]
 members = ["server", "helper"]

@@ -1,9 +1,18 @@
 import json
 import os
 
-from raicho_guard_fixtures import GuardTestCase
+from automation.testing.guard_fixtures import GuardTestCase
 
-GUARDS = ('agent_config', 'doc_naming', 'source_naming', 'skills', 'design_link', 'pr')
+GUARDS = (
+    'agent_config',
+    'doc_naming',
+    'source_naming',
+    'directory_naming',
+    'schema_naming',
+    'skills',
+    'design_link',
+    'pr',
+)
 DECISION = 'docs/decisions/20261018-test-decision.md'
 
 
@@ -25,7 +34,7 @@ class GuardCliTests(GuardTestCase):
         self.assertEqual(actual.stdout, expected.stdout)
         self.assertEqual(actual.stderr, expected.stderr)
 
-    def test_default_root_uses_the_script_repository_from_another_directory(self):
+    def test_default_root_uses_the_module_repository_from_another_directory(self):
         repo = self.cli_repository()
         caller = self.repo()
         caller.write('AGENTS.md', '# Missing instructions\n')
@@ -36,7 +45,7 @@ class GuardCliTests(GuardTestCase):
         }
         for guard in GUARDS:
             with self.subTest(guard=guard):
-                script = f'raicho_check_{guard}.py'
+                script = f'check_{guard}.py'
                 expected = self.run_guard(repo, script, environment)
                 result = self.run_guard_cli(repo, script, environment, caller.root)
                 self.assert_result(result, expected, 0)
@@ -49,6 +58,11 @@ class GuardCliTests(GuardTestCase):
             'agent_config': ('AGENTS.md', '# Missing instructions\n'),
             'doc_naming': ('docs/Bad Name.md', '# Invalid\n'),
             'source_naming': ('bad-name.py', ''),
+            'directory_naming': ('bad_directory/file.txt', ''),
+            'schema_naming': (
+                'server/migrations/0000_bad_names.sql',
+                'CREATE TABLE BadName (identifier INTEGER);\n',
+            ),
             'skills': ('.agents/skills/test/SKILL.md', '# Missing frontmatter\n'),
             'design_link': None,
             'pr': None,
@@ -59,14 +73,14 @@ class GuardCliTests(GuardTestCase):
                 if mutation:
                     repo.write(*mutation)
                 environment = {'PR_HEAD_SHA': repo.head(), 'PR_DESCRIPTION': ''}
-                script = f'raicho_check_{guard}.py'
+                script = f'check_{guard}.py'
                 expected = self.run_guard(repo, script, environment)
                 result = self.run_guard_cli(repo, script, environment, caller.root)
                 self.assert_result(result, expected, 1)
                 self.assertEqual(result.stdout, '')
                 self.assertIn('FAIL:', result.stderr)
 
-    def test_explicit_absolute_and_relative_roots_override_the_script_repository(self):
+    def test_explicit_absolute_and_relative_roots_override_the_module_repository(self):
         repo = self.cli_repository()
         source = self.cli_repository()
         source.write('AGENTS.md', '# Invalid default root\n')
@@ -84,7 +98,7 @@ class GuardCliTests(GuardTestCase):
             'PR_DESCRIPTION': f'Decision: {DECISION}',
         }
         for guard in GUARDS:
-            script = f'raicho_check_{guard}.py'
+            script = f'check_{guard}.py'
             expected = self.run_guard(repo, script, environment)
             for root in (str(repo.root), os.path.relpath(repo.root, caller.root)):
                 with self.subTest(guard=guard, root=root):
@@ -117,7 +131,7 @@ class GuardCliTests(GuardTestCase):
         source.write('event.json', '{}')
         environment = {'GITHUB_EVENT_PATH': 'event.json'}
         for guard in ('pr', 'design_link'):
-            script = f'raicho_check_{guard}.py'
+            script = f'check_{guard}.py'
             expected = self.run_guard(repo, script, environment)
             for location, arguments in ((repo, ()), (source, (str(repo.root),))):
                 with self.subTest(guard=guard, arguments=arguments):
@@ -132,7 +146,7 @@ class GuardCliTests(GuardTestCase):
             with self.subTest(guard=guard):
                 result = self.run_guard_cli(
                     repo,
-                    f'raicho_check_{guard}.py',
+                    f'check_{guard}.py',
                     {},
                     repo.root,
                     (str(repo.root), str(repo.root)),

@@ -1,16 +1,16 @@
 import json
 
-from raicho_guard_fixtures import GuardTestCase
+from automation.testing.guard_fixtures import GuardTestCase
 
 DESIGN = 'docs/planning/active/20261018-test-design.md'
-CODE_CHANGE = {'devbin/tool.py': 'print("example")\n'}
+CODE_CHANGE = {'automation/tool.py': 'print("example")\n'}
 
 
 class PullRequestLabelTests(GuardTestCase):
     def check_labels(self, repo, environment, labels):
         return self.run_guard(
             repo,
-            'raicho_check_pr.py',
+            'check_pr.py',
             {**environment, 'PR_LABELS': labels, 'PR_DESCRIPTION': ''},
         )
 
@@ -32,7 +32,7 @@ class PullRequestLabelTests(GuardTestCase):
         result = self.check_labels(repo, environment, 'design,skip-design-check')
         self.assertEqual(result.returncode, 1)
         self.assertIn(
-            'design PR changes non-planning paths: devbin/tool.py', result.stderr
+            'design PR changes non-planning paths: automation/tool.py', result.stderr
         )
 
     def test_skip_label_exempts_an_implementation_reference(self):

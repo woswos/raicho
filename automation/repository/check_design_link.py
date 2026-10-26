@@ -4,7 +4,12 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from raicho_pr_context import description_references, load_context, regular_file_at
+from automation.paths import REPOSITORY_ROOT
+from automation.repository.pr_context import (
+    description_references,
+    load_context,
+    regular_file_at,
+)
 
 
 def reference_failure(kind, path):
@@ -49,11 +54,7 @@ def main():
     if len(sys.argv) > 2:
         print('FAIL: expected at most one repository root argument', file=sys.stderr)
         return 1
-    root = (
-        Path(sys.argv[1]).resolve()
-        if len(sys.argv) == 2
-        else Path(__file__).resolve().parents[1]
-    )
+    root = Path(sys.argv[1]).resolve() if len(sys.argv) == 2 else REPOSITORY_ROOT
     try:
         path = check_design_reference(load_context(root), root)
     except (OSError, ValueError, subprocess.CalledProcessError) as error:

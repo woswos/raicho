@@ -1,17 +1,17 @@
 """Print one changelog section for use as release notes."""
 
 import sys
-from pathlib import Path
 
-from raicho_changelog import release_notes
-from raicho_version import parse_version
+from automation.paths import REPOSITORY_ROOT
+from automation.release.changelog import release_notes
+from automation.release.version import parse_version
 
 
 def main():
     if len(sys.argv) != 2:
-        print('usage: raicho_release_notes.py VERSION', file=sys.stderr)
+        print('usage: python3 -B -m automation.release.notes VERSION', file=sys.stderr)
         return 1
-    root = Path(__file__).resolve().parents[1]
+    root = REPOSITORY_ROOT
     try:
         version = sys.argv[1].removeprefix('v')
         parse_version(version)

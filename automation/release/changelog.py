@@ -2,7 +2,7 @@
 
 import re
 
-from raicho_version import format_version, parse_version
+from automation.release.version import format_version, parse_version
 
 KINDS = ('Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security')
 KIND_HEADING = re.compile(r'^### *(Added|Changed|Deprecated|Removed|Fixed|Security) *$')

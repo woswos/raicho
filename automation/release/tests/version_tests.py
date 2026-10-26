@@ -3,7 +3,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from raicho_changelog import (
+from automation.paths import REPOSITORY_ROOT
+from automation.release.changelog import (
     date_changelog,
     next_version,
     parse_description_entries,
@@ -12,16 +13,15 @@ from raicho_changelog import (
     requests_minor,
     unreleased_body,
 )
-from raicho_check_changelog import is_shipping
-from raicho_cut_release import latest_release
-from raicho_guard_fixtures import DEVBIN, GuardTestCase
-from raicho_release_requests import numbers_in_subject
-from raicho_version import (
+from automation.release.cut_release import latest_release
+from automation.release.pull_requests import numbers_in_subject
+from automation.release.version import (
     check_product_version,
     parse_version,
     replace_manifest_version,
     replace_workspace_version,
 )
+from automation.testing.guard_fixtures import GuardTestCase
 
 CHANGELOG = """# Changelog
 
@@ -69,7 +69,7 @@ class VersionTests(GuardTestCase):
         repo = self.repo()
         repo.write('Cargo.toml', CARGO)
         repo.write('extension/manifest.json', MANIFEST)
-        repo.write('extension/mail_probe/manifest.json', MANIFEST)
+        repo.write('mailprobe/manifest.json', MANIFEST)
         repo.write('extension/tests/manifest.json', MANIFEST.replace('0.1.0', '9.9.9'))
         repo.commit()
         self.assertEqual(check_product_version(repo.root), [])
@@ -89,7 +89,7 @@ class VersionTests(GuardTestCase):
         self.assertIn('edition = "2024"', cargo)
 
     def test_repository_declares_the_current_product_version(self):
-        root = Path(__file__).resolve().parents[1]
+        root = REPOSITORY_ROOT
         self.assertEqual(check_product_version(root), [])
 
 
@@ -259,13 +259,15 @@ class ChangelogTests(GuardTestCase):
         environment = os.environ.copy()
         for name in ('GITHUB_REPOSITORY', 'GITHUB_TOKEN', 'GH_TOKEN', 'GITHUB_OUTPUT'):
             environment.pop(name, None)
+        environment['PYTHONPATH'] = str(REPOSITORY_ROOT)
         if extra:
             environment.update(extra)
         return subprocess.run(
             [
                 'python3',
                 '-B',
-                str(DEVBIN / 'raicho_cut_release.py'),
+                '-m',
+                'automation.release.cut_release',
                 *arguments,
                 str(repo.root),
             ],
@@ -275,68 +277,3 @@ class ChangelogTests(GuardTestCase):
             capture_output=True,
             check=False,
         )
-
-
-class ChangelogGuardTests(GuardTestCase):
-    def test_shipping_paths_are_the_running_product(self):
-        self.assertTrue(is_shipping('server/src/http.rs'))
-        self.assertTrue(is_shipping('server/queries/read_sqlite_version.sql'))
-        self.assertTrue(is_shipping('web/public/index.html'))
-        self.assertTrue(is_shipping('containers/thunderbird/supervisor.py'))
-        self.assertTrue(is_shipping('extension/manifest.json'))
-        self.assertFalse(is_shipping('server/tests/http.rs'))
-        self.assertFalse(is_shipping('containers/thunderbird/supervisor_tests.py'))
-        self.assertFalse(is_shipping('web/tests/status.test.mjs'))
-        self.assertFalse(is_shipping('extension/tests/lifecycle.test.mjs'))
-        self.assertFalse(is_shipping('devbin/raicho_version.py'))
-        self.assertFalse(is_shipping('docs/reference/versioning.md'))
-        self.assertFalse(is_shipping('containers/raicho/Dockerfile.dockerignore'))
-
-    def test_shipping_change_requires_an_entry(self):
-        repo, environment = self.shipping_change()
-        result = self.run_guard(repo, 'raicho_check_pr.py', environment)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn('no changelog entry', result.stderr)
-        self.assertIn('server/src/main.rs', result.stderr)
-
-    def test_description_entry_satisfies_the_guard(self):
-        repo, environment = self.shipping_change()
-        environment['PR_DESCRIPTION'] += (
-            '\n\n## Changelog\n\n### Fixed\n\n- The status page names the build.\n'
-        )
-        result = self.run_guard(repo, 'raicho_check_pr.py', environment)
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn('description has an entry', result.stdout)
-
-    def test_changelog_file_or_label_satisfies_the_guard(self):
-        repo, environment = self.shipping_change()
-        environment['PR_LABELS'] = 'no changelog'
-        labeled = self.run_guard(repo, 'raicho_check_pr.py', environment)
-        self.assertEqual(labeled.returncode, 0, labeled.stderr)
-        self.assertIn('no changelog label', labeled.stdout)
-
-        repo.write('CHANGELOG.md', '# Changelog\n\n## [Unreleased]\n\n- Noted.\n')
-        repo.commit()
-        environment = {
-            'PR_BASE_SHA': environment['PR_BASE_SHA'],
-            'PR_HEAD_SHA': repo.head(),
-            'PR_DESCRIPTION': environment['PR_DESCRIPTION'],
-        }
-        updated = self.run_guard(repo, 'raicho_check_pr.py', environment)
-        self.assertEqual(updated.returncode, 0, updated.stderr)
-        self.assertIn('CHANGELOG.md was updated', updated.stdout)
-
-    def shipping_change(self):
-        repo = self.repo()
-        decision = 'docs/decisions/20261018-test-decision.md'
-        repo.write('README.md', 'base\n')
-        repo.write(decision, '# Decision\n')
-        repo.commit()
-        base = repo.head()
-        repo.write('server/src/main.rs', 'fn main() {}\n')
-        repo.commit()
-        return repo, {
-            'PR_BASE_SHA': base,
-            'PR_HEAD_SHA': repo.head(),
-            'PR_DESCRIPTION': f'Decision: {decision}\n',
-        }

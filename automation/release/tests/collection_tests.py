@@ -3,21 +3,24 @@ import io
 import os
 from unittest.mock import patch
 
-from raicho_cut_release import main
-from raicho_guard_fixtures import GuardTestCase
-from raicho_release_requests import collect_entries
+from automation.release.cut_release import main
+from automation.release.pull_requests import collect_entries
+from automation.testing.guard_fixtures import GuardTestCase
 
 
 class ReleaseCollectionTests(GuardTestCase):
     def test_skips_issue_references_and_excluded_pull_requests(self):
         with (
-            patch('raicho_release_requests.fetch_blocker', return_value=None),
             patch(
-                'raicho_release_requests.pull_request_numbers',
+                'automation.release.pull_requests.fetch_blocker',
+                return_value=None,
+            ),
+            patch(
+                'automation.release.pull_requests.pull_request_numbers',
                 return_value=['1', '2', '3'],
             ),
             patch(
-                'raicho_release_requests.github_pull_request',
+                'automation.release.pull_requests.github_pull_request',
                 side_effect=[
                     None,
                     ('## Changelog\n\n### Added\n\n- Hidden.', ['no changelog']),
@@ -43,13 +46,20 @@ class ReleaseCollectionTests(GuardTestCase):
         errors = io.StringIO()
         with (
             patch.dict(os.environ, {'GITHUB_OUTPUT': str(output)}),
-            patch('raicho_cut_release.latest_release', return_value='0.1.0'),
-            patch('raicho_release_requests.fetch_blocker', return_value=None),
             patch(
-                'raicho_release_requests.pull_request_numbers', return_value=['1', '2']
+                'automation.release.cut_release.latest_release',
+                return_value='0.1.0',
             ),
             patch(
-                'raicho_release_requests.github_pull_request',
+                'automation.release.pull_requests.fetch_blocker',
+                return_value=None,
+            ),
+            patch(
+                'automation.release.pull_requests.pull_request_numbers',
+                return_value=['1', '2'],
+            ),
+            patch(
+                'automation.release.pull_requests.github_pull_request',
                 side_effect=[
                     ('## Changelog\n\n### Fixed\n\n- Collected correction.', []),
                     ValueError('Cannot read pull request #2: HTTP 500'),

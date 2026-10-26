@@ -15,11 +15,11 @@ an agent's instruction hierarchy.
 ## Working agreement
 
 - Planning, approval, validation, and delivery: [workflow](workflow.md).
-- Engineering principles: [coding principles](coding-principles.md).
+- Engineering principles: [coding principles](../coding/coding-principles.md).
 - Branches, commits, and PRs: [Git and pull requests](git-and-pull-requests.md).
 - Documentation placement: [documentation organisation](documentation-organisation.md).
 - First-time setup: [getting started](getting-started.md).
-- Project invariants: [key conventions](../reference/key-conventions.md).
+- Project invariants: [key conventions](key-conventions.md).
 
 ## Durable decisions
 

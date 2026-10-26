@@ -6,7 +6,9 @@ from pathlib import Path
 
 import yaml
 
-WORKFLOWS = Path(__file__).resolve().parents[1] / '.github/workflows'
+from automation.paths import REPOSITORY_ROOT
+
+WORKFLOWS = REPOSITORY_ROOT / '.github/workflows'
 
 
 def interpolate(text, context):

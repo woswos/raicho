@@ -18,13 +18,20 @@ the [product version](versioning.md) and the build commit. Thunderbird owns a
 separate profile volume. Its internal display starts without a viewer, and a
 local override enables browser administration. Separate Compose networks prevent
 Raicho from reaching Thunderbird's administrative listener. Both retain provider
-internet access. There is no extension, live mail
-connection to Raicho, or browser login yet.
+internet access. There is no extension, live mail connection to Raicho, or
+browser login yet.
 
 The [runtime reference](runtime.md) describes endpoints, storage, migrations,
 image packaging, and configuration. The existing showcase in `assets/brand/`
 remains a separate static concept with fictional in-memory messages. Shared
-Docker tooling runs language, application, and repository checks.
+Docker tooling runs language, application, and repository checks, and the
+drivers used by disposable tests. Component-specific builders
+and acceptance drivers live with their sources. Cross-component build dispatch,
+runtime acceptance, and shared development commands live in
+responsibility-based `automation/` packages. The
+[shared test image decision](../decisions/20261026-repository-layout.md#tooling-image)
+records that boundary. Fixtures and runtime tests live beside their owning
+components, as described in [project structure](project-structure.md#test-code).
 SQLFluff checks standalone production SQL embedded into the Rust executable,
 using the same tooling image locally and in CI. See the
 [Compose and SQL decision](../decisions/20261018-compose-layout-and-sql-quality.md).
@@ -49,13 +56,13 @@ Rust process and store application state in the Raicho volume.
 Thunderbird owns messages, accounts, provider credentials, drafts, and filters.
 Raicho keeps login, preferences, and connector credentials in SQLite, and does
 not persist mail or run a second filter engine. The browser talks to a Raicho mail
-contract. Thunderbird-specific objects stay in the extension adapter.
+contract. Thunderbird-specific objects stay in the extension adapter. The current
+control transport provides the connection boundary for those future operations.
 
 The foundation plan holds the target component diagram, storage rules, backup
-requirements, and stage gates. Mail integration starts with the stage 2 extension
-lifecycle experiment. Runtime diagnostics never infer connector status from a
-profile file or desktop listener. Stage 2 must establish an outbound connector
-route while preserving the administrative network isolation.
+requirements, and stage gates.
+Runtime diagnostics derive connector status from authenticated sessions and
+heartbeats, never from a profile file or desktop listener.
 
 ## Status
 
@@ -65,12 +72,14 @@ SQLite application storage, and
 decisions. The
 [runtime stack decision](../decisions/20261018-foundation-runtime-stack.md)
 selects Axum, Tokio, SQLx, the initial SQLite configuration, and the independently
-built Thunderbird image. WebSocket lifecycle, the eventual UI framework, and
-authentication details remain later implementation gates. The static showcase
-remains a design reference.
+built Thunderbird image. The
+[connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
+selects MV2 packaging, managed configuration, a fixed internal gateway, and a
+versioned authenticated protocol. None of the connector is implemented yet. The
+static showcase remains a design reference.
 
 Current tooling commands and planned application commands are distinguished in
 [build, test, and generate](build-test-generate.md).
 
-See [project invariants](key-conventions.md) and the
+See [project invariants](../contributing/key-conventions.md) and the
 [architecture update rule](../contributing/workflow.md#design-changes-and-completion).

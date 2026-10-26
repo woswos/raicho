@@ -1,12 +1,21 @@
 # Key conventions
 
-Project invariants complement the shared [workflow](../contributing/workflow.md) and
+Project invariants complement the shared [workflow](workflow.md) and
 [coding standards](../coding/coding-standards.md).
+
+## Repository organization
+
+Use the [placement rules](../reference/project-structure.md#placement-rules) for files and
+the [test ownership guide](../reference/project-structure.md#test-code) for tests and fixtures.
+The [automation guide](../reference/project-structure.md#automation) separates development
+commands from operational helpers.
+Naming follows the [source filename](../coding/coding-standards.md#source-filenames)
+and [directory name](../coding/coding-standards.md#directory-names) conventions.
 
 ## Product and data
 
 - Follow the accepted [foundation decision](../decisions/20261017-thunderbird-first-foundation.md)
-  and [target architecture](architecture.md#target-architecture).
+  and [target architecture](../reference/architecture.md#target-architecture).
 - Apply the ownership boundary in the
   [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md#ownership-and-persistence)
   to server, extension, and browser work. Do not introduce an alternate mail store

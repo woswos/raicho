@@ -3,9 +3,11 @@ import tempfile
 from pathlib import Path
 
 import yaml
-from raicho_guard_fixtures import GuardTestCase
 
-WORKFLOWS = Path(__file__).resolve().parents[1] / '.github/workflows'
+from automation.paths import REPOSITORY_ROOT
+from automation.testing.guard_fixtures import GuardTestCase
+
+WORKFLOWS = REPOSITORY_ROOT / '.github/workflows'
 
 
 class ReleasePushTests(GuardTestCase):

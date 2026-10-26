@@ -1,3 +1,4 @@
+# Paths resolve from the repository root, where the base compose.yaml lives.
 services:
   raicho:
     ports: !reset []
@@ -7,18 +8,18 @@ services:
   smoke:
     image: raicho-tools:local
     build:
-      context: ..
-      dockerfile: containers/tooling/Dockerfile
+      context: .
+      dockerfile: automation/tooling/Dockerfile
     profiles: [test]
     networks: [application]
     working_dir: /workspace
-    entrypoint: [python3, -B, devbin/raicho_runtime_checks.py]
+    entrypoint: [python3, -B, -m, automation.acceptance.runtime.checks]
     user: '10001:10001'
     read_only: true
     tmpfs:
       - /tmp:mode=1777
     volumes:
-      - ..:/workspace:ro
+      - .:/workspace:ro
       - raicho-data:/fixture/raicho
       - thunderbird-data:/fixture/thunderbird
     cap_drop:

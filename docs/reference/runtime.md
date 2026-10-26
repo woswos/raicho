@@ -10,20 +10,25 @@ and [build commands](build-test-generate.md) for source validation.
 
 ## Images and storage
 
-`containers/raicho/Dockerfile` builds browser assets and the Rust executable in
+`deploy/raicho/Dockerfile` builds browser assets and the Rust executable in
 separate stages. Its Debian runtime includes the executable, selected brand
 assets, compiled web files, and an explicit HTTP health probe. Its build-context
 allowlist excludes profile data, repository metadata, and unrelated artwork.
 
-`containers/thunderbird/Dockerfile` builds directly from Debian. It installs the
+`deploy/thunderbird/Dockerfile` builds directly from Debian. It installs the
 official Mozilla archive, Xvfb, Openbox, DBus, and optional noVNC/websockify support.
 Its supervisor starts Thunderbird without a viewer, terminates the other children
 if a required child exits, and forwards shutdown. The health check verifies
 processes and the internal display. A desktop HTTP response alone is insufficient.
+These modules live beside the image recipe in `deploy/thunderbird/` as
+`runtime.py`, `supervisor.py`, and `health_check.py`, with the static
+`policies.json`. The image installs them as the `/opt/raicho/thunderbird/` package
+and runs `python3 -m thunderbird.runtime` and `python3 -m thunderbird.health_check`.
 
 Base images use digests, support packages use the 20261018 Debian snapshot, and
 downloaded application assets use checksums. Installed OS packages are recorded
-in `/opt/raicho/packages.tsv` inside each image. Runtime support is Linux amd64.
+in `/opt/raicho/packages.tsv` inside the Raicho and Thunderbird images. Runtime
+support is Linux amd64.
 
 | Service | Named volume | Container path |
 | --- | --- | --- |
@@ -66,10 +71,11 @@ page shows the version alone when the commit is unknown. See
 `RAICHO_PORT`, default 8080. The browser page is diagnostics only and has no login.
 
 `RAICHO_ADMIN_ENABLED=true` starts remote desktop support. Only
-`compose/compose.admin.yaml` enables it and publishes loopback port `RAICHO_ADMIN_PORT`,
+`compose.admin.yaml` enables it and publishes loopback port `RAICHO_ADMIN_PORT`,
 default 6080. This administrative interface has no application authentication.
 Keep it local, close it by recreating Thunderbird without the override, and use
-the Raicho page for diagnostics. Remote deployment and browser login are stage 3.
+the Raicho page for diagnostics. Remote deployment and browser login are planned
+in the [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md).
 
 ## Network isolation
 
@@ -78,7 +84,6 @@ Thunderbird uses a separate `thunderbird` bridge network. Both use Docker's
 default NAT isolation and retain internet egress, but Raicho cannot reach
 Thunderbird's container IP or administrative listener. Do not join the two
 services to a shared network or enable direct routing around this boundary.
-Stage 2 must introduce a connector route that preserves this isolation.
 
 The administrative override publishes only on host loopback. Use Docker Engine
 28 or newer, since older versions have a
@@ -96,9 +101,13 @@ a general SQL execution deadline. Never hold a connection while awaiting a mail
 backend. The instance lock stays held for the process lifetime.
 
 Only SQLx migration metadata exists initially. Add versioned SQL files under
-`server/migrations/` with the feature that uses them. Embedded migration changes
-trigger recompilation. Do not change an applied migration, including formatting
-or whitespace, because SQLx checksums its bytes. Format new migrations before
+`server/migrations/` with the feature that uses them, following the
+[sequential filename convention](../coding/coding-standards.md#source-filenames).
+Name their tables, columns, indexes, views, and triggers in
+[snake_case](../coding/coding-standards.md#database-names).
+Embedded migration changes trigger recompilation. Do not rename, renumber, or
+edit an applied migration, including formatting or whitespace, because SQLx
+checks its version and checksums its bytes. Format new migrations before
 applying them. Missing versions,
 checksum changes, failed migrations, and invalid databases prevent startup.
 A failed migration rolls back itself and its bookkeeping, not previously
@@ -113,4 +122,4 @@ Stop the server before copying the complete state directory, including journal
 files, unless using a supported consistent SQLite snapshot. Stop Thunderbird
 before copying its complete profile and external mail directories. Image rollback
 does not reverse database or profile migrations. Automated restore procedures
-remain stage 7 work.
+are planned in the [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md).

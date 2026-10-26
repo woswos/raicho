@@ -1,4 +1,4 @@
-from raicho_guard_fixtures import GuardTestCase
+from automation.testing.guard_fixtures import GuardTestCase
 
 
 class PullRequestGuardTests(GuardTestCase):
@@ -11,7 +11,7 @@ class PullRequestGuardTests(GuardTestCase):
         repo.commit()
         result = self.run_guard(
             repo,
-            'raicho_check_pr.py',
+            'check_pr.py',
             {
                 'PR_BASE_SHA': base,
                 'PR_HEAD_SHA': repo.head(),
@@ -30,7 +30,7 @@ class PullRequestGuardTests(GuardTestCase):
         repo.commit()
         result = self.run_guard(
             repo,
-            'raicho_check_pr.py',
+            'check_pr.py',
             {
                 'PR_BASE_SHA': base,
                 'PR_HEAD_SHA': repo.head(),
@@ -48,7 +48,7 @@ class PullRequestGuardTests(GuardTestCase):
         repo.commit()
         result = self.run_guard(
             repo,
-            'raicho_check_pr.py',
+            'check_pr.py',
             {
                 'PR_BASE_SHA': base,
                 'PR_HEAD_SHA': repo.head(),
@@ -65,11 +65,11 @@ class PullRequestGuardTests(GuardTestCase):
         repo.write('README.md', 'base\n')
         repo.commit()
         base = repo.head()
-        repo.write('devbin/tool.py', 'x\n')
+        repo.write('automation/tool.py', 'x\n')
         repo.commit()
         result = self.run_guard(
             repo,
-            'raicho_check_pr.py',
+            'check_pr.py',
             {
                 'PR_BASE_SHA': base,
                 'PR_HEAD_SHA': repo.head(),
@@ -85,7 +85,7 @@ class PullRequestGuardTests(GuardTestCase):
         repo.commit()
         result = self.run_guard(
             repo,
-            'raicho_check_design_link.py',
+            'check_design_link.py',
             {
                 'PR_HEAD_SHA': repo.head(),
                 'PR_DESCRIPTION': 'Decision: docs/decisions/20261340-bad-date.md',

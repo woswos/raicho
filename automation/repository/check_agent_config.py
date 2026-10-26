@@ -2,10 +2,12 @@ import re
 import sys
 from pathlib import Path
 
+from automation.paths import REPOSITORY_ROOT
+
 REQUIRED_IMPORTS = (
     'docs/contributing/working-agreement.md',
     'docs/contributing/workflow.md',
-    'docs/reference/key-conventions.md',
+    'docs/contributing/key-conventions.md',
     'docs/reference/architecture.md',
 )
 
@@ -73,11 +75,7 @@ def main():
     if len(sys.argv) > 2:
         print('FAIL: expected at most one repository root argument', file=sys.stderr)
         return 1
-    root = (
-        Path(sys.argv[1]).resolve()
-        if len(sys.argv) == 2
-        else Path(__file__).resolve().parents[1]
-    )
+    root = Path(sys.argv[1]).resolve() if len(sys.argv) == 2 else REPOSITORY_ROOT
     failures = check_agent_config(root)
     for failure in failures:
         print(f'FAIL: {failure}', file=sys.stderr)

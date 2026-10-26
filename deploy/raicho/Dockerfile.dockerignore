@@ -7,8 +7,6 @@
 !server/**
 !web/
 !web/**
-!devbin/
-!devbin/raicho_build_web.mjs
 !assets/
 !assets/brand/
 !assets/brand/logos/

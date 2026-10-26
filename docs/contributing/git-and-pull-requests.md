@@ -27,10 +27,15 @@ Use the actual PR base branch when reviewing a PR that targets another branch.
 
 ## Pull requests
 
-Use `gh pr create` after checking authentication and authorization to publish.
+Use `gh pr create --draft` after checking authentication and authorization to publish.
 Assign an owner, normally `--assignee @me`. Use `--label design` for a planning
 PR and the design template with `--template design.md`. GitHub does not apply
 labels from slash commands in descriptions.
+
+Create both design and implementation PRs as drafts. Convert a PR with
+`gh pr ready` only after the repository maintainer has reviewed it and explicitly
+approved making it ready. Passing CI or an automated review does not authorize
+that transition.
 
 Lead descriptions with the concrete problem and resulting behavior. Explain the
 cause, fix, relevant validation, and limitations. Keep them concise and follow

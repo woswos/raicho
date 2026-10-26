@@ -3,8 +3,8 @@ name: raicho-tools
 x-tools: &tools
   image: raicho-tools:local
   build:
-    context: ..
-    dockerfile: containers/tooling/Dockerfile
+    context: ../..
+    dockerfile: automation/tooling/Dockerfile
   working_dir: /workspace
   user: '${LOCAL_UID:-1000}:${LOCAL_GID:-1000}'
   read_only: true
@@ -15,6 +15,9 @@ x-tools: &tools
     PR_LABELS: ${PR_LABELS:-}
     PR_BASE_SHA: ${PR_BASE_SHA:-}
     PR_HEAD_SHA: ${PR_HEAD_SHA:-}
+    CARGO_PROFILE_DEV_DEBUG: '${CARGO_PROFILE_DEV_DEBUG:-0}'
+    CARGO_PROFILE_TEST_DEBUG: '${CARGO_PROFILE_TEST_DEBUG:-0}'
+    CARGO_INCREMENTAL: '${CARGO_INCREMENTAL:-0}'
     GIT_CONFIG_COUNT: '1'
     GIT_CONFIG_KEY_0: safe.directory
     GIT_CONFIG_VALUE_0: /workspace
@@ -27,9 +30,9 @@ services:
   check:
     <<: *tools
     volumes:
-      - ..:/workspace:ro
+      - ../..:/workspace:ro
   format:
     <<: *tools
     volumes:
-      - ..:/workspace:rw
+      - ../..:/workspace:rw
     command: [make, format]

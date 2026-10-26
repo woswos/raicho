@@ -6,7 +6,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-RUNNER = Path(__file__).with_name('raicho_quality.py')
+from automation.paths import REPOSITORY_ROOT
+
+RUNNER = 'automation.quality.runner'
 
 
 class QualityDiscoveryTests(unittest.TestCase):
@@ -17,11 +19,16 @@ class QualityDiscoveryTests(unittest.TestCase):
 
     def check_failure(self, target, diagnostic, environment=None):
         result = subprocess.run(
-            [sys.executable, str(RUNNER), '--root', str(self.root), target],
+            [sys.executable, '-B', '-m', RUNNER, '--root', str(self.root), target],
+            cwd=self.root,
             capture_output=True,
             text=True,
             check=False,
-            env=environment,
+            env={
+                **os.environ,
+                **(environment or {}),
+                'PYTHONPATH': str(REPOSITORY_ROOT),
+            },
         )
         self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn(diagnostic, result.stderr)

@@ -6,7 +6,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-RUNNER = Path(__file__).with_name('raicho_quality.py')
+from automation.paths import REPOSITORY_ROOT
+
+RUNNER = 'automation.quality.runner'
 
 
 class SqlToolingChecks(unittest.TestCase):
@@ -23,9 +25,13 @@ class SqlToolingChecks(unittest.TestCase):
 
     def check(self, target, successful=True, diagnostic=None, environment=None):
         result = subprocess.run(
-            [sys.executable, str(RUNNER), '--root', str(self.root), target],
+            [sys.executable, '-B', '-m', RUNNER, '--root', str(self.root), target],
             cwd=self.root,
-            env=environment,
+            env={
+                **os.environ,
+                **(environment or {}),
+                'PYTHONPATH': str(REPOSITORY_ROOT),
+            },
             capture_output=True,
             text=True,
             check=False,

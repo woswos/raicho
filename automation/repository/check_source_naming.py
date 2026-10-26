@@ -5,7 +5,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-from raicho_shell_shebang import shell_header
+from automation.paths import REPOSITORY_ROOT
+from automation.repository.migration_naming import migration_failures
+from automation.repository.shell_shebang import shell_header
 
 EXCLUDED = {'.git', 'node_modules', 'target', 'dist', 'vendor', '__pycache__'}
 JAVASCRIPT_SUFFIXES = {'.js', '.mjs', '.cjs', '.jsx'}
@@ -88,7 +90,7 @@ def check_source_naming(root):
         paths = repository_paths(root)
     except (OSError, ValueError, subprocess.CalledProcessError) as error:
         return [f'cannot inspect Git repository {root}: {error}']
-    failures = []
+    failures = migration_failures(paths)
     for path in paths:
         if EXCLUDED.intersection(path.parts[:-1]) or path.is_relative_to(
             'assets/brand/references'
@@ -110,11 +112,7 @@ def main():
     if len(sys.argv) > 2:
         print('FAIL: expected at most one repository root argument', file=sys.stderr)
         return 1
-    root = (
-        Path(sys.argv[1]).resolve()
-        if len(sys.argv) == 2
-        else Path(__file__).resolve().parents[1]
-    )
+    root = Path(sys.argv[1]).resolve() if len(sys.argv) == 2 else REPOSITORY_ROOT
     failures = check_source_naming(root)
     for failure in failures:
         print(f'FAIL: {failure}', file=sys.stderr)

@@ -1,15 +1,15 @@
-from raicho_guard_fixtures import GuardTestCase
+from automation.testing.guard_fixtures import GuardTestCase
 
 DESIGN = 'docs/planning/active/20261018-test-design.md'
 DECISION = 'docs/decisions/20261018-test-decision.md'
-CODE_CHANGE = {'devbin/tool.py': 'print("example")\n'}
+CODE_CHANGE = {'automation/tool.py': 'print("example")\n'}
 
 
 class PullRequestReferenceTests(GuardTestCase):
     def check_reference(self, repo, environment, description):
         return self.run_guard(
             repo,
-            'raicho_check_pr.py',
+            'check_pr.py',
             {**environment, 'PR_DESCRIPTION': description},
         )
 

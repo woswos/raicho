@@ -3,9 +3,14 @@ import subprocess
 import sys
 from pathlib import Path
 
-from raicho_check_changelog import check_pull_request_changelog
-from raicho_check_design_link import check_design_reference
-from raicho_pr_context import changed_paths, load_context, regular_file_in_change
+from automation.paths import REPOSITORY_ROOT
+from automation.repository.check_changelog import check_pull_request_changelog
+from automation.repository.check_design_link import check_design_reference
+from automation.repository.pr_context import (
+    changed_paths,
+    load_context,
+    regular_file_in_change,
+)
 
 
 def evaluate_pr(root):
@@ -54,11 +59,7 @@ def main():
     if len(sys.argv) > 2:
         print('FAIL: expected at most one repository root argument', file=sys.stderr)
         return 1
-    root = (
-        Path(sys.argv[1]).resolve()
-        if len(sys.argv) == 2
-        else Path(__file__).resolve().parents[1]
-    )
+    root = Path(sys.argv[1]).resolve() if len(sys.argv) == 2 else REPOSITORY_ROOT
     try:
         evaluate_pr(root)
     except (OSError, ValueError, subprocess.CalledProcessError) as error:

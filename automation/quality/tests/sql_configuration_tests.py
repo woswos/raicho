@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from raicho_quality_sql import sql
+from automation.quality.sql import sql
 
 
 class SqlConfigurationTests(unittest.TestCase):
@@ -11,7 +11,7 @@ class SqlConfigurationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='raicho-sql-config-') as directory:
             root = Path(directory)
             with (
-                patch('raicho_quality_sql.require_tools'),
+                patch('automation.quality.sql.require_tools'),
                 self.assertRaisesRegex(ValueError, 'SQL configuration is missing'),
             ):
                 sql(root, [], 'lint', root)
@@ -23,7 +23,7 @@ class SqlConfigurationTests(unittest.TestCase):
             configuration.write_text('[sqlfluff]\ndialect = sqlite\n')
             (root / '.sqlfluff').symlink_to(configuration)
             with (
-                patch('raicho_quality_sql.require_tools'),
+                patch('automation.quality.sql.require_tools'),
                 self.assertRaisesRegex(ValueError, 'not a regular file'),
             ):
                 sql(root, [], 'lint', root)

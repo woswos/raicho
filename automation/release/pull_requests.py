@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import sys
 
-from raicho_changelog import parse_description_entries
+from automation.release.changelog import parse_description_entries
 
 SUBJECT_NUMBER = re.compile(r'\(#(\d+)\)\s*$')
 MERGE_NUMBER = re.compile(r'^Merge pull request #(\d+) ')

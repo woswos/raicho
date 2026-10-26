@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPOSITORY_ROOT="$(cd "${SCRIPT_DIRECTORY}/.." && pwd)"
+REPOSITORY_ROOT="$(cd "${SCRIPT_DIRECTORY}/../../.." && pwd)"
 cd "${REPOSITORY_ROOT}"
 
 if [[ -z ${COMPOSE_PROJECT_NAME:-} || ${COMPOSE_PROJECT_NAME} == raicho ]]; then
@@ -11,8 +11,8 @@ if [[ -z ${COMPOSE_PROJECT_NAME:-} || ${COMPOSE_PROJECT_NAME} == raicho ]]; then
     exit 1
 fi
 
-BASE_COMPOSE=(docker compose -p "${COMPOSE_PROJECT_NAME}" -f compose/compose.yaml -f compose/compose.test.yaml)
-ADMIN_COMPOSE=("${BASE_COMPOSE[@]}" -f compose/compose.admin.yaml)
+BASE_COMPOSE=(docker compose -p "${COMPOSE_PROJECT_NAME}" -f compose.yaml -f automation/acceptance/runtime/compose.test.yaml)
+ADMIN_COMPOSE=("${BASE_COMPOSE[@]}" -f compose.admin.yaml)
 PROBE=(docker run --rm --pull never --read-only --cap-drop ALL --security-opt no-new-privileges:true --entrypoint curl)
 CURL_OPTIONS=(--noproxy '*' --connect-timeout 3 --max-time 5 --silent --show-error --output /dev/null)
 export RAICHO_ADMIN_PORT=0

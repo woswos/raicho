@@ -5,10 +5,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from raicho_check_agent_config import REQUIRED_IMPORTS
+from automation.paths import REPOSITORY_ROOT
+from automation.repository.check_agent_config import REQUIRED_IMPORTS
 
-REPOSITORY = Path(__file__).resolve().parents[1]
-DEVBIN = Path(__file__).resolve().parent
 CLEARED_ENVIRONMENT = (
     'GITHUB_EVENT_PATH',
     'PR_DESCRIPTION',
@@ -16,6 +15,10 @@ CLEARED_ENVIRONMENT = (
     'PR_BASE_SHA',
     'PR_HEAD_SHA',
 )
+
+
+def module_name(script):
+    return f'automation.repository.{Path(script).stem}'
 
 
 class TemporaryRepo:
@@ -80,25 +83,27 @@ class GuardTestCase(unittest.TestCase):
         return repo
 
     def run_guard(self, repo, script, extra):
-        command = ['python3', '-B', str(DEVBIN / script), str(repo.root)]
+        command = ['python3', '-B', '-m', module_name(script), str(repo.root)]
         return self.run_command(command, repo.root, extra)
 
     def install_guards(self, repo):
-        directory = repo.root / 'devbin'
+        source = REPOSITORY_ROOT / 'automation'
+        directory = repo.root / 'automation'
         directory.mkdir(exist_ok=True)
-        for source in (
-            *DEVBIN.glob('raicho_check_*.py'),
-            DEVBIN / 'raicho_changelog.py',
-            DEVBIN / 'raicho_pr_context.py',
-            DEVBIN / 'raicho_shell_shebang.py',
-            DEVBIN / 'raicho_version.py',
-            DEVBIN / 'raicho_version_lock.py',
-        ):
-            shutil.copy2(source, directory / source.name)
+        for name in ('__init__.py', 'paths.py'):
+            shutil.copy2(source / name, directory / name)
+        for name in ('repository', 'release'):
+            shutil.copytree(
+                source / name,
+                directory / name,
+                ignore=shutil.ignore_patterns('tests', '__pycache__'),
+            )
 
     def run_guard_cli(self, repo, script, extra, directory, arguments=()):
-        command = ['python3', '-B', str(repo.root / 'devbin' / script), *arguments]
-        return self.run_command(command, directory, extra)
+        command = ['python3', '-B', '-m', module_name(script), *arguments]
+        return self.run_command(
+            command, directory, {**extra, 'PYTHONPATH': str(repo.root)}
+        )
 
     def pull_request(self, changes, base_files=None):
         repo = self.repo()
@@ -119,6 +124,7 @@ class GuardTestCase(unittest.TestCase):
         environment = os.environ.copy()
         for name in CLEARED_ENVIRONMENT:
             environment.pop(name, None)
+        environment['PYTHONPATH'] = str(REPOSITORY_ROOT)
         environment.update(extra)
         return subprocess.run(
             command,

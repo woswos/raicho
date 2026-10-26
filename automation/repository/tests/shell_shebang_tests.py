@@ -1,5 +1,5 @@
-from raicho_check_source_naming import shell_header
-from raicho_guard_fixtures import GuardTestCase
+from automation.repository.check_source_naming import shell_header
+from automation.testing.guard_fixtures import GuardTestCase
 
 
 class ShellShebangTests(GuardTestCase):
@@ -84,7 +84,7 @@ class ShellShebangTests(GuardTestCase):
         repo.write('bad-name', header)
         repo.write('valid_name', header)
         repo.write('python-file', '#!/usr/bin/env -S -u bash python3\n')
-        result = self.run_guard(repo, 'raicho_check_source_naming.py', {})
+        result = self.run_guard(repo, 'check_source_naming.py', {})
         self.assertEqual(result.returncode, 1)
         self.assertIn('FAIL: bad-name must use lowercase snake_case', result.stderr)
         self.assertNotIn('valid_name', result.stderr)
@@ -99,7 +99,7 @@ class ShellShebangTests(GuardTestCase):
                 repo.write('bad-name', header)
                 repo.write('valid_name', header)
                 repo.write('python-file', '#!/usr/bin/env -vS -vu bash python3\n')
-                result = self.run_guard(repo, 'raicho_check_source_naming.py', {})
+                result = self.run_guard(repo, 'check_source_naming.py', {})
                 self.assertEqual(result.returncode, 1)
                 self.assertIn(
                     'FAIL: bad-name must use lowercase snake_case', result.stderr

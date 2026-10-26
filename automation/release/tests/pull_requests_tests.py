@@ -4,7 +4,7 @@ import subprocess
 import unittest
 from unittest.mock import patch
 
-from raicho_release_requests import github_pull_request
+from automation.release.pull_requests import github_pull_request
 
 
 def response(status=200, payload=None, error=''):
@@ -21,7 +21,10 @@ class ReleaseRequestTests(unittest.TestCase):
     def request(self, result):
         with (
             patch.dict(os.environ, {'GITHUB_REPOSITORY': 'example/raicho'}),
-            patch('raicho_release_requests.subprocess.run', return_value=result) as run,
+            patch(
+                'automation.release.pull_requests.subprocess.run',
+                return_value=result,
+            ) as run,
         ):
             found = github_pull_request('12')
         self.assertEqual(run.call_count, 1)
