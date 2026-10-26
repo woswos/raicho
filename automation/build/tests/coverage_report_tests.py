@@ -1,7 +1,7 @@
-import configparser
 import contextlib
 import io
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -47,11 +47,12 @@ class CoverageReportTests(unittest.TestCase):
         self.output.mkdir()
         with mock.patch.object(coverage_report, 'run') as run:
             coverage_report.python()
-        configuration = configparser.ConfigParser()
-        configuration.read(self.output / 'python/coveragerc')
-        self.assertEqual(configuration['run']['patch'], 'subprocess')
-        self.assertIn('/tmp/*/automation/', configuration['paths']['automation'])
+        coverage = tomllib.loads((REPOSITORY_ROOT / 'pyproject.toml').read_text())['tool']['coverage']
+        self.assertEqual(coverage['run']['patch'], ['subprocess'])
+        self.assertIn('/tmp/*/automation/', coverage['paths']['automation'])
         commands = [call.args[0] for call in run.call_args_list]
+        for command in commands:
+            self.assertIn(f'--rcfile={REPOSITORY_ROOT / "pyproject.toml"}', command)
         suites = [command for command in commands if 'run' in command]
         self.assertEqual(
             [command[-2:] for command in suites],
