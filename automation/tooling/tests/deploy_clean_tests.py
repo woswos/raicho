@@ -6,6 +6,7 @@ from automation.testing.docker_mock import Response
 from automation.tooling.tests.cleanup_fixture import PROJECT_FILTER, CleanupFixture
 
 NAMES = '{{.Name}}'
+CACHE_REMOVAL = ['volume', 'rm', 'raicho-tools_cache']
 
 
 def deployment(project='raicho'):
@@ -35,17 +36,21 @@ class DeployCleanTests(CleanupFixture):
 
     def test_a_wrong_or_missing_answer_removes_nothing(self):
         state = self.state()
+        leftover = self.write('target/debug/raicho-server')
         for answer in ('', 'yes\n', 'raicho-second\n'):
             with self.subTest(answer=answer):
                 commands, result = self.deploy_clean(*deployment(), answer=answer, status=1)
                 self.assertEqual(compose(commands), [])
+                self.assertNotIn(CACHE_REMOVAL, commands)
+                self.assertTrue(leftover.exists())
                 self.assertTrue((state / 'credentials/connector.token').exists())
                 self.assertIn('Cancelled. Nothing was removed.', result.stderr)
                 for line in ('network raicho_application', 'volume raicho_thunderbird-data'):
                     self.assertIn(line, result.stdout)
 
-    def test_the_project_name_confirms_the_removal(self):
+    def test_the_project_name_confirms_the_removal_then_cleans(self):
         state = self.state()
+        leftover = self.write('target/debug/raicho-server')
         commands, result = self.deploy_clean(
             *deployment(),
             Response(('volume', '--quiet', f'{PROJECT_FILTER}raicho'), output='leftover-volume\n'),
@@ -60,6 +65,8 @@ class DeployCleanTests(CleanupFixture):
         self.assertIn(['network', 'rm', 'leftover-network'], commands)
         self.assertFalse(state.exists())
         self.assertIn('Removed deployment raicho', result.stdout)
+        self.assertGreater(commands.index(CACHE_REMOVAL), commands.index(['volume', 'rm', 'leftover-volume']))
+        self.assertFalse(leftover.exists())
 
     def test_the_selected_project_and_state_directory_are_used(self):
         state = self.state('../state')
@@ -112,9 +119,10 @@ class DeployCleanTests(CleanupFixture):
         self.assertNotIn('rm', {command[1] for command in commands if len(command) > 1 and command[0] == 'volume'})
         self.assertIn('run make deploy-clean again', result.stderr)
 
-    def test_nothing_to_remove_needs_no_confirmation(self):
+    def test_nothing_to_remove_needs_no_confirmation_and_still_cleans(self):
         commands, result = self.deploy_clean()
         self.assertEqual(compose(commands), [])
+        self.assertIn(CACHE_REMOVAL, commands)
         self.assertIn('Deployment raicho has nothing to remove', result.stdout)
 
 
