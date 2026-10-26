@@ -1,4 +1,5 @@
 import re
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -41,6 +42,17 @@ class QualityTargetTests(unittest.TestCase):
             self.assertRaisesRegex(ValueError, 'shfmt configuration is missing'),
         ):
             runner.shfmt_options()
+
+    def test_tool_failures_name_the_tool_without_its_arguments(self):
+        cases = {
+            ('typos', '--isolated', '/workspace/a.md'): 'typos exited with status 2',
+            ('ruff', 'check', '--quiet', '/workspace/a.py'): 'ruff check exited with status 2',
+            ('/usr/bin/cargo', 'clippy', '--workspace'): 'cargo clippy exited with status 2',
+            ('shellcheck',): 'shellcheck exited with status 2',
+        }
+        for command, message in cases.items():
+            with self.subTest(command=command):
+                self.assertEqual(runner.failure_message(subprocess.CalledProcessError(2, list(command))), message)
 
 
 if __name__ == '__main__':
