@@ -9,6 +9,7 @@ from unittest import mock
 
 from automation.build import patch_coverage
 from automation.build.patch_coverage import comparison_base, partly_covered, totals
+from automation.paths import REPOSITORY_ROOT
 from automation.testing.guard_fixtures import CLEARED_ENVIRONMENT, TemporaryRepo
 
 
@@ -95,7 +96,7 @@ class PatchCoverageMainTests(unittest.TestCase):
         collect.assert_called_once_with()
         command = run.call_args.args[0]
         self.assertIn(f'--compare-branch={"a" * 40}', command)
-        self.assertIn('--fail-under=90', command)
+        self.assertIn(str(REPOSITORY_ROOT / 'pyproject.toml'), command)
         self.assertEqual(output, 'Total:   10 lines\nMissing: 2 lines\nCoverage: 80%\n')
 
     def test_a_failing_gate_lists_the_partly_covered_files(self):
