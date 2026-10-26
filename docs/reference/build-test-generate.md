@@ -216,6 +216,12 @@ resolves different dependency features and compiles duplicate copies of them.
 
 `make images`, which `make build` runs last on the host, builds the runtime images
 with `docker compose build`. This compiles release artifacts and installs the independently packaged Thunderbird runtime.
+The server image compiles its dependencies first, against placeholder workspace
+sources, in a layer that depends only on the Cargo manifests and `Cargo.lock`. A
+later layer copies the real sources and applies `RAICHO_COMMIT`. A source change or
+a new commit then recompiles only the workspace crates, in seconds rather than
+minutes. A new workspace target in a manifest needs its placeholder in
+`deploy/raicho/Dockerfile`, or that layer fails to build.
 The image recipes pin base digests and downloaded artifacts. The Thunderbird
 image also builds the XPI with TypeScript and the deterministic Node packager.
 See [local runtime](../operations/local-runtime.md) for Compose

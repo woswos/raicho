@@ -106,8 +106,10 @@ make images
 ```
 
 Building with Compose directly leaves it unset unless you pass it, and the commit
-is then `unknown`, which the page shows as the version alone. Each new commit
-rebuilds the server's release binary, because the value is compiled in.
+is then `unknown`, which the page shows as the version alone. The value is
+compiled in, so each new commit recompiles the workspace crates. The release
+dependencies come from an earlier image layer that changes only with the manifests
+and `Cargo.lock`.
 
 The commit text must fit in 80 characters, which a full git object name does.
 The page rejects a longer value.
