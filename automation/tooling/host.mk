@@ -29,7 +29,8 @@ build: tooling-image
 images:
 	@$(STEP) $@ docker compose --progress $(PROGRESS) -f $(REPOSITORY_ROOT)compose.yaml build
 
-ACCEPTANCE := $(if $(VERBOSE),,COMPOSE_PROGRESS=quiet BUILDKIT_PROGRESS=quiet) $(STEP)
+QUIET_DOCKER := $(if $(VERBOSE),,COMPOSE_PROGRESS=quiet BUILDKIT_PROGRESS=quiet)
+ACCEPTANCE := $(QUIET_DOCKER) $(STEP)
 
 acceptance: acceptance-runtime acceptance-connector acceptance-credentials acceptance-mail
 
@@ -50,3 +51,5 @@ clean:
 
 mrproper:
 	@$(STEP) $@ bash $(REPOSITORY_ROOT)automation/tooling/mrproper.bash
+
+include $(REPOSITORY_ROOT)automation/tooling/deployment.mk

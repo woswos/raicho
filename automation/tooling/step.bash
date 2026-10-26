@@ -12,6 +12,10 @@ shift
 describe() {
     case "${TARGET}" in
         build-*) echo "building|built|${TARGET#build-}" ;;
+        deploy-up) echo 'starting|started|deployment' ;;
+        deploy-admin) echo 'starting|started|deployment with the Thunderbird desktop' ;;
+        deploy-down) echo 'stopping|stopped|deployment' ;;
+        deploy-connector-*) echo "running|ran|connector ${TARGET#deploy-connector-}" ;;
         tooling-image) echo 'building|built|tooling image' ;;
         images) echo 'building|built|runtime images' ;;
         test-*) echo "testing|tested|${TARGET#test-}" ;;
