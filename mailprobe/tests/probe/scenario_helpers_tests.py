@@ -20,9 +20,7 @@ class ScenarioHelpersTests(unittest.TestCase):
             [call('save', {'details': {'subject': 'fixture'}})],
         )
         self.assertEqual(client.command.call_count, 3)
-        client.record.assert_called_once_with(
-            'save_response_fixture', {'mode': 'draft', 'messages': []}
-        )
+        client.record.assert_called_once_with('save_response_fixture', {'mode': 'draft', 'messages': []})
 
     def test_ambiguous_saved_message_is_not_guessed_or_saved_again(self):
         client = Mock()
@@ -53,9 +51,7 @@ class ScenarioHelpersTests(unittest.TestCase):
             },
         ]
         with patch('mailprobe.tests.probe.client.time.sleep'):
-            self.assertEqual(
-                wait_query(client, 'fixture', 1, body='updated body'), [{'id': 5}]
-            )
+            self.assertEqual(wait_query(client, 'fixture', 1, body='updated body'), [{'id': 5}])
         client.call.assert_not_called()
 
 

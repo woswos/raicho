@@ -3,9 +3,7 @@ use serde_json::Value;
 use crate::{
     ContractError,
     contract_generated::ConnectorMessage,
-    limits_generated::{
-        MAXIMUM_AUTHENTICATION_BYTES, MAXIMUM_CONTROL_BYTES, MAXIMUM_JSON_DEPTH, PROTOCOL_VERSION,
-    },
+    limits_generated::{MAXIMUM_AUTHENTICATION_BYTES, MAXIMUM_CONTROL_BYTES, MAXIMUM_JSON_DEPTH, PROTOCOL_VERSION},
     raw_json, schema,
 };
 
@@ -19,20 +17,12 @@ pub enum Phase {
     ServerControl,
 }
 
-pub fn decode_frame(
-    raw: &str,
-    phase: Phase,
-    generation: Option<&str>,
-) -> Result<ConnectorMessage, ContractError> {
+pub fn decode_frame(raw: &str, phase: Phase, generation: Option<&str>) -> Result<ConnectorMessage, ContractError> {
     let message = decode_value(raw, phase, generation)?;
     serde_json::from_value(message).map_err(|_| ContractError::InvalidMessage)
 }
 
-pub(crate) fn decode_value(
-    raw: &str,
-    phase: Phase,
-    generation: Option<&str>,
-) -> Result<Value, ContractError> {
+pub(crate) fn decode_value(raw: &str, phase: Phase, generation: Option<&str>) -> Result<Value, ContractError> {
     let maximum = match phase {
         Phase::Authentication => MAXIMUM_AUTHENTICATION_BYTES,
         _ => MAXIMUM_CONTROL_BYTES,
@@ -73,8 +63,7 @@ fn check_wire_values(message: &Value) -> Result<(), ContractError> {
 }
 
 fn is_printable_ascii(text: &str) -> bool {
-    text.bytes()
-        .all(|character| (32..=126).contains(&character))
+    text.bytes().all(|character| (32..=126).contains(&character))
 }
 
 fn check_unsupported_version(message: &Value) -> Result<(), ContractError> {
@@ -88,15 +77,10 @@ fn check_unsupported_version(message: &Value) -> Result<(), ContractError> {
     Ok(())
 }
 
-fn check_phase(
-    message: &Value,
-    phase: Phase,
-    generation: Option<&str>,
-) -> Result<(), ContractError> {
+fn check_phase(message: &Value, phase: Phase, generation: Option<&str>) -> Result<(), ContractError> {
     let message_type = message["type"].as_str();
-    let unclaimed_error = message_type == Some("error")
-        && message.get("generation").is_none()
-        && message.get("mac").is_none();
+    let unclaimed_error =
+        message_type == Some("error") && message.get("generation").is_none() && message.get("mac").is_none();
     let permitted = match phase {
         Phase::Authentication => message_type == Some("authenticate"),
         Phase::Challenge => message_type == Some("challenge") || unclaimed_error,

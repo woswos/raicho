@@ -58,9 +58,7 @@ export function startConnectorTransport(
     if (stopped) return;
     const delay = Math.min(
       MAXIMUM_RETRY_DELAY_MS,
-      INITIAL_RETRY_DELAY_MS *
-        2 ** Math.min(failures++, MAXIMUM_BACKOFF_EXPONENT) *
-        (1 + dependencies.random()),
+      INITIAL_RETRY_DELAY_MS * 2 ** Math.min(failures++, MAXIMUM_BACKOFF_EXPONENT) * (1 + dependencies.random()),
     );
     timer = dependencies.schedule(connect, delay);
   }
@@ -110,9 +108,7 @@ export function startConnectorTransport(
           if (received.reply !== undefined) send(received.reply);
           if (received.action === 'heartbeat') failures = 0;
           deadline(
-            received.action === 'authenticate'
-              ? LIMITS.authentication_deadline_ms
-              : LIMITS.heartbeat_timeout_ms,
+            received.action === 'authenticate' ? LIMITS.authentication_deadline_ms : LIMITS.heartbeat_timeout_ms,
           );
         } catch {
           retry();
@@ -120,9 +116,7 @@ export function startConnectorTransport(
       };
       let processing = Promise.resolve();
       current.onmessage = (event) => {
-        processing = processing.then(() =>
-          active() ? handle(event.data) : undefined,
-        );
+        processing = processing.then(() => (active() ? handle(event.data) : undefined));
         return processing;
       };
       current.onclose = () => {

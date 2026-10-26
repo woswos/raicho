@@ -17,8 +17,7 @@ export function installPermissionPrompt(
           : 'Background sending was not allowed.';
       })
       .catch(() => {
-        status.textContent =
-          'The background sending permission request failed.';
+        status.textContent = 'The background sending permission request failed.';
       })
       .finally(() => {
         button.disabled = false;

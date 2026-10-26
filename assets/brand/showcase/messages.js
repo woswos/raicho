@@ -98,11 +98,7 @@ window.raichoMessages = [
     folder: 'inbox',
     attachment: 'october-receipt.pdf',
     size: '64 KB',
-    paragraphs: [
-      'Hello Alex,',
-      'Your monthly receipt is attached for your records.',
-      'Thank you,<br>Cloudbox',
-    ],
+    paragraphs: ['Hello Alex,', 'Your monthly receipt is attached for your records.', 'Thank you,<br>Cloudbox'],
   },
   {
     id: 'notes',

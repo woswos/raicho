@@ -7,10 +7,7 @@ use std::os::unix::fs::fchown;
 use std::path::Path;
 use std::str::FromStr;
 
-use rustix::fs::{
-    AtFlags, CWD, Dir, FileType, Mode, OFlags, fchmod, fstat, fsync, openat, renameat, statat,
-    unlinkat,
-};
+use rustix::fs::{AtFlags, CWD, Dir, FileType, Mode, OFlags, fchmod, fstat, fsync, openat, renameat, statat, unlinkat};
 use rustix::io::Errno;
 
 use crate::error::{Error, Result};
@@ -70,11 +67,7 @@ struct Present {
     previous: bool,
 }
 
-pub fn operate_token_directory(
-    operation: TokenOperation,
-    path: &Path,
-    owner: Owner,
-) -> Result<TokenState> {
+pub fn operate_token_directory(operation: TokenOperation, path: &Path, owner: Owner) -> Result<TokenState> {
     let directory = openat(
         CWD,
         path,
@@ -89,13 +82,7 @@ pub fn operate_token_directory(
         fsync(&directory).map_err(io_error)?;
     }
     let metadata = fstat(&directory).map_err(io_error)?;
-    check_owner(
-        metadata.st_uid,
-        metadata.st_gid,
-        metadata.st_mode,
-        owner,
-        0o700,
-    )?;
+    check_owner(metadata.st_uid, metadata.st_gid, metadata.st_mode, owner, 0o700)?;
     if names.remove(STAGING) {
         discard_staging(&directory)?;
     }
@@ -103,9 +90,7 @@ pub fn operate_token_directory(
         .iter()
         .any(|name| ![TOKEN, PENDING, PREVIOUS].contains(&name.as_str()))
     {
-        return Err(Error::message(
-            "Connector directory contains unexpected files",
-        ));
+        return Err(Error::message("Connector directory contains unexpected files"));
     }
     for name in &names {
         let file = openat(
@@ -145,11 +130,7 @@ fn prepare_operation(
         if present.token {
             return Ok(TokenState::Current);
         }
-    } else if operation == TokenOperation::Reactivate
-        && present.token
-        && !present.pending
-        && !present.previous
-    {
+    } else if operation == TokenOperation::Reactivate && present.token && !present.pending && !present.previous {
         return Ok(TokenState::Current);
     } else if present.previous {
         if present.token && !present.pending {
@@ -161,9 +142,7 @@ fn prepare_operation(
         }
         return Err(Error::message("Connector rotation files are inconsistent"));
     } else if !present.token && operation == TokenOperation::Rotate {
-        return Err(Error::message(
-            "Connector rotation requires the existing token",
-        ));
+        return Err(Error::message("Connector rotation requires the existing token"));
     }
     if present.pending {
         return Ok(TokenState::Pending);
@@ -171,29 +150,18 @@ fn prepare_operation(
     prepare(directory, owner)
 }
 
-fn update_operation(
-    operation: TokenOperation,
-    directory: &OwnedFd,
-    present: &Present,
-) -> Result<TokenState> {
+fn update_operation(operation: TokenOperation, directory: &OwnedFd, present: &Present) -> Result<TokenState> {
     if operation == TokenOperation::Publish {
         if !present.pending || present.previous {
-            return Err(Error::message(
-                "Publishing requires a pending token without a backup",
-            ));
+            return Err(Error::message("Publishing requires a pending token without a backup"));
         }
         if present.token {
             replace(directory, TOKEN, PREVIOUS)?;
         }
         replace(directory, PENDING, TOKEN)?;
     } else {
-        if !present.token
-            || present.pending
-            || (operation == TokenOperation::Check && present.previous)
-        {
-            return Err(Error::message(
-                "Connector token files need recovery before use",
-            ));
+        if !present.token || present.pending || (operation == TokenOperation::Check && present.previous) {
+            return Err(Error::message("Connector token files need recovery before use"));
         }
         if present.previous {
             unlinkat(directory, PREVIOUS, AtFlags::empty()).map_err(io_error)?;
@@ -235,11 +203,8 @@ fn write_staging(directory: &OwnedFd, owner: Owner) -> Result<()> {
 
 fn discard_staging(directory: &OwnedFd) -> Result<()> {
     let metadata = statat(directory, STAGING, AtFlags::SYMLINK_NOFOLLOW).map_err(io_error)?;
-    if FileType::from_raw_mode(metadata.st_mode) != FileType::RegularFile || metadata.st_nlink != 1
-    {
-        return Err(Error::message(
-            "Connector staging must be a regular file without links",
-        ));
+    if FileType::from_raw_mode(metadata.st_mode) != FileType::RegularFile || metadata.st_nlink != 1 {
+        return Err(Error::message("Connector staging must be a regular file without links"));
     }
     unlinkat(directory, STAGING, AtFlags::empty()).map_err(io_error)?;
     fsync(directory).map_err(io_error)

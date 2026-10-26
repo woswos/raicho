@@ -11,10 +11,7 @@ use raicho_server::persistence::{CredentialStatus, CredentialStore, Database};
 
 enum Operation {
     Initialize(PathBuf),
-    Rotate {
-        current: PathBuf,
-        replacement: PathBuf,
-    },
+    Rotate { current: PathBuf, replacement: PathBuf },
     Verify(PathBuf),
     Reactivate(PathBuf),
     Revoke,
@@ -26,22 +23,14 @@ enum Operation {
 impl Operation {
     fn parse(arguments: &[OsString]) -> Result<Self> {
         match arguments {
-            [command, operation] if command == "connector" && operation == "status" => {
-                Ok(Self::Status)
-            }
-            [command, operation] if command == "connector" && operation == "revoke" => {
-                Ok(Self::Revoke)
-            }
+            [command, operation] if command == "connector" && operation == "status" => Ok(Self::Status),
+            [command, operation] if command == "connector" && operation == "revoke" => Ok(Self::Revoke),
             [command, operation] if command == "connector" && operation == "wait" => Ok(Self::Wait),
-            [command, files, operation, directory]
-                if command == "connector" && files == "files" =>
-            {
+            [command, files, operation, directory] if command == "connector" && files == "files" => {
                 let operation = operation.to_str().ok_or_else(usage)?.parse()?;
                 Ok(Self::Files(operation, directory.into()))
             }
-            [command, operation, flag, path]
-                if command == "connector" && flag == "--token-file" =>
-            {
+            [command, operation, flag, path] if command == "connector" && flag == "--token-file" => {
                 match operation.to_str() {
                     Some("init") => Ok(Self::Initialize(path.into())),
                     Some("verify") => Ok(Self::Verify(path.into())),
@@ -49,17 +38,11 @@ impl Operation {
                     _ => Err(usage()),
                 }
             }
-            [
-                command,
-                operation,
-                replacement_flag,
-                replacement,
-                current_flag,
-                current,
-            ] if command == "connector"
-                && operation == "rotate"
-                && replacement_flag == "--token-file"
-                && current_flag == "--current-token-file" =>
+            [command, operation, replacement_flag, replacement, current_flag, current]
+                if command == "connector"
+                    && operation == "rotate"
+                    && replacement_flag == "--token-file"
+                    && current_flag == "--current-token-file" =>
             {
                 Ok(Self::Rotate {
                     current: current.into(),
@@ -78,10 +61,7 @@ pub async fn run(arguments: &[OsString]) -> Result<()> {
     let operation = Operation::parse(arguments)?;
     match operation {
         Operation::Files(operation, directory) => {
-            println!(
-                "{}",
-                operate_token_directory(operation, &directory, SERVICE_OWNER)?
-            );
+            println!("{}", operate_token_directory(operation, &directory, SERVICE_OWNER)?);
             return Ok(());
         }
         Operation::Wait => {
@@ -106,15 +86,9 @@ async fn execute(operation: Operation, store: &CredentialStore<'_>) -> Result<&'
             store.initialize(&Credential::read_file(&path)?).await?;
             Ok("initialized")
         }
-        Operation::Rotate {
-            current,
-            replacement,
-        } => {
+        Operation::Rotate { current, replacement } => {
             store
-                .rotate(
-                    &Credential::read_file(&current)?,
-                    &Credential::read_file(&replacement)?,
-                )
+                .rotate(&Credential::read_file(&current)?, &Credential::read_file(&replacement)?)
                 .await?;
             Ok("rotated")
         }

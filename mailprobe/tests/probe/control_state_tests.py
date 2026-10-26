@@ -17,9 +17,7 @@ class ControlStateTests(unittest.TestCase):
     def submit(self, **options):
         self.result = None
         worker = threading.Thread(
-            target=lambda: setattr(
-                self, 'result', self.state.submit('inventory', {}, timeout=1, **options)
-            )
+            target=lambda: setattr(self, 'result', self.state.submit('inventory', {}, timeout=1, **options))
         )
         worker.start()
         deadline = time.monotonic() + 1
@@ -48,9 +46,7 @@ class ControlStateTests(unittest.TestCase):
 
     def test_dropped_result_is_unknown_without_replay(self):
         worker, command = self.submit(drop_result=True)
-        keep_connection = self.state.finish(
-            self.session, {'id': command['id'], 'ok': True, 'result': 'sent'}
-        )
+        keep_connection = self.state.finish(self.session, {'id': command['id'], 'ok': True, 'result': 'sent'})
         worker.join()
         self.assertFalse(keep_connection)
         self.assertEqual(self.result['outcome'], 'unknown')
@@ -85,9 +81,7 @@ class ControlStateTests(unittest.TestCase):
         with self.state.condition:
             self.state.pending = {'response': {'ok': True, 'result': 'sent'}}
             self.state.disconnect(self.session)
-            self.assertEqual(
-                self.state.pending['response'], {'ok': True, 'result': 'sent'}
-            )
+            self.assertEqual(self.state.pending['response'], {'ok': True, 'result': 'sent'})
 
 
 if __name__ == '__main__':

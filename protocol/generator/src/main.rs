@@ -7,13 +7,8 @@ mod remove_debug;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let protocol = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..");
-    let output = PathBuf::from(
-        std::env::args_os()
-            .nth(1)
-            .ok_or("Supply the Rust output directory.")?,
-    );
-    let schema: Value =
-        serde_json::from_slice(&fs::read(protocol.join("schema/connector.schema.json"))?)?;
+    let output = PathBuf::from(std::env::args_os().nth(1).ok_or("Supply the Rust output directory.")?);
+    let schema: Value = serde_json::from_slice(&fs::read(protocol.join("schema/connector.schema.json"))?)?;
     let mut types = typify::TypeSpace::default();
     types.add_root_schema(serde_json::from_value(schema)?)?;
     let mut syntax = syn::parse2(types.to_stream())?;
@@ -23,15 +18,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         ("contract_generated.rs", prettyplease::unparse(&syntax)),
         (
             "limits_generated.rs",
-            generate_limits(&serde_json::from_slice(&fs::read(
-                protocol.join("limits.json"),
-            )?)?)?,
+            generate_limits(&serde_json::from_slice(&fs::read(protocol.join("limits.json"))?)?)?,
         ),
         (
             "diagnostics_generated.rs",
-            generate_diagnostics(&serde_json::from_slice(&fs::read(
-                protocol.join("diagnostics.json"),
-            )?)?)?,
+            generate_diagnostics(&serde_json::from_slice(&fs::read(protocol.join("diagnostics.json"))?)?)?,
         ),
     ];
     let mut formatter = Command::new("rustfmt");
@@ -50,29 +41,19 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn generate_limits(limits: &Value) -> Result<String, Box<dyn Error>> {
-    let mut entries: Vec<_> = limits
-        .as_object()
-        .ok_or("Limits must be an object.")?
-        .iter()
-        .collect();
+    let mut entries: Vec<_> = limits.as_object().ok_or("Limits must be an object.")?.iter().collect();
     entries.sort_unstable_by(|left, right| left.0.cmp(right.0));
     let mut source = String::new();
     for (name, value) in entries {
         let value = value.as_u64().ok_or("Limits must be unsigned integers.")?;
-        source.push_str(&format!(
-            "pub const {}: usize = {value};\n",
-            name.to_ascii_uppercase()
-        ));
+        source.push_str(&format!("pub const {}: usize = {value};\n", name.to_ascii_uppercase()));
     }
     Ok(source)
 }
 
 fn generate_diagnostics(diagnostics: &Value) -> Result<String, Box<dyn Error>> {
     let mut source = String::new();
-    for (name, key) in [
-        ("BackendState", "backend_states"),
-        ("BackendError", "backend_errors"),
-    ] {
+    for (name, key) in [("BackendState", "backend_states"), ("BackendError", "backend_errors")] {
         source.push_str(&format!(
             "#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]\n\
              #[serde(rename_all = \"snake_case\")]\npub enum {name} {{\n"
@@ -87,14 +68,9 @@ fn generate_diagnostics(diagnostics: &Value) -> Result<String, Box<dyn Error>> {
     for code in &contract_errors {
         source.push_str(&format!("    {},\n", variant(code)));
     }
-    source.push_str(
-        "}\n\nimpl ContractError {\n    pub const fn code(self) -> &'static str {\n        match self {\n",
-    );
+    source.push_str("}\n\nimpl ContractError {\n    pub const fn code(self) -> &'static str {\n        match self {\n");
     for code in &contract_errors {
-        source.push_str(&format!(
-            "            Self::{} => \"{code}\",\n",
-            variant(code)
-        ));
+        source.push_str(&format!("            Self::{} => \"{code}\",\n", variant(code)));
     }
     source.push_str(
         "        }\n    }\n}\n\n\
@@ -106,18 +82,12 @@ fn generate_diagnostics(diagnostics: &Value) -> Result<String, Box<dyn Error>> {
     Ok(source)
 }
 
-fn codes<'diagnostics>(
-    diagnostics: &'diagnostics Value,
-    key: &str,
-) -> Result<Vec<&'diagnostics str>, Box<dyn Error>> {
+fn codes<'diagnostics>(diagnostics: &'diagnostics Value, key: &str) -> Result<Vec<&'diagnostics str>, Box<dyn Error>> {
     diagnostics[key]
         .as_array()
         .ok_or("Diagnostics must be lists.")?
         .iter()
-        .map(|code| {
-            code.as_str()
-                .ok_or_else(|| "Diagnostic codes must be strings.".into())
-        })
+        .map(|code| code.as_str().ok_or_else(|| "Diagnostic codes must be strings.".into()))
         .collect()
 }
 
@@ -142,10 +112,7 @@ mod tests {
     #[test]
     fn emits_sorted_limit_constants() {
         assert_eq!(
-            generate_limits(
-                &json!({"maximum_control_bytes": 65536, "maximum_authentication_bytes": 4096})
-            )
-            .unwrap(),
+            generate_limits(&json!({"maximum_control_bytes": 65536, "maximum_authentication_bytes": 4096})).unwrap(),
             "pub const MAXIMUM_AUTHENTICATION_BYTES: usize = 4096;\npub const MAXIMUM_CONTROL_BYTES: usize = 65536;\n"
         );
     }

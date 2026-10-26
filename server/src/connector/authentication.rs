@@ -40,17 +40,13 @@ pub(super) async fn authenticate(
     if authentication.backend_kind.as_str() != "thunderbird" {
         return Err(Failure::new(BackendError::InvalidMessage));
     }
-    let keys = timeout_at(
-        deadline,
-        CredentialStore::new(&connector.database).active_keys(),
-    )
-    .await
-    .map_err(|_| Failure::new(BackendError::StorageUnavailable))?
-    .map_err(|_| Failure::new(BackendError::StorageUnavailable))?
-    .ok_or(Failure::new(BackendError::AuthenticationFailed))?;
+    let keys = timeout_at(deadline, CredentialStore::new(&connector.database).active_keys())
+        .await
+        .map_err(|_| Failure::new(BackendError::StorageUnavailable))?
+        .map_err(|_| Failure::new(BackendError::StorageUnavailable))?
+        .ok_or(Failure::new(BackendError::AuthenticationFailed))?;
     let transcript = authentication_message(&server_nonce, &authentication);
-    let proof =
-        from_hex(&authentication.client_proof).ok_or(Failure::new(BackendError::InvalidMessage))?;
+    let proof = from_hex(&authentication.client_proof).ok_or(Failure::new(BackendError::InvalidMessage))?;
     if !verify_client_proof(&keys.stored_key, &transcript, &proof) {
         return Err(Failure::new(BackendError::AuthenticationFailed));
     }
@@ -58,10 +54,7 @@ pub(super) async fn authenticate(
         .parse()
         .map_err(|_| Failure::new(BackendError::ServerBusy))?;
     let generation: Generation = random_hex::<16, _>()?;
-    let channel = Channel::new(
-        session_key(&keys.server_key, &transcript, &generation),
-        Peer::Server,
-    );
+    let channel = Channel::new(session_key(&keys.server_key, &transcript, &generation), Peer::Server);
     let replaced = connector
         .register(generation.clone())
         .ok_or(Failure::new(BackendError::ServerBusy))?;

@@ -73,9 +73,7 @@ class ControlHandler(WebSocketRequestHandler):
             if (
                 not isinstance(greeting, dict)
                 or greeting.get('type') != 'mail_probe'
-                or not hmac.compare_digest(
-                    greeting.get('token', ''), self.server.state.token
-                )
+                or not hmac.compare_digest(greeting.get('token', ''), self.server.state.token)
             ):
                 return
             session = self.server.state.connect(

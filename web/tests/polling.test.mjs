@@ -7,9 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { mockBrowser } from './polling_browser.js';
 
 const outputDirectory = process.env.RAICHO_WEB_BUILD_DIR ?? 'web/dist';
-const { createStatusPoller } = await import(
-  pathToFileURL(resolve(outputDirectory, 'status_poller.js')).href
-);
+const { createStatusPoller } = await import(pathToFileURL(resolve(outputDirectory, 'status_poller.js')).href);
 
 function statusDocument(changes = {}) {
   return {
@@ -142,9 +140,7 @@ for (const [status, json] of [
     const pending = poller.refresh();
     browser.requests[0].resolve({ ok: false, status, json });
     await pending;
-    assert.deepEqual(errors, [
-      `Raicho could not provide its status (HTTP ${String(status)}).`,
-    ]);
+    assert.deepEqual(errors, [`Raicho could not provide its status (HTTP ${String(status)}).`]);
     assert.deepEqual(statuses, []);
   });
 }

@@ -5,12 +5,7 @@ import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
 
 const { CommandSession } = await import(
-  pathToFileURL(
-    resolve(
-      process.env.RAICHO_EXTENSION_BUILD_DIR,
-      'mailprobe/src/command_session.js',
-    ),
-  ).href
+  pathToFileURL(resolve(process.env.RAICHO_EXTENSION_BUILD_DIR, 'mailprobe/src/command_session.js')).href
 );
 
 test('executes a command once and rejects repeated identifiers', async () => {
@@ -54,10 +49,7 @@ test('lost acknowledgments do not create replay state', async () => {
   await session.execute({ id: 'lost', action: 'send' });
   await session.execute({ id: 'inventory', action: 'inventory' });
   assert.equal(attempts, 2);
-  assert.equal(
-    (await session.execute({ id: 'lost', action: 'send' })).ok,
-    false,
-  );
+  assert.equal((await session.execute({ id: 'lost', action: 'send' })).ok, false);
   assert.equal(attempts, 2);
 });
 
@@ -65,10 +57,7 @@ test('malformed commands fail without invocation', async () => {
   const session = new CommandSession(async () => {
     throw new Error('Should not execute');
   });
-  assert.equal(
-    (await session.execute({ id: 'invalid', action: 'unknown' })).ok,
-    false,
-  );
+  assert.equal((await session.execute({ id: 'invalid', action: 'unknown' })).ok, false);
 });
 
 test('oversized results fail after a single invocation', async () => {

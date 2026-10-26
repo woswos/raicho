@@ -82,10 +82,7 @@ fn start(deployment: &Deployment) -> Running {
         }
     });
     let running = Running(child);
-    assert_eq!(
-        receiver.recv_timeout(DEADLINE).unwrap(),
-        "Raicho server ready"
-    );
+    assert_eq!(receiver.recv_timeout(DEADLINE).unwrap(), "Raicho server ready");
     running
 }
 

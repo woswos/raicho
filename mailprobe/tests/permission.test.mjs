@@ -6,9 +6,7 @@ import { test } from 'node:test';
 import { setImmediate } from 'node:timers/promises';
 import { pathToFileURL, URL } from 'node:url';
 
-const manifest = JSON.parse(
-  await readFile(new URL('../manifest.json', import.meta.url)),
-);
+const manifest = JSON.parse(await readFile(new URL('../manifest.json', import.meta.url)));
 
 test('background send is optional-only and never requested at installation', () => {
   assert.deepEqual(manifest.optional_permissions, ['messages.send']);
@@ -19,12 +17,7 @@ test('background send is optional-only and never requested at installation', () 
 
 test('send permission is requested synchronously only inside the button gesture', async () => {
   const { installPermissionPrompt } = await import(
-    pathToFileURL(
-      resolve(
-        process.env.RAICHO_EXTENSION_BUILD_DIR,
-        'mailprobe/src/permission_prompt.js',
-      ),
-    ).href
+    pathToFileURL(resolve(process.env.RAICHO_EXTENSION_BUILD_DIR, 'mailprobe/src/permission_prompt.js')).href
   );
   let click;
   const requests = [];
@@ -46,8 +39,5 @@ test('send permission is requested synchronously only inside the button gesture'
   click();
   assert.deepEqual(requests, [{ permissions: ['messages.send'] }]);
   await setImmediate();
-  assert.equal(
-    status.textContent,
-    'Background sending is allowed for this fictional-mail probe.',
-  );
+  assert.equal(status.textContent, 'Background sending is allowed for this fictional-mail probe.');
 });

@@ -71,8 +71,7 @@ fn accept_pong(
     heartbeat: &mut Heartbeat,
 ) -> Result<(), Failure> {
     let text = received?;
-    let ConnectorMessage::Pong(pong) = channel.open(&text, Phase::ClientControl, generation)?
-    else {
+    let ConnectorMessage::Pong(pong) = channel.open(&text, Phase::ClientControl, generation)? else {
         return Err(Failure::new(BackendError::UnexpectedMessage));
     };
     if heartbeat.outstanding != Some(pong.sequence.get()) {

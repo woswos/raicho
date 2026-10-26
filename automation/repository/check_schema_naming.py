@@ -13,17 +13,13 @@ MIGRATIONS = Path('server/migrations')
 
 
 def schema_names(connection):
-    objects = connection.execute(
-        'SELECT type, name FROM sqlite_master ORDER BY type, name'
-    ).fetchall()
+    objects = connection.execute('SELECT type, name FROM sqlite_master ORDER BY type, name').fetchall()
     names = {(kind, name) for kind, name in objects if not name.startswith('sqlite_')}
     columns = {
         ('column', f'{table}.{column}')
         for kind, table in names
         if kind == 'table'
-        for (column,) in connection.execute(
-            'SELECT name FROM pragma_table_xinfo(?)', (table,)
-        )
+        for (column,) in connection.execute('SELECT name FROM pragma_table_xinfo(?)', (table,))
     }
     return names | columns
 

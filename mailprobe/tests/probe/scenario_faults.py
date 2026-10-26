@@ -52,9 +52,7 @@ def run(client):
         rejected = send_message(client, rejected_subject)
         assert not rejected['ok'], rejected
         assert not client.messages(rejected_subject)
-        rejected_events = verify_fault_events(
-            before, client.events(), accepted=0, required=['smtp_rejected']
-        )
+        rejected_events = verify_fault_events(before, client.events(), accepted=0, required=['smtp_rejected'])
     finally:
         client.faults()
     lost_subject = 'Raicho probe lost controller result'
@@ -83,9 +81,7 @@ def run(client):
         subject = 'Raicho probe lost SMTP acknowledgment'
         outcome = send_message(client, subject)
         received = received_once(client, subject)
-        events = verify_fault_events(
-            before, client.events(), accepted=1, required=['smtp_ack_dropped']
-        )
+        events = verify_fault_events(before, client.events(), accepted=1, required=['smtp_ack_dropped'])
         client.record(
             'smtp_lost_acknowledgment',
             {
@@ -105,9 +101,7 @@ def run(client):
         received = received_once(client, subject)
         sent_copies = client.messages(subject, folder='Sent', username='sender')
         assert not sent_copies, sent_copies
-        events = verify_fault_events(
-            before, client.events(), accepted=1, required=['sent_append_rejected']
-        )
+        events = verify_fault_events(before, client.events(), accepted=1, required=['sent_append_rejected'])
         client.record(
             'sent_copy_failure',
             {

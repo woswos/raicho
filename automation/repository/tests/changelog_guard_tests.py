@@ -44,9 +44,7 @@ class ChangelogGuardTests(GuardTestCase):
 
     def test_description_entry_satisfies_the_guard(self):
         repo, environment = self.shipping_change()
-        environment['PR_DESCRIPTION'] += (
-            '\n\n## Changelog\n\n### Fixed\n\n- The status page names the build.\n'
-        )
+        environment['PR_DESCRIPTION'] += '\n\n## Changelog\n\n### Fixed\n\n- The status page names the build.\n'
         result = self.run_guard(repo, 'check_pr.py', environment)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('description has an entry', result.stdout)
@@ -64,9 +62,7 @@ class ChangelogGuardTests(GuardTestCase):
         for path in GATEWAY_PATHS:
             with self.subTest(path=path):
                 repo, environment = self.shipping_change(path)
-                environment['PR_DESCRIPTION'] += (
-                    '\n\n## Changelog\n\n### Fixed\n\n- Update the connector gateway.\n'
-                )
+                environment['PR_DESCRIPTION'] += '\n\n## Changelog\n\n### Fixed\n\n- Update the connector gateway.\n'
                 result = self.run_guard(repo, 'check_pr.py', environment)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn('description has an entry', result.stdout)

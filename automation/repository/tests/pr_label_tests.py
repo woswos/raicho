@@ -31,9 +31,7 @@ class PullRequestLabelTests(GuardTestCase):
         repo, environment = self.pull_request({**CODE_CHANGE, DESIGN: '# Design\n'})
         result = self.check_labels(repo, environment, 'design,skip-design-check')
         self.assertEqual(result.returncode, 1)
-        self.assertIn(
-            'design PR changes non-planning paths: automation/tool.py', result.stderr
-        )
+        self.assertIn('design PR changes non-planning paths: automation/tool.py', result.stderr)
 
     def test_skip_label_exempts_an_implementation_reference(self):
         repo, environment = self.pull_request(CODE_CHANGE)
@@ -49,9 +47,7 @@ class PullRequestLabelTests(GuardTestCase):
         environment['PR_HEAD_SHA'] = repo.head()
         result = self.check_labels(repo, environment, 'design')
         self.assertEqual(result.returncode, 1)
-        self.assertIn(
-            f'design PR path is not a regular document: {DESIGN}', result.stderr
-        )
+        self.assertIn(f'design PR path is not a regular document: {DESIGN}', result.stderr)
 
     def test_github_event_takes_precedence_over_local_skip_label(self):
         repo, environment = self.pull_request(CODE_CHANGE)

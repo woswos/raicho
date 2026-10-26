@@ -5,15 +5,11 @@ import subprocess
 
 
 def git_output(*arguments, root):
-    return subprocess.check_output(
-        ['git', *arguments], stderr=subprocess.PIPE, cwd=root
-    )
+    return subprocess.check_output(['git', *arguments], stderr=subprocess.PIPE, cwd=root)
 
 
 def commit_sha(value, name, root):
-    if not isinstance(value, str) or not re.fullmatch(
-        r'[0-9a-fA-F]{40}|[0-9a-fA-F]{64}', value
-    ):
+    if not isinstance(value, str) or not re.fullmatch(r'[0-9a-fA-F]{40}|[0-9a-fA-F]{64}', value):
         raise ValueError(f'{name} must be a full commit SHA')
     try:
         git_output('cat-file', '-e', f'{value}^{{commit}}', root=root)
@@ -33,8 +29,7 @@ def load_context(root):
         description = '' if description is None else description
         label_items = pull_request.get('labels')
         if not isinstance(label_items, list) or any(
-            not isinstance(label, dict) or not isinstance(label.get('name'), str)
-            for label in label_items
+            not isinstance(label, dict) or not isinstance(label.get('name'), str) for label in label_items
         ):
             raise ValueError('GitHub event labels must be objects with string names')
         labels = [label['name'] for label in label_items]
@@ -46,17 +41,10 @@ def load_context(root):
         head_sha = commit_sha(head.get('sha'), 'PR head', root)
     else:
         description = os.environ.get('PR_DESCRIPTION', '')
-        labels = [
-            label.strip()
-            for label in os.environ.get('PR_LABELS', '').split(',')
-            if label.strip()
-        ]
+        labels = [label.strip() for label in os.environ.get('PR_LABELS', '').split(',') if label.strip()]
         base_value = os.environ.get('PR_BASE_SHA', '')
         base_sha = commit_sha(base_value, 'PR base', root) if base_value else None
-        head_value = (
-            os.environ.get('PR_HEAD_SHA')
-            or git_output('rev-parse', 'HEAD', root=root).decode().strip()
-        )
+        head_value = os.environ.get('PR_HEAD_SHA') or git_output('rev-parse', 'HEAD', root=root).decode().strip()
         head_sha = commit_sha(head_value, 'PR head', root)
     if not isinstance(description, str):
         raise ValueError('PR description must be a string or null')
@@ -72,9 +60,7 @@ def changed_paths(context, root):
     if context['base'] is None:
         return None
     comparison = f'{context["base"]}...{context["head"]}'
-    output = git_output(
-        'diff', '--name-only', '-z', '--no-renames', comparison, '--', root=root
-    )
+    output = git_output('diff', '--name-only', '-z', '--no-renames', comparison, '--', root=root)
     return [os.fsdecode(path) for path in output.split(b'\0') if path]
 
 
@@ -84,9 +70,7 @@ def description_references(description):
     in_comment = False
     for line in description.splitlines():
         if fence:
-            if re.fullmatch(
-                re.escape(fence[0]) + '{' + str(len(fence)) + r',}\s*', line.strip()
-            ):
+            if re.fullmatch(re.escape(fence[0]) + '{' + str(len(fence)) + r',}\s*', line.strip()):
                 fence = None
             continue
         if not in_comment and line.startswith(('    ', '\t')):
@@ -126,17 +110,11 @@ def regular_file_at(commit, path, root):
         return False
     metadata, name = entries[0].split(b'\t', 1)
     mode, kind, object_id = metadata.split()
-    return (
-        os.fsdecode(name) == path and mode in {b'100644', b'100755'} and kind == b'blob'
-    )
+    return os.fsdecode(name) == path and mode in {b'100644', b'100755'} and kind == b'blob'
 
 
 def regular_file_in_change(context, path, root):
-    commit = (
-        context['head']
-        if git_output('ls-tree', context['head'], '--', path, root=root)
-        else context['base']
-    )
+    commit = context['head'] if git_output('ls-tree', context['head'], '--', path, root=root) else context['base']
     if commit is None:
         return False
     return regular_file_at(commit, path, root)

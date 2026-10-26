@@ -26,37 +26,21 @@ export interface MailApi {
   };
   storage: { managed: { get: () => Promise<unknown> } };
   messages: {
-    saveMessage: (
-      details: Details,
-      options: { mode: 'draft' },
-    ) => Promise<unknown>;
-    sendMessage: (
-      details: Details,
-      options: { mode: 'sendNow' | 'sendLater' },
-    ) => Promise<unknown>;
+    saveMessage: (details: Details, options: { mode: 'draft' }) => Promise<unknown>;
+    sendMessage: (details: Details, options: { mode: 'sendNow' | 'sendLater' }) => Promise<unknown>;
     query: (query: Record<string, unknown>) => Promise<MessageList>;
     list: (folderIdentifier: string) => Promise<MessageList>;
     continueList: (identifier: string) => Promise<MessageList>;
     get: (identifier: number) => Promise<MessageHeader>;
     getFull: (identifier: number) => Promise<unknown>;
-    listAttachments: (
-      identifier: number,
-    ) => Promise<{ name: string; partName: string; size: number }[]>;
+    listAttachments: (identifier: number) => Promise<{ name: string; partName: string; size: number }[]>;
     getAttachmentFile: (identifier: number, partName: string) => Promise<File>;
   };
   compose: {
     beginNew: (messageIdentifier: number, details: Details) => Promise<Tab>;
-    getComposeDetails: (
-      tabIdentifier: number,
-    ) => Promise<Record<string, unknown>>;
-    setComposeDetails: (
-      tabIdentifier: number,
-      details: Details,
-    ) => Promise<void>;
-    saveMessage: (
-      tabIdentifier: number,
-      options: { mode: 'draft' },
-    ) => Promise<unknown>;
+    getComposeDetails: (tabIdentifier: number) => Promise<Record<string, unknown>>;
+    setComposeDetails: (tabIdentifier: number, details: Details) => Promise<void>;
+    saveMessage: (tabIdentifier: number, options: { mode: 'draft' }) => Promise<unknown>;
   };
   tabs: {
     query: (query: Record<string, unknown>) => Promise<Tab[]>;
@@ -71,9 +55,6 @@ export interface MailApi {
         folderMode: 'all';
       },
     ) => Promise<Tab>;
-    setSelectedMessages: (
-      tabIdentifier: number,
-      messageIdentifiers: number[],
-    ) => Promise<void>;
+    setSelectedMessages: (tabIdentifier: number, messageIdentifiers: number[]) => Promise<void>;
   };
 }

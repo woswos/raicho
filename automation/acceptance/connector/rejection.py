@@ -56,16 +56,10 @@ def reject(mail=False):
             assert len(response) < 4096, 'Upgrade headers exceeded the fixture bound'
             response.extend(receive(connection, 1))
         assert response.startswith(b'HTTP/1.1 101 '), 'WebSocket upgrade failed'
-        accept = base64.b64encode(
-            hashlib.sha1(
-                (key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11').encode()
-            ).digest()
-        )
+        accept = base64.b64encode(hashlib.sha1((key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11').encode()).digest())
         headers = {
             name.lower(): value.strip()
-            for name, value in (
-                line.split(b':', 1) for line in bytes(response).split(b'\r\n')[1:-2]
-            )
+            for name, value in (line.split(b':', 1) for line in bytes(response).split(b'\r\n')[1:-2])
         }
         assert headers[b'sec-websocket-accept'] == accept
         opcode, contents = frame(connection)
@@ -98,15 +92,11 @@ def reject(mail=False):
         assert opcode == 1
         message = json.loads(contents)
         assert message['type'] == 'error'
-        assert message['code'] == (
-            'invalid_message' if mail else 'authentication_failed'
-        )
+        assert message['code'] == ('invalid_message' if mail else 'authentication_failed')
         opcode, contents = frame(connection)
         assert opcode == 8
         assert struct.unpack('!H', contents[:2])[0] == (
-            LIMITS['protocol_failure_close_code']
-            if mail
-            else LIMITS['authentication_failure_close_code']
+            LIMITS['protocol_failure_close_code'] if mail else LIMITS['authentication_failure_close_code']
         )
         send(connection, 8, contents)
     print('Gateway forwarded the bounded rejection without reflecting input')

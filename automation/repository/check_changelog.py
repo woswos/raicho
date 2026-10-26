@@ -23,9 +23,7 @@ def is_shipping(path):
         return False
     if path.startswith(('server/src/', 'protocol/rust/src/')) and name.endswith('.rs'):
         return True
-    if path.startswith(('server/queries/', 'server/migrations/')) and name.endswith(
-        '.sql'
-    ):
+    if path.startswith(('server/queries/', 'server/migrations/')) and name.endswith('.sql'):
         return True
     if path.startswith('web/src/') and name.endswith(('.ts', '.js', '.css')):
         return True
@@ -33,9 +31,7 @@ def is_shipping(path):
         return True
     if path.startswith('web/public/') and name.endswith(('.html', '.css', '.svg')):
         return True
-    if path.startswith('extension/') and (
-        name == 'manifest.json' or name.endswith(('.ts', '.html', '.css'))
-    ):
+    if path.startswith('extension/') and (name == 'manifest.json' or name.endswith(('.ts', '.html', '.css'))):
         return True
     if path.startswith('deploy/'):
         return True

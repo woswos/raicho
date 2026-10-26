@@ -12,10 +12,7 @@ export interface ManagedApi {
 
 export function startManagedConnector(
   api: ManagedApi,
-  connect: (
-    configuration: Configuration,
-    metadata: Metadata,
-  ) => () => void = startConnectorTransport,
+  connect: (configuration: Configuration, metadata: Metadata) => () => void = startConnectorTransport,
 ): () => void {
   let stopped = false;
   let stopConnection: (() => void) | undefined;

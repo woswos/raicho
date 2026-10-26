@@ -18,11 +18,7 @@ pub struct Config {
 
 impl Config {
     pub fn from_environment() -> Result<Self> {
-        let bind = text_variable(
-            "RAICHO_BIND",
-            DEFAULT_BIND,
-            "RAICHO_BIND must contain valid Unicode",
-        )?;
+        let bind = text_variable("RAICHO_BIND", DEFAULT_BIND, "RAICHO_BIND must contain valid Unicode")?;
         let connector_bind = text_variable(
             "RAICHO_CONNECTOR_BIND",
             DEFAULT_CONNECTOR_BIND,
@@ -40,21 +36,13 @@ impl Config {
         absolute_data_dir(&path_variable("RAICHO_DATA_DIR", DEFAULT_DATA_DIR))
     }
 
-    pub fn parse(
-        bind: &str,
-        connector_bind: &str,
-        data_dir: &Path,
-        web_dir: &Path,
-    ) -> Result<Self> {
+    pub fn parse(bind: &str, connector_bind: &str, data_dir: &Path, web_dir: &Path) -> Result<Self> {
         let bind = bind
             .parse()
             .map_err(|error| Error::new("RAICHO_BIND must be an IP address and port", error))?;
-        let connector_bind = connector_bind.parse().map_err(|error| {
-            Error::new(
-                "RAICHO_CONNECTOR_BIND must be an IP address and port",
-                error,
-            )
-        })?;
+        let connector_bind = connector_bind
+            .parse()
+            .map_err(|error| Error::new("RAICHO_CONNECTOR_BIND must be an IP address and port", error))?;
         if !web_dir.is_absolute() {
             return Err(Error::message("RAICHO_WEB_DIR must be an absolute path"));
         }
@@ -83,9 +71,7 @@ fn text_variable(name: &str, default: &str, invalid: &'static str) -> Result<Str
 }
 
 fn path_variable(name: &str, default: &str) -> PathBuf {
-    env::var_os(name)
-        .map(PathBuf::from)
-        .unwrap_or_else(|| default.into())
+    env::var_os(name).map(PathBuf::from).unwrap_or_else(|| default.into())
 }
 
 fn absolute_data_dir(data_dir: &Path) -> Result<PathBuf> {

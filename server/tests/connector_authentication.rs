@@ -9,19 +9,14 @@ use serde_json::json;
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::{Message, client::IntoClientRequest};
 
-use raicho_protocol::authentication::{
-    ConnectorKeys, authentication_message, server_signature, to_hex,
-};
+use raicho_protocol::authentication::{ConnectorKeys, authentication_message, server_signature, to_hex};
 use raicho_protocol::contract_generated::Authenticate;
 use support::{Fixture, ORIGIN, authentication, receive, receive_within};
 
 #[tokio::test]
 async fn authentication_registers_one_session_and_replacement_fences_old_cleanup() {
     let fixture = Fixture::new().await;
-    assert_eq!(
-        fixture.connector.snapshot().await.status,
-        BackendState::Disconnected
-    );
+    assert_eq!(fixture.connector.snapshot().await.status, BackendState::Disconnected);
     let (mut first, first_welcome) = fixture.authenticate().await;
     let (mut replacement, next_welcome) = fixture.authenticate().await;
     assert_ne!(first_welcome["generation"], next_welcome["generation"]);
@@ -33,10 +28,7 @@ async fn authentication_registers_one_session_and_replacement_fences_old_cleanup
     assert_eq!(status.generation.unwrap(), next_welcome["generation"]);
     replacement.close(None).await.unwrap();
     tokio::time::sleep(Duration::from_millis(20)).await;
-    assert_eq!(
-        fixture.connector.snapshot().await.status,
-        BackendState::Disconnected
-    );
+    assert_eq!(fixture.connector.snapshot().await.status, BackendState::Disconnected);
     fixture.finish().await;
 }
 
@@ -46,15 +38,10 @@ async fn rejected_credentials_do_not_displace_an_authenticated_session() {
     let (_active, welcome) = fixture.authenticate().await;
     let (mut rejected, server_nonce) = fixture.connect().await;
     rejected
-        .send(Message::Text(
-            authentication("b", &server_nonce).to_string().into(),
-        ))
+        .send(Message::Text(authentication("b", &server_nonce).to_string().into()))
         .await
         .unwrap();
-    assert_eq!(
-        receive(&mut rejected).await["code"],
-        "authentication_failed"
-    );
+    assert_eq!(receive(&mut rejected).await["code"], "authentication_failed");
     let status = fixture.connector.snapshot().await;
     assert_eq!(status.status, BackendState::Connected);
     assert_eq!(status.generation.unwrap(), welcome["generation"]);
@@ -65,22 +52,14 @@ async fn rejected_credentials_do_not_displace_an_authenticated_session() {
 #[tokio::test]
 async fn revoked_credentials_remain_revoked_and_are_never_enrolled_by_authentication() {
     let fixture = Fixture::new().await;
-    CredentialStore::new(&fixture.database)
-        .revoke()
-        .await
-        .unwrap();
+    CredentialStore::new(&fixture.database).revoke().await.unwrap();
     let (mut socket, server_nonce) = fixture.connect().await;
     socket
-        .send(Message::Text(
-            authentication("a", &server_nonce).to_string().into(),
-        ))
+        .send(Message::Text(authentication("a", &server_nonce).to_string().into()))
         .await
         .unwrap();
     assert_eq!(receive(&mut socket).await["code"], "authentication_failed");
-    assert_eq!(
-        fixture.connector.snapshot().await.status,
-        BackendState::Revoked
-    );
+    assert_eq!(fixture.connector.snapshot().await.status, BackendState::Revoked);
     fixture.finish().await;
 }
 
@@ -90,9 +69,7 @@ async fn stalled_credential_storage_is_retryable_rather_than_a_rejection() {
     let held = fixture.database.pool().acquire().await.unwrap();
     let (mut socket, server_nonce) = fixture.connect().await;
     socket
-        .send(Message::Text(
-            authentication("a", &server_nonce).to_string().into(),
-        ))
+        .send(Message::Text(authentication("a", &server_nonce).to_string().into()))
         .await
         .unwrap();
     let error = receive_within(&mut socket, Duration::from_secs(12)).await;
@@ -112,18 +89,9 @@ async fn welcome_proves_the_server_and_proofs_cannot_be_replayed() {
     let frame = authentication("a", &first_nonce);
     let (mut replayed, replayed_nonce) = fixture.connect().await;
     assert_ne!(first_nonce, replayed_nonce);
-    replayed
-        .send(Message::Text(frame.to_string().into()))
-        .await
-        .unwrap();
-    assert_eq!(
-        receive(&mut replayed).await["code"],
-        "authentication_failed"
-    );
-    first
-        .send(Message::Text(frame.to_string().into()))
-        .await
-        .unwrap();
+    replayed.send(Message::Text(frame.to_string().into())).await.unwrap();
+    assert_eq!(receive(&mut replayed).await["code"], "authentication_failed");
+    first.send(Message::Text(frame.to_string().into())).await.unwrap();
     let welcome = receive(&mut first).await;
     let fields: Authenticate = serde_json::from_value(frame).unwrap();
     let keys = ConnectorKeys::derive(&"a".repeat(64));
@@ -156,13 +124,9 @@ async fn route_requires_exact_path_origin_and_no_query_or_subprotocol() {
         ("", vec![ORIGIN, ORIGIN], None),
         ("", vec![ORIGIN], Some("credential")),
     ] {
-        let mut request = format!("{}{suffix}", fixture.address)
-            .into_client_request()
-            .unwrap();
+        let mut request = format!("{}{suffix}", fixture.address).into_client_request().unwrap();
         for origin in origins {
-            request
-                .headers_mut()
-                .append("Origin", origin.parse().unwrap());
+            request.headers_mut().append("Origin", origin.parse().unwrap());
         }
         if let Some(protocol) = protocol {
             request
@@ -197,9 +161,6 @@ async fn authentication_rejects_version_direction_duplicate_and_oversized_messag
         socket.send(Message::Text(frame.into())).await.unwrap();
         assert_eq!(receive(&mut socket).await["code"], expected);
     }
-    assert_eq!(
-        fixture.connector.snapshot().await.status,
-        BackendState::Disconnected
-    );
+    assert_eq!(fixture.connector.snapshot().await.status, BackendState::Disconnected);
     fixture.finish().await;
 }

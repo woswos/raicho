@@ -41,8 +41,7 @@ def changed_outputs(generated, committed, filenames):
     return [
         name
         for name in filenames
-        if not (committed / name).is_file()
-        or (generated / name).read_bytes() != (committed / name).read_bytes()
+        if not (committed / name).is_file() or (generated / name).read_bytes() != (committed / name).read_bytes()
     ]
 
 
@@ -113,9 +112,7 @@ def generate(action):
             if action == 'generate':
                 (ROOT / destination).mkdir(parents=True, exist_ok=True)
                 for name in changed:
-                    shutil.copyfile(
-                        staging / language / name, ROOT / destination / name
-                    )
+                    shutil.copyfile(staging / language / name, ROOT / destination / name)
         if action == 'check' and changes:
             raise ValueError(
                 'Generated protocol outputs drifted: '

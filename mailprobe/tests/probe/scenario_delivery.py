@@ -65,8 +65,7 @@ def run(client):
     assert '<strong>HTML delivery</strong>' in message['html'], message
     assert any(
         attachment['filename'] == 'probe.txt'
-        and attachment['sha256']
-        == hashlib.sha256(attachment_content.encode()).hexdigest()
+        and attachment['sha256'] == hashlib.sha256(attachment_content.encode()).hexdigest()
         for attachment in message['attachments']
     ), message
     queued_subject = 'Raicho probe queued send'

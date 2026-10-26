@@ -4,10 +4,7 @@ from pathlib import Path
 
 from automation.build.application import cargo_test, run
 
-RUST_TARGET = (
-    Path(os.environ.get('CARGO_TARGET_DIR', '/tmp/raicho-target')).parent
-    / 'coverage-target'
-)
+RUST_TARGET = Path(os.environ.get('CARGO_TARGET_DIR', '/tmp/raicho-target')).parent / 'coverage-target'
 RUST_IGNORED = r'(/registry/|^/rustc/|/tests/|_generated\.rs$)'
 
 
@@ -16,8 +13,7 @@ def instrumented_executables(messages):
         {
             message['executable']
             for message in map(json.loads, messages.splitlines())
-            if message.get('reason') == 'compiler-artifact'
-            and message.get('executable')
+            if message.get('reason') == 'compiler-artifact' and message.get('executable')
         }
     )
 
@@ -39,9 +35,7 @@ def rust(output):
         text=True,
     ).stdout
     executables = instrumented_executables(listing)
-    library = run(
-        ['rustc', '--print', 'target-libdir'], capture_output=True, text=True
-    ).stdout.strip()
+    library = run(['rustc', '--print', 'target-libdir'], capture_output=True, text=True).stdout.strip()
     tools = Path(library).parent / 'bin'
     merged = profiles / 'merged.profdata'
     run(

@@ -69,9 +69,7 @@ class DocNamingTests(GuardTestCase):
         repo.commit()
         self.assertEqual(
             check_doc_naming(repo.root),
-            [
-                'documentation must be a regular file: docs/planning/active/20261018-link.md'
-            ],
+            ['documentation must be a regular file: docs/planning/active/20261018-link.md'],
         )
 
 

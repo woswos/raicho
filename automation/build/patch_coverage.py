@@ -13,28 +13,18 @@ def comparison_base(root):
     if base is not None:
         return base
     try:
-        return (
-            git_output('merge-base', 'HEAD', 'origin/main', root=root).decode().strip()
-        )
+        return git_output('merge-base', 'HEAD', 'origin/main', root=root).decode().strip()
     except subprocess.CalledProcessError:
-        raise ValueError(
-            'No comparison base: set PR_BASE_SHA or fetch origin/main.'
-        ) from None
+        raise ValueError('No comparison base: set PR_BASE_SHA or fetch origin/main.') from None
 
 
 def partly_covered(report):
-    return ''.join(
-        line
-        for line in report.splitlines(keepends=True)
-        if not line.rstrip().endswith('(100%)')
-    )
+    return ''.join(line for line in report.splitlines(keepends=True) if not line.rstrip().endswith('(100%)'))
 
 
 def totals(report):
     return ''.join(
-        line
-        for line in report.splitlines(keepends=True)
-        if line.startswith(('Total:', 'Missing:', 'Coverage:'))
+        line for line in report.splitlines(keepends=True) if line.startswith(('Total:', 'Missing:', 'Coverage:'))
     )
 
 
@@ -58,9 +48,7 @@ def main():
         text=True,
         check=False,
     )
-    report = (
-        partly_covered(result.stdout) if result.returncode else totals(result.stdout)
-    )
+    report = partly_covered(result.stdout) if result.returncode else totals(result.stdout)
     print(report, end='', flush=True)
     print(result.stderr, end='', file=sys.stderr)
     return result.returncode

@@ -23,16 +23,12 @@ class ApplicationTests(unittest.TestCase):
             'test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured\n'
             'test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured\n'
         )
-        self.assertEqual(
-            test_summary(output), 'Rust: 7 tests passed in 3 test binaries'
-        )
+        self.assertEqual(test_summary(output), 'Rust: 7 tests passed in 3 test binaries')
 
     def test_verbose_cargo_test_streams_its_output(self):
         with mock.patch.object(application, 'run') as run:
             application.cargo_test(['--locked'], env={'CARGO_TERM_QUIET': 'false'})
-        run.assert_called_once_with(
-            ['cargo', 'test', '--locked'], env={'CARGO_TERM_QUIET': 'false'}
-        )
+        run.assert_called_once_with(['cargo', 'test', '--locked'], env={'CARGO_TERM_QUIET': 'false'})
 
     def test_quiet_cargo_test_prints_only_its_summary(self):
         completed = subprocess.CompletedProcess([], 0, stdout=RESULT)
@@ -59,9 +55,7 @@ class ApplicationTests(unittest.TestCase):
         with mock.patch.object(application, 'run') as run:
             application.extension(REPOSITORY_ROOT / 'extension', testing=True)
         build, tests = run.call_args_list
-        self.assertEqual(
-            build.args[0][:2], ['node', str(REPOSITORY_ROOT / 'extension/build.mjs')]
-        )
+        self.assertEqual(build.args[0][:2], ['node', str(REPOSITORY_ROOT / 'extension/build.mjs')])
         self.assertEqual(tests.args[0][:3], ['node', '--test', NODE_REPORTER])
         self.assertIn('RAICHO_EXTENSION_BUILD_DIR', tests.kwargs['env'])
 
@@ -77,9 +71,7 @@ class ApplicationTests(unittest.TestCase):
         with mock.patch.object(application, 'run') as run:
             application.web(testing=True)
         build, tests = run.call_args_list
-        self.assertEqual(
-            build.args[0][:2], ['node', str(REPOSITORY_ROOT / 'web/build.mjs')]
-        )
+        self.assertEqual(build.args[0][:2], ['node', str(REPOSITORY_ROOT / 'web/build.mjs')])
         self.assertEqual(tests.args[0][:3], ['node', '--test', NODE_REPORTER])
         self.assertIn('RAICHO_WEB_BUILD_DIR', tests.kwargs['env'])
 

@@ -10,14 +10,10 @@ from protocol.generator.validation import validate_sources, validate_status
 
 class ProtocolGenerationTests(unittest.TestCase):
     def setUp(self):
-        self.schema = json.loads(
-            (ROOT / 'protocol/schema/connector.schema.json').read_text()
-        )
+        self.schema = json.loads((ROOT / 'protocol/schema/connector.schema.json').read_text())
         self.limits = json.loads((ROOT / 'protocol/limits.json').read_text())
         self.diagnostics = json.loads((ROOT / 'protocol/diagnostics.json').read_text())
-        self.status = json.loads(
-            (ROOT / 'protocol/schema/status.schema.json').read_text()
-        )
+        self.status = json.loads((ROOT / 'protocol/schema/status.schema.json').read_text())
 
     def test_canonical_sources_are_consistent(self):
         validate_sources(self.schema, self.limits, self.diagnostics)
@@ -96,12 +92,8 @@ class ProtocolGenerationTests(unittest.TestCase):
             generated.mkdir()
             committed.mkdir()
             (generated / 'contract.ts').write_text('expected\n')
-            self.assertEqual(
-                changed_outputs(generated, committed, ['contract.ts']), ['contract.ts']
-            )
+            self.assertEqual(changed_outputs(generated, committed, ['contract.ts']), ['contract.ts'])
             (committed / 'contract.ts').write_text('expected\n')
             self.assertEqual(changed_outputs(generated, committed, ['contract.ts']), [])
             (committed / 'contract.ts').write_text('edited\n')
-            self.assertEqual(
-                changed_outputs(generated, committed, ['contract.ts']), ['contract.ts']
-            )
+            self.assertEqual(changed_outputs(generated, committed, ['contract.ts']), ['contract.ts'])

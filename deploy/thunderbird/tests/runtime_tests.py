@@ -23,9 +23,7 @@ class RuntimeTests(unittest.TestCase):
 
     def test_default_commands_have_no_remote_access(self):
         selected = commands(False)
-        self.assertEqual(
-            list(selected), ['dbus', 'display', 'window-manager', 'thunderbird']
-        )
+        self.assertEqual(list(selected), ['dbus', 'display', 'window-manager', 'thunderbird'])
         self.assertIn('-nolisten', selected['display'])
         self.assertIn('tcp', selected['display'])
         self.assertEqual(selected['thunderbird'][-2:], ['-profile', '/config/profile'])
@@ -51,9 +49,7 @@ class RuntimeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             state_path = Path(directory) / 'state.json'
             supervisor = Supervisor(state_path)
-            supervisor.start(
-                'test-child', [sys.executable, '-c', 'import time; time.sleep(60)']
-            )
+            supervisor.start('test-child', [sys.executable, '-c', 'import time; time.sleep(60)'])
             supervisor.publish()
             self.assertTrue(state_path.exists())
             process = supervisor.children[0][1]

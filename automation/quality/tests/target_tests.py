@@ -18,9 +18,7 @@ class QualityTargetTests(unittest.TestCase):
         self.makefile = (REPOSITORY_ROOT / 'Makefile').read_text().replace('\\\n', ' ')
 
     def test_make_offers_exactly_the_runner_targets(self):
-        self.assertEqual(
-            sorted(make_list(self.makefile, 'QUALITY_TARGETS')), sorted(TARGETS)
-        )
+        self.assertEqual(sorted(make_list(self.makefile, 'QUALITY_TARGETS')), sorted(TARGETS))
 
     def test_every_language_formats_and_checks_alone(self):
         for language in ('bash', 'python', 'javascript', 'rust', 'sql'):

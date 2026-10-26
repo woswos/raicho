@@ -9,12 +9,7 @@ import { TextEncoder } from 'node:util';
 import { probeFixture } from '../../extension/tests/probe_fixture.mjs';
 
 const { startProbeTransport } = await import(
-  pathToFileURL(
-    resolve(
-      process.env.RAICHO_EXTENSION_BUILD_DIR,
-      'mailprobe/src/probe_transport.js',
-    ),
-  ).href
+  pathToFileURL(resolve(process.env.RAICHO_EXTENSION_BUILD_DIR, 'mailprobe/src/probe_transport.js')).href
 );
 
 test('a disconnect during send loses the result without replay on reconnect', async () => {
@@ -37,9 +32,7 @@ test('a disconnect during send loses the result without replay on reconnect', as
     },
     fixture.dependencies,
   );
-  const command = new TextEncoder().encode(
-    JSON.stringify({ id: 'send_once', action: 'send' }),
-  ).buffer;
+  const command = new TextEncoder().encode(JSON.stringify({ id: 'send_once', action: 'send' })).buffer;
   const [first] = fixture.sockets;
   first.open();
   first.onmessage({ data: command });

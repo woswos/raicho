@@ -28,10 +28,7 @@ impl Connector {
     }
 }
 
-async fn accept(
-    connector: &Connector,
-    listener: &TcpListener,
-) -> Option<(TcpStream, OwnedSemaphorePermit)> {
+async fn accept(connector: &Connector, listener: &TcpListener) -> Option<(TcpStream, OwnedSemaphorePermit)> {
     let socket = Arc::clone(&connector.sockets)
         .acquire_owned()
         .await

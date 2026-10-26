@@ -1,8 +1,4 @@
-import {
-  readStatus,
-  StatusResponseError,
-  type ApplicationStatus,
-} from './status.js';
+import { readStatus, StatusResponseError, type ApplicationStatus } from './status.js';
 
 const UNAVAILABLE = 503;
 
@@ -42,16 +38,11 @@ export function createStatusPoller(handlers: StatusHandlers) {
       } catch {
         payload = undefined;
       }
-      const status =
-        response.ok || response.status === UNAVAILABLE
-          ? readStatus(payload)
-          : undefined;
+      const status = response.ok || response.status === UNAVAILABLE ? readStatus(payload) : undefined;
       if (status !== undefined) {
         handlers.onStatus(status);
       } else if (!response.ok) {
-        handlers.onError(
-          `Raicho could not provide its status (HTTP ${String(response.status)}).`,
-        );
+        handlers.onError(`Raicho could not provide its status (HTTP ${String(response.status)}).`);
       } else {
         throw new StatusResponseError();
       }

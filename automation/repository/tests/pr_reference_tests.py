@@ -14,9 +14,7 @@ class PullRequestReferenceTests(GuardTestCase):
         )
 
     def test_design_is_resolved_at_base_even_when_deleted_at_head(self):
-        repo, environment = self.pull_request(
-            {**CODE_CHANGE, DESIGN: None}, {DESIGN: '# Design\n'}
-        )
+        repo, environment = self.pull_request({**CODE_CHANGE, DESIGN: None}, {DESIGN: '# Design\n'})
         result = self.check_reference(repo, environment, f'Design: {DESIGN}')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn(f'design-link check passed: {DESIGN}', result.stdout)
@@ -34,9 +32,7 @@ class PullRequestReferenceTests(GuardTestCase):
         self.assertIn(f'design-link check passed: {DECISION}', result.stdout)
 
     def test_decision_deleted_at_head_is_rejected(self):
-        repo, environment = self.pull_request(
-            {**CODE_CHANGE, DECISION: None}, {DECISION: '# Decision\n'}
-        )
+        repo, environment = self.pull_request({**CODE_CHANGE, DECISION: None}, {DECISION: '# Decision\n'})
         result = self.check_reference(repo, environment, f'Decision: {DECISION}')
         self.assertEqual(result.returncode, 1)
         self.assertIn('not a regular file at the PR head commit', result.stderr)
@@ -66,11 +62,7 @@ class PullRequestReferenceTests(GuardTestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_multiple_standalone_references_are_rejected(self):
-        repo, environment = self.pull_request(
-            {**CODE_CHANGE, DECISION: '# Decision\n'}, {DESIGN: '# Design\n'}
-        )
-        result = self.check_reference(
-            repo, environment, f'Design: {DESIGN}\nDecision: {DECISION}'
-        )
+        repo, environment = self.pull_request({**CODE_CHANGE, DECISION: '# Decision\n'}, {DESIGN: '# Design\n'})
+        result = self.check_reference(repo, environment, f'Design: {DESIGN}\nDecision: {DECISION}')
         self.assertEqual(result.returncode, 1)
         self.assertIn('exactly one standalone Design: or Decision:', result.stderr)

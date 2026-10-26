@@ -5,8 +5,7 @@ use serde_json::Value;
 use crate::ContractError;
 
 static VALIDATOR: LazyLock<Result<jsonschema::Validator, ()>> = LazyLock::new(|| {
-    let schema: Value =
-        serde_json::from_str(include_str!("../../schema/connector.schema.json")).map_err(|_| ())?;
+    let schema: Value = serde_json::from_str(include_str!("../../schema/connector.schema.json")).map_err(|_| ())?;
     jsonschema::options()
         .with_draft(jsonschema::Draft::Draft7)
         .offline()
@@ -15,9 +14,7 @@ static VALIDATOR: LazyLock<Result<jsonschema::Validator, ()>> = LazyLock::new(||
 });
 
 pub fn validate(message: &Value) -> Result<(), ContractError> {
-    let validator = VALIDATOR
-        .as_ref()
-        .map_err(|_| ContractError::InvalidMessage)?;
+    let validator = VALIDATOR.as_ref().map_err(|_| ContractError::InvalidMessage)?;
     if validator.is_valid(message) {
         Ok(())
     } else {

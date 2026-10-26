@@ -41,12 +41,9 @@ def summary(merged):
             complete += 1
             continue
         relative = source.relative_to(REPOSITORY_ROOT)
-        rows.append(
-            f'{100 * hit / len(lines):6.1f}%  {hit:5}/{len(lines):<5}  {relative}'
-        )
+        rows.append(f'{100 * hit / len(lines):6.1f}%  {hit:5}/{len(lines):<5}  {relative}')
     if total:
         rows.append(
-            f'{100 * covered / total:6.1f}%  {covered:5}/{total:<5}  total, '
-            f'{complete} more files fully covered'
+            f'{100 * covered / total:6.1f}%  {covered:5}/{total:<5}  total, {complete} more files fully covered'
         )
     return rows

@@ -38,9 +38,7 @@ export function probeFixture() {
     sockets,
     timers,
     fireTimer(delay) {
-      const [identifier, timer] = [...timers].find(
-        ([, candidate]) => candidate.delay === delay,
-      );
+      const [identifier, timer] = [...timers].find(([, candidate]) => candidate.delay === delay);
       timers.delete(identifier);
       timer.callback();
     },

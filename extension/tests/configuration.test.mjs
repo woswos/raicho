@@ -6,12 +6,7 @@ import { test } from 'node:test';
 import { pathToFileURL, URL } from 'node:url';
 
 const { parseConfiguration } = await import(
-  pathToFileURL(
-    resolve(
-      process.env.RAICHO_EXTENSION_BUILD_DIR,
-      'extension/src/configuration.js',
-    ),
-  ).href
+  pathToFileURL(resolve(process.env.RAICHO_EXTENSION_BUILD_DIR, 'extension/src/configuration.js')).href
 );
 const token = 'a'.repeat(64);
 
@@ -28,10 +23,7 @@ test('accepts only the configured endpoint and token', () => {
     }),
     { endpoint: 'ws://probe:8765/lifecycle', token },
   );
-  assert.equal(
-    parseConfiguration({ endpoint: 'wss://probe/lifecycle', token }).endpoint,
-    'wss://probe/lifecycle',
-  );
+  assert.equal(parseConfiguration({ endpoint: 'wss://probe/lifecycle', token }).endpoint, 'wss://probe/lifecycle');
 });
 
 test('rejects malformed managed configuration without exposing values', () => {
@@ -59,13 +51,7 @@ test('rejects malformed managed configuration without exposing values', () => {
 
 test('agrees with the shared connector configuration rules', async () => {
   const rules = JSON.parse(
-    await readFile(
-      new URL(
-        '../../protocol/fixtures/configuration/connector.json',
-        import.meta.url,
-      ),
-      'utf8',
-    ),
+    await readFile(new URL('../../protocol/fixtures/configuration/connector.json', import.meta.url), 'utf8'),
   );
   const endpoint = rules.endpoints.valid[0];
   for (const valid of rules.tokens.valid) {
@@ -75,16 +61,9 @@ test('agrees with the shared connector configuration rules', async () => {
     assert.throws(() => parseConfiguration({ endpoint, token: invalid }));
   }
   for (const valid of rules.endpoints.valid) {
-    assert.equal(
-      parseConfiguration({ endpoint: valid, token }).endpoint,
-      valid,
-    );
+    assert.equal(parseConfiguration({ endpoint: valid, token }).endpoint, valid);
   }
   for (const invalid of rules.endpoints.invalid) {
-    assert.throws(
-      () => parseConfiguration({ endpoint: invalid, token }),
-      undefined,
-      JSON.stringify(invalid),
-    );
+    assert.throws(() => parseConfiguration({ endpoint: invalid, token }), undefined, JSON.stringify(invalid));
   }
 });

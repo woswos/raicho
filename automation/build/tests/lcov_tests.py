@@ -11,9 +11,7 @@ class LcovTests(unittest.TestCase):
         absolute = REPOSITORY_ROOT / 'protocol/typescript/src/channel.ts'
         with tempfile.TemporaryDirectory() as directory:
             protocol = Path(directory) / 'protocol.info'
-            protocol.write_text(
-                'SF:protocol/typescript/src/channel.ts\nDA:1,0\nDA:2,3\nend_of_record\n'
-            )
+            protocol.write_text('SF:protocol/typescript/src/channel.ts\nDA:1,0\nDA:2,3\nend_of_record\n')
             extension = Path(directory) / 'extension.info'
             extension.write_text(
                 f'SF:{absolute}\nDA:1,1\nDA:3,0\nend_of_record\n'

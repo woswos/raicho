@@ -63,23 +63,16 @@ def validate_schema(schema, definitions):
 
 def validate_diagnostics(diagnostics, schema):
     if not isinstance(diagnostics, dict) or set(diagnostics) != DIAGNOSTIC_LISTS:
-        raise ValueError(
-            'Diagnostics must list backend states, errors, and contract errors.'
-        )
+        raise ValueError('Diagnostics must list backend states, errors, and contract errors.')
     for codes in diagnostics.values():
         if (
             not isinstance(codes, list)
             or not codes
             or len(set(codes)) != len(codes)
-            or not all(
-                isinstance(code, str) and DIAGNOSTIC_CODE.fullmatch(code)
-                for code in codes
-            )
+            or not all(isinstance(code, str) and DIAGNOSTIC_CODE.fullmatch(code) for code in codes)
         ):
             raise ValueError('Diagnostic codes must be unique snake_case words.')
-    protocol_errors = set(
-        schema['definitions']['ProtocolError']['properties']['code']['enum']
-    )
+    protocol_errors = set(schema['definitions']['ProtocolError']['properties']['code']['enum'])
     if not protocol_errors <= set(diagnostics['backend_errors']):
         raise ValueError('Every protocol error code must be a backend error.')
     if not set(diagnostics['contract_errors']) <= protocol_errors:
@@ -110,8 +103,7 @@ def validate_sources(schema, limits, diagnostics):
     validate_document(schema)
     definitions = schema.get('definitions', {})
     if set(limits) != LIMIT_NAMES or any(
-        type(value) is not int or not 0 < value <= 2147483647
-        for value in limits.values()
+        type(value) is not int or not 0 < value <= 2147483647 for value in limits.values()
     ):
         raise ValueError('Protocol limits must contain the expected positive integers.')
     for definition in definitions.values():

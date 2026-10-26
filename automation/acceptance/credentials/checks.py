@@ -31,29 +31,20 @@ def token(path):
 def database_check(arguments):
     metadata = CREDENTIALS.stat(follow_symlinks=False)
     assert stat.S_ISDIR(metadata.st_mode), 'Token directory must be real'
-    assert metadata.st_uid == SERVICE_UID, (
-        'Token directory must belong to the service UID'
-    )
+    assert metadata.st_uid == SERVICE_UID, 'Token directory must belong to the service UID'
     assert stat.S_IMODE(metadata.st_mode) == 0o700, 'Token directory mode differs'
     selected = token(CREDENTIALS / arguments.token)
-    with sqlite3.connect(
-        f'file:{DATABASE_DIRECTORY}/raicho.sqlite3?mode=ro', uri=True
-    ) as connection:
+    with sqlite3.connect(f'file:{DATABASE_DIRECTORY}/raicho.sqlite3?mode=ro', uri=True) as connection:
         rows = connection.execute(
-            'SELECT backend_kind, stored_key, server_key, revoked, revision '
-            'FROM connector_credentials'
+            'SELECT backend_kind, stored_key, server_key, revoked, revision FROM connector_credentials'
         ).fetchall()
         assert connection.execute('PRAGMA integrity_check').fetchone() == ('ok',)
     assert len(rows) == 1, 'Exactly one connector credential must exist'
     backend, stored_key, server_key, revoked, revision = rows[0]
     assert backend == 'thunderbird', 'Unexpected persisted backend kind'
     client_key = hmac.digest(selected, b'raicho connector client key', 'sha256')
-    assert stored_key == hashlib.sha256(client_key).digest(), (
-        'Token and stored key differ'
-    )
-    assert server_key == hmac.digest(
-        selected, b'raicho connector server key', 'sha256'
-    ), 'Token and server key differ'
+    assert stored_key == hashlib.sha256(client_key).digest(), 'Token and stored key differ'
+    assert server_key == hmac.digest(selected, b'raicho connector server key', 'sha256'), 'Token and server key differ'
     assert revoked == int(arguments.revoked), 'Persisted revocation state differs'
     assert revision == arguments.revision, 'Credential revision differs'
     for path in DATABASE_DIRECTORY.iterdir():
@@ -64,12 +55,8 @@ def database_check(arguments):
 
 def mount_check():
     server, thunderbird = json.load(sys.stdin)
-    assert server['Config']['User'] == f'{SERVICE_UID}:{SERVICE_UID}', (
-        'Server UID differs'
-    )
-    assert all(mount['Type'] != 'bind' for mount in server['Mounts']), (
-        'Ordinary server gained a host mount'
-    )
+    assert server['Config']['User'] == f'{SERVICE_UID}:{SERVICE_UID}', 'Server UID differs'
+    assert all(mount['Type'] != 'bind' for mount in server['Mounts']), 'Ordinary server gained a host mount'
     assert all(
         'credential' not in mount['Destination']
         and 'secret' not in mount['Destination']
@@ -85,15 +72,11 @@ def mount_check():
         for container in (server, thunderbird)
         for variable in container['Config']['Env']
     ), 'Container environment contains a raw token'
-    print(
-        'Ordinary server has no token/profile mount and Thunderbird token is read-only'
-    )
+    print('Ordinary server has no token/profile mount and Thunderbird token is read-only')
 
 
 def log_check():
-    assert token(CURRENT) not in sys.stdin.buffer.read(), (
-        'Service logs leaked the raw token'
-    )
+    assert token(CURRENT) not in sys.stdin.buffer.read(), 'Service logs leaked the raw token'
     print('Service logs contain no raw token')
 
 

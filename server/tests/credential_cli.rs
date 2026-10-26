@@ -44,11 +44,7 @@ async fn every_offline_operation_respects_the_running_instance_lock() {
     ] {
         let output = command(directory.path(), &arguments);
         assert!(!output.status.success());
-        assert!(
-            String::from_utf8(output.stderr)
-                .unwrap()
-                .contains("already in use")
-        );
+        assert!(String::from_utf8(output.stderr).unwrap().contains("already in use"));
     }
     database.close().await;
 }
@@ -110,12 +106,7 @@ fn token_operations_require_files_owned_by_the_service() {
             "--current-token-file",
             token,
         ],
-        vec![
-            "connector",
-            "files",
-            "check",
-            directory.path().to_str().unwrap(),
-        ],
+        vec!["connector", "files", "check", directory.path().to_str().unwrap()],
     ] {
         let output = command(directory.path(), &arguments);
         assert!(!output.status.success(), "{arguments:?}");

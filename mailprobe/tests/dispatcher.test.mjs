@@ -5,12 +5,7 @@ import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
 
 const { dispatchCommand } = await import(
-  pathToFileURL(
-    resolve(
-      process.env.RAICHO_EXTENSION_BUILD_DIR,
-      'mailprobe/src/dispatcher.js',
-    ),
-  ).href
+  pathToFileURL(resolve(process.env.RAICHO_EXTENSION_BUILD_DIR, 'mailprobe/src/dispatcher.js')).href
 );
 
 test('send requires an explicit mode and forwards the selected identity once', async () => {
@@ -28,9 +23,7 @@ test('send requires an explicit mode and forwards the selected identity once', a
     identityId: 'secondary',
     plainTextBody: 'fictional body',
   };
-  await assert.rejects(
-    dispatchCommand(api, { action: 'send', arguments: { details } }),
-  );
+  await assert.rejects(dispatchCommand(api, { action: 'send', arguments: { details } }));
   assert.equal(calls.length, 0);
   assert.deepEqual(
     await dispatchCommand(api, {

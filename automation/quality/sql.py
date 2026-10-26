@@ -7,9 +7,7 @@ from automation.quality.files import require_tools, run
 
 def check_syntax(options, root):
     try:
-        run(
-            ['sqlfluff', 'parse', *options, '--format', 'none', '.'], root, capture=True
-        )
+        run(['sqlfluff', 'parse', *options, '--format', 'none', '.'], root, capture=True)
     except subprocess.CalledProcessError as error:
         print(error.stdout, end='')
         raise
@@ -19,9 +17,7 @@ def sql(root, files, action, tooling_root):
     require_tools('sqlfluff')
     configuration = tooling_root / '.sqlfluff'
     if not configuration.is_file() or configuration.is_symlink():
-        raise ValueError(
-            f'SQL configuration is missing or not a regular file: {configuration}'
-        )
+        raise ValueError(f'SQL configuration is missing or not a regular file: {configuration}')
     sources = [path for path in files if path.suffix == '.sql']
     if not sources:
         print('SKIP: no owned SQL sources')
@@ -77,10 +73,7 @@ def sql(root, files, action, tooling_root):
             if (temporary_root / path).read_bytes() != contents
         }
         if action == 'format-check' and changed:
-            raise ValueError(
-                'SQL formatting differs: '
-                + ', '.join(path.as_posix() for path in changed)
-            )
+            raise ValueError('SQL formatting differs: ' + ', '.join(path.as_posix() for path in changed))
         if action == 'format':
             for path, contents in changed.items():
                 if (root / path).read_bytes() != originals[path]:

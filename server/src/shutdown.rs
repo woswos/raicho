@@ -17,10 +17,10 @@ pub async fn serve(
     connector_listener: TcpListener,
     connector: Arc<Connector>,
 ) -> Result<()> {
-    let mut terminate = signal(SignalKind::terminate())
-        .map_err(|error| Error::new("Cannot register SIGTERM handler", error))?;
-    let mut interrupt = signal(SignalKind::interrupt())
-        .map_err(|error| Error::new("Cannot register SIGINT handler", error))?;
+    let mut terminate =
+        signal(SignalKind::terminate()).map_err(|error| Error::new("Cannot register SIGTERM handler", error))?;
+    let mut interrupt =
+        signal(SignalKind::interrupt()).map_err(|error| Error::new("Cannot register SIGINT handler", error))?;
     let (sender, receiver) = watch::channel(false);
     // The accept loop holds a socket permit until it sees shutdown, so it must keep running.
     let internal = tokio::spawn(Arc::clone(&connector).serve(connector_listener));

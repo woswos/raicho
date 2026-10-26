@@ -15,9 +15,7 @@ def main():
     parser.add_argument('start')
     parser.add_argument('pattern')
     arguments = parser.parse_args()
-    suite = unittest.defaultTestLoader.discover(
-        arguments.start, pattern=arguments.pattern, top_level_dir='.'
-    )
+    suite = unittest.defaultTestLoader.discover(arguments.start, pattern=arguments.pattern, top_level_dir='.')
     report = io.StringIO()
     result = unittest.TextTestRunner(stream=report, buffer=True).run(suite)
     if not result.wasSuccessful():

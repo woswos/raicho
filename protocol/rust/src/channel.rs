@@ -77,10 +77,7 @@ fn write_value(value: &Value, output: &mut String) {
     }
 }
 
-fn write_object<'message>(
-    properties: impl Iterator<Item = (&'message String, &'message Value)>,
-    output: &mut String,
-) {
+fn write_object<'message>(properties: impl Iterator<Item = (&'message String, &'message Value)>, output: &mut String) {
     let mut properties: Vec<_> = properties.collect();
     properties.sort_unstable_by(|left, right| left.0.cmp(right.0));
     output.push('{');
@@ -114,26 +111,18 @@ impl Channel {
 
     // Typed messages that require a MAC carry this until `seal` replaces it.
     pub fn unsealed() -> Signature {
-        "0".repeat(64)
-            .parse()
-            .expect("Placeholder MAC matches the schema")
+        "0".repeat(64).parse().expect("Placeholder MAC matches the schema")
     }
 
     pub fn seal(&mut self, message: &impl Serialize) -> String {
-        let mut message =
-            serde_json::to_value(message).expect("Connector messages are serializable");
+        let mut message = serde_json::to_value(message).expect("Connector messages are serializable");
         let mac = frame_mac(&self.key, self.local, self.sent, &message);
         self.sent += 1;
         message["mac"] = Value::String(to_hex(&mac));
         message.to_string()
     }
 
-    pub fn open(
-        &mut self,
-        raw: &str,
-        phase: Phase,
-        generation: &str,
-    ) -> Result<ConnectorMessage, ContractError> {
+    pub fn open(&mut self, raw: &str, phase: Phase, generation: &str) -> Result<ConnectorMessage, ContractError> {
         let message = decode_value(raw, phase, Some(generation))?;
         let received = message["mac"]
             .as_str()

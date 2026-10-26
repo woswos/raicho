@@ -126,11 +126,7 @@ def date_changelog(original, version, today, section):
     parse_version(version)
     lines = original.splitlines()
     try:
-        start = next(
-            index
-            for index, line in enumerate(lines)
-            if line.startswith('## [Unreleased]')
-        )
+        start = next(index for index, line in enumerate(lines) if line.startswith('## [Unreleased]'))
     except StopIteration as error:
         raise ValueError('CHANGELOG.md has no Unreleased heading') from error
     previous = []

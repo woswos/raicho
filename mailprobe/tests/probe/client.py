@@ -64,9 +64,7 @@ class ProbeClient:
 
     def messages(self, subject, folder='INBOX', username='recipient'):
         return [
-            message
-            for message in inspect_messages(folder=folder, username=username)
-            if message['subject'] == subject
+            message for message in inspect_messages(folder=folder, username=username) if message['subject'] == subject
         ]
 
     def wait_messages(self, subject, count, folder='INBOX', username='recipient'):

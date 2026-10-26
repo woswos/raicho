@@ -31,8 +31,6 @@ class ProductionArchiveTests(unittest.TestCase):
 
     def test_rejects_mail_permissions_in_the_production_archive(self):
         with tempfile.TemporaryDirectory() as temporary:
-            path = self.archive(
-                Path(temporary), permissions=['storage', 'messagesRead']
-            )
+            path = self.archive(Path(temporary), permissions=['storage', 'messagesRead'])
             with self.assertRaises(AssertionError):
                 inspect_archive(path, b'private-token')

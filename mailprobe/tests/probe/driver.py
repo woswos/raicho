@@ -62,14 +62,10 @@ def main():
     elif arguments.phase in ['permission_verify', 'record_skips']:
         from mailprobe.tests.probe import scenario_permissions
 
-        function = (
-            'verify' if arguments.phase == 'permission_verify' else 'record_skips'
-        )
+        function = 'verify' if arguments.phase == 'permission_verify' else 'record_skips'
         getattr(scenario_permissions, function)(client)
     else:
-        module = importlib.import_module(
-            f'mailprobe.tests.probe.scenario_{arguments.phase}'
-        )
+        module = importlib.import_module(f'mailprobe.tests.probe.scenario_{arguments.phase}')
         module.run(client)
 
 

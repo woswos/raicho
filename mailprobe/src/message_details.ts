@@ -1,13 +1,6 @@
 import { objectValue, stringValue } from './validation.js';
 
-const stringFields = new Set([
-  'subject',
-  'identityId',
-  'from',
-  'body',
-  'plainTextBody',
-  'deliveryFormat',
-]);
+const stringFields = new Set(['subject', 'identityId', 'from', 'body', 'plainTextBody', 'deliveryFormat']);
 const recipientFields = new Set(['to', 'cc', 'bcc', 'replyTo']);
 
 export interface Attachment {
@@ -39,10 +32,7 @@ export function messageDetails(value: unknown, requireSubject = true): Details {
         throw new Error('Expected at most three fixture attachments.');
       }
       details.attachments = item.map(attachmentValue);
-    } else if (
-      name === 'overrideDefaultFccFolder' ||
-      name === 'additionalFccFolder'
-    ) {
+    } else if (name === 'overrideDefaultFccFolder' || name === 'additionalFccFolder') {
       details[name] = item === '' ? '' : objectValue(item);
     } else throw new Error('Unsupported fixture message field.');
   }

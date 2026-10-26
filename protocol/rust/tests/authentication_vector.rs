@@ -1,15 +1,13 @@
 use std::{fs, path::PathBuf};
 
 use raicho_protocol::authentication::{
-    ConnectorKeys, authentication_message, client_proof, from_hex, server_signature, to_hex,
-    verify_client_proof,
+    ConnectorKeys, authentication_message, client_proof, from_hex, server_signature, to_hex, verify_client_proof,
 };
 use raicho_protocol::contract_generated::Authenticate;
 use serde_json::{Value, json};
 
 fn vector() -> Value {
-    let path =
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../fixtures/authentication/vector.json");
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../fixtures/authentication/vector.json");
     serde_json::from_slice(&fs::read(path).unwrap()).unwrap()
 }
 
@@ -50,11 +48,7 @@ fn proofs_fail_for_another_token_message_or_altered_byte() {
     let proof = from_hex(vector["client_proof"].as_str().unwrap()).unwrap();
     let other = ConnectorKeys::derive(&"f".repeat(64));
     assert!(!verify_client_proof(&other.stored_key, message, &proof));
-    assert!(!verify_client_proof(
-        &keys.stored_key,
-        &format!("{message}\n"),
-        &proof
-    ));
+    assert!(!verify_client_proof(&keys.stored_key, &format!("{message}\n"), &proof));
     let mut altered = proof;
     altered[0] ^= 1;
     assert!(!verify_client_proof(&keys.stored_key, message, &altered));

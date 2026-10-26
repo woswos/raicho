@@ -15,10 +15,7 @@ def check_runtime():
         raise ValueError('Thunderbird must run as UID 10001.')
     runtime = Path('/tmp/raicho-runtime')
     policy_path = Path('/opt/thunderbird/distribution/policies.json')
-    if (
-        not policy_path.is_symlink()
-        or policy_path.resolve() != runtime / 'policies.json'
-    ):
+    if not policy_path.is_symlink() or policy_path.resolve() != runtime / 'policies.json':
         raise ValueError('The image policy must link to the runtime policy.')
     if stat.S_IMODE(runtime.stat().st_mode) != 0o700:
         raise ValueError('The runtime directory must have mode 0700.')
@@ -39,9 +36,7 @@ def check_runtime():
         with socket.socket() as connection:
             connection.settimeout(1)
             if connection.connect_ex(('127.0.0.1', port)) == 0:
-                raise ValueError(
-                    'An administrative listener is unexpectedly available.'
-                )
+                raise ValueError('An administrative listener is unexpectedly available.')
 
 
 def installed_version():

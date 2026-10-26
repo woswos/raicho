@@ -6,16 +6,11 @@ import { test } from 'node:test';
 import { pathToFileURL, URL } from 'node:url';
 
 const outputDirectory = process.env.RAICHO_WEB_BUILD_DIR ?? 'web/dist';
-const { createStatusView } = await import(
-  pathToFileURL(resolve(outputDirectory, 'status_view.js')).href
-);
+const { createStatusView } = await import(pathToFileURL(resolve(outputDirectory, 'status_view.js')).href);
 
 function viewFixture(context) {
   const originalValues = new Map(
-    ['document', 'HTMLButtonElement'].map((name) => [
-      name,
-      Object.getOwnPropertyDescriptor(globalThis, name),
-    ]),
+    ['document', 'HTMLButtonElement'].map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]),
   );
   class MockButton {
     disabled = false;
@@ -50,10 +45,7 @@ function viewFixture(context) {
 }
 
 test('initial refresh control conveys loading without native disabling', async () => {
-  const markup = await readFile(
-    new URL('../public/index.html', import.meta.url),
-    'utf8',
-  );
+  const markup = await readFile(new URL('../public/index.html', import.meta.url), 'utf8');
   const refreshButton = markup.match(/<button\b[^>]*\bid="refresh"[^>]*>/)?.[0];
   assert.ok(refreshButton);
   assert.match(refreshButton, /\saria-disabled="true"/);
@@ -78,10 +70,7 @@ test('success makes the refresh control available again', (context) => {
     version: '0.1.0',
     commit: 'unknown',
   });
-  assert.equal(
-    globalThis.document.getElementById('application-version').textContent,
-    '0.1.0',
-  );
+  assert.equal(globalThis.document.getElementById('application-version').textContent, '0.1.0');
   view.onStatus({
     status: 'ready',
     database: { status: 'ready', engine: 'sqlite', version: '3.51.3' },
@@ -133,13 +122,8 @@ test('reports connector transitions independently of application readiness', (co
       document.getElementById('application-version').textContent,
       '0.1.0 (0123456789abcdef0123456789abcdef01234567)',
     );
-    assert.match(
-      document.getElementById('announcement').textContent,
-      /Thunderbird/,
-    );
-    assert.ok(
-      document.getElementById('announcement').textContent.includes(label),
-    );
+    assert.match(document.getElementById('announcement').textContent, /Thunderbird/);
+    assert.ok(document.getElementById('announcement').textContent.includes(label));
   }
 });
 
@@ -153,23 +137,11 @@ test('connected diagnostics do not claim mailbox availability', (context) => {
     version: '0.1.0',
     commit: 'unknown',
   });
-  assert.match(
-    document.getElementById('backend-description').textContent,
-    /Mail is not available/,
-  );
-  assert.equal(
-    document.getElementById('backend-status').dataset.state,
-    'ready',
-  );
+  assert.match(document.getElementById('backend-description').textContent, /Mail is not available/);
+  assert.equal(document.getElementById('backend-status').dataset.state, 'ready');
   view.onError('Raicho could not be reached.');
-  assert.equal(
-    document.getElementById('backend-status').textContent,
-    'Not checked',
-  );
-  assert.notEqual(
-    document.getElementById('backend-status').dataset.state,
-    'ready',
-  );
+  assert.equal(document.getElementById('backend-status').textContent, 'Not checked');
+  assert.notEqual(document.getElementById('backend-status').dataset.state, 'ready');
 });
 
 test('a database outage keeps the connector state visible', (context) => {
@@ -187,20 +159,8 @@ test('a database outage keeps the connector state visible', (context) => {
     commit: 'unknown',
   });
   assert.equal(document.getElementById('summary').dataset.state, 'error');
-  assert.equal(
-    document.getElementById('server-status').textContent,
-    'Not ready',
-  );
-  assert.equal(
-    document.getElementById('database-status').textContent,
-    'Unavailable',
-  );
-  assert.equal(
-    document.getElementById('backend-status').textContent,
-    'Unavailable',
-  );
-  assert.match(
-    document.getElementById('announcement').textContent,
-    /cannot use its database/,
-  );
+  assert.equal(document.getElementById('server-status').textContent, 'Not ready');
+  assert.equal(document.getElementById('database-status').textContent, 'Unavailable');
+  assert.equal(document.getElementById('backend-status').textContent, 'Unavailable');
+  assert.match(document.getElementById('announcement').textContent, /cannot use its database/);
 });

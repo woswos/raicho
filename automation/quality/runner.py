@@ -25,9 +25,7 @@ from automation.quality.sql import sql
 def shfmt_options():
     configuration = REPOSITORY_ROOT / '.shfmt'
     if not configuration.is_file() or configuration.is_symlink():
-        raise ValueError(
-            f'shfmt configuration is missing or not a regular file: {configuration}'
-        )
+        raise ValueError(f'shfmt configuration is missing or not a regular file: {configuration}')
     return shlex.split(configuration.read_text(), comments=True)
 
 
@@ -99,8 +97,7 @@ def javascript(root, files, action, typed=False):
         sources = [
             path
             for path in files
-            if path.suffix in JAVASCRIPT_SUFFIXES | TYPESCRIPT_SUFFIXES
-            or path.suffix in CONFIGURATION_SUFFIXES
+            if path.suffix in JAVASCRIPT_SUFFIXES | TYPESCRIPT_SUFFIXES or path.suffix in CONFIGURATION_SUFFIXES
         ]
         if sources:
             mode = '--write' if action == 'format' else '--check'

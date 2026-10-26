@@ -42,9 +42,7 @@ class Supervisor:
     def start(self, name, arguments):
         # Thunderbird's native output may include private mail or account details.
         output = subprocess.DEVNULL if name == 'thunderbird' else None
-        process = subprocess.Popen(
-            arguments, start_new_session=True, stdout=output, stderr=output
-        )
+        process = subprocess.Popen(arguments, start_new_session=True, stdout=output, stderr=output)
         self.children.append((name, process))
         print(f'Started {name}.', flush=True)
 
@@ -88,9 +86,7 @@ class Supervisor:
             if name == 'thunderbird':
                 signal_process(process, signal.SIGTERM)
                 finish_process(process, min(15, deadline - time.monotonic()))
-        remaining = [
-            process for name, process in self.children if name != 'thunderbird'
-        ]
+        remaining = [process for name, process in self.children if name != 'thunderbird']
         for process in remaining:
             signal_process(process, signal.SIGTERM)
         for process in remaining:

@@ -32,6 +32,4 @@ class ControlSocket(HttpWebSocket):
 
 
 def readable(connection, timeout=0.1):
-    return connection.pending() or bool(
-        select.select([connection.socket], [], [], timeout)[0]
-    )
+    return connection.pending() or bool(select.select([connection.socket], [], [], timeout)[0])

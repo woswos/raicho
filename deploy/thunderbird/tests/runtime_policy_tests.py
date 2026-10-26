@@ -19,19 +19,13 @@ class RuntimePolicyTests(unittest.TestCase):
             '/config/profile': self.root / 'profile',
         }
         self.supervisor = Mock()
-        self.supervisor.state_path = (
-            self.paths['/tmp/raicho-runtime'] / 'processes.json'
-        )
+        self.supervisor.state_path = self.paths['/tmp/raicho-runtime'] / 'processes.json'
         self.supervisor.monitor.return_value = 0
 
     def invoke(self, policy_writer):
         with (
-            patch(
-                'deploy.thunderbird.runtime.Path', side_effect=self.paths.__getitem__
-            ),
-            patch(
-                'deploy.thunderbird.runtime.Supervisor', return_value=self.supervisor
-            ),
+            patch('deploy.thunderbird.runtime.Path', side_effect=self.paths.__getitem__),
+            patch('deploy.thunderbird.runtime.Supervisor', return_value=self.supervisor),
             patch('deploy.thunderbird.runtime.signal.signal'),
             patch('deploy.thunderbird.runtime.write_policies', policy_writer),
             patch(
@@ -43,9 +37,7 @@ class RuntimePolicyTests(unittest.TestCase):
 
     def test_policy_is_prepared_before_any_child_starts(self):
         policy_writer = Mock()
-        self.supervisor.start.side_effect = lambda *_arguments: (
-            policy_writer.assert_called_once()
-        )
+        self.supervisor.start.side_effect = lambda *_arguments: policy_writer.assert_called_once()
         self.assertEqual(self.invoke(policy_writer), 0)
         policy_writer.assert_called_once_with(
             self.paths['/tmp/raicho-runtime'],

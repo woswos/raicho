@@ -7,11 +7,7 @@ const FRAME_LABEL = 'raicho-connector-frame';
 
 export type Peer = 'server' | 'client';
 
-export function sessionKey(
-  serverKey: Bytes,
-  transcript: string,
-  generation: string,
-): Promise<Bytes> {
+export function sessionKey(serverKey: Bytes, transcript: string, generation: string): Promise<Bytes> {
   return hmac(serverKey, `${SESSION_KEY_LABEL}\n${transcript}\n${generation}`);
 }
 
@@ -31,23 +27,11 @@ function canonicalObject(entries: [string, unknown][]): string {
 }
 
 export function canonicalJson(message: object): string {
-  return canonicalObject(
-    Object.entries(message).filter(([name]) => name !== 'mac'),
-  );
+  return canonicalObject(Object.entries(message).filter(([name]) => name !== 'mac'));
 }
 
-export async function frameMac(
-  key: Bytes,
-  sender: Peer,
-  counter: number,
-  message: object,
-): Promise<string> {
-  return hex(
-    await hmac(
-      key,
-      `${FRAME_LABEL}\n${sender}\n${String(counter)}\n${canonicalJson(message)}`,
-    ),
-  );
+export async function frameMac(key: Bytes, sender: Peer, counter: number, message: object): Promise<string> {
+  return hex(await hmac(key, `${FRAME_LABEL}\n${sender}\n${String(counter)}\n${canonicalJson(message)}`));
 }
 
 export function createChannel(key: Bytes, local: Peer) {
@@ -59,11 +43,7 @@ export function createChannel(key: Bytes, local: Peer) {
       const mac = await frameMac(key, local, sent++, message);
       return JSON.stringify({ ...message, mac });
     },
-    async open(
-      raw: string,
-      phase: Phase,
-      generation: string,
-    ): Promise<ConnectorMessage> {
+    async open(raw: string, phase: Phase, generation: string): Promise<ConnectorMessage> {
       const message = decodeFrame(raw, phase, generation);
       const expected = await frameMac(key, remote, received, message);
       if (!('mac' in message) || message.mac !== expected) {

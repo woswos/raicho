@@ -56,9 +56,7 @@ class PullRequestGuardTests(GuardTestCase):
             },
         )
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn(
-            'changed Markdown path is not a regular file: notes.md', result.stderr
-        )
+        self.assertIn('changed Markdown path is not a regular file: notes.md', result.stderr)
 
     def test_code_change_still_requires_a_reference(self):
         repo = self.repo()

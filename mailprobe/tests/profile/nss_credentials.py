@@ -66,14 +66,8 @@ def encrypt(library, value):
     key = SecurityItem()
     encrypted = SecurityItem()
     try:
-        require_success(
-            library.PK11SDR_Encrypt(
-                ctypes.byref(key), ctypes.byref(plain), ctypes.byref(encrypted), None
-            )
-        )
-        return base64.b64encode(
-            ctypes.string_at(encrypted.data, encrypted.length)
-        ).decode()
+        require_success(library.PK11SDR_Encrypt(ctypes.byref(key), ctypes.byref(plain), ctypes.byref(encrypted), None))
+        return base64.b64encode(ctypes.string_at(encrypted.data, encrypted.length)).decode()
     finally:
         if encrypted.data:
             library.SECITEM_FreeItem(ctypes.byref(encrypted), False)

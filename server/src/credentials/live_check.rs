@@ -37,12 +37,7 @@ pub async fn wait_for_connector(address: &str, timeout: Duration) -> Result<()> 
             }
             Backend::Waiting => {}
         }
-        tokio::time::sleep(
-            deadline
-                .saturating_duration_since(Instant::now())
-                .min(RETRY_INTERVAL),
-        )
-        .await;
+        tokio::time::sleep(deadline.saturating_duration_since(Instant::now()).min(RETRY_INTERVAL)).await;
     }
 }
 
@@ -59,9 +54,7 @@ async fn status(address: &str) -> Option<Value> {
         .read_to_end(&mut response)
         .await
         .ok()?;
-    let separator = response
-        .windows(4)
-        .position(|window| window == b"\r\n\r\n")?;
+    let separator = response.windows(4).position(|window| window == b"\r\n\r\n")?;
     let status_line = std::str::from_utf8(response.split(|byte| *byte == b'\r').next()?).ok()?;
     let mut parts = status_line.split(' ');
     if !parts.next()?.starts_with("HTTP/1.") || parts.next()? != "200" {
@@ -80,9 +73,7 @@ fn backend(payload: &Value) -> Backend {
     }
     if payload["status"] == "ready"
         && backend["status"] == "connected"
-        && backend["heartbeat_count"]
-            .as_u64()
-            .is_some_and(|count| count > 0)
+        && backend["heartbeat_count"].as_u64().is_some_and(|count| count > 0)
     {
         Backend::Connected
     } else {

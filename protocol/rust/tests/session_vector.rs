@@ -6,8 +6,7 @@ use raicho_protocol::{ContractError, Phase};
 use serde_json::Value;
 
 fn vector() -> Value {
-    let path =
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../fixtures/authentication/session.json");
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../fixtures/authentication/session.json");
     serde_json::from_slice(&fs::read(path).unwrap()).unwrap()
 }
 
@@ -49,10 +48,7 @@ fn channels_accept_each_frame_once_in_order_from_the_other_peer() {
     let mut client = Channel::new(key, Peer::Client);
     assert!(client.open(&ping, Phase::ServerControl, generation).is_ok());
     assert_eq!(
-        client
-            .open(&ping, Phase::ServerControl, generation)
-            .err()
-            .unwrap(),
+        client.open(&ping, Phase::ServerControl, generation).err().unwrap(),
         ContractError::AuthenticationFailed
     );
     let mut server = Channel::new(key, Peer::Server);
@@ -61,11 +57,7 @@ fn channels_accept_each_frame_once_in_order_from_the_other_peer() {
     let mut reflected = Channel::new(key, Peer::Server);
     assert_eq!(
         reflected
-            .open(
-                &ping.replace("ping", "pong"),
-                Phase::ClientControl,
-                generation
-            )
+            .open(&ping.replace("ping", "pong"), Phase::ClientControl, generation)
             .err()
             .unwrap(),
         ContractError::AuthenticationFailed

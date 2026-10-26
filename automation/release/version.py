@@ -8,9 +8,7 @@ from pathlib import Path
 from automation.paths import REPOSITORY_ROOT
 from automation.release.version_lock import replace_lock_version
 
-VERSION_TEXT = re.compile(
-    r'(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})'
-)
+VERSION_TEXT = re.compile(r'(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})')
 MANIFEST_VERSION = re.compile(r'(?<![A-Za-z0-9_])"version"\s*:\s*"[^"]*"')
 WORKSPACE_VERSION = re.compile(r'^(\s*version\s*=\s*")[^"]+(".*)$')
 VERSION_LIMIT = 65535
@@ -18,16 +16,10 @@ VERSION_LIMIT = 65535
 
 def parse_version(text):
     if not isinstance(text, str) or not VERSION_TEXT.fullmatch(text):
-        raise ValueError(
-            'A product version must contain three components from 0 to 65535 '
-            'without leading zeros.'
-        )
+        raise ValueError('A product version must contain three components from 0 to 65535 without leading zeros.')
     parts = tuple(int(component) for component in text.split('.'))
     if any(component > VERSION_LIMIT for component in parts):
-        raise ValueError(
-            'A product version must contain three components from 0 to 65535 '
-            'without leading zeros.'
-        )
+        raise ValueError('A product version must contain three components from 0 to 65535 without leading zeros.')
     return parts
 
 
@@ -147,10 +139,7 @@ def check_product_version(root):
             failures.append(f'{relative}: {error}')
             continue
         if value != declared:
-            failures.append(
-                f'{relative} version {value} does not match the product version '
-                f'{declared}.'
-            )
+            failures.append(f'{relative} version {value} does not match the product version {declared}.')
     return failures
 
 

@@ -101,9 +101,7 @@ class ShellShebangTests(GuardTestCase):
                 repo.write('python-file', '#!/usr/bin/env -vS -vu bash python3\n')
                 result = self.run_guard(repo, 'check_source_naming.py', {})
                 self.assertEqual(result.returncode, 1)
-                self.assertIn(
-                    'FAIL: bad-name must use lowercase snake_case', result.stderr
-                )
+                self.assertIn('FAIL: bad-name must use lowercase snake_case', result.stderr)
                 self.assertNotIn('valid_name', result.stderr)
                 self.assertNotIn('python-file', result.stderr)
                 self.assertFalse((repo.root / 'should_not_exist').exists())

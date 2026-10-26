@@ -52,9 +52,7 @@ class ProfileTests(unittest.TestCase):
         with patch('mailprobe.tests.profile.seed.write_credentials') as writer:
             self.assertFalse(seed_profile(self.profile))
         writer.assert_not_called()
-        self.assertEqual(
-            preferences_file.read_text(), 'fixture changed after initial startup\n'
-        )
+        self.assertEqual(preferences_file.read_text(), 'fixture changed after initial startup\n')
         self.assertEqual(credentials.read_text(), 'fixture credentials changed\n')
 
     def test_existing_unmarked_profile_is_never_modified(self):
