@@ -129,8 +129,10 @@ See [automation placement](project-structure.md#automation) for the module layou
 and invocation convention.
 
 `test-python` runs one `unittest` discovery of `*_tests.py` from the repository
-root. Discovery enters only Python packages, so every directory on a test's
-import path needs an `__init__.py`. The suites cover repository policy including
+root, then runs each discovered module in its own worker process, as many at once
+as the machine has cores. Modules therefore share no interpreter state, and a test
+must not depend on another module's side effects. Discovery enters only Python
+packages, so every directory on a test's import path needs an `__init__.py`. The suites cover repository policy including
 changelog guards, quality discovery, extension and mail probe packaging, mail
 probe fixtures, releases, the operational credential wrapper, the Thunderbird
 runtime, protocol generation, and acceptance-driver support.
