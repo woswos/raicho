@@ -32,11 +32,12 @@ targets under their active configuration, not
 unreferenced `.rs` files or every conditional feature combination. Formatting
 checks cover Cargo projects and each discovered owned `.rs` file independently.
 
-SQLFluff uses the SQLite dialect and raw templater, four-space indentation,
-88-column lines, uppercase keywords/functions/literals/types, and lowercase
-unquoted identifiers. The lint rules cover layout, capitalization, ambiguous
-result columns (`AM04`), and NULL comparison (`CV05`). Formatting applies only
-SQLFluff's formatting rules. Both commands force the repository configuration,
+SQLFluff uses the SQLite dialect and raw templater, four-space indentation with
+implicit indents allowed, and 88-column lines. Keywords are uppercase, while
+functions, literals, types, and unquoted identifiers are lowercase. Quoted
+literals use single quotes, and casts use `CAST(... AS ...)`, since SQLite has no
+`::` operator. Every SQLFluff rule applies. Formatting applies only SQLFluff's
+formatting rules. Both commands force the repository configuration,
 ignore personal/nested configurations, and fail on parsing errors. Checks do
 not connect to a database. SQLFluff syntax checks complement SQLite behavior
 tests rather than proving query execution or migration safety.

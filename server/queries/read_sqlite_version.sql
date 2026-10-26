@@ -1,1 +1,1 @@
-SELECT SQLITE_VERSION();
+SELECT sqlite_version();
