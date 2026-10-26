@@ -13,8 +13,6 @@ use crate::error::{Error, Result};
 
 pub use connector_credentials::{CredentialStatus, CredentialStore};
 
-static MIGRATIONS: Migrator = sqlx::migrate!("./migrations");
-
 pub struct Database {
     pool: SqlitePool,
     version: String,
@@ -23,7 +21,7 @@ pub struct Database {
 
 impl Database {
     pub async fn open(data_dir: &Path) -> Result<Self> {
-        Self::open_with_migrations(data_dir, &MIGRATIONS).await
+        Self::open_with_migrations(data_dir, &migrations::MIGRATIONS).await
     }
 
     pub async fn open_with_migrations(data_dir: &Path, migrations: &Migrator) -> Result<Self> {
