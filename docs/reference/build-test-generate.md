@@ -61,9 +61,10 @@ coverage tools, and Python test fixtures. Its build-context allowlist is
 component-local directories listed in [project structure](project-structure.md#test-code).
 The tooling entrypoint lives at `automation/tooling/entrypoint.bash`.
 
-The entrypoint also compares `package.json`, `package-lock.json`,
+The entrypoint also compares `package.json`, `package-lock.json`, `.npmrc`,
 `eslint.config.mjs`, and `automation/tooling/requirements.txt` with the image
-copies. A mismatch stops the command with a rebuild instruction, preventing stale
+copies. `.npmrc` disables install scripts, audits, and funding messages for every
+`npm ci` in the tooling and runtime images. A mismatch stops the command with a rebuild instruction, preventing stale
 installed dependencies or lint rules. Make on the host rebuilds the image first,
 so the mismatch only appears when the container runs without it.
 
