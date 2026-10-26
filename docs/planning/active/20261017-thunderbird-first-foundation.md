@@ -1,11 +1,9 @@
 # Thunderbird-first foundation
 
-Status: stage 1 is complete. Stage 2 is in progress: its connector contract and the
-server's listener, credential storage, and diagnostics are implemented, and its
-remaining pieces land in [#8](https://github.com/woswos/raicho/pull/8) and
-[#9](https://github.com/woswos/raicho/pull/9). The stage 2 debrief records the
-combined implementation in [#4](https://github.com/woswos/raicho/pull/4) that those
-pull requests split up.
+Status: stage 1 is complete. Stage 2 is in progress: the authenticated connector,
+its credentials, and its diagnostics are implemented, and the mail API experiment and
+CI integration land in [#9](https://github.com/woswos/raicho/pull/9). The stage 2
+debrief records the combined implementation in [#4](https://github.com/woswos/raicho/pull/4).
 Later foundation stages require their own authorization.
 
 The accepted constraints are recorded in the
@@ -124,7 +122,7 @@ the stage implementation approval.
 ## Open questions
 
 - Stage 1 stack choices are resolved in the runtime decision above. ARM64 requires a separately validated packaging route.
-- Stage 2 resolves installation/upgrade, background lifetime, reconnect, credential provisioning, and administrative isolation for the pinned MV2 runtime. The acceptance record (`docs/reference/connector-acceptance.md`) defines the tested scope and remaining mail API limits. It does not establish MV3 behavior or future-version support.
+- Stage 2 resolves installation/upgrade, background lifetime, reconnect, credential provisioning, and administrative isolation for the pinned MV2 runtime. The [acceptance record](../../reference/connector-acceptance.md) defines the tested scope and remaining mail API limits. It does not establish MV3 behavior or future-version support.
 - Before stage 3: settle browser login/bootstrap, HTTPS deployment details, and the UI framework. Before stage 4: select the safe message-rendering approach. Ground these choices in the diagnostic client and brand assets.
 - Before stages 4 and 6: record supported search, draft, and send semantics for the pinned Thunderbird version, including attachment limits and any native compose interaction. Do not claim the newest background-send API exists in an older container image.
 - These are implementation gates, not reopened product choices. Resolve each before its dependent stage. If a solution requires a mail replica, duplicated filters, a privileged Experiment, or a separate host daemon, stop and propose a revised design.
@@ -151,7 +149,7 @@ Each stage includes focused behavioral tests where applicable and ends with a re
   passed. CI invokes the same unattended commands. Earlier native consent,
   draft-editing, and sending-fault evidence remains separate. Programmatic draft
   replacement, synchronization behavior, and uncertain sending remain gates
-  before dependent mail workflows. See acceptance (`docs/reference/connector-acceptance.md`).
+  before dependent mail workflows. See [acceptance](../../reference/connector-acceptance.md).
 - [ ] Stage 3: Deliver authenticated account and mailbox browsing.
   Implement single-user login, session protection, the backend contract, Thunderbird adapter, mock backend, account identities, mailbox listing, and paginated message summaries in the selected UI framework. Enforce ownership/capabilities and session-scoped handles. Add SQLite migrations for login/session state and application preferences within the ownership boundary above.
   Verification: login/logout, unauthorized browser/connector access, persisted settings and session revocation across restarts, concurrent browser sessions, mailbox pagination, mock-adapter substitution, stale handles after restart/message move/folder rename, disconnect status, and absence of mail data in SQLite/logs/browser persistence.

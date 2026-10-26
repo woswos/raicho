@@ -38,12 +38,12 @@ format format-sql format-check format-check-rust format-check-javascript format-
 test-tooling:
 	@python3 -B -m unittest discover -s automation/quality/tests -t . -p '*tooling_checks.py'
 
-.PHONY: build-app build-server build-web test-app test-server test-web
-build-app: build-server build-web
-test-app: test-server test-web
-build-server build-web test-server test-web: | tooling
+.PHONY: build-app build-server build-web build-extension test-app test-server test-web test-extension
+build-app: build-server build-web build-extension
+test-app: test-server test-web test-extension
+build-server build-web build-extension test-server test-web test-extension: | tooling
 
-build-server build-web test-server test-web:
+build-server build-web build-extension test-server test-web test-extension:
 	@python3 -B -m automation.build.application $@
 
 .PHONY: generate-protocol check-protocol test-protocol

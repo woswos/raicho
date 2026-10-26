@@ -1,3 +1,13 @@
+FROM node:24.22.0-bookworm-slim@sha256:a5f4366e834695d5f363b920c104953a535d3a9864d1bdf74566a0ebe01daee5 AS extension
+
+WORKDIR /build
+COPY package.json package-lock.json ./
+RUN npm ci --ignore-scripts --no-audit --no-fund
+ENV PATH="/build/node_modules/.bin:${PATH}"
+COPY extension/ extension/
+COPY protocol/typescript/ protocol/typescript/
+RUN node extension/build.mjs --output-directory /artifact
+
 FROM debian:bookworm-slim@sha256:7c7b2c966bc9ee8cedfeef67e0e279108992c77681fa595db4a9d65c06ccc587 AS download
 
 RUN rm /etc/apt/sources.list.d/debian.sources && \
@@ -43,9 +53,11 @@ RUN rm /etc/apt/sources.list.d/debian.sources && \
 
 COPY --from=download /opt/thunderbird /opt/thunderbird
 COPY --from=download /opt/novnc /usr/share/novnc
-COPY deploy/thunderbird/policies.json /opt/thunderbird/distribution/policies.json
+COPY --from=extension /artifact/ /opt/raicho/extension/
 COPY deploy/thunderbird/__init__.py deploy/thunderbird/runtime.py deploy/thunderbird/supervisor.py \
-    deploy/thunderbird/health_check.py /opt/raicho/thunderbird/
+    deploy/thunderbird/health_check.py deploy/thunderbird/policy.py /opt/raicho/thunderbird/
+RUN mkdir -p /opt/thunderbird/distribution && \
+    ln -s /tmp/raicho-runtime/policies.json /opt/thunderbird/distribution/policies.json
 
 ENV HOME=/config DISPLAY=:99 XDG_RUNTIME_DIR=/tmp/raicho-runtime \
     DBUS_SESSION_BUS_ADDRESS=unix:path=/tmp/raicho-runtime/bus \

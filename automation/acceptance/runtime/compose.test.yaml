@@ -5,6 +5,8 @@ services:
     restart: 'no'
   thunderbird:
     restart: 'no'
+  gateway:
+    restart: 'no'
   smoke:
     image: raicho-tools:local
     build:

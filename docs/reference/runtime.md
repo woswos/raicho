@@ -1,10 +1,8 @@
 # Foundation runtime
 
-Raicho provides diagnostics, persistent application initialization, and a
-listener for the authenticated Thunderbird connector. No Compose service runs a
-connector, and the control protocol carries no mail operations. The
-[connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
-adds the extension and its deployment.
+Raicho provides diagnostics, persistent application initialization, and an
+authenticated control connection to the packaged Thunderbird extension.
+The connector carries no mail operations yet.
 
 See [architecture](architecture.md) for ownership,
 [runtime decision](../decisions/20261018-foundation-runtime-stack.md) for choices,
@@ -24,17 +22,24 @@ Its supervisor starts Thunderbird without a viewer, terminates the other childre
 if a required child exits, and forwards shutdown. The health check verifies
 processes and the internal display. A desktop HTTP response alone is insufficient.
 These modules live beside the image recipe in `deploy/thunderbird/` as
-`runtime.py`, `supervisor.py`, and `health_check.py`, with the static
-`policies.json`. The image installs them as the `/opt/raicho/thunderbird/` package
-and runs `python3 -m thunderbird.runtime` and `python3 -m thunderbird.health_check`.
-The server's `raicho-server connector` subcommands provision, rotate, revoke, and
-reactivate the connector credential, write token files, and wait for a live
-connection.
+`runtime.py`, `supervisor.py`, `policy.py`, and `health_check.py`. The image
+installs them as the `/opt/raicho/thunderbird/` package and runs
+`python3 -m thunderbird.runtime` and `python3 -m thunderbird.health_check`. The
+operational credential wrapper lives in `deploy/credentials/`, with its tests
+under `tests/`. Its token-file and live-check services run the
+`raicho-server connector files` and `connector wait` subcommands from the server
+image. The
+[credential runbook](../operations/connector-credentials.md) documents their use.
 
 Base images use digests, support packages use the 20261018 Debian snapshot, and
 downloaded application assets use checksums. Installed OS packages are recorded
 in `/opt/raicho/packages.tsv` inside the Raicho and Thunderbird images. Runtime
 support is Linux amd64.
+
+`deploy/gateway/Dockerfile` pins Nginx 1.30.6 Alpine by digest.
+Its routing configuration lives in `deploy/gateway/nginx.conf`.
+The gateway runs as UID/GID 10001 with a read-only root, bounded temporary storage,
+no data or secret mounts, and no published port.
 
 | Service | Named volume | Container path |
 | --- | --- | --- |
@@ -73,8 +78,8 @@ and explains that mail is not yet available.
 [`protocol/schema/status.schema.json`](../../protocol/schema/status.schema.json)
 is the response contract, including the 503 body that reports `unavailable` when
 the application database does not respond. The server's HTTP tests validate real
-responses against it, and the page validates every response with a generated
-validator.
+responses against it, the page validates every response with a generated
+validator, and the connector acceptance check reads its expected members from it.
 When the database is unavailable, the page still shows the connector state. See
 the [status contract decision](../decisions/20261026-protocol-contracts.md#status-api).
 
@@ -89,11 +94,8 @@ page shows the version alone when the commit is unknown. See
 `RAICHO_PORT`, default 8080. The browser page is diagnostics only and has no login.
 
 `RAICHO_CONNECTOR_BIND` defaults to `0.0.0.0:8082` and serves only the internal
-WebSocket route `/connector/v1`. Compose never publishes it, and no Compose
-service connects to it. The
-[connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
-adds the gateway that does. Authentication and transport bounds are defined in the
-[connector contract](connector-contract.md).
+WebSocket route `/connector/v1`. Compose never publishes it. Authentication and
+transport bounds are defined in the [connector contract](connector-contract.md).
 
 `RAICHO_ADMIN_ENABLED=true` starts remote desktop support. Only
 `compose.admin.yaml` enables it and publishes loopback port `RAICHO_ADMIN_PORT`,
@@ -102,6 +104,34 @@ Keep it local, close it by recreating Thunderbird without the override, and use
 the Raicho page for diagnostics. Remote deployment and browser login are planned
 in the [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md).
 
+## Extension installation
+
+The image builds the extension from `extension/` and installs its versioned XPI
+through `ExtensionSettings`. The stable ID is `connector@raicho`. Runtime startup
+generates `/tmp/raicho-runtime/policies.json` atomically with mode 0600 under a
+0700 directory. The normal Thunderbird policy path is a baked symlink to it.
+The policy preserves `DisableAppUpdate`, uses `force_installed`, and disables
+extension background updates. Image updates own the XPI version.
+
+Without connector configuration the extension is inactive. The credentials override
+sets `RAICHO_CONNECTOR_ENDPOINT` and `RAICHO_CONNECTOR_TOKEN_FILE` together.
+The runtime reads a 64-character lowercase hexadecimal token from that file and
+provides endpoint/token through managed storage. Partial or invalid configuration
+fails before Thunderbird starts. Neither value is baked into an image or XPI.
+The [credential procedure](../operations/connector-credentials.md) provisions
+the production token and SQLite keys. The credentials override mounts the
+file into Thunderbird and selects `ws://gateway:8081/connector/v1`.
+Managed policy is read at startup. Thunderbird does not support managed-storage
+change events, so policy changes and terminal authentication failures require
+restarting Thunderbird. The credential wrapper force-recreates it.
+
+The production MV2 extension shares the [declared product version](versioning.md)
+and uses only the `storage`
+permission. Its persistent background authenticates and answers heartbeat.
+No probe code enters the production XPI. The
+[production connector check](build-test-generate.md#production-connector) covers
+installation, managed policy, restart, and a same-profile upgrade.
+
 ## Network isolation
 
 Raicho and the smoke driver use the project-scoped `application` bridge network.
@@ -109,6 +139,15 @@ Thunderbird uses a separate `thunderbird` bridge network. Both use Docker's
 default NAT isolation and retain internet egress, but Raicho cannot reach
 Thunderbird's container IP or administrative listener. Do not join the two
 services to a shared network or enable direct routing around this boundary.
+The gateway joins only the internal `connector-application` network, shared with
+Raicho, and the internal `connector-thunderbird` network, shared with
+Thunderbird. It has no egress, and Docker never forwards its DNS queries to
+outside resolvers. See the
+[network decision](../decisions/20261026-thunderbird-connector.md#network-isolation).
+It accepts an exact WebSocket upgrade
+at `/connector/v1` and forwards to `raicho:8082`. Alternate paths, queries, methods,
+and arbitrary destinations are rejected. Docker DNS is re-resolved so a changed
+Raicho IP requires no gateway recreation. HTTP access logs are disabled.
 
 The administrative override publishes only on host loopback. Use Docker Engine
 28 or newer, since older versions have a

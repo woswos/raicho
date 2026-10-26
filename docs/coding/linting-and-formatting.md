@@ -75,8 +75,8 @@ includes Bash (`.bash`, `.sh`, and shell shebangs), Python (`.py`, `.pyi`),
 JavaScript (`.js`, `.mjs`, `.cjs`), TypeScript (`.ts`, `.tsx`, `.mts`, `.cts`),
 Rust (`.rs` and Cargo projects), and SQL (`.sql`).
 
-Prettier also covers every tracked JSON and YAML file, including package and
-TypeScript configuration, every Compose file, the GitHub workflows, and the
+Prettier also covers every tracked JSON and YAML file, including package, manifest,
+and TypeScript configuration, every Compose file, the GitHub workflows, and the
 protocol schemas, limits, and fixtures.
 Do not broaden it to Markdown, HTML, CSS, SVG, exported previews, historical
 references, fonts, or vendor artifacts. Dependency directories, build output,
@@ -157,12 +157,13 @@ jsonschema 0.59.0 in tests that check the decoders and status documents against 
 schemas, and prettyplease 0.3.0 with
 syn 3.0.9 for generated syntax. Exact direct dependencies live in `Cargo.toml`,
 with the graph locked in `Cargo.lock`. Ajv and esbuild run only during generation,
-producing a self-contained validator with no runtime compiler.
+producing a self-contained extension validator with no runtime compiler.
 
 The public listener uses Axum 0.8.9 without its WebSocket support. The connector
 listener accepts WebSockets with tokio-tungstenite 0.29.0, which its socket tests
 also use, futures-util 0.3.34 for socket writes, and getrandom 0.4.3 for session
-generations.
+generations. The runtime proxy pins Nginx 1.30.6 Alpine by
+digest in `deploy/gateway/Dockerfile`.
 
 GitHub checkout stays at v7.0.1, pinned to
 `3d3c42e5aac5ba805825da76410c181273ba90b1`, and setup-python at

@@ -1,0 +1,18 @@
+{
+  "manifest_version": 2,
+  "name": "Raicho Connector",
+  "description": "Raicho authenticated Thunderbird connector.",
+  "version": "0.1.0",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "connector@raicho",
+      "strict_min_version": "153.0"
+    }
+  },
+  "permissions": ["storage"],
+  "background": {
+    "page": "background.html",
+    "persistent": true
+  },
+  "content_security_policy": "script-src 'self'; object-src 'none'; connect-src ws: wss:"
+}

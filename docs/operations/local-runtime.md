@@ -7,8 +7,8 @@ Docker Compose 2.24 or newer is needed for the test override's reset syntax.
 Use Docker Engine 28 or newer for the
 [administrative network boundary](../reference/runtime.md#network-isolation).
 
-The base `compose.yaml` and the operator overlay `compose.admin.yaml` live at
-the repository root.
+The base `compose.yaml` and the operator overlays `compose.admin.yaml` and
+`compose.credentials.yaml` live at the repository root.
 Run the commands below from the repository root. Configuration may come from
 shell variables. If using a repository-root `.env` file, pass `--env-file .env`
 explicitly to Compose, for example:
@@ -30,6 +30,10 @@ docker compose up -d --wait
 Open <http://127.0.0.1:8080>. Expect a ready application and an unconfigured
 Thunderbird connector. No viewer is needed to start Thunderbird.
 
+Use the [credential procedure](connector-credentials.md) to provision persistent
+connector configuration. Its commands manage the matching Compose override and
+restart sequence, then verify an authenticated heartbeat.
+
 For explicit administration:
 
 ```bash
@@ -43,6 +47,11 @@ profiles and no provider credentials. To disable the administrative listener:
 ```bash
 docker compose up -d --force-recreate thunderbird
 ```
+
+For an enrolled deployment, include `compose.credentials.yaml` in both
+administration commands and set `RAICHO_CREDENTIAL_DIRECTORY` to that deployment's
+absolute `credentials/` directory. Omitting the credentials override when
+recreating Thunderbird disables its connector configuration.
 
 Inspect failures with `docker compose logs` and
 `docker compose ps`. To stop while retaining both volumes:
@@ -64,15 +73,19 @@ docker compose up -d --wait
 ## Upgrade
 
 Raicho and Thunderbird images come from the same checkout and are upgraded
-together. After updating the checkout, rebuild and recreate both from the
-repository root:
+together, because the connector protocol version must match exactly. After
+updating the checkout, rebuild and recreate both from the repository root:
 
 ```bash
 docker compose build
 docker compose up -d --wait
 ```
 
-No connector session state carries across the upgrade. See the
+For an enrolled deployment, include `compose.credentials.yaml` and set
+`RAICHO_CREDENTIAL_DIRECTORY` for the `up` command, as for administration. Until
+both containers run the new images, a connector speaking another protocol version
+fails before authentication with `incompatible_version` and keeps retrying. No
+session state carries across the upgrade. See the
 [version policy](../decisions/20261026-thunderbird-connector.md#versioning).
 
 ## Recovering a development database
@@ -80,13 +93,14 @@ No connector session state carries across the upgrade. See the
 If Raicho fails to start because a migration's checksum or version does not
 match, its database applied an earlier version of a migration that has since
 changed. That happens only on unreleased branches, because released migrations
-are never edited. For a development deployment, remove the volume and start
+are never edited. For a development deployment, remove the volume and provision
 again:
 
 ```bash
 docker compose down
 docker volume rm "${COMPOSE_PROJECT_NAME:-raicho}_raicho-data"
 docker compose up -d --wait
+bash deploy/credentials/connector.bash init
 ```
 
 This deletes Raicho's application state, including the connector credential.

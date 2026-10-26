@@ -14,7 +14,7 @@ services:
       - /tmp:mode=1777
     volumes:
       - raicho-data:/var/lib/raicho
-    networks: [application]
+    networks: [application, connector-application]
     ports:
       - '127.0.0.1:${RAICHO_PORT:-8080}:8080'
     cap_drop:
@@ -22,6 +22,21 @@ services:
     security_opt:
       - no-new-privileges:true
     stop_grace_period: 30s
+    restart: unless-stopped
+
+  gateway:
+    image: raicho-gateway:local
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: deploy/gateway/Dockerfile
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    networks: [connector-application, connector-thunderbird]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    stop_grace_period: 10s
     restart: unless-stopped
 
   thunderbird:
@@ -35,7 +50,7 @@ services:
       - /tmp:mode=1777
     volumes:
       - thunderbird-data:/config
-    networks: [thunderbird]
+    networks: [thunderbird, connector-thunderbird]
     shm_size: 1gb
     cap_drop:
       - ALL
@@ -47,6 +62,10 @@ services:
 networks:
   application:
   thunderbird:
+  connector-application:
+    internal: true
+  connector-thunderbird:
+    internal: true
 
 volumes:
   raicho-data:

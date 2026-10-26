@@ -76,7 +76,7 @@ and invocation convention.
 `test-python` runs one `unittest` discovery of `*_tests.py` from the repository
 root. Discovery enters only Python packages, so every directory on a test's
 import path needs an `__init__.py`. The suites cover repository policy including
-changelog guards, quality discovery, releases, the Thunderbird
+changelog guards, quality discovery, extension packaging, releases, the operational credential wrapper, the Thunderbird
 runtime, protocol generation, and acceptance-driver support.
 
 Rust compilation is checked by Clippy under `lint`. While Rust or TypeScript
@@ -152,13 +152,13 @@ Run source builds and behavioral tests through the same tooling container:
 docker compose -f automation/tooling/compose.yaml run --rm check make build-app test-app test-protocol
 ```
 
-`build-app` combines `build-server` and `build-web`. `test-app` combines
-`test-server` and `test-web`.
+`build-app` combines `build-server`, `build-web`, and `build-extension`. `test-app`
+combines `test-server`, `test-web`, and `test-extension`.
 Rust uses `--workspace --all-targets --locked` and
 temporary Cargo output. The browser build uses `tsc`, copies public files and
 the selected identity assets, then runs Node's built-in tests against compiled
-modules. The web builder is `web/build.mjs`, which runs on Node alone. The shared
-dispatcher remains in
+modules. The web builder is `web/build.mjs`, and extension packaging
+uses `extension/build.mjs`. Both run on Node alone. The shared dispatcher remains in
 `automation/build/application.py`. All temporary build output stays
 outside the source mount.
 
@@ -170,7 +170,8 @@ before the Compose command when that output is needed for local debugging.
 
 Build runtime images with `docker compose build`. This
 compiles release artifacts and installs the independently packaged Thunderbird runtime.
-The image recipes pin base digests and downloaded artifacts.
+The image recipes pin base digests and downloaded artifacts. The Thunderbird
+image also builds the XPI with TypeScript and the deterministic Node packager.
 See [local runtime](../operations/local-runtime.md) for Compose
 startup, administration, persistence checks, and cleanup.
 
@@ -193,8 +194,8 @@ generation scripts live in `protocol/generator/`. `check-protocol` compares fres
 output without editing sources and runs under `lint` in CI. `test-protocol` runs the
 independently compiled TypeScript protocol tests. The Rust contract and generator
 tests run with the workspace under `test-server`.
-CI runs `test-protocol` alongside `test-app`, which covers the application
-suites. See the [contract reference](connector-contract.md)
+CI runs `test-protocol` alongside `test-app`, which covers the application and
+extension suites. See the [contract reference](connector-contract.md)
 for sources, parsing rules, and integration responsibilities.
 
 ## Credential persistence
@@ -202,12 +203,61 @@ for sources, parsing rules, and integration responsibilities.
 ```bash
 docker compose -f automation/tooling/compose.yaml run --rm check \
   make test-server lint-repo lint-sql format-check-sql
+bash automation/acceptance/credentials/check_credentials.bash
 ```
 
 The source checks cover credential state transitions, token-file recovery and
-safety, and the live connection check in `server/tests/`. The
-`raicho-server connector` subcommands provision, rotate, revoke, and reactivate
-the credential offline.
+safety, and the live connection check in `server/tests/`.
+The host runner owns a disposable Docker deployment and checks the actual
+provisioning, rotation, revocation, restart, file permissions, and mount boundary.
+The [credential runbook](../operations/connector-credentials.md) documents the
+operator commands under `deploy/credentials/` and recovery states. Successful
+provisioning requires a live authenticated heartbeat before removing the
+previous token file.
+
+## Production connector
+
+```bash
+docker compose -f automation/tooling/compose.yaml run --rm check make test-server test-extension test-web
+bash automation/acceptance/connector/check_connector.bash
+```
+
+The host runner owns a fresh `raicho-connector-...` deployment and credentials.
+It tests authenticated heartbeat, restart and recreation of all three services,
+network interruption, changed server IP without proxy recreation, rejected proofs,
+proxy route restrictions, the separate browser listener, and administrative
+isolation by actual container IP. It checks logs, database contents, and mount
+boundaries before removing its resources. It uses the production XPI and no
+provider accounts. Before recovery tests it inspects the actual packaged XPI and
+observes one authenticated generation for at least 600 seconds, requiring ongoing
+heartbeat progress. A reconnect, counter reset, or heartbeat stall fails the check.
+Rejected payloads carry fictional mail canaries. The runner checks that those
+canaries and the raw token are absent from logs, diagnostics, and SQLite, and
+rejects unexpected application tables. It checks the Thunderbird runtime policy
+and a profile sentinel across restarts. Finally it builds the production XPI as
+version 65535.0.0 into a disposable volume, mounts it over the image's extension
+directory, and requires the same profile to activate that version and reconnect.
+It runs unchanged in CI's `connector-test` job alongside the credential runner. See [acceptance evidence](connector-acceptance.md).
+
+The connector runner takes about 20 minutes because of its idle observation. The
+credential runner takes about 6 minutes, after cached image builds. Each owns a uniquely named project and networks, so they can run
+concurrently. They run unchanged from a linked worktree, which tests a fixed
+commit while editing continues in another checkout.
+
+## Extension packaging
+
+```bash
+docker compose -f automation/tooling/compose.yaml run --rm check \
+  make build-extension test-extension typecheck test-python
+```
+
+The packager stores sorted, uncompressed archive entries with fixed timestamps
+and modes. Its reproducibility and version tests run under `test-python`.
+`build-extension` uses disposable output. To export an XPI, mount an empty
+output directory into the tooling container and run
+`node extension/build.mjs --output /output/raicho.xpi`. The `--version` option overrides the manifest
+version, as the connector upgrade check does. No test modules or credentials
+enter the archive.
 
 ## Releases
 

@@ -1,0 +1,5 @@
+{
+  "name": "@raicho/connector",
+  "private": true,
+  "type": "module"
+}

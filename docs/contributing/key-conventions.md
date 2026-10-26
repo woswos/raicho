@@ -8,7 +8,8 @@ Project invariants complement the shared [workflow](workflow.md) and
 Use the [placement rules](../reference/project-structure.md#placement-rules) for files and
 the [test ownership guide](../reference/project-structure.md#test-code) for tests and fixtures.
 The [automation guide](../reference/project-structure.md#automation) groups shared development
-commands by responsibility, and protocol generation lives in `protocol/generator/`.
+commands by responsibility. Operational credential helpers live in `deploy/credentials/`,
+and protocol generation lives in `protocol/generator/`.
 Naming follows the [source filename](../coding/coding-standards.md#source-filenames)
 and [directory name](../coding/coding-standards.md#directory-names) conventions.
 
