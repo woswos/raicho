@@ -1,6 +1,6 @@
 # Title
 
-- Status: proposed | accepted | superseded by `YYYYMMDD-slug`
+- Status: proposed | accepted | accepted, amended by `YYYYMMDD-slug` | superseded by `YYYYMMDD-slug`
 - Date: YYYY-MM-DD
 - Deciders: names
 

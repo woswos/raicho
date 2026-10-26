@@ -1,6 +1,6 @@
 # Group Compose configurations and check SQL
 
-- Status: accepted
+- Status: accepted, amended by `20261026-repository-layout`
 - Date: 2026-10-18
 - Deciders: Raicho maintainer
 
