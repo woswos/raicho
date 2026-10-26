@@ -5,7 +5,7 @@ and the mail compatibility experiment in disposable Docker deployments. See the
 [contract](connector-contract.md), [build commands](build-test-generate.md),
 [CI jobs](ci-cd.md), and [credential procedure](../operations/connector-credentials.md).
 The dated results of the first acceptance are in the
-[connector plan](../planning/active/20261018-foundation-stage-two-connector.md#acceptance-evidence).
+[connector plan](../planning/done/20261018-foundation-stage-two-connector.md#acceptance-evidence).
 
 ## Scope
 

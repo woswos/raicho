@@ -1,9 +1,7 @@
 # Thunderbird-first foundation
 
-Status: stage 1 is complete. Stage 2 is in progress: the authenticated connector,
-its credentials, and its diagnostics are implemented, and the mail API experiment and
-CI integration land in [#9](https://github.com/woswos/raicho/pull/9). The stage 2
-debrief records the combined implementation in [#4](https://github.com/woswos/raicho/pull/4).
+Status: stages 1 and 2 implementation and local Docker acceptance are complete.
+Stage 2 CI integration is configured, with hosted results tracked on its implementation PR.
 Later foundation stages require their own authorization.
 
 The accepted constraints are recorded in the
@@ -136,8 +134,8 @@ Each stage includes focused behavioral tests where applicable and ends with a re
   Verification: validate Compose, build/start a disposable deployment, open diagnostics, inspect Thunderbird through the administrative endpoint, and recreate containers to check profile and SQLite persistence and startup without a viewer. Exercise fresh database initialization, migration success/failure, and rejection of unsupported schemas without data loss.
   Quality gate: `docker compose config --quiet`, `docker compose build`, and Rust format/Clippy, TypeScript type/build, repository checks, and focused persistence/migration tests inside tooling containers. Record image/version/platform evidence. Stop for review of the runnable foundation and stage 2 experiment.
   Debrief (2026-10-18): implemented Rust/SQLite diagnostics, the TypeScript page, and our own Debian-based Thunderbird image as explicitly requested. All 88 repository/tooling/application/supervisor tests and quality checks passed in Docker. Disposable recreation preserved SQLite contents and Thunderbird preferences, Raicho remained ready with Thunderbird stopped, and browser inspection confirmed desktop/mobile diagnostics and the native administrative desktop. No extension or mail workflow is claimed. Stage 2 awaits review.
-- [ ] Stage 2: Prove the extension lifecycle and connector.
-  Implementation follows the [connector design](20261018-foundation-stage-two-connector.md), including packaging, lifecycle, production protocol, gateway, credentials, and separate mail experiments.
+- [x] Stage 2: Prove the extension lifecycle and connector.
+  Implementation follows the completed [connector design](../done/20261018-foundation-stage-two-connector.md), including packaging, lifecycle, production protocol, gateway, credentials, and separate mail experiments.
   Package/install the extension, authenticate its outbound connection, define the minimal versioned handshake/capability schema, and report connection state in diagnostics. Add migrations for Raicho-owned connector configuration and pairing state in SQLite. Keep mail APIs unavailable to the browser. Exercise the selected version's draft/send APIs against local test infrastructure to identify incompatibilities early.
   Verification: extension activation without a viewer, invalid credentials/protocol rejection, idle-background behavior, restart either container, network interruption, bounded backoff, credential persistence/rotation, draft save/reopen/edit/resave, and queued versus sent outcomes. Record limitations and resolve the lifecycle/transport gate.
   Quality gate: containerized Rust/TypeScript checks and focused protocol/recovery tests. No real-provider sends. Stop for review of protocol evidence, pairing design, and compatibility matrix.

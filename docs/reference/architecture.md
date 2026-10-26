@@ -117,7 +117,7 @@ built Thunderbird image. The
 [direct connector listener decision](../decisions/20261026-thunderbird-connector.md#listener)
 keeps Axum for the public listener and accepts connector WebSockets with
 tokio-tungstenite. The
-[connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
+[connector plan](../planning/done/20261018-foundation-stage-two-connector.md)
 selects MV2 packaging, managed configuration, a fixed internal gateway, and a
 versioned authenticated protocol. The mail compatibility
 fixture and control contract have separate implementations.

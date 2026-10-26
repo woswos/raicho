@@ -1,17 +1,14 @@
 # Foundation Stage 2: Thunderbird connector
 
 Status: approved design [PR #2](https://github.com/woswos/raicho/pull/2) merged on
-2026-10-18. Stages 1, 3, 4, and 5 are implemented: packaging and lifecycle, the
-connector contract, credential provisioning, and the production connection with its
-diagnostics. The mail API experiment and CI integration land in
-[#9](https://github.com/woswos/raicho/pull/9). The debriefs of stages 2 and 6 record
-the combined implementation in [#4](https://github.com/woswos/raicho/pull/4), so they
-also describe work that is not in this revision. See
+2026-10-18. All six implementation slices and local Docker acceptance are complete.
+CI runs the same unattended commands. Hosted results are tracked on the implementation PR.
+Mail compatibility limitations remain gates before dependent compose work. See
 [acceptance evidence](../../reference/connector-acceptance.md).
 
 ## Goal
 
-Complete Stage 2 of the [foundation plan](20261017-thunderbird-first-foundation.md)
+Complete Stage 2 of the [foundation plan](../active/20261017-thunderbird-first-foundation.md)
 with an unattended, authenticated connection between the packaged Thunderbird
 extension and Raicho. Demonstrate installation, upgrades, bounded recovery,
 credential management, and diagnostic status against the pinned Thunderbird
@@ -216,7 +213,7 @@ with their corresponding slice, and run through Docker locally and in CI.
   preserving the profile. Recorded the test listener's text-frame adapter and
   observed Origin in [lifecycle evidence](#lifecycle-fixture-evidence).
   Production transport, mail APIs, and the ten-minute acceptance remain later slices.
-- [ ] Stage 2: Run the mail API compatibility experiment.
+- [x] Stage 2: Run the mail API compatibility experiment.
   Add the isolated GreenMail deployment and separate probe artifact. Test plain
   text, HTML, selected identity, a small attachment, and draft rediscovery after
   Thunderbird restart. Check reopen/edit/resave and duplicate behavior, including
@@ -294,7 +291,7 @@ with their corresponding slice, and run through Docker locally and in CI.
   was reproduced in source tests and corrected, but those earlier failures lacked
   enough evidence to establish their cause. Neither recurred in the final suites.
   Managed policy reload requires Thunderbird restart. CI acceptance remains Stage 6.
-- [ ] Stage 6: Integrate CI and record acceptance evidence.
+- [x] Stage 6: Integrate CI and record acceptance evidence.
   Extend the existing Docker source and runtime jobs using the same local commands.
   Include a ten-minute idle test, production-XPI inspection, and checks that logs,
   diagnostics, and SQLite contain neither mail content nor raw credentials.

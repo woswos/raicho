@@ -4,7 +4,7 @@ The first connector contract defines connection control only. The production
 Rust listener and TypeScript extension use its generated bindings and boundary
 decoders for authentication and heartbeat. The
 [acceptance record](connector-acceptance.md) describes production validation and
-the [connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
+the [connector plan](../planning/done/20261018-foundation-stage-two-connector.md)
 records the approved design.
 
 See [architecture](architecture.md) for component boundaries and

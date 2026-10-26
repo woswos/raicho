@@ -2,7 +2,7 @@
 
 This records standard Thunderbird mail API behavior observed with a separate
 probe extension, as designed in the
-[connector plan](../planning/active/20261018-foundation-stage-two-connector.md).
+[connector plan](../planning/done/20261018-foundation-stage-two-connector.md).
 Results apply to the versions below, not supported product capabilities.
 Browser compose and production mail commands
 remain outside this experiment.
@@ -123,7 +123,7 @@ skips consent-dependent delivery, native editing, and interactive fault checks.
 Their observations above remain the separately recorded manual evidence. Some
 unattended runs find every restarted draft before the folder-selection fallback,
 so that synchronization dependency is intermittent rather than resolved. The
-[connector plan](../planning/active/20261018-foundation-stage-two-connector.md#acceptance-evidence)
+[connector plan](../planning/done/20261018-foundation-stage-two-connector.md#acceptance-evidence)
 records the individual runs.
 
 The controller stores observations only in the disposable fixture volume. Review
