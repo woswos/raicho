@@ -30,6 +30,7 @@ describe() {
         check-protocol) echo 'checking|checked|protocol bindings' ;;
         check-patch-coverage) echo 'checking|checked|patch coverage' ;;
         coverage) echo 'measuring|measured|coverage' ;;
+        benchmark) echo 'benchmarking|benchmarked|Rust code' ;;
         clean) echo 'cleaning|cleaned|up' ;;
         *) echo "running|ran|${TARGET}" ;;
     esac

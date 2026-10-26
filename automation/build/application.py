@@ -8,6 +8,7 @@ from pathlib import Path
 
 from automation.paths import REPOSITORY_ROOT
 
+BENCHMARK = ['cargo', 'bench', '--workspace', '--bench', '*', '--locked']
 NODE_REPORTER = f'--test-reporter={REPOSITORY_ROOT / "automation/build/node_reporter.mjs"}'
 
 
@@ -32,6 +33,17 @@ def cargo_test(arguments, env=None):
         sys.stdout.write(result.stdout)
         raise subprocess.CalledProcessError(result.returncode, command)
     print(test_summary(result.stdout), flush=True)
+    return result
+
+
+def cargo_bench():
+    if os.environ.get('CARGO_TERM_QUIET') != 'true':
+        return run(BENCHMARK)
+    # Criterion reports progress on stderr and results on stdout.
+    result = subprocess.run(BENCHMARK, cwd=REPOSITORY_ROOT, stderr=subprocess.PIPE, text=True, check=False)
+    if result.returncode:
+        sys.stderr.write(result.stderr)
+        raise subprocess.CalledProcessError(result.returncode, BENCHMARK)
     return result
 
 
@@ -99,10 +111,13 @@ def main():
             'test-web',
             'test-extension',
             'test-mailprobe',
+            'benchmark',
         ),
     )
     target = parser.parse_args().target
-    if target.endswith('server'):
+    if target == 'benchmark':
+        cargo_bench()
+    elif target.endswith('server'):
         arguments = ['--workspace', '--all-targets', '--locked']
         if target == 'build-server':
             run(['cargo', 'build', *arguments])

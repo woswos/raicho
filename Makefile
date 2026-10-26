@@ -4,7 +4,8 @@ QUALITY_TARGETS := lint-bash lint-python lint-javascript lint-typescript lint-ru
     format format-bash format-python format-javascript format-rust format-sql \
     format-check format-check-bash format-check-python format-check-javascript format-check-rust \
     format-check-sql format-spelling typecheck
-APPLICATION_TARGETS := build-server build-web build-extension test-server test-web test-extension test-mailprobe
+APPLICATION_TARGETS := build-server build-web build-extension test-server test-web test-extension test-mailprobe \
+    benchmark
 PROTOCOL_TARGETS := generate-protocol check-protocol test-protocol
 CONTAINER_TARGETS := build test lint generate lint-repo lint-pr test-python test-tooling coverage \
     check-patch-coverage $(QUALITY_TARGETS) $(APPLICATION_TARGETS) $(PROTOCOL_TARGETS)
