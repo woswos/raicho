@@ -23,6 +23,12 @@ class ScriptToolingChecks(QualityFixture):
         path.write_text('#!/usr/bin/env bash\necho $1\n')
         self.check('lint-bash', successful=False, diagnostic='SC2086')
 
+    def test_bash_lint_requires_braces_but_allows_the_excluded_checks(self):
+        path = self.write('tool.bash', '#!/usr/bin/env bash\necho "$HOME"\n')
+        self.check('lint-bash', successful=False, diagnostic='SC2250')
+        path.write_text('#!/usr/bin/env bash\nif [ ! -z "${1}" ]; then\n    echo "${1}"\nfi\n')
+        self.check('lint-bash')
+
     def test_python_format_check_reports_and_format_rewrites(self):
         path = self.write('example.py', UNFORMATTED_PYTHON)
         self.check('format-check-python', successful=False, diagnostic='example.py')
