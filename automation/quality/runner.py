@@ -19,6 +19,7 @@ from automation.quality.projects import (
     typecheck,
     typescript_projects,
 )
+from automation.quality.spelling import spelling
 from automation.quality.sql import sql
 
 
@@ -125,10 +126,12 @@ TARGETS = (
     'lint-typescript',
     'lint-rust',
     'lint-sql',
+    'lint-spelling',
     'format',
     'format-check',
     *(f'format-{language}' for language in LANGUAGES),
     *(f'format-check-{language}' for language in LANGUAGES),
+    'format-spelling',
     'typecheck',
 )
 
@@ -143,6 +146,8 @@ def check_language(language, root, files, action, typed=False):
     elif language == 'rust':
         require_tools('cargo', 'rustfmt', 'cargo-clippy')
         rust(root, files, action, REPOSITORY_ROOT)
+    elif language == 'spelling':
+        spelling(root, files, action)
     else:
         sql(root, files, action, REPOSITORY_ROOT)
 

@@ -7,7 +7,8 @@ Run the shared tooling image using the commands in
 [code-quality decision](../decisions/20261018-containerized-code-quality.md)
 records the selected tools and their boundary.
 The [Compose and SQL decision](../decisions/20261018-compose-layout-and-sql-quality.md)
-extends that tooling to SQLite source.
+extends that tooling to SQLite source, and the
+[spell-checking decision](../decisions/20261026-spell-checking.md) adds typos.
 
 | Language or check | Configuration |
 | --- | --- |
@@ -18,6 +19,7 @@ extends that tooling to SQLite source.
 | TypeScript | typescript-eslint typed rules, Prettier, and `tsc --noEmit` with project configuration |
 | Rust | Clippy for Cargo targets, rustfmt with edition 2024 from `rustfmt.toml` |
 | SQL | SQLFluff lint and format using the root `.sqlfluff` configuration |
+| Spelling | typos with `.typos.toml`, which lists accepted false positives |
 
 Every formatter uses 120-column lines: Ruff's `line-length`, Prettier's
 `printWidth`, rustfmt's `max_width`, and SQLFluff's `max_line_length`. The
@@ -114,8 +116,8 @@ before formatting migration files.
 ## Versions and updates
 
 The [tooling Dockerfile](../../automation/tooling/Dockerfile) pins each source
-image by digest. It installs Debian Bookworm support packages from the
-`20261018T000000Z` snapshot.
+image by digest, and the typos release archive by SHA-256. It installs Debian
+Bookworm support packages from the `20261018T000000Z` snapshot.
 
 | Tool | Version |
 | --- | --- |
@@ -126,6 +128,7 @@ image by digest. It installs Debian Bookworm support packages from the
 | Ruff | 0.16.8 |
 | ShellCheck | 0.11.0 |
 | shfmt | 3.14.1 |
+| typos | 1.51.1 |
 | SQLFluff | 4.4.0 |
 | coverage.py | 7.16.2 |
 | diff-cover | 10.6.0 |

@@ -1,14 +1,14 @@
 REPOSITORY_ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-QUALITY_TARGETS := lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql \
+QUALITY_TARGETS := lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql lint-spelling \
     format format-bash format-python format-javascript format-rust format-sql \
     format-check format-check-bash format-check-python format-check-javascript format-check-rust \
-    format-check-sql typecheck
+    format-check-sql format-spelling typecheck
 APPLICATION_TARGETS := build-server build-web build-extension test-server test-web test-extension test-mailprobe
 PROTOCOL_TARGETS := generate-protocol check-protocol test-protocol
 CONTAINER_TARGETS := build test lint generate lint-repo lint-pr test-python test-tooling coverage \
     check-patch-coverage $(QUALITY_TARGETS) $(APPLICATION_TARGETS) $(PROTOCOL_TARGETS)
-WRITING_TARGETS := format format-bash format-python format-javascript format-rust format-sql \
+WRITING_TARGETS := format format-bash format-python format-javascript format-rust format-sql format-spelling \
     generate generate-protocol
 HOST_TARGETS := images acceptance acceptance-runtime acceptance-connector acceptance-credentials \
     acceptance-mail clean

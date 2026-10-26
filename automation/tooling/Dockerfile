@@ -4,6 +4,11 @@ RUN rustup component add clippy rustfmt llvm-tools
 FROM ghcr.io/astral-sh/ruff:0.16.8@sha256:ec3c84a063840fc9a678004f4d958ea4e1e79de1ee3f94dc0f0df3a4a3a1f1a7 AS ruff
 FROM koalaman/shellcheck:v0.11.0@sha256:61862eba1fcf09a484ebcc6feea46f1782532571a34ed51fedf90dd25f925a8d AS shellcheck
 FROM mvdan/shfmt:v3.14.1@sha256:8c06884a35683d8763fba6c0d9484d11a61a96da65f8d497d6f625825a6043f2 AS shfmt
+FROM python:3.13.16-slim-bookworm@sha256:a1165e272e578941b84abc79e4ab38a0305cd12803a5c4247979ac7655f4d641 AS typos
+ADD --checksum=sha256:93c301fd4120ff076e2cc2a6d6a61cab4a4bdb81899287c0938b452e56d1f454 \
+    https://github.com/crate-ci/typos/releases/download/v1.51.1/typos-v1.51.1-x86_64-unknown-linux-musl.tar.gz \
+    /typos.tar.gz
+RUN tar -xzf /typos.tar.gz -C /usr/local/bin ./typos
 FROM python:3.13.16-slim-bookworm@sha256:a1165e272e578941b84abc79e4ab38a0305cd12803a5c4247979ac7655f4d641
 
 RUN rm /etc/apt/sources.list.d/debian.sources && \
@@ -23,6 +28,7 @@ COPY --from=rust /usr/local/rustup /usr/local/rustup
 COPY --from=ruff /ruff /usr/local/bin/ruff
 COPY --from=shellcheck /bin/shellcheck /usr/local/bin/shellcheck
 COPY --from=shfmt /bin/shfmt /usr/local/bin/shfmt
+COPY --from=typos /usr/local/bin/typos /usr/local/bin/typos
 
 WORKDIR /opt/quality
 COPY automation/tooling/requirements.txt ./requirements.txt
