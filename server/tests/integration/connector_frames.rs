@@ -1,5 +1,3 @@
-mod support;
-
 use raicho_protocol::diagnostics_generated::{BackendError, BackendState};
 use std::time::Duration;
 
@@ -10,7 +8,7 @@ use tokio_tungstenite::tungstenite::protocol::frame::{
     coding::{Data, OpCode},
 };
 
-use support::{Fixture, receive, receive_within};
+use crate::support::{Fixture, receive, receive_within};
 
 #[tokio::test]
 async fn fragmented_authentication_cannot_extend_the_absolute_deadline() {

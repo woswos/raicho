@@ -1,5 +1,3 @@
-mod support;
-
 use std::time::Duration;
 
 use futures_util::SinkExt;
@@ -10,7 +8,7 @@ use tokio::net::TcpStream;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{MaybeTlsStream, client_async, connect_async};
 
-use support::{Fixture, authentication, elapse, receive};
+use crate::support::{Fixture, authentication, elapse, receive};
 
 #[tokio::test]
 async fn partial_upgrade_headers_have_an_absolute_deadline() {

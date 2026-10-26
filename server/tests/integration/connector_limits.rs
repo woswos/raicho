@@ -1,5 +1,3 @@
-mod support;
-
 use raicho_protocol::diagnostics_generated::{BackendError, BackendState};
 use std::time::Duration;
 
@@ -10,7 +8,7 @@ use serde_json::json;
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
 
-use support::{Fixture, elapse, receive, receive_within};
+use crate::support::{Fixture, elapse, receive, receive_within};
 
 #[tokio::test]
 async fn silent_authentication_expires_and_pending_connections_are_bounded() {
