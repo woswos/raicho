@@ -3,7 +3,7 @@ use std::{fs, path::PathBuf};
 use raicho_protocol::authentication::{from_hex, to_hex};
 use raicho_protocol::channel::{Channel, Peer, canonical_json, frame_mac, session_key};
 use raicho_protocol::{ContractError, Phase};
-use serde_json::Value;
+use serde_json::{Value, json};
 
 fn vector() -> Value {
     let path =
@@ -73,4 +73,43 @@ fn channels_accept_each_frame_once_in_order_from_the_other_peer() {
     let mut sealing = Channel::new(key, Peer::Server);
     let sealed: Value = serde_json::from_str(&sealing.seal(&frames[0]["message"])).unwrap();
     assert_eq!(sealed, frames[0]["message"]);
+}
+
+#[test]
+fn a_failed_frame_closes_the_channel() {
+    let vector = vector();
+    let key = from_hex(vector["session_key"].as_str().unwrap()).unwrap();
+    let generation = vector["generation"].as_str().unwrap();
+    let ping = vector["frames"][0]["message"].clone();
+    let mut tampered = ping.clone();
+    let mac = ping["mac"].as_str().unwrap();
+    let flipped = if mac.starts_with('0') { "1" } else { "0" };
+    tampered["mac"] = Value::String(format!("{flipped}{}", &mac[1..]));
+    let mut client = Channel::new(key, Peer::Client);
+    let mut open =
+        |frame: &Value| client.open(&frame.to_string(), Phase::ServerControl, generation);
+    assert_eq!(
+        open(&tampered).err(),
+        Some(ContractError::AuthenticationFailed)
+    );
+    assert_eq!(open(&ping).err(), Some(ContractError::AuthenticationFailed));
+}
+
+#[test]
+fn a_frame_without_a_mac_is_invalid() {
+    let vector = vector();
+    let key = from_hex(vector["session_key"].as_str().unwrap()).unwrap();
+    let challenge =
+        json!({"type": "challenge", "protocol_version": 1, "server_nonce": "f".repeat(64)});
+    let mut client = Channel::new(key, Peer::Client);
+    assert_eq!(
+        client
+            .open(
+                &challenge.to_string(),
+                Phase::Challenge,
+                vector["generation"].as_str().unwrap()
+            )
+            .err(),
+        Some(ContractError::InvalidMessage)
+    );
 }

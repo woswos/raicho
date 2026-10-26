@@ -100,6 +100,7 @@ pub struct Channel {
     local: Peer,
     sent: u64,
     received: u64,
+    failed: bool,
 }
 
 impl Channel {
@@ -109,6 +110,7 @@ impl Channel {
             local,
             sent: 0,
             received: 0,
+            failed: false,
         }
     }
 
@@ -129,6 +131,20 @@ impl Channel {
     }
 
     pub fn open(
+        &mut self,
+        raw: &str,
+        phase: Phase,
+        generation: &str,
+    ) -> Result<ConnectorMessage, ContractError> {
+        if self.failed {
+            return Err(ContractError::AuthenticationFailed);
+        }
+        let result = self.verify(raw, phase, generation);
+        self.failed = result.is_err();
+        result
+    }
+
+    fn verify(
         &mut self,
         raw: &str,
         phase: Phase,

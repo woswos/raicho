@@ -1,4 +1,4 @@
-import { hex, hmac, type Bytes } from './authentication.js';
+import { constantTimeEqual, hex, hmac, type Bytes } from './authentication.js';
 import type { ConnectorMessage } from './contract_generated.js';
 import { ContractError, decodeFrame, type Phase } from './decode_frame.js';
 
@@ -25,6 +25,7 @@ function canonicalValue(value: unknown): string {
 
 function canonicalObject(entries: [string, unknown][]): string {
   const members = entries
+    .filter(([, value]) => value !== undefined)
     .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
     .map(([name, value]) => `${JSON.stringify(name)}:${canonicalValue(value)}`);
   return `{${members.join(',')}}`;
@@ -54,8 +55,10 @@ export function createChannel(key: Bytes, local: Peer) {
   const remote: Peer = local === 'server' ? 'client' : 'server';
   let sent = 0;
   let received = 0;
+  let failed = false;
   return {
     async seal(message: object): Promise<string> {
+      if (failed) throw new ContractError('authentication_failed');
       const mac = await frameMac(key, local, sent++, message);
       return JSON.stringify({ ...message, mac });
     },
@@ -64,13 +67,22 @@ export function createChannel(key: Bytes, local: Peer) {
       phase: Phase,
       generation: string,
     ): Promise<ConnectorMessage> {
-      const message = decodeFrame(raw, phase, generation);
-      const expected = await frameMac(key, remote, received, message);
-      if (!('mac' in message) || message.mac !== expected) {
-        throw new ContractError('authentication_failed');
+      if (failed) throw new ContractError('authentication_failed');
+      // Overlapping calls must each check the next counter, in the order frames arrived.
+      const counter = received++;
+      try {
+        const message = decodeFrame(raw, phase, generation);
+        const mac = 'mac' in message ? message.mac : undefined;
+        if (mac === undefined) throw new ContractError('invalid_message');
+        const expected = await frameMac(key, remote, counter, message);
+        if (!constantTimeEqual(mac, expected)) {
+          throw new ContractError('authentication_failed');
+        }
+        return message;
+      } catch (error) {
+        failed = true;
+        throw error;
       }
-      received += 1;
-      return message;
     },
   };
 }

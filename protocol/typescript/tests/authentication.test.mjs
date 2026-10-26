@@ -5,12 +5,17 @@ import process from 'node:process';
 import { test } from 'node:test';
 import { pathToFileURL, URL } from 'node:url';
 
-const { authenticationMessage, clientProof, randomNonce, serverSignature } =
-  await import(
-    pathToFileURL(
-      resolve(process.env.RAICHO_PROTOCOL_BUILD_DIR, 'authentication.js'),
-    ).href
-  );
+const {
+  authenticationMessage,
+  clientProof,
+  randomNonce,
+  serverSignature,
+  verifyServerSignature,
+} = await import(
+  pathToFileURL(
+    resolve(process.env.RAICHO_PROTOCOL_BUILD_DIR, 'authentication.js'),
+  ).href
+);
 const vector = JSON.parse(
   await readFile(
     new URL('../../fixtures/authentication/vector.json', import.meta.url),
@@ -44,4 +49,17 @@ test('nonces are fresh lowercase hexadecimal', () => {
   const first = randomNonce();
   assert.match(first, /^[a-f0-9]{64}$/u);
   assert.notEqual(first, randomNonce());
+});
+
+test('server signatures verify only for the matching token and message', async () => {
+  const { message, server_signature: signature, token } = vector;
+  assert.equal(await verifyServerSignature(token, message, signature), true);
+  assert.equal(
+    await verifyServerSignature(token, `${message}\n`, signature),
+    false,
+  );
+  assert.equal(
+    await verifyServerSignature(token, message, signature.slice(1)),
+    false,
+  );
 });

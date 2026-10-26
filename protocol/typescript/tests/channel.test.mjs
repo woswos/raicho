@@ -78,3 +78,65 @@ test('channels accept each frame once, in order, from the other peer', async () 
     session.frames[0].message,
   );
 });
+
+function sealedPings(key) {
+  const sender = createChannel(key, 'server');
+  const ping = session.frames[0].message;
+  return Promise.all([
+    sender.seal(ping),
+    sender.seal({ ...ping, sequence: ping.sequence + 1 }),
+  ]);
+}
+
+test('overlapping opens check consecutive frame counters', async () => {
+  const key = bytes(session.session_key);
+  const [first, second] = await sealedPings(key);
+  const receiver = createChannel(key, 'client');
+  await Promise.all([
+    receiver.open(first, 'server_control', session.generation),
+    receiver.open(second, 'server_control', session.generation),
+  ]);
+});
+
+test('an overlapping duplicate frame fails and closes the channel', async () => {
+  const key = bytes(session.session_key);
+  const [first, second] = await sealedPings(key);
+  const receiver = createChannel(key, 'client');
+  const results = await Promise.allSettled([
+    receiver.open(first, 'server_control', session.generation),
+    receiver.open(first, 'server_control', session.generation),
+  ]);
+  assert.deepEqual(
+    results.map(({ status }) => status),
+    ['fulfilled', 'rejected'],
+  );
+  assert.equal(results[1].reason.code, 'authentication_failed');
+  await assert.rejects(
+    receiver.open(second, 'server_control', session.generation),
+    { code: 'authentication_failed' },
+  );
+  await assert.rejects(receiver.seal(session.frames[1].message), {
+    code: 'authentication_failed',
+  });
+});
+
+test('canonical JSON leaves out undefined members, as the wire encoding does', () => {
+  const message = session.frames[0].message;
+  assert.equal(
+    canonicalJson({ ...message, extra: undefined }),
+    canonicalJson(message),
+  );
+});
+
+test('a frame without a MAC is invalid', async () => {
+  const receiver = createChannel(bytes(session.session_key), 'client');
+  const challenge = JSON.stringify({
+    type: 'challenge',
+    protocol_version: 1,
+    server_nonce: 'f'.repeat(64),
+  });
+  await assert.rejects(
+    receiver.open(challenge, 'challenge', session.generation),
+    { code: 'invalid_message' },
+  );
+});
