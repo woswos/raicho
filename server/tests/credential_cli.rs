@@ -1,6 +1,9 @@
+use std::fs;
+use std::os::unix::fs::PermissionsExt;
 use std::process::{Command, Output};
 
-use raicho_server::persistence::Database;
+use raicho_server::credentials::Credential;
+use raicho_server::persistence::{CredentialStore, Database};
 use tempfile::tempdir;
 
 fn command(directory: &std::path::Path, arguments: &[&str]) -> Output {
@@ -64,5 +67,60 @@ fn missing_token_and_unknown_arguments_fail_without_echoing_arguments() {
         let error = String::from_utf8(output.stderr).unwrap();
         assert!(!error.contains("secret-should-not-be-echoed"));
         assert!(error.starts_with("FAIL:"));
+    }
+}
+
+#[tokio::test]
+async fn status_and_revoke_report_the_stored_credential() {
+    let directory = tempdir().unwrap();
+    let database = Database::open(directory.path()).await.unwrap();
+    CredentialStore::new(&database)
+        .initialize(&Credential::parse(&"a".repeat(64)).unwrap())
+        .await
+        .unwrap();
+    database.close().await;
+    drop(database);
+    for (arguments, expected) in [
+        (["connector", "status"], "connector: active\n"),
+        (["connector", "revoke"], "connector: revoked\n"),
+        (["connector", "status"], "connector: revoked\n"),
+    ] {
+        let output = command(directory.path(), &arguments);
+        assert!(output.status.success(), "{output:?}");
+        assert_eq!(String::from_utf8(output.stdout).unwrap(), expected);
+    }
+}
+
+#[test]
+fn token_operations_require_files_owned_by_the_service() {
+    let directory = tempdir().unwrap();
+    let token = directory.path().join("connector.token");
+    fs::write(&token, "a".repeat(64)).unwrap();
+    fs::set_permissions(&token, fs::Permissions::from_mode(0o600)).unwrap();
+    let token = token.to_str().unwrap();
+    for arguments in [
+        vec!["connector", "init", "--token-file", token],
+        vec!["connector", "verify", "--token-file", token],
+        vec!["connector", "reactivate", "--token-file", token],
+        vec![
+            "connector",
+            "rotate",
+            "--token-file",
+            token,
+            "--current-token-file",
+            token,
+        ],
+        vec![
+            "connector",
+            "files",
+            "check",
+            directory.path().to_str().unwrap(),
+        ],
+    ] {
+        let output = command(directory.path(), &arguments);
+        assert!(!output.status.success(), "{arguments:?}");
+        let error = String::from_utf8(output.stderr).unwrap();
+        assert!(error.starts_with("FAIL:"), "{error}");
+        assert!(!error.contains(&"a".repeat(64)));
     }
 }
