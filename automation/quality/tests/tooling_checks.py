@@ -1,13 +1,7 @@
 import json
-import os
-import subprocess
-import tempfile
-import unittest
-from pathlib import Path
 
-from automation.paths import REPOSITORY_ROOT
+from automation.quality.tests.quality_fixture import QualityFixture
 
-MAKEFILE = REPOSITORY_ROOT / 'Makefile'
 RUST_SOURCE = 'pub fn answer() -> u32 {\n    42\n}\n'
 TYPESCRIPT_SOURCE = 'export const answer = 42;\n'
 CARGO_MANIFEST = (
@@ -16,40 +10,7 @@ CARGO_MANIFEST = (
 CARGO_LOCK = 'version = 4\n\n[[package]]\nname = "quality-fixture"\nversion = "0.1.0"\n'
 
 
-class ToolingChecks(unittest.TestCase):
-    def setUp(self):
-        temporary = tempfile.TemporaryDirectory(prefix='raicho-tooling-')
-        self.addCleanup(temporary.cleanup)
-        self.root = Path(temporary.name)
-
-    def write(self, relative, content):
-        path = self.root / relative
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(content)
-        return path
-
-    def check(self, target, successful=True, diagnostic=None):
-        environment = {
-            **os.environ,
-            'CARGO_NET_OFFLINE': 'true',
-            'CARGO_TARGET_DIR': str(self.root / 'target'),
-        }
-        result = subprocess.run(
-            ['make', '-f', str(MAKEFILE), f'QUALITY_ROOT={self.root}', target],
-            cwd=self.root,
-            env=environment,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        output = result.stdout + result.stderr
-        if successful:
-            self.assertEqual(result.returncode, 0, output)
-        else:
-            self.assertNotEqual(result.returncode, 0, output)
-        if diagnostic:
-            self.assertIn(diagnostic, output)
-
+class ToolingChecks(QualityFixture):
     def rust_project(self, source=RUST_SOURCE):
         self.write('Cargo.toml', CARGO_MANIFEST)
         self.write('Cargo.lock', CARGO_LOCK)

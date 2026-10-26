@@ -1,7 +1,11 @@
 import re
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
 from automation.paths import REPOSITORY_ROOT
+from automation.quality import runner
 from automation.quality.runner import TARGETS
 
 
@@ -30,6 +34,15 @@ class QualityTargetTests(unittest.TestCase):
             if target.startswith('format') and not target.startswith('format-check'):
                 with self.subTest(target=target):
                     self.assertIn(target, writing)
+
+    def test_shfmt_options_come_from_a_regular_configuration_file(self):
+        self.assertIn('--indent', runner.shfmt_options())
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            mock.patch.object(runner, 'REPOSITORY_ROOT', Path(directory)),
+            self.assertRaisesRegex(ValueError, 'shfmt configuration is missing'),
+        ):
+            runner.shfmt_options()
 
 
 if __name__ == '__main__':
