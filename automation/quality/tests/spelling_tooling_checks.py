@@ -14,6 +14,7 @@ class SpellingToolingChecks(QualityFixture):
     def test_typos_fail_the_check_until_fixed(self):
         source = self.write('docs/notes.md', f'{MISSPELLED} check runs.\n')
         self.check('lint-spelling', successful=False, diagnostic=f'notes.md:1:1: error: `{MISSPELLED}` should be `The`')
+        self.check('lint-spelling', successful=False, diagnostic='FAIL: typos exited with status 2')
         self.check('format-spelling')
         self.assertEqual(source.read_text(), 'The check runs.\n')
         self.check('lint-spelling')

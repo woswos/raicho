@@ -152,6 +152,13 @@ def check_language(language, root, files, action, typed=False):
         sql(root, files, action, REPOSITORY_ROOT)
 
 
+def failure_message(error):
+    name = Path(error.cmd[0]).name
+    if len(error.cmd) > 1 and error.cmd[1].isalpha():
+        name = f'{name} {error.cmd[1]}'
+    return f'{name} exited with status {error.returncode}'
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', type=Path, required=True)
@@ -178,6 +185,9 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except (ValueError, OSError, subprocess.CalledProcessError) as error:
+    except subprocess.CalledProcessError as error:
+        print(f'FAIL: {failure_message(error)}', file=sys.stderr)
+        sys.exit(1)
+    except (ValueError, OSError) as error:
         print(f'FAIL: {error}', file=sys.stderr)
         sys.exit(1)
