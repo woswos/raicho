@@ -1,0 +1,6 @@
+# shfmt options for every owned Bash script, read by automation/quality/runner.py.
+--simplify
+--indent 4
+--case-indent
+--binary-next-line
+--language-dialect bash
