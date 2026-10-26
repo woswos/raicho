@@ -68,7 +68,12 @@ External Thunderbird mail directories require their own explicit mounts.
 | `/api/status` | Readiness, product version, build commit, database status, and connector diagnostics |
 | `/` | Static diagnostics page |
 
-Diagnostics use `Cache-Control: no-store`. Unknown API paths and missing assets
+`/api` and `/health` responses use `Cache-Control: no-store`. Page files use
+`no-cache`, so browsers revalidate them after an upgrade, because their names carry
+no version. Every response sends `Content-Security-Policy: default-src 'self';
+base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'`,
+`X-Content-Type-Options: nosniff`, and `Referrer-Policy: no-referrer`, so the page
+runs only its own files and cannot be framed. Unknown API paths and missing assets
 return 404, including `/connector/v1` on this listener. Stopping Thunderbird does
 not make Raicho unready. Backend status is `unconfigured`, `disconnected`,
 `connected`, `revoked`, or `unavailable`. Diagnostics include the current session

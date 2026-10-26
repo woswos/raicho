@@ -2,7 +2,8 @@ use std::path::Path;
 use std::sync::Arc;
 
 use axum::extract::State;
-use axum::http::{HeaderValue, StatusCode, header::CACHE_CONTROL};
+use axum::http::header::{CACHE_CONTROL, CONTENT_SECURITY_POLICY, REFERRER_POLICY, X_CONTENT_TYPE_OPTIONS};
+use axum::http::{HeaderValue, StatusCode};
 use axum::routing::get;
 use axum::{Json, Router};
 use serde::Serialize;
@@ -11,6 +12,9 @@ use tower_http::set_header::SetResponseHeaderLayer;
 
 use crate::connector::{BackendStatus, Connector};
 use crate::persistence::Database;
+
+const POLICY: &str =
+    "default-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'";
 
 #[derive(Serialize)]
 struct Health {
@@ -40,20 +44,38 @@ struct Status {
 }
 
 pub fn router(database: Arc<Database>, web_dir: &Path, connector: Arc<Connector>) -> Router {
+    let no_store = SetResponseHeaderLayer::overriding(CACHE_CONTROL, HeaderValue::from_static("no-store"));
     let health = Router::new()
         .route("/live", get(live))
         .route("/ready", get(ready))
-        .fallback(not_found);
-    let api = Router::new().route("/status", get(status)).fallback(not_found);
+        .fallback(not_found)
+        .layer(no_store.clone());
+    let api = Router::new()
+        .route("/status", get(status))
+        .fallback(not_found)
+        .layer(no_store);
     Router::new()
         .nest("/health", health)
         .nest("/api", api)
         .nest("/connector", Router::new().fallback(not_found))
         .fallback_service(ServeDir::new(web_dir))
         .with_state(ApplicationState { database, connector })
-        .layer(SetResponseHeaderLayer::overriding(
+        // Page files keep stable names, so browsers revalidate them after an upgrade.
+        .layer(SetResponseHeaderLayer::if_not_present(
             CACHE_CONTROL,
-            HeaderValue::from_static("no-store"),
+            HeaderValue::from_static("no-cache"),
+        ))
+        .layer(SetResponseHeaderLayer::overriding(
+            CONTENT_SECURITY_POLICY,
+            HeaderValue::from_static(POLICY),
+        ))
+        .layer(SetResponseHeaderLayer::overriding(
+            X_CONTENT_TYPE_OPTIONS,
+            HeaderValue::from_static("nosniff"),
+        ))
+        .layer(SetResponseHeaderLayer::overriding(
+            REFERRER_POLICY,
+            HeaderValue::from_static("no-referrer"),
         ))
 }
 
