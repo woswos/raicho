@@ -14,12 +14,15 @@ const fixtureDirectory = new URL('../../fixtures/', import.meta.url);
 const fixtureFiles = (await readdir(fixtureDirectory)).filter((filename) =>
   filename.endsWith('.json'),
 );
-assert.ok(fixtureFiles.length > 0, 'Shared protocol fixtures must exist.');
-
+const fixtures = [];
 for (const filename of fixtureFiles.sort()) {
-  const fixtures = JSON.parse(
-    await readFile(new URL(filename, fixtureDirectory), 'utf8'),
+  fixtures.push(
+    ...JSON.parse(await readFile(new URL(filename, fixtureDirectory), 'utf8')),
   );
+}
+assert.ok(fixtures.length > 20, 'The shared fixture corpus must not be empty.');
+
+{
   for (const fixture of fixtures) {
     test(`shared connector fixture: ${fixture.name}`, () => {
       const raw =
@@ -71,6 +74,10 @@ test('standalone validator has no runtime code generation or dependencies', asyn
     );
     assert.equal(validate({}), false);
     assert.equal(validate(null), false);
+    const accepted = fixtures.find(
+      (fixture) => fixture.valid && fixture.message,
+    );
+    assert.equal(validate(accepted.message), true);
   } finally {
     globalThis.Function = originalFunction;
     globalThis.eval = originalEval;
