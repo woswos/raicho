@@ -4,7 +4,7 @@ prepare_credential_deployment() {
     export RAICHO_PROJECT
     RAICHO_PROJECT="raicho-${1}-$(date -u +%Y%m%d%H%M%S)-${RANDOM}"
     export RAICHO_STATE_DIRECTORY
-    RAICHO_STATE_DIRECTORY="$(mktemp -d "/tmp/raicho-${1}.XXXXXXXX")"
+    RAICHO_STATE_DIRECTORY="$(mktemp -d "${TMPDIR:-/tmp}/raicho-${1}.XXXXXXXX")"
     export RAICHO_CREDENTIAL_DIRECTORY="${RAICHO_STATE_DIRECTORY}/credentials"
     export RAICHO_COMPOSE_TEST=1
     mkdir -m 700 "${RAICHO_CREDENTIAL_DIRECTORY}"
