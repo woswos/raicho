@@ -1,3 +1,4 @@
+use serde::Deserialize;
 use serde_json::Value;
 
 use crate::{
@@ -6,8 +7,11 @@ use crate::{
     limits_generated::{
         MAXIMUM_AUTHENTICATION_BYTES, MAXIMUM_CONTROL_BYTES, MAXIMUM_JSON_DEPTH, PROTOCOL_VERSION,
     },
-    raw_json, schema,
+    raw_json,
 };
+
+// The generated types enforce every other schema rule, but not these two bounds.
+const MAXIMUM_SEQUENCE: u64 = 2_147_483_647;
 
 #[derive(Clone, Copy, Debug, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -24,15 +28,14 @@ pub fn decode_frame(
     phase: Phase,
     generation: Option<&str>,
 ) -> Result<ConnectorMessage, ContractError> {
-    let message = decode_value(raw, phase, generation)?;
-    serde_json::from_value(message).map_err(|_| ContractError::InvalidMessage)
+    decode_value(raw, phase, generation).map(|(_, message)| message)
 }
 
 pub(crate) fn decode_value(
     raw: &str,
     phase: Phase,
     generation: Option<&str>,
-) -> Result<Value, ContractError> {
+) -> Result<(Value, ConnectorMessage), ContractError> {
     let maximum = match phase {
         Phase::Authentication => MAXIMUM_AUTHENTICATION_BYTES,
         _ => MAXIMUM_CONTROL_BYTES,
@@ -43,10 +46,23 @@ pub(crate) fn decode_value(
     let mut message = raw_json::parse_message(raw)?;
     check_wire_values(&message)?;
     check_unsupported_version(&message)?;
-    schema::validate(&message)?;
-    check_phase(&message, phase, generation)?;
     normalize_numbers(&mut message);
-    Ok(message)
+    check_schema_bounds(&message)?;
+    let typed =
+        ConnectorMessage::deserialize(&message).map_err(|_| ContractError::InvalidMessage)?;
+    check_phase(&message, phase, generation)?;
+    Ok((message, typed))
+}
+
+fn check_schema_bounds(message: &Value) -> Result<(), ContractError> {
+    let capabilities = message.get("capabilities").and_then(Value::as_array);
+    let sequence = message.get("sequence").and_then(Value::as_u64);
+    if capabilities.is_some_and(|capabilities| !capabilities.is_empty())
+        || sequence.is_some_and(|sequence| sequence > MAXIMUM_SEQUENCE)
+    {
+        return Err(ContractError::InvalidMessage);
+    }
+    Ok(())
 }
 
 fn check_wire_values(message: &Value) -> Result<(), ContractError> {

@@ -6,7 +6,6 @@ pub mod limits_generated;
 
 mod decode_frame;
 mod raw_json;
-mod schema;
 
 pub use decode_frame::{Phase, decode_frame};
 pub use diagnostics_generated::ContractError;

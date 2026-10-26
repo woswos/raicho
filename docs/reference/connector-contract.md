@@ -37,8 +37,13 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
   `protocol/fixtures/status/` run against the Rust and browser validators.
 - [Shared fixtures](../../protocol/fixtures/): the same accepted/rejected frames,
   phases, expected generations, and error codes run in both languages.
-- [Rust crate](../../protocol/rust/src/lib.rs): generated types and limits,
-  embedded offline `jsonschema` validation, and a boundary decoder.
+- [Rust crate](../../protocol/rust/src/lib.rs): generated types and limits, and a
+  boundary decoder. The decoder relies on the generated types, which enforce the
+  schema's types, lengths, patterns, and unknown-field rules, and checks the two
+  bounds they miss itself: empty `capabilities` and the `sequence` maximum. A
+  conformance test runs every shared fixture through offline `jsonschema`
+  validation, which is a test-only dependency, and fails when a frame that the schema
+  rejects decodes.
 - [TypeScript project](../../protocol/typescript/src/decode_frame.ts): generated
   types and limits with a bundled Ajv standalone validator. No runtime Ajv,
   network schema retrieval, Node imports, or dynamic code generation is required.
