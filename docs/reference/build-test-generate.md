@@ -40,8 +40,9 @@ Component targets run one piece of those: `build-server`, `build-web`,
 `build-extension`, `test-server`, `test-web`, `test-extension`, `test-mailprobe`,
 `test-protocol`, `test-python`, and `test-tooling`; `lint-repo`, `lint-bash`,
 `lint-python`, `lint-javascript`, `lint-typescript`, `lint-rust`, and `lint-sql`;
-`format-check` with its `-rust`, `-javascript`, and `-sql` variants, `typecheck`,
-and `format-sql`; and `generate-protocol` and `check-protocol`. The acceptance
+`format` and `format-check`, each with `-bash`, `-python`, `-javascript`, `-rust`,
+and `-sql` variants, and `typecheck`; and `generate-protocol` and `check-protocol`.
+The `-javascript` formatting variants also cover TypeScript, JSON, and YAML. The acceptance
 suites run one at a time as `acceptance-runtime`, `acceptance-connector`,
 `acceptance-credentials`, and `acceptance-mail`.
 
