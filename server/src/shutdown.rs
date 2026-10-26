@@ -22,25 +22,25 @@ pub async fn serve(
     let mut interrupt = signal(SignalKind::interrupt())
         .map_err(|error| Error::new("Cannot register SIGINT handler", error))?;
     let (sender, receiver) = watch::channel(false);
+    // The accept loop holds a socket permit until it sees shutdown, so it must keep running.
+    let internal = tokio::spawn(Arc::clone(&connector).serve(connector_listener));
     let public = axum::serve(listener, application)
         .with_graceful_shutdown(stop(receiver))
         .into_future();
-    let internal = async {
-        Arc::clone(&connector).serve(connector_listener).await;
-        Ok(())
-    };
-    let servers = async { tokio::try_join!(public, internal).map(|_| ()) };
-    let mut servers = pin!(servers);
+    let mut public = pin!(public);
     let completed = tokio::select! {
-        result = &mut servers => Some(result),
+        result = &mut public => Some(result),
         _ = terminate.recv() => None,
         _ = interrupt.recv() => None,
     };
     sender.send_replace(true);
     connector.shutdown().await;
+    internal
+        .await
+        .map_err(|error| Error::new("Connector listener failed", error))?;
     match completed {
         Some(result) => result.map_err(|error| Error::new("Application listener failed", error)),
-        None => tokio::time::timeout(Duration::from_secs(10), servers)
+        None => tokio::time::timeout(Duration::from_secs(10), public)
             .await
             .map_err(|error| Error::new("Application listeners shutdown timed out", error))?
             .map_err(|error| Error::new("Application listener failed during shutdown", error)),
