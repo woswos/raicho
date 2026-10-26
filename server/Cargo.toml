@@ -23,6 +23,7 @@ tower-http.workspace = true
 
 [dev-dependencies]
 jsonschema.workspace = true
+rustix = { workspace = true, features = ["process"] }
 tokio = { workspace = true, features = ["test-util"] }
 tempfile.workspace = true
 tower.workspace = true
