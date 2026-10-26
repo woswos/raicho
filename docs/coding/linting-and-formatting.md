@@ -12,7 +12,7 @@ extends that tooling to SQLite source.
 | Language or check | Configuration |
 | --- | --- |
 | Repository guards | Python modules in `automation/repository/`, with package-local regression tests |
-| Bash | `bash -n`, ShellCheck with `.shellcheckrc`, shfmt with the options in `.shfmt` |
+| Bash | `bash -n`, ShellCheck with `.shellcheckrc` (braced variables required; SC2236, SC2015, and SC2155 excluded), shfmt with the options in `.shfmt` |
 | Python | Ruff lint and format with `pyproject.toml` |
 | JavaScript | ESLint recommended rules with `eslint.config.mjs`, Prettier with `.prettierrc.json` |
 | TypeScript | typescript-eslint typed rules, Prettier, and `tsc --noEmit` with project configuration |
