@@ -73,10 +73,10 @@ class ChangelogGuardTests(GuardTestCase):
 
     def test_changelog_file_or_label_satisfies_the_guard(self):
         repo, environment = self.shipping_change()
-        environment['PR_LABELS'] = 'no changelog'
+        environment['PR_LABELS'] = 'skip changelog'
         labeled = self.run_guard(repo, 'check_pr.py', environment)
         self.assertEqual(labeled.returncode, 0, labeled.stderr)
-        self.assertIn('no changelog label', labeled.stdout)
+        self.assertIn('skip changelog label', labeled.stdout)
 
         repo.write('CHANGELOG.md', '# Changelog\n\n## [Unreleased]\n\n- Noted.\n')
         repo.commit()

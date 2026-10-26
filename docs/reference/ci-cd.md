@@ -102,7 +102,7 @@ that check and says so.
 | `skip-design-check` | Bypasses the design-link requirement. Does not bypass planning-only enforcement on a `design` PR. |
 | `skip-build` | Skips the dedicated application image build job. |
 | `skip-test` | Skips application and runtime test jobs. |
-| `no changelog` | Skips the changelog entry check. Does not skip design, build, or test checks. |
+| `skip changelog` | Skips the changelog entry check. Does not skip design, build, or test checks. |
 
 The `design` label also skips all three application jobs. Jobs are independent,
 so a skipped build does not leave invalid test dependencies. Test jobs still

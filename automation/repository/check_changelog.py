@@ -2,7 +2,7 @@
 
 The entry belongs in the pull request description, where it is reviewed with
 the change, or under Unreleased in CHANGELOG.md. Refactors, tests, docs, and
-tooling do not need one. The "no changelog" label is the escape hatch when an
+tooling do not need one. The "skip changelog" label is the escape hatch when an
 operator would notice nothing.
 """
 
@@ -43,8 +43,8 @@ def is_shipping(path):
 
 
 def check_pull_request_changelog(context, paths):
-    if 'no changelog' in context['labels']:
-        print('changelog: skipped via no changelog label')
+    if 'skip changelog' in context['labels']:
+        print('changelog: skipped via skip changelog label')
         return
     if paths is None:
         print('changelog: skipped, no comparison base')
@@ -65,7 +65,7 @@ def check_pull_request_changelog(context, paths):
         f'{listed}\n'
         'Fill in the Changelog block of the description, or add an entry under '
         '"## [Unreleased]" in CHANGELOG.md.\n'
-        'If an operator would notice nothing, add the "no changelog" label.'
+        'If an operator would notice nothing, add the "skip changelog" label.'
     )
 
 

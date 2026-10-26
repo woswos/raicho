@@ -9,7 +9,7 @@ tag named `vMAJOR.MINOR.PATCH` is a release. The
 - [Git and pull requests](../contributing/git-and-pull-requests.md) covers the
   changelog text expected in a pull request.
 - [Continuous integration](ci-cd.md) covers the release workflows and the
-  `no changelog` label.
+  `skip changelog` label.
 - [Runtime](runtime.md) covers the status fields and `RAICHO_COMMIT`.
 - [Build, test, and generate](build-test-generate.md) covers the local commands.
 
@@ -41,7 +41,7 @@ manifests and source, production protocol implementations in `protocol/rust/src/
 and `protocol/typescript/src/`, gateway runtime configuration, and the Raicho,
 Thunderbird, and gateway image recipes, excluding tests. Documentation, repository
 tooling, and tests do not need an entry.
-The `no changelog` label skips the check when a change is genuinely invisible.
+The `skip changelog` label skips the check when a change is genuinely invisible.
 Any update to `CHANGELOG.md` in the same pull request also satisfies the check.
 
 Write `Unreleased` entries against the last release, not the branch history.
@@ -84,7 +84,7 @@ Unreleased section, and it says so. When collecting descriptions, an API error
 or incomplete metadata stops the cut before release files are changed. An HTTP
 404 skips a commit reference that does not identify a pull request. Each response
 provides both the description and labels, so a failed label read cannot silently
-ignore `no changelog`.
+ignore `skip changelog`.
 
 ```bash
 python3 -B -m automation.release.notes 0.1.0

@@ -106,8 +106,8 @@ def collect_entries(root, latest):
             continue
         body, labels = result
         count += 1
-        if 'no changelog' in labels:
-            print(f'#{number} is labeled no changelog. Skipping it.', file=sys.stderr)
+        if 'skip changelog' in labels:
+            print(f'#{number} is labeled skip changelog. Skipping it.', file=sys.stderr)
             continue
         for kind, items in parse_description_entries(body, number).items():
             parsed.setdefault(kind, []).extend(items)

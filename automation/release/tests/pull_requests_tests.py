@@ -34,12 +34,12 @@ class ReleaseRequestTests(unittest.TestCase):
         result = response(
             payload={
                 'body': '## Changelog\n\n### Fixed\n\n- Corrected.',
-                'labels': [{'name': 'no changelog'}],
+                'labels': [{'name': 'skip changelog'}],
             }
         )
         body, labels = self.request(result)
         self.assertIn('- Corrected.', body)
-        self.assertEqual(labels, ['no changelog'])
+        self.assertEqual(labels, ['skip changelog'])
 
     def test_null_body_is_empty(self):
         self.assertEqual(
