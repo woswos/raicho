@@ -2,7 +2,7 @@ import os
 import unittest
 from unittest import mock
 
-from automation.build.patch_coverage import comparison_base
+from automation.build.patch_coverage import comparison_base, partly_covered
 from automation.testing.guard_fixtures import CLEARED_ENVIRONMENT, TemporaryRepo
 
 
@@ -27,6 +27,18 @@ class PatchCoverageTests(unittest.TestCase):
         self.repo.commit()
         with mock.patch.dict(os.environ, {'PR_BASE_SHA': base}):
             self.assertEqual(comparison_base(self.repo.root), base)
+
+    def test_reports_only_files_with_uncovered_lines(self):
+        report = (
+            'Diff Coverage\n'
+            'server/src/http.rs (100%)\n'
+            'server/src/cli.rs (65.9%): Missing lines 35,49\n'
+            'Coverage: 92%\n'
+        )
+        self.assertEqual(
+            partly_covered(report),
+            'Diff Coverage\nserver/src/cli.rs (65.9%): Missing lines 35,49\nCoverage: 92%\n',
+        )
 
     def test_requires_a_base_without_origin_main(self):
         with self.assertRaisesRegex(ValueError, 'PR_BASE_SHA'):

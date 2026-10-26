@@ -22,6 +22,14 @@ def comparison_base(root):
         ) from None
 
 
+def partly_covered(report):
+    return ''.join(
+        line
+        for line in report.splitlines(keepends=True)
+        if not line.rstrip().endswith('(100%)')
+    )
+
+
 def main():
     try:
         base = comparison_base(REPOSITORY_ROOT)
@@ -32,17 +40,21 @@ def main():
     if not reports:
         print('FAIL: No coverage reports. Run make coverage first.', file=sys.stderr)
         return 1
-    return subprocess.run(
+    result = subprocess.run(
         [
             'diff-cover',
             *map(str, reports),
             f'--compare-branch={base}',
             f'--fail-under={MINIMUM_PERCENT}',
-            '--show-uncovered',
         ],
         cwd=REPOSITORY_ROOT,
+        capture_output=True,
+        text=True,
         check=False,
-    ).returncode
+    )
+    print(partly_covered(result.stdout), end='')
+    print(result.stderr, end='', file=sys.stderr)
+    return result.returncode
 
 
 if __name__ == '__main__':

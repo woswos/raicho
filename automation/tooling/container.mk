@@ -22,10 +22,10 @@ lint-pr:
 	@$(PYTHON) -m automation.repository.check_pr
 
 test-python:
-	@$(PYTHON) -m unittest discover -s . -t . -p '*_tests.py'
+	@$(PYTHON) -m unittest discover -q -b -s . -t . -p '*_tests.py'
 
 test-tooling:
-	@$(PYTHON) -m unittest discover -s automation/quality/tests -t . -p '*tooling_checks.py'
+	@$(PYTHON) -m unittest discover -q -b -s automation/quality/tests -t . -p '*tooling_checks.py'
 
 $(QUALITY_TARGETS):
 	@$(QUALITY) $@

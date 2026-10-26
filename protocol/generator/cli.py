@@ -45,7 +45,7 @@ def changed_outputs(generated, committed, filenames):
     ]
 
 
-def test_typescript(compiler_arguments=(), test_arguments=()):
+def test_typescript(compiler_arguments=(), test_arguments=('--test-reporter=dot',)):
     source = ROOT / 'protocol/typescript'
     with tempfile.TemporaryDirectory(prefix='raicho-protocol-typescript-') as directory:
         subprocess.run(

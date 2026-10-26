@@ -29,7 +29,14 @@ def sql(root, files, action, tooling_root):
     ]
     if action == 'lint':
         run(
-            ['sqlfluff', 'lint', *options, '--disregard-sqlfluffignores', *sources],
+            [
+                'sqlfluff',
+                'lint',
+                *options,
+                '--quiet',
+                '--disregard-sqlfluffignores',
+                *sources,
+            ],
             root,
         )
         return
@@ -42,7 +49,14 @@ def sql(root, files, action, tooling_root):
             destination.write_bytes(contents)
         run(['sqlfluff', 'parse', *options, '--format', 'none', '.'], temporary_root)
         run(
-            ['sqlfluff', 'format', *options, '--disregard-sqlfluffignores', *sources],
+            [
+                'sqlfluff',
+                'format',
+                *options,
+                '--quiet',
+                '--disregard-sqlfluffignores',
+                *sources,
+            ],
             temporary_root,
         )
         run(['sqlfluff', 'parse', *options, '--format', 'none', '.'], temporary_root)

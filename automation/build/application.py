@@ -11,7 +11,12 @@ def run(arguments, **options):
     return subprocess.run(arguments, cwd=REPOSITORY_ROOT, check=True, **options)
 
 
-def extension(source_root, testing=False, build_arguments=(), test_arguments=()):
+def extension(
+    source_root,
+    testing=False,
+    build_arguments=(),
+    test_arguments=('--test-reporter=dot',),
+):
     with tempfile.TemporaryDirectory(prefix='raicho-extension-') as directory:
         output = Path(directory)
         run(
@@ -39,7 +44,7 @@ def extension(source_root, testing=False, build_arguments=(), test_arguments=())
             run(['node', '--test', *test_arguments, *tests], env=environment)
 
 
-def web(testing=False, build_arguments=(), test_arguments=()):
+def web(testing=False, build_arguments=(), test_arguments=('--test-reporter=dot',)):
     with tempfile.TemporaryDirectory(prefix='raicho-web-') as directory:
         run(
             [
