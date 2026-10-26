@@ -20,8 +20,7 @@ between stages. Pairs with the `write-plan-doc` skill.
    Defer anything that belongs to a later stage. Follow
    `docs/contributing/workflow.md` for what counts as approval.
 4. Verify with the checks named by the stage. `make lint-repo` has standing
-   approval when run through the Docker check service, using the command in
-   `docs/reference/build-test-generate.md`. Follow the same workflow for any
+   approval, as `docs/reference/build-test-generate.md` describes it. Follow the same workflow for any
    other test or deployment command.
 5. Confirm the stage's documentation verification is complete, then mark the
    stage `- [x]` and add a one-line debrief under it: what changed,

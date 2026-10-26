@@ -72,9 +72,11 @@ tests belong in `extension/tests/`. The
 records this placement.
 
 Group shared development automation by responsibility, including its import-only
-support modules. Use Make as the main developer command interface. It invokes Python
-modules directly from the repository root with `python3 -B -m`, and Bash or
-JavaScript entry points by path. Keep Bash for substantive host/Docker orchestration.
+support modules. Use Make as the main developer command interface. On the host it
+runs each target through the tooling image, and inside the image it invokes Python
+modules from the repository root with `python3 -B -m`, and Bash or JavaScript
+entry points by path. `automation/tooling/host.mk` and
+`automation/tooling/container.mk` hold the two modes. Keep Bash for substantive host/Docker orchestration.
 Do not add thin compatibility wrappers or restore a flat helper directory.
 
 | Responsibility | Package |
@@ -118,7 +120,8 @@ adds the isolated runtime fixture driver, and
 production XPI for the connector acceptance upgrade check. Compose resolves every
 overlay's paths from the first file, so these overlays use repository-relative
 paths. `automation/tooling/compose.yaml` provides checks and formatting, with
-`automation/tooling/compose.ci.yaml` adding the GitHub event mount.
+`automation/tooling/compose.ci.yaml` adding the GitHub event mount when Make sees
+`GITHUB_EVENT_PATH`.
 `mailprobe/compose.yaml` runs the separate fictional mail experiment, with
 `mailprobe/compose.admin.yaml` enabling its native UI checks.
 The [runtime guide](../operations/local-runtime.md) and

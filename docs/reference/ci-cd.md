@@ -15,8 +15,8 @@ workflows always finish.
 - `pr-guards`: PR context checks on PR events only, including the changelog
   entry required for user-visible changes.
 - `application-build`: runtime and fixture Compose validation and all runtime images.
-- `application-test`: Rust, browser, extension, and shared protocol builds/tests,
-  plus separate mail probe TypeScript tests.
+- `application-test`: `make test`, which builds and tests the Rust, browser,
+  extension, mail probe, and shared protocol sources and reruns the Python suites.
 - `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
   administrative network isolation and listener closure, and application readiness
   while Thunderbird is stopped, in a disposable project.
@@ -103,9 +103,9 @@ fails the job.
 
 `make lint-pr` reads PR metadata from GitHub's event JSON as data. It uses explicit
 base/head commit hashes, not the synthetic merge commit at `GITHUB_SHA`.
-A full checkout supplies those objects, including fork history. The
-`automation/tooling/compose.ci.yaml` override mounts the event JSON read-only at
-`/tmp/github-event.json`. Body, labels, and commit IDs are parsed as data and
+A full checkout supplies those objects, including fork history. Make adds the
+`automation/tooling/compose.ci.yaml` override, which mounts the event JSON
+read-only at `/tmp/github-event.json`. Body, labels, and commit IDs are parsed as data and
 never interpolated into shell commands. The changed-path
 comparison uses `base...head`, disables rename detection to inspect both sides
 of moves, and includes deletions. Missing or invalid context fails closed.

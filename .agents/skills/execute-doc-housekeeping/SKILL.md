@@ -28,8 +28,8 @@ Do not run this as a periodic prose pass.
    authorizes the edits. Otherwise present the concrete edits and get approval
    under `docs/contributing/workflow.md` before editing.
 5. **Execute the edits** in logical groups.
-6. **Run integrity checks.** `make lint-repo` through the Docker check service,
-   using the command in `docs/reference/build-test-generate.md`. The repository
+6. **Run integrity checks.** `make lint-repo`, as
+   `docs/reference/build-test-generate.md` describes it. The repository
    guards and their failure-path tests must pass.
 7. **Verify cross-links and status.** Deprecated features marked, upcoming work
    labelled "planned".

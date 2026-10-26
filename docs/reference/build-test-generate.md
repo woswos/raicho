@@ -3,73 +3,83 @@
 The static showcase has no build step or code generation. Its preview and export
 procedure is maintained in the [showcase guide](../../assets/brand/showcase/README.md).
 
-## Tooling image
+## Make
 
-Run from the repository root with Docker and Compose installed. Git is needed
-to clone the repository and prepare local PR comparisons. The image supplies
-Bash, Python, Make, Node, Rust, the selected quality and coverage tools, and
-Python test fixtures. Host language toolchains are not required. Rebuild after changing
-the image, dependency pins, or packaged fixture sources:
+Run Make from the repository root, or with `-f` from anywhere. The host needs
+Docker, Compose, Git, and GNU Make, but no language toolchains. On the host, each
+target first builds the tooling image, which the Docker cache keeps quick when
+nothing changed, then runs the same target inside the tooling container. Targets
+that write files run in the writable `format` service with the caller's UID and
+GID, so rewritten files keep the caller's ownership. A linked Git worktree gets its
+shared Git metadata mounted read-only at the same absolute path. When
+`GITHUB_EVENT_PATH` is set, as in GitHub Actions, the event JSON is mounted too.
+Inside the tooling container the same targets run directly.
+`automation/tooling/host.mk` and `automation/tooling/container.mk` hold the two
+modes.
 
 ```bash
-docker compose -f automation/tooling/compose.yaml build
+make lint test
 ```
 
-The image's build-context allowlist is
+| Target | Behavior |
+| --- | --- |
+| `build` | Tooling image, server, web page, and extension builds, then the runtime images |
+| `test` | Every source suite: Python, tooling fixtures, server, web, extension, mail probe, and protocol |
+| `lint` | Repository guards, language linters, formatting and type checks, and protocol generation drift |
+| `format` | Rewrite files in the documented formatting scope |
+| `generate` | Regenerate the committed protocol outputs |
+| `coverage` | Line coverage of the source suites |
+| `check-patch-coverage` | Fail when changed lines are below the coverage threshold |
+| `images` | Runtime images only |
+| `lint-pr` | PR metadata, design/decision policy, and changelog guard |
+
+Component targets run one piece of those: `build-server`, `build-web`,
+`build-extension`, `test-server`, `test-web`, `test-extension`, `test-mailprobe`,
+`test-protocol`, `test-python`, and `test-tooling`; `lint-repo`, `lint-bash`,
+`lint-python`, `lint-javascript`, `lint-typescript`, `lint-rust`, and `lint-sql`;
+`format-check` with its `-rust`, `-javascript`, and `-sql` variants, `typecheck`,
+and `format-sql`; and `generate-protocol` and `check-protocol`.
+
+## Tooling image
+
+The image supplies Bash, Python, Make, Node, Rust, the selected quality and
+coverage tools, and Python test fixtures. Its build-context allowlist is
 `automation/tooling/Dockerfile.dockerignore`. Fixture sources come from the
 component-local directories listed in [project structure](project-structure.md#test-code).
 The tooling entrypoint lives at `automation/tooling/entrypoint.bash`.
 
 The entrypoint also compares `package.json`, `package-lock.json`,
 `eslint.config.mjs`, and `automation/tooling/requirements.txt` with the image
-copies. A mismatch stops the command with a
-rebuild instruction, preventing stale installed dependencies or lint rules.
+copies. A mismatch stops the command with a rebuild instruction, preventing stale
+installed dependencies or lint rules. Make on the host rebuilds the image first,
+so the mismatch only appears when the container runs without it.
 
 The `check` service mounts the repository read-only. Tool caches and temporary
 outputs live outside that mount. It does not mount the Docker socket or start
-application services. Make runs checks inside the container without launching
-nested containers.
-
-The default mount supports ordinary checkouts. A linked Git worktree also needs
-its shared Git metadata mounted read-only at the same absolute host path. Without
-that mount, checks fail because Git cannot resolve the worktree metadata:
-
-```bash
-RAICHO_GIT_COMMON_DIR="$(git rev-parse --path-format=absolute --git-common-dir)"
-docker compose -f automation/tooling/compose.yaml run --rm \
-  --volume "${RAICHO_GIT_COMMON_DIR}:${RAICHO_GIT_COMMON_DIR}:ro" \
-  check make lint format-check typecheck
-```
-
-Add the same volume option to formatting and PR checks when using a linked
-worktree. The source mount remains read-only for checks.
+application services, so Make inside the container never launches nested
+containers.
 
 ## Checks and formatting
 
 ```bash
-docker compose -f automation/tooling/compose.yaml run --rm check make lint format-check typecheck test-python
-docker compose -f automation/tooling/compose.yaml run --rm check make test-tooling
+make lint test-python test-tooling
+make format
 ```
 
-| Target | Behavior |
-| --- | --- |
-| `lint` | Repository integrity, language linters, and protocol generation drift |
-| `lint-repo` | Repository guards, including file, directory, and database naming |
-| `test-python` | Every Python unit suite, discovered as `*_tests.py` from the repository root |
-| `format-check` | Check selected source and configuration formatting without edits |
-| `typecheck` | TypeScript compiler with no emitted output |
-| `test-tooling` | Disposable passing/failing Rust, TypeScript, and SQL fixtures exercising the runners |
-| `lint-pr` | PR metadata, design/decision policy, and changelog guard |
-| `format` | Rewrite files in the documented formatting scope |
-| `lint-sql` | Check owned SQLite source for syntax and configured lint rules |
-| `format-check-sql` | Compare formatted temporary copies with SQL sources without editing them |
-| `format-sql` | Rewrite owned SQL sources using formatting rules only |
+`lint-repo` runs the repository guards, including file, directory, skill, and
+database naming. `format-check` checks the selected source and configuration
+formatting without edits, and `typecheck` runs the TypeScript compiler with no
+emitted output. `test-tooling` runs disposable passing and failing Rust,
+TypeScript, and SQL fixtures that exercise the runners. `lint-sql` checks owned
+SQLite source for syntax and configured lint rules, `format-check-sql` compares
+formatted temporary copies with the SQL sources, and `format-sql` rewrites them
+using formatting rules only.
 
 The guards in `automation/repository/` are Python module entry points. Their
 optional repository-root argument defaults to the repository containing the
 script. Explicit roots are normalized to absolute paths from the caller's
 working directory. PR guards resolve a relative `GITHUB_EVENT_PATH` against
-that repository root. The Docker/Make commands above remain the normal interface.
+that repository root. The Make targets above remain the normal interface.
 See [automation placement](project-structure.md#automation) for the module layout
 and invocation convention.
 
@@ -86,22 +96,13 @@ sources appear, missing tools, manifests, or TypeScript configuration fail.
 Add the application configuration with its first source files. Fixtures in
 `test-tooling` prove runner behavior, not application correctness.
 
-Formatting requires the writable `format` service. Set the caller's UID/GID
-explicitly so rewritten files retain the caller's ownership:
-
-```bash
-LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)" \
-docker compose -f automation/tooling/compose.yaml run --rm format make format
-```
-
-For SQL alone, use `check make lint-sql format-check-sql` or
-`format make format-sql` with the same Compose command and ownership settings.
-SQL checks need no database connection. Applied migration files must retain
+For SQL alone, use `make lint-sql format-check-sql` or `make format-sql`. SQL
+checks need no database connection. Applied migration files must retain
 their original bytes, as explained in the [runtime reference](runtime.md#sqlite-initialization-and-migrations).
 
 A new or changed Rust dependency also changes `Cargo.lock`. The `check` service
 mounts the checkout read-only and builds use `--locked`, so refresh the lockfile
-through the writable service first:
+through the writable service, with the caller's UID and GID, first:
 
 ```bash
 LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)" \
@@ -129,33 +130,26 @@ PR_BASE_SHA="$(git rev-parse origin/main)" \
 PR_HEAD_SHA="$(git rev-parse HEAD)" \
 PR_DESCRIPTION="Decision: docs/decisions/20261005-adopt-shared-workflow.md" \
 PR_LABELS="" \
-docker compose -f automation/tooling/compose.yaml run --rm check make lint-pr
+make lint-pr
 ```
 
 Without a local base, the guard conservatively requires a design or decision.
 A `design` label needs both commits to prove that only planning docs changed.
 GitHub event metadata always takes precedence over local overrides.
 
-CI adds `automation/tooling/compose.ci.yaml` to bind-mount the event JSON read-only at
-`/tmp/github-event.json`. This override requires `GITHUB_EVENT_PATH` to be an
-absolute path to an existing host file. The checkout supplies the base/head Git
-objects:
-
-```bash
-docker compose -f automation/tooling/compose.yaml -f automation/tooling/compose.ci.yaml run --rm check make lint-pr
-```
+When `GITHUB_EVENT_PATH` is set, Make adds `automation/tooling/compose.ci.yaml`,
+which bind-mounts the event JSON read-only at `/tmp/github-event.json`. This
+override requires `GITHUB_EVENT_PATH` to be an absolute path to an existing host
+file. The checkout supplies the base/head Git objects.
 
 ## Application tooling
 
-Run source builds and behavioral tests through the same tooling container:
-
 ```bash
-docker compose -f automation/tooling/compose.yaml run --rm check make build-app test-app test-protocol
+make build test
 ```
 
-`build-app` combines `build-server`, `build-web`, and `build-extension`. `test-app`
-combines `test-server`, `test-web`, and `test-extension`.
-Rust uses `--workspace --all-targets --locked` and
+Inside the container, `build` combines `build-server`, `build-web`, and
+`build-extension`, and `test` runs every source suite. Rust uses `--workspace --all-targets --locked` and
 temporary Cargo output. The browser build uses `tsc`, copies public files and
 the selected identity assets, then runs Node's built-in tests against compiled
 modules. The web builder is `web/build.mjs`, and extension packaging
@@ -167,10 +161,10 @@ Tooling defaults to no Rust debug symbols or incremental output, keeping the
 complete workspace build within the temporary filesystem on CI runners. These
 settings affect check containers, not release images. Set
 `CARGO_PROFILE_DEV_DEBUG=2`, `CARGO_PROFILE_TEST_DEBUG=2`, or `CARGO_INCREMENTAL=1`
-before the Compose command when that output is needed for local debugging.
+before running Make when that output is needed for local debugging.
 
-Build runtime images with `docker compose build`. This
-compiles release artifacts and installs the independently packaged Thunderbird runtime.
+`make images`, which `make build` runs last on the host, builds the runtime images
+with `docker compose build`. This compiles release artifacts and installs the independently packaged Thunderbird runtime.
 The image recipes pin base digests and downloaded artifacts. The Thunderbird
 image also builds the XPI with TypeScript and the deterministic Node packager.
 See [local runtime](../operations/local-runtime.md) for Compose
@@ -183,9 +177,8 @@ checkout. Control-contract generation is described below.
 ## Coverage
 
 ```bash
-docker compose -f automation/tooling/compose.yaml run --rm check make coverage
-PR_BASE_SHA="$(git rev-parse origin/main)" \
-  docker compose -f automation/tooling/compose.yaml run --rm check make check-patch-coverage
+make coverage
+PR_BASE_SHA="$(git rev-parse origin/main)" make check-patch-coverage
 ```
 
 `coverage` runs the Rust workspace tests, the protocol, web, and extension
@@ -213,27 +206,24 @@ records the tool choices.
 ## Connector contract
 
 ```bash
-LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)" \
-  docker compose -f automation/tooling/compose.yaml run --rm format make generate-protocol
-docker compose -f automation/tooling/compose.yaml run --rm check make check-protocol test-protocol
+make generate
+make check-protocol test-protocol
 ```
 
-Use the caller's UID/GID for writable generation as above. `generate-protocol`
-builds both generators into temporary output, then updates committed bindings,
+`generate`, which runs `generate-protocol`, builds both generators into temporary output, then updates committed bindings,
 limits, diagnostics, and the standalone validator. Python orchestration and JavaScript
 generation scripts live in `protocol/generator/`. `check-protocol` compares fresh
 output without editing sources and runs under `lint` in CI. `test-protocol` runs the
 independently compiled TypeScript protocol tests. The Rust contract and generator
 tests run with the workspace under `test-server`.
-CI runs `test-protocol` alongside `test-app`, which covers the application and
-extension suites. See the [contract reference](connector-contract.md)
+`make test` includes `test-protocol` with the application and extension suites.
+See the [contract reference](connector-contract.md)
 for sources, parsing rules, and integration responsibilities.
 
 ## Credential persistence
 
 ```bash
-docker compose -f automation/tooling/compose.yaml run --rm check \
-  make test-server lint-repo lint-sql format-check-sql
+make test-server lint-repo lint-sql format-check-sql
 bash automation/acceptance/credentials/check_credentials.bash
 ```
 
@@ -249,7 +239,7 @@ previous token file.
 ## Production connector
 
 ```bash
-docker compose -f automation/tooling/compose.yaml run --rm check make test-server test-extension test-web
+make test-server test-extension test-web
 bash automation/acceptance/connector/check_connector.bash
 ```
 
@@ -279,8 +269,7 @@ commit while editing continues in another checkout.
 ## Extension packaging
 
 ```bash
-docker compose -f automation/tooling/compose.yaml run --rm check \
-  make build-extension test-extension typecheck test-python
+make build-extension test-extension typecheck test-python
 ```
 
 The packager stores sorted, uncompressed archive entries with fixed timestamps
@@ -306,13 +295,13 @@ documented in [CI](ci-cd.md), and runtime details in [runtime](runtime.md).
 ## Mail API compatibility
 
 ```bash
-docker compose -f automation/tooling/compose.yaml run --rm check make test-mailprobe
+make test-mailprobe
 bash mailprobe/tests/check_mail_compatibility.bash
 bash mailprobe/tests/check_mail_compatibility.bash --native
 ```
 
 The separate `test-mailprobe` target compiles and tests the fixture extension.
-It does not change `build-app` or the production XPI. The host runner builds
+It is not part of `make build` and does not change the production XPI. The host runner builds
 temporary tags for the tooling image and the normal Thunderbird image. The
 tooling image runs the controller, SMTP/IMAP fault proxy, and test driver as
 `mailprobe.tests` package modules. Their unit suites run under `test-python`. A one-off tooling service builds the mail test XPI into a
