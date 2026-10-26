@@ -64,7 +64,7 @@ function extensionManifest(version, sourceRoot) {
   return manifest;
 }
 
-function compileExtension(directory, manifest, sourceRoot) {
+function compileExtension(directory, manifest, sourceRoot, sourceMap = false) {
   execFileSync(
     'tsc',
     [
@@ -72,6 +72,7 @@ function compileExtension(directory, manifest, sourceRoot) {
       path.join(sourceRoot, 'tsconfig.json'),
       '--outDir',
       directory,
+      ...(sourceMap ? ['--sourceMap'] : []),
     ],
     { stdio: 'inherit' },
   );
@@ -183,10 +184,20 @@ function writeArchive(output, entries) {
   });
 }
 
-function build({ output, version, directory, outputDirectory, sourceRoot }) {
+function build({
+  output,
+  version,
+  directory,
+  outputDirectory,
+  sourceRoot,
+  sourceMap,
+}) {
   const manifest = extensionManifest(version, sourceRoot);
   if ((output === undefined) === (outputDirectory === undefined)) {
     throw new Error('Choose exactly one extension output mode.');
+  }
+  if (sourceMap && directory === undefined) {
+    throw new Error('Source maps apply only to the compiled output directory.');
   }
   if (outputDirectory !== undefined) {
     if (
@@ -223,8 +234,12 @@ function build({ output, version, directory, outputDirectory, sourceRoot }) {
         path.join(outputDirectory, 'manifest.json'),
       );
     }
-    if (directory !== undefined) {
+    if (sourceMap) {
+      compileExtension(directory, manifest, sourceRoot, true);
+    } else if (directory !== undefined) {
       cpSync(compiled, directory, { recursive: true });
+    }
+    if (directory !== undefined) {
       writeFileSync(
         path.join(directory, 'package.json'),
         '{"type":"module"}\n',
@@ -243,6 +258,7 @@ try {
       version: { type: 'string' },
       directory: { type: 'string' },
       'source-root': { type: 'string', default: EXTENSION_ROOT },
+      'source-map': { type: 'boolean', default: false },
     },
   });
   build({
@@ -251,6 +267,7 @@ try {
     directory: values.directory,
     outputDirectory: values['output-directory'],
     sourceRoot: path.resolve(values['source-root']),
+    sourceMap: values['source-map'],
   });
 } catch (error) {
   process.stderr.write(

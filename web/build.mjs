@@ -7,14 +7,20 @@ import {
   writeFileSync,
 } from 'node:fs';
 import path from 'node:path';
-import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { parseArgs } from 'node:util';
 
 const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
 );
-const output = process.argv[2];
+const {
+  positionals: [output],
+  values: { 'source-map': sourceMap },
+} = parseArgs({
+  allowPositionals: true,
+  options: { 'source-map': { type: 'boolean', default: false } },
+});
 if (!output || !path.isAbsolute(output)) {
   throw new Error('Supply an absolute, empty output directory.');
 }
@@ -29,6 +35,7 @@ execFileSync(
     path.join(repositoryRoot, 'web/tsconfig.json'),
     '--outDir',
     output,
+    ...(sourceMap ? ['--sourceMap'] : []),
   ],
   {
     stdio: 'inherit',

@@ -45,11 +45,18 @@ def changed_outputs(generated, committed, filenames):
     ]
 
 
-def test_typescript():
+def test_typescript(compiler_arguments=(), test_arguments=()):
     source = ROOT / 'protocol/typescript'
     with tempfile.TemporaryDirectory(prefix='raicho-protocol-typescript-') as directory:
         subprocess.run(
-            ['tsc', '--project', str(source / 'tsconfig.json'), '--outDir', directory],
+            [
+                'tsc',
+                '--project',
+                str(source / 'tsconfig.json'),
+                '--outDir',
+                directory,
+                *compiler_arguments,
+            ],
             cwd=ROOT,
             check=True,
         )
@@ -58,7 +65,7 @@ def test_typescript():
         if not tests:
             raise ValueError('No TypeScript protocol tests were found.')
         subprocess.run(
-            ['node', '--test', *tests],
+            ['node', '--test', *test_arguments, *tests],
             cwd=ROOT,
             env=os.environ | {'RAICHO_PROTOCOL_BUILD_DIR': directory},
             check=True,

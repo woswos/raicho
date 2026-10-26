@@ -7,7 +7,7 @@ QUALITY := $(PYTHON) -m automation.quality.runner --root "$(QUALITY_ROOT)"
 QUALITY_TARGETS := lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql \
     format format-sql format-check format-check-rust format-check-javascript format-check-sql typecheck
 APPLICATION_TARGETS := build-server build-web build-extension test-server test-web test-extension test-mailprobe
-TARGETS := lint lint-repo lint-pr test-python test-tooling build-app test-app \
+TARGETS := lint lint-repo lint-pr test-python test-tooling build-app test-app coverage \
     generate-protocol check-protocol test-protocol $(QUALITY_TARGETS) $(APPLICATION_TARGETS)
 
 .DEFAULT_GOAL := lint
@@ -44,6 +44,9 @@ $(QUALITY_TARGETS):
 
 $(APPLICATION_TARGETS):
 	@$(PYTHON) -m automation.build.application $@
+
+coverage:
+	@$(PYTHON) -m automation.build.coverage_report
 
 generate-protocol:
 	@$(PYTHON) -m protocol.generator.cli generate

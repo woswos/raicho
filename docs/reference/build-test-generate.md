@@ -7,8 +7,8 @@ procedure is maintained in the [showcase guide](../../assets/brand/showcase/READ
 
 Run from the repository root with Docker and Compose installed. Git is needed
 to clone the repository and prepare local PR comparisons. The image supplies
-Bash, Python, Make, Node, Rust, the selected quality tools, and Python test
-fixtures. Host language toolchains are not required. Rebuild after changing
+Bash, Python, Make, Node, Rust, the selected quality and coverage tools, and
+Python test fixtures. Host language toolchains are not required. Rebuild after changing
 the image, dependency pins, or packaged fixture sources:
 
 ```bash
@@ -180,6 +180,29 @@ startup, administration, persistence checks, and cleanup.
 not start the application. Application state belongs to the runtime volumes, not the
 checkout. Control-contract generation is described below. Mail commands remain
 outside the production contract.
+
+## Coverage
+
+```bash
+docker compose -f automation/tooling/compose.yaml run --rm check make coverage
+```
+
+`coverage` runs the Rust workspace tests, the protocol, web, and extension
+TypeScript suites, and the `test-python` and `test-tooling` suites with coverage
+instrumentation. It prints line coverage for each measured source file. Rust builds
+with `-C instrument-coverage` into its own temporary target directory, and the
+image's LLVM tools merge and export the profiles. TypeScript test builds emit source
+maps, so Node's built-in coverage reports lines of the `.ts` sources. The XPI never
+contains source maps. coverage.py measures Python, including subprocesses and the
+guard copies that tests run from temporary repositories. The lcov reports stay in
+`/tmp/raicho-coverage` inside the container.
+
+Tests, generated files, dependencies, the acceptance drivers in
+`automation/acceptance/`, and the `mailprobe/` test artifact are not measured. A
+source that no test loads, such as a browser entry point, is absent from the
+reports rather than reported as uncovered. The
+[patch coverage decision](../decisions/20261026-repository-layout.md#patch-coverage) records the
+tool choices.
 
 ## Connector contract
 
