@@ -96,27 +96,40 @@ def javascript(root, files, action, typed=False):
             )
 
 
+LANGUAGES = ('bash', 'python', 'javascript', 'rust', 'sql')
+TARGETS = (
+    'lint-bash',
+    'lint-python',
+    'lint-javascript',
+    'lint-typescript',
+    'lint-rust',
+    'lint-sql',
+    'format',
+    'format-check',
+    *(f'format-{language}' for language in LANGUAGES),
+    *(f'format-check-{language}' for language in LANGUAGES),
+    'typecheck',
+)
+
+
+def check_language(language, root, files, action, typed=False):
+    if language == 'bash':
+        shell(root, files, action)
+    elif language == 'python':
+        python(root, files, action)
+    elif language == 'javascript':
+        javascript(root, files, action, typed=typed)
+    elif language == 'rust':
+        require_tools('cargo', 'rustfmt', 'cargo-clippy')
+        rust(root, files, action, REPOSITORY_ROOT)
+    else:
+        sql(root, files, action, REPOSITORY_ROOT)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', type=Path, required=True)
-    parser.add_argument(
-        'target',
-        choices=(
-            'lint-bash',
-            'lint-python',
-            'lint-javascript',
-            'lint-typescript',
-            'lint-rust',
-            'lint-sql',
-            'format',
-            'format-sql',
-            'format-check',
-            'format-check-rust',
-            'format-check-javascript',
-            'format-check-sql',
-            'typecheck',
-        ),
-    )
+    parser.add_argument('target', choices=TARGETS)
     arguments = parser.parse_args()
     root = arguments.root.resolve()
     require_tools('git')
@@ -126,34 +139,14 @@ def main():
         require_tools('tsc')
         typecheck(root, files)
         return
-    action = (
-        'lint'
-        if target.startswith('lint-')
-        else ('format-check' if target.startswith('format-check') else 'format')
-    )
-    if target in {'format', 'format-check', 'lint-bash'}:
-        shell(root, files, action)
-    if target in {'format', 'format-check', 'lint-python'}:
-        python(root, files, action)
-    if target in {
-        'format',
-        'format-check',
-        'format-check-javascript',
-        'lint-javascript',
-        'lint-typescript',
-    }:
-        javascript(root, files, action, typed=target == 'lint-typescript')
-    if target in {'format', 'format-check', 'format-check-rust', 'lint-rust'}:
-        require_tools('cargo', 'rustfmt', 'cargo-clippy')
-        rust(root, files, action, REPOSITORY_ROOT)
-    if target in {
-        'format',
-        'format-sql',
-        'format-check',
-        'format-check-sql',
-        'lint-sql',
-    }:
-        sql(root, files, action, REPOSITORY_ROOT)
+    if target in {'format', 'format-check'}:
+        action, languages, typed = target, LANGUAGES, False
+    else:
+        action, _, language = target.rpartition('-')
+        typed = language == 'typescript'
+        languages = ('javascript',) if typed else (language,)
+    for language in languages:
+        check_language(language, root, files, action, typed)
 
 
 if __name__ == '__main__':
