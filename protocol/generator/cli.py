@@ -10,6 +10,7 @@ from pathlib import Path
 from protocol.generator.validation import validate_sources, validate_status
 
 ROOT = Path(__file__).resolve().parents[2]
+NODE_REPORTER = f'--test-reporter={ROOT / "automation/build/node_reporter.mjs"}'
 OUTPUTS = {
     'rust': (
         Path('protocol/rust/src'),
@@ -45,7 +46,7 @@ def changed_outputs(generated, committed, filenames):
     ]
 
 
-def test_typescript(compiler_arguments=(), test_arguments=('--test-reporter=dot',)):
+def test_typescript(compiler_arguments=(), test_arguments=(NODE_REPORTER,)):
     source = ROOT / 'protocol/typescript'
     with tempfile.TemporaryDirectory(prefix='raicho-protocol-typescript-') as directory:
         subprocess.run(

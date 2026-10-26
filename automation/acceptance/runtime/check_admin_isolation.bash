@@ -24,7 +24,8 @@ expect_connection_failure() {
     local ALLOWED_STATUSES="${1}"
     shift
     local RESULT=0 CONNECTIONS
-    CONNECTIONS="$("${@}" --write-out '%{num_connects}')" || RESULT="${?}"
+    # The probe is expected to fail, so curl's own error message is noise.
+    CONNECTIONS="$("${@}" --write-out '%{num_connects}' 2>/dev/null)" || RESULT="${?}"
     if [[ " ${ALLOWED_STATUSES} " != *" ${RESULT} "* || ${CONNECTIONS} != 0 ]]; then
         echo "FAIL: expected no connection (${ALLOWED_STATUSES}), got status ${RESULT}, connections ${CONNECTIONS}" >&2
         return 1
