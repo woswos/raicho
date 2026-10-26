@@ -19,5 +19,8 @@ deploy-admin: images
 deploy-down:
 	@$(STEP) $@ $(DEPLOYMENT_COMPOSE) down
 
+deploy-clean: tooling-image
+	@$(QUIET_DOCKER) $(STEP) $@ bash $(REPOSITORY_ROOT)automation/tooling/deploy_clean.bash
+
 $(filter deploy-connector-%,$(DEPLOYMENT_TARGETS)): images
 	@$(QUIET_DOCKER) $(STEP) $@ bash $(REPOSITORY_ROOT)deploy/credentials/connector.bash $(@:deploy-connector-%=%)

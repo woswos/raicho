@@ -64,21 +64,27 @@ remove_disposable_projects() {
     done
 }
 
+# Credential directories hold files that belong to container users.
+remove_directory() {
+    local DIRECTORY="${1}"
+    if rm -rf -- "${DIRECTORY}" 2>/dev/null; then
+        return 0
+    fi
+    docker run --rm --pull never --network none --user 0:0 \
+        --mount "type=bind,source=${DIRECTORY},target=/state" \
+        --entrypoint find raicho-tools:local /state -mindepth 1 -delete || true
+    rmdir -- "${DIRECTORY}" 2>/dev/null
+}
+
 remove_state_directories() {
     local DIRECTORY
     for DIRECTORY in "${TEMPORARY_DIRECTORY}"/raicho-*.????????; do
         if [[ ! -d ${DIRECTORY} || -L ${DIRECTORY} || ! -O ${DIRECTORY} ]]; then
             continue
         fi
-        if ! rm -rf -- "${DIRECTORY}" 2>/dev/null; then
-            # Acceptance fixtures leave root-owned credential files behind.
-            docker run --rm --pull never --network none --user 0:0 \
-                --mount "type=bind,source=${DIRECTORY},target=/state" \
-                --entrypoint find raicho-tools:local /state -mindepth 1 -delete || true
-            if ! rmdir -- "${DIRECTORY}" 2>/dev/null; then
-                echo "Kept ${DIRECTORY}: remove it as the user that owns its files" >&2
-                continue
-            fi
+        if ! remove_directory "${DIRECTORY}"; then
+            echo "Kept ${DIRECTORY}: remove it as the user that owns its files" >&2
+            continue
         fi
         echo "Removed ${DIRECTORY}"
     done
