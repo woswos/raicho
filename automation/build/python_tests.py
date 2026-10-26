@@ -1,5 +1,6 @@
 import argparse
 import io
+import os
 import sys
 import unittest
 
@@ -15,7 +16,11 @@ def main():
     parser.add_argument('start')
     parser.add_argument('pattern')
     arguments = parser.parse_args()
+    # Tests must not inherit the caller's output mode.
+    verbose = bool(os.environ.pop('VERBOSE', None))
     suite = unittest.defaultTestLoader.discover(arguments.start, pattern=arguments.pattern, top_level_dir='.')
+    if verbose:
+        return 0 if unittest.TextTestRunner(stream=sys.stdout, verbosity=2).run(suite).wasSuccessful() else 1
     report = io.StringIO()
     result = unittest.TextTestRunner(stream=report, buffer=True).run(suite)
     if not result.wasSuccessful():

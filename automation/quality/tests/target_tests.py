@@ -1,3 +1,4 @@
+import os
 import re
 import subprocess
 import tempfile
@@ -6,7 +7,7 @@ from pathlib import Path
 from unittest import mock
 
 from automation.paths import REPOSITORY_ROOT
-from automation.quality import runner
+from automation.quality import runner, sql
 from automation.quality.runner import TARGETS
 
 
@@ -53,6 +54,31 @@ class QualityTargetTests(unittest.TestCase):
         for command, message in cases.items():
             with self.subTest(command=command):
                 self.assertEqual(runner.failure_message(subprocess.CalledProcessError(2, list(command))), message)
+
+    def test_verbose_runs_drop_the_quiet_flags(self):
+        cases = (
+            (runner.python, [Path('module.py')], 'lint', '--quiet'),
+            (runner.javascript, [Path('script.js')], 'format-check', '--log-level'),
+        )
+        for check, files, action, flag in cases:
+            for verbose, present in (('', True), ('1', False)):
+                with (
+                    self.subTest(check=check.__name__, verbose=verbose),
+                    mock.patch.dict(os.environ, {'VERBOSE': verbose}),
+                    mock.patch.object(runner, 'run') as run,
+                ):
+                    check(Path('/workspace'), files, action)
+                    self.assertEqual(any(flag in call.args[0] for call in run.call_args_list), present)
+
+    def test_verbose_sql_checks_drop_the_quiet_flag(self):
+        for verbose, present in (('', True), ('1', False)):
+            with (
+                self.subTest(verbose=verbose),
+                mock.patch.dict(os.environ, {'VERBOSE': verbose}),
+                mock.patch.object(sql, 'run') as run,
+            ):
+                sql.sql(Path('/workspace'), [Path('query.sql')], 'lint', REPOSITORY_ROOT)
+                self.assertEqual('--quiet' in run.call_args.args[0], present)
 
 
 if __name__ == '__main__':

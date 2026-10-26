@@ -6,10 +6,15 @@ import sys
 import tempfile
 from pathlib import Path
 
+from automation.output import verbose
 from automation.paths import REPOSITORY_ROOT
 
 BENCHMARK = ['cargo', 'bench', '--workspace', '--bench', '*', '--locked']
 NODE_REPORTER = f'--test-reporter={REPOSITORY_ROOT / "automation/build/node_reporter.mjs"}'
+
+
+def node_reporter():
+    return '--test-reporter=spec' if verbose() else NODE_REPORTER
 
 
 def run(arguments, **options):
@@ -52,11 +57,16 @@ def test_summary(output):
     return f'Rust: {sum(map(int, results))} tests passed in {len(results)} test binaries'
 
 
+def node_test(test_arguments, tests, environment):
+    arguments = (node_reporter(),) if test_arguments is None else test_arguments
+    run(['node', '--test', *arguments, *tests], env=environment)
+
+
 def extension(
     source_root,
     testing=False,
     build_arguments=(),
-    test_arguments=(NODE_REPORTER,),
+    test_arguments=None,
 ):
     with tempfile.TemporaryDirectory(prefix='raicho-extension-') as directory:
         output = Path(directory)
@@ -78,10 +88,10 @@ def extension(
             tests = sorted(str(path) for path in (source_root / 'tests').glob('*.test.mjs'))
             if not tests:
                 raise ValueError('No extension tests were found.')
-            run(['node', '--test', *test_arguments, *tests], env=environment)
+            node_test(test_arguments, tests, environment)
 
 
-def web(testing=False, build_arguments=(), test_arguments=(NODE_REPORTER,)):
+def web(testing=False, build_arguments=(), test_arguments=None):
     with tempfile.TemporaryDirectory(prefix='raicho-web-') as directory:
         run(
             [
@@ -96,7 +106,7 @@ def web(testing=False, build_arguments=(), test_arguments=(NODE_REPORTER,)):
             tests = sorted(str(path) for path in (REPOSITORY_ROOT / 'web/tests').glob('*.mjs'))
             if not tests:
                 raise ValueError('No browser application tests were found.')
-            run(['node', '--test', *test_arguments, *tests], env=environment)
+            node_test(test_arguments, tests, environment)
 
 
 def main():

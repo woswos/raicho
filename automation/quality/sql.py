@@ -2,6 +2,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from automation.output import quiet
 from automation.quality.files import require_tools, run
 
 
@@ -34,7 +35,7 @@ def sql(root, files, action, tooling_root):
                 'sqlfluff',
                 'lint',
                 *options,
-                '--quiet',
+                *quiet('--quiet'),
                 '--disregard-sqlfluffignores',
                 *sources,
             ],
@@ -54,7 +55,7 @@ def sql(root, files, action, tooling_root):
                 'sqlfluff',
                 'format',
                 *options,
-                '--quiet',
+                *quiet('--quiet'),
                 '--disregard-sqlfluffignores',
                 *sources,
             ],

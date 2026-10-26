@@ -116,6 +116,11 @@ class ApplicationTests(unittest.TestCase):
                 application.main()
                 called.assert_called_once_with(*arguments, **keywords)
 
+    def test_verbose_node_tests_use_the_standard_reporter(self):
+        for verbose, reporter in (('', NODE_REPORTER), ('1', '--test-reporter=spec')):
+            with self.subTest(verbose=verbose), mock.patch.dict(os.environ, {'VERBOSE': verbose}):
+                self.assertEqual(application.node_reporter(), reporter)
+
     def test_verbose_benchmarks_stream_their_progress(self):
         with mock.patch.dict(os.environ, {'CARGO_TERM_QUIET': 'false'}), mock.patch.object(application, 'run') as run:
             application.cargo_bench()

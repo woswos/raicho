@@ -24,10 +24,16 @@ make lint test
 
 Output stays short when commands succeed. Docker builds, Cargo, and the acceptance
 suites' Docker commands print no progress. Each Rust, Node, and Python suite
-prints one summary line, and the patch coverage gate only its totals. Formatters print only problems, except that shfmt lists the
-files it rewrites. Guards still print one passed line each, and failures print
-in full. Add `VERBOSE=1`, as in `make VERBOSE=1 build`, to restore Docker and
-Cargo progress and live Rust test output.
+prints one summary line, and the patch coverage gate only its totals. Formatters
+and linters print only problems, except that shfmt lists the files it rewrites.
+Guards still print one passed line each, and failures print in full.
+
+Add `VERBOSE=1`, as in `make VERBOSE=1 lint`, to restore each tool's normal
+output. The host passes it into the tooling container, where `automation/output.py`
+drops the quiet flags of Ruff, SQLFluff, and Prettier. Node suites then use the
+standard `spec` reporter, Python suites list every test, the patch coverage gate
+prints its whole report, and Docker and Cargo show their progress. Python tests
+run without `VERBOSE`, so its value cannot change what they check.
 
 Each step prints one line when it starts and one with its duration when it
 finishes, such as `building server` and `built server, took 12 seconds`. A failed
