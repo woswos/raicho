@@ -60,6 +60,10 @@ Inspect failures with `docker compose logs` and
 docker compose down
 ```
 
+`make clean` removes development leftovers and rebuildable images without stopping
+this deployment or touching its volumes. See
+[build commands](../reference/build-test-generate.md#clean).
+
 For another deployment, choose its own project name and host ports. Exporting
 `COMPOSE_PROJECT_NAME` keeps subsequent startup, inspection, and shutdown commands
 on the same project. The equivalent `-p` option must be included on every command.

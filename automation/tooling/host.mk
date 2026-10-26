@@ -38,3 +38,6 @@ acceptance-credentials:
 
 acceptance-mail:
 	@bash $(REPOSITORY_ROOT)mailprobe/tests/check_mail_compatibility.bash
+
+clean:
+	@bash $(REPOSITORY_ROOT)automation/tooling/clean.bash

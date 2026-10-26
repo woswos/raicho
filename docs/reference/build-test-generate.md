@@ -32,6 +32,7 @@ make lint test
 | `check-patch-coverage` | Fail when changed lines are below the coverage threshold |
 | `images` | Runtime images only |
 | `acceptance` | Every disposable deployment suite, on the host |
+| `clean` | Remove ignored build output, interrupted acceptance runs, and this project's images, on the host |
 | `lint-pr` | PR metadata, design/decision policy, and changelog guard |
 
 Component targets run one piece of those: `build-server`, `build-web`,
@@ -191,6 +192,29 @@ Thunderbird is stopped, then removes the project. It uses `COMPOSE_PROJECT_NAME`
 when set, as CI does, and refuses the `raicho` project. The connector, credential,
 and mail runners are described below. Each suite owns uniquely named resources, so
 the suites can also run concurrently from separate shells.
+
+## Clean
+
+```bash
+make clean
+```
+
+`clean` runs `automation/tooling/clean.bash` on the host. It removes:
+
+- Files that the repository's own `.gitignore` files ignore, such as `target/`,
+  `dist/`, `node_modules/`, and `__pycache__/`, except `.raicho/`. Files ignored
+  only by global or `.git/info/exclude` rules stay.
+- Containers, volumes, networks, and images of interrupted acceptance projects,
+  which are named `raicho-<suite>-<timestamp>-<number>`, as `raicho-ci-...` is.
+- Acceptance state directories named `raicho-<suite>.XXXXXXXX` under `TMPDIR` or
+  `/tmp`. Fixture files owned by root are removed through `raicho-tools:local`.
+- The `raicho-tools:local`, `raicho-server:local`, `raicho-gateway:local`, and
+  `raicho-thunderbird:local` images. An image a container still uses is kept and
+  reported.
+
+It never touches the `raicho` deployment, its volumes, or `.raicho/`, and it does
+not prune the Docker build cache, which the default builder cannot limit to one
+project. The next `make` rebuilds the tooling image.
 
 ## Coverage
 

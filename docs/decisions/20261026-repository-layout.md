@@ -44,7 +44,8 @@ guards, language quality, cross-component builds and coverage, releases,
 cross-service acceptance for the connector, credentials, and runtime, the tooling
 image, and shared test fixtures. Protocol generation belongs to
 `protocol/generator/`. Make is the developer interface, with the verbs `build`,
-`test`, `lint`, `format`, `generate`, and `coverage` over finer component targets.
+`test`, `lint`, `format`, `generate`, `coverage`, `acceptance`, and `clean` over
+finer component targets.
 On the host it builds the tooling image and runs each target inside it, using the
 writable service with the caller's UID and GID for targets that change files.
 Inside the image it invokes Python modules from the repository root with
