@@ -1,0 +1,330 @@
+[
+  {
+    "name": "server ping",
+    "phase": "server_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "ping",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "sequence": 1,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "client pong",
+    "phase": "client_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "pong",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "sequence": 1,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "maximum sequence",
+    "phase": "server_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "ping",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "sequence": 2147483647,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "connected error",
+    "phase": "server_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "invalid_message",
+      "generation": "0123456789abcdef0123456789abcdef",
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "pong from server",
+    "phase": "server_control",
+    "valid": false,
+    "error": "unexpected_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "pong",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "sequence": 1,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "ping from client",
+    "phase": "client_control",
+    "valid": false,
+    "error": "unexpected_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "ping",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "sequence": 1,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "client cannot report protocol error",
+    "phase": "client_control",
+    "valid": false,
+    "error": "unexpected_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "invalid_message",
+      "generation": "0123456789abcdef0123456789abcdef",
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "authenticate after negotiation",
+    "phase": "client_control",
+    "valid": false,
+    "error": "unexpected_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "welcome repeated",
+    "phase": "server_control",
+    "valid": false,
+    "error": "unexpected_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "welcome",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "capabilities": [],
+      "heartbeat_interval_ms": 15000,
+      "heartbeat_timeout_ms": 45000,
+      "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  },
+  {
+    "name": "welcome from connector",
+    "phase": "authentication",
+    "valid": false,
+    "error": "unexpected_message",
+    "message": {
+      "type": "welcome",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "capabilities": [],
+      "heartbeat_interval_ms": 15000,
+      "heartbeat_timeout_ms": 45000,
+      "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  },
+  {
+    "name": "authenticate from server",
+    "phase": "handshake",
+    "valid": false,
+    "error": "unexpected_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "stale generation",
+    "phase": "server_control",
+    "valid": false,
+    "error": "stale_generation",
+    "generation": "ffffffffffffffffffffffffffffffff",
+    "message": {
+      "type": "ping",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "sequence": 1,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "missing generation context",
+    "phase": "server_control",
+    "valid": false,
+    "error": "stale_generation",
+    "message": {
+      "type": "ping",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "sequence": 1,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "connected error needs generation",
+    "phase": "server_control",
+    "valid": false,
+    "error": "stale_generation",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "invalid_message"
+    }
+  },
+  {
+    "name": "invalid generation encoding",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "ping",
+      "protocol_version": 1,
+      "generation": "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",
+      "sequence": 1,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "sequence zero",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "ping",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "sequence": 0,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "sequence negative",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "ping",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "sequence": -1,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "sequence fraction",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "ping",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "sequence": 1.1,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "sequence overflow",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "ping",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "sequence": 2147483648,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "numeric string sequence",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "ping",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "sequence": "1",
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "integer-valued decimals",
+    "phase": "server_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "{\"type\":\"ping\",\"protocol_version\":1.0,\"generation\":\"0123456789abcdef0123456789abcdef\",\"sequence\":1e0,\"mac\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+  },
+  {
+    "name": "connected error without mac",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "invalid_message",
+      "generation": "0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "ping without mac",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "ping",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "sequence": 1
+    }
+  },
+  {
+    "name": "invalid mac encoding",
+    "phase": "client_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "pong",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "sequence": 1,
+      "mac": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    }
+  }
+]

@@ -1,0 +1,422 @@
+[
+  {
+    "name": "connected session",
+    "valid": true,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "connected",
+        "generation": "0123456789abcdef0123456789abcdef",
+        "last_error": null,
+        "heartbeat_count": 3
+      },
+      "version": "0.1.0",
+      "commit": "unknown"
+    }
+  },
+  {
+    "name": "unconfigured backend",
+    "valid": true,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "unconfigured",
+        "generation": null,
+        "last_error": null,
+        "heartbeat_count": 0
+      },
+      "version": "0.1.0",
+      "commit": "unknown"
+    }
+  },
+  {
+    "name": "disconnected after a heartbeat timeout",
+    "valid": true,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "disconnected",
+        "generation": null,
+        "last_error": "heartbeat_timeout",
+        "heartbeat_count": 3
+      },
+      "version": "0.1.0",
+      "commit": "unknown"
+    }
+  },
+  {
+    "name": "database unavailable",
+    "valid": true,
+    "document": {
+      "status": "unavailable",
+      "database": {
+        "status": "unavailable",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "unavailable",
+        "generation": null,
+        "last_error": "storage_unavailable",
+        "heartbeat_count": 0
+      },
+      "version": "0.1.0",
+      "commit": "unknown"
+    }
+  },
+  {
+    "name": "build commit",
+    "valid": true,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "connected",
+        "generation": "0123456789abcdef0123456789abcdef",
+        "last_error": null,
+        "heartbeat_count": 3
+      },
+      "version": "0.1.0",
+      "commit": "0123456789abcdef0123456789abcdef01234567"
+    }
+  },
+  {
+    "name": "undocumented member",
+    "valid": false,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "connected",
+        "generation": "0123456789abcdef0123456789abcdef",
+        "last_error": null,
+        "heartbeat_count": 3
+      },
+      "version": "0.1.0",
+      "commit": "unknown",
+      "extra": true
+    }
+  },
+  {
+    "name": "undocumented backend member",
+    "valid": false,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "connected",
+        "generation": "0123456789abcdef0123456789abcdef",
+        "last_error": null,
+        "heartbeat_count": 3,
+        "token": "private"
+      },
+      "version": "0.1.0",
+      "commit": "unknown"
+    }
+  },
+  {
+    "name": "unknown readiness",
+    "valid": false,
+    "document": {
+      "status": "starting",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "connected",
+        "generation": "0123456789abcdef0123456789abcdef",
+        "last_error": null,
+        "heartbeat_count": 3
+      },
+      "version": "0.1.0",
+      "commit": "unknown"
+    }
+  },
+  {
+    "name": "unknown backend state",
+    "valid": false,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "unknown",
+        "generation": "0123456789abcdef0123456789abcdef",
+        "last_error": null,
+        "heartbeat_count": 3
+      },
+      "version": "0.1.0",
+      "commit": "unknown"
+    }
+  },
+  {
+    "name": "free-text backend error",
+    "valid": false,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "connected",
+        "generation": "0123456789abcdef0123456789abcdef",
+        "last_error": "private backend text",
+        "heartbeat_count": 3
+      },
+      "version": "0.1.0",
+      "commit": "unknown"
+    }
+  },
+  {
+    "name": "malformed generation",
+    "valid": false,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "connected",
+        "generation": "ABC",
+        "last_error": null,
+        "heartbeat_count": 3
+      },
+      "version": "0.1.0",
+      "commit": "unknown"
+    }
+  },
+  {
+    "name": "negative heartbeat count",
+    "valid": false,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "connected",
+        "generation": "0123456789abcdef0123456789abcdef",
+        "last_error": null,
+        "heartbeat_count": -1
+      },
+      "version": "0.1.0",
+      "commit": "unknown"
+    }
+  },
+  {
+    "name": "fractional heartbeat count",
+    "valid": false,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "connected",
+        "generation": "0123456789abcdef0123456789abcdef",
+        "last_error": null,
+        "heartbeat_count": 1.5
+      },
+      "version": "0.1.0",
+      "commit": "unknown"
+    }
+  },
+  {
+    "name": "another backend kind",
+    "valid": false,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "other",
+        "status": "connected",
+        "generation": "0123456789abcdef0123456789abcdef",
+        "last_error": null,
+        "heartbeat_count": 3
+      },
+      "version": "0.1.0",
+      "commit": "unknown"
+    }
+  },
+  {
+    "name": "another database engine",
+    "valid": false,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "other",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "connected",
+        "generation": "0123456789abcdef0123456789abcdef",
+        "last_error": null,
+        "heartbeat_count": 3
+      },
+      "version": "0.1.0",
+      "commit": "unknown"
+    }
+  },
+  {
+    "name": "blank version",
+    "valid": false,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "connected",
+        "generation": "0123456789abcdef0123456789abcdef",
+        "last_error": null,
+        "heartbeat_count": 3
+      },
+      "version": " ",
+      "commit": "unknown"
+    }
+  },
+  {
+    "name": "empty commit",
+    "valid": false,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "connected",
+        "generation": "0123456789abcdef0123456789abcdef",
+        "last_error": null,
+        "heartbeat_count": 3
+      },
+      "version": "0.1.0",
+      "commit": ""
+    }
+  },
+  {
+    "name": "overlong version",
+    "valid": false,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "connected",
+        "generation": "0123456789abcdef0123456789abcdef",
+        "last_error": null,
+        "heartbeat_count": 3
+      },
+      "version": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "commit": "unknown"
+    }
+  },
+  {
+    "name": "missing last error",
+    "valid": false,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "connected",
+        "generation": "0123456789abcdef0123456789abcdef",
+        "heartbeat_count": 3
+      },
+      "version": "0.1.0",
+      "commit": "unknown"
+    }
+  },
+  {
+    "name": "missing commit",
+    "valid": false,
+    "document": {
+      "status": "ready",
+      "database": {
+        "status": "ready",
+        "engine": "sqlite",
+        "version": "3.50.4"
+      },
+      "backend": {
+        "kind": "thunderbird",
+        "status": "connected",
+        "generation": "0123456789abcdef0123456789abcdef",
+        "last_error": null,
+        "heartbeat_count": 3
+      },
+      "version": "0.1.0"
+    }
+  }
+]

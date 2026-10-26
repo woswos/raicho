@@ -23,6 +23,7 @@ The always-loaded workflow covers planning, implementation, and documentation up
 - Engineering principles: `docs/coding/coding-principles.md`
 - Repository layout, automation, and placement rules: `docs/reference/project-structure.md`
 - Commands: `docs/reference/build-test-generate.md`
+- Shared Rust/TypeScript protocol sources: `docs/reference/connector-contract.md`
 - CI and pull request guards: `docs/reference/ci-cd.md`
 - Coding and naming conventions: `docs/coding/coding-standards.md`
 - Formatters and linters: `docs/coding/linting-and-formatting.md`

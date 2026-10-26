@@ -11,11 +11,11 @@ workflows always finish.
 
 - `lint`: repository integrity, every Python unit suite, language linting,
   formatting checks, TypeScript type checking, and runner fixture tests on
-  pushes and PRs, including designs.
+  pushes and PRs, including designs. `make lint` also checks protocol generation drift.
 - `pr-guards`: PR context checks on PR events only, including the changelog
   entry required for user-visible changes.
 - `application-build`: runtime and fixture Compose validation and all runtime images.
-- `application-test`: Rust and browser builds/tests.
+- `application-test`: Rust, browser, and shared protocol builds/tests.
 - `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
   administrative network isolation and listener closure, and application readiness
   while Thunderbird is stopped, in a disposable project.
@@ -47,8 +47,10 @@ Disposable runner
 fixtures still verify discovery and failure behavior independently. Missing
 project configuration fails rather than silently skipping application checks.
 Automated checks do not claim visual verification of the administrative desktop.
-Python automation suites and Thunderbird process supervision tests run through
-`test-python`, from component-local `tests/` directories.
+The Rust workspace tests exercise the shared
+[connector contract fixtures](connector-contract.md). Python
+automation suites, Thunderbird process supervision tests, and protocol generation
+regressions run through `test-python`, from component-local `tests/` directories.
 
 ## Repository integrity
 

@@ -59,6 +59,10 @@ External Thunderbird mail directories require their own explicit mounts.
 Diagnostics use `Cache-Control: no-store`. Unknown API paths and missing assets
 return 404. The status response does not inspect a Thunderbird profile or claim
 connector readiness. Stopping Thunderbird does not make Raicho unready.
+[`protocol/schema/status.schema.json`](../../protocol/schema/status.schema.json)
+defines the connector diagnostics that the status response will adopt, as the
+[status contract decision](../decisions/20261026-protocol-contracts.md#status-api)
+records.
 
 `version` is the declared product version. `commit` is `RAICHO_COMMIT` when the
 image was built with that argument, and `unknown` otherwise. The diagnostics

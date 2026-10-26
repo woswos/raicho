@@ -21,6 +21,12 @@ Raicho from reaching Thunderbird's administrative listener. Both retain provider
 internet access. There is no extension, live mail connection to Raicho, or
 browser login yet.
 
+The [connector contract](connector-contract.md) provides a shared control
+schema, generated Rust/TypeScript bindings, and bounded decoders under
+`protocol/rust/` and `protocol/typescript/`. No runtime component uses them yet.
+It carries authentication and heartbeat only,
+and every frame after the handshake carries a MAC under a per-session key.
+
 The [runtime reference](runtime.md) describes endpoints, storage, migrations,
 image packaging, and configuration. The existing showcase in `assets/brand/`
 remains a separate static concept with fictional in-memory messages. Shared
@@ -28,7 +34,8 @@ Docker tooling runs language, application, and repository checks, and the
 drivers used by disposable tests. Component-specific builders
 and acceptance drivers live with their sources. Cross-component build dispatch,
 runtime acceptance, and shared development commands live in
-responsibility-based `automation/` packages. The
+responsibility-based `automation/` packages, while protocol generation belongs
+to `protocol/generator/`. The
 [shared test image decision](../decisions/20261026-repository-layout.md#tooling-image)
 records that boundary. Fixtures and runtime tests live beside their owning
 components, as described in [project structure](project-structure.md#test-code).
@@ -73,10 +80,16 @@ decisions. The
 [runtime stack decision](../decisions/20261018-foundation-runtime-stack.md)
 selects Axum, Tokio, SQLx, the initial SQLite configuration, and the independently
 built Thunderbird image. The
+[direct connector listener decision](../decisions/20261026-thunderbird-connector.md#listener)
+keeps Axum for the public listener and accepts connector WebSockets with
+tokio-tungstenite. The
 [connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
 selects MV2 packaging, managed configuration, a fixed internal gateway, and a
-versioned authenticated protocol. None of the connector is implemented yet. The
-static showcase remains a design reference.
+versioned authenticated protocol.
+The shared connector contract and its generated bindings are implemented. The
+server listener, credential storage, connection diagnostics, extension, and
+gateway are not. The static showcase remains a design
+reference.
 
 Current tooling commands and planned application commands are distinguished in
 [build, test, and generate](build-test-generate.md).

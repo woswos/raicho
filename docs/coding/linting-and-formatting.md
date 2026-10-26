@@ -76,7 +76,8 @@ JavaScript (`.js`, `.mjs`, `.cjs`), TypeScript (`.ts`, `.tsx`, `.mts`, `.cts`),
 Rust (`.rs` and Cargo projects), and SQL (`.sql`).
 
 Prettier also covers `package.json`, `.prettierrc.json`, every Compose file,
-browser package and TypeScript configuration, and the GitHub workflows.
+browser package and TypeScript configuration, and the GitHub workflows. The control schema, limits, and shared
+protocol fixture JSON files are also included.
 Do not broaden it to Markdown, HTML, CSS, SVG, exported previews, historical
 references, fonts, or vendor artifacts. Dependency directories, build output,
 and generated lockfile formatting are excluded. Preserve the approved artwork
@@ -89,6 +90,13 @@ The Rust workspace and browser TypeScript project are checked directly.
 `test-tooling` also exercises real passing/failing projects in temporary storage.
 Missing project configuration or tools fail. Runner fixture success does not
 replace application tests or runtime verification.
+
+Generated contract outputs remain under formatting and generation-drift checks.
+Only `protocol/typescript/src/validator_generated.js` disables ESLint's generated
+variable redeclaration, unused variable/assignment, and unreachable-code rules.
+Other JavaScript rules and hand-written contract files retain normal checks.
+Regenerate these files instead of editing them. Rust wire types omit `Debug` to
+avoid accidental credential formatting. See the [contract reference](../reference/connector-contract.md).
 
 `format-check` never rewrites sources. `format` is an explicit writable command
 using the caller's UID/GID. CI runs checks without automatic fixes.
@@ -141,9 +149,15 @@ in `package-lock.json`:
 | eslint-config-prettier | 10.1.8 |
 | globals | 17.13.0 |
 | TypeScript | 6.0.3 |
+| Ajv | 8.20.0 |
+| json-schema-to-typescript | 16.0.0 |
+| esbuild | 0.28.2 |
 
-Exact direct Rust dependencies live in `Cargo.toml`, with the graph locked in
-`Cargo.lock`.
+The contract uses typify 0.8.0 and schemars 0.8.22 for Rust generation,
+jsonschema 0.59.0 for offline runtime validation, and prettyplease 0.3.0 with
+syn 3.0.9 for generated syntax. Exact direct dependencies live in `Cargo.toml`,
+with the graph locked in `Cargo.lock`. Ajv and esbuild run only during generation,
+producing a self-contained validator with no runtime compiler.
 
 The public listener uses Axum 0.8.9 without its WebSocket support.
 

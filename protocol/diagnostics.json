@@ -1,0 +1,31 @@
+{
+  "backend_states": [
+    "unconfigured",
+    "disconnected",
+    "connected",
+    "revoked",
+    "unavailable"
+  ],
+  "backend_errors": [
+    "authentication_failed",
+    "authentication_timeout",
+    "incompatible_version",
+    "invalid_message",
+    "message_too_large",
+    "unexpected_message",
+    "stale_generation",
+    "heartbeat_timeout",
+    "session_replaced",
+    "disconnected",
+    "storage_unavailable",
+    "server_busy"
+  ],
+  "contract_errors": [
+    "authentication_failed",
+    "invalid_message",
+    "message_too_large",
+    "incompatible_version",
+    "unexpected_message",
+    "stale_generation"
+  ]
+}
