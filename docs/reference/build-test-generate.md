@@ -29,6 +29,13 @@ files it rewrites. Guards still print one passed line each, and failures print
 in full. Add `VERBOSE=1`, as in `make VERBOSE=1 build`, to restore Docker and
 Cargo progress and live Rust test output.
 
+Each step prints one line when it starts and one with its duration when it
+finishes, such as `building server` and `built server, took 12 seconds`. A failed
+step prints `building server failed after 3 seconds` and keeps the command's exit
+status. Aggregate targets such as `build` print only their steps' lines.
+`automation/tooling/step.bash` writes these lines, colored when `TERM` names an
+xterm terminal.
+
 | Target | Behavior |
 | --- | --- |
 | `build` | Tooling image, server, web page, and extension builds, then the runtime images |

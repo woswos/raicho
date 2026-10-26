@@ -14,7 +14,7 @@ WRITE := $(RUN) format make
 
 .PHONY: tooling-image
 tooling-image:
-	@$(TOOLS) build
+	@$(STEP) $@ $(TOOLS) build
 
 $(filter-out build $(WRITING_TARGETS),$(CONTAINER_TARGETS)): tooling-image
 	@$(CHECK) $@
@@ -27,23 +27,23 @@ build: tooling-image
 	@$(MAKE) --no-print-directory images
 
 images:
-	@docker compose --progress $(PROGRESS) -f $(REPOSITORY_ROOT)compose.yaml build
+	@$(STEP) $@ docker compose --progress $(PROGRESS) -f $(REPOSITORY_ROOT)compose.yaml build
 
-ACCEPTANCE := $(if $(VERBOSE),,COMPOSE_PROGRESS=quiet BUILDKIT_PROGRESS=quiet) bash $(REPOSITORY_ROOT)
+ACCEPTANCE := $(if $(VERBOSE),,COMPOSE_PROGRESS=quiet BUILDKIT_PROGRESS=quiet) $(STEP)
 
 acceptance: acceptance-runtime acceptance-connector acceptance-credentials acceptance-mail
 
 acceptance-runtime:
-	@$(ACCEPTANCE)automation/acceptance/runtime/check_runtime.bash
+	@$(ACCEPTANCE) $@ bash $(REPOSITORY_ROOT)automation/acceptance/runtime/check_runtime.bash
 
 acceptance-connector:
-	@$(ACCEPTANCE)automation/acceptance/connector/check_connector.bash
+	@$(ACCEPTANCE) $@ bash $(REPOSITORY_ROOT)automation/acceptance/connector/check_connector.bash
 
 acceptance-credentials:
-	@$(ACCEPTANCE)automation/acceptance/credentials/check_credentials.bash
+	@$(ACCEPTANCE) $@ bash $(REPOSITORY_ROOT)automation/acceptance/credentials/check_credentials.bash
 
 acceptance-mail:
-	@$(ACCEPTANCE)mailprobe/tests/check_mail_compatibility.bash
+	@$(ACCEPTANCE) $@ bash $(REPOSITORY_ROOT)mailprobe/tests/check_mail_compatibility.bash
 
 clean:
-	@bash $(REPOSITORY_ROOT)automation/tooling/clean.bash
+	@$(STEP) $@ bash $(REPOSITORY_ROOT)automation/tooling/clean.bash
