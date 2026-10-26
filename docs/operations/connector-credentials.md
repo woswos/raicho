@@ -8,11 +8,11 @@ for storage and [connector contract](../reference/connector-contract.md) for tra
 ## Setup and commands
 
 Run from the repository root on a Linux Docker host with Bash and `flock`.
-Build the runtime images before provisioning:
+Each `make deploy-connector-<command>` target builds the runtime images, then runs
+`bash deploy/credentials/connector.bash <command>`:
 
 ```bash
-docker compose build
-bash deploy/credentials/connector.bash init
+make deploy-connector-init
 ```
 
 The project is selected by `RAICHO_PROJECT`, then `COMPOSE_PROJECT_NAME`, then
@@ -25,11 +25,11 @@ directory and the named database volume paired. Neither `make clean` nor
 `RAICHO_PORT` when the selected deployment needs a different loopback port.
 
 ```bash
-bash deploy/credentials/connector.bash rotate
-bash deploy/credentials/connector.bash verify
-bash deploy/credentials/connector.bash status
-bash deploy/credentials/connector.bash revoke
-bash deploy/credentials/connector.bash reactivate
+make deploy-connector-rotate
+make deploy-connector-verify
+make deploy-connector-status
+make deploy-connector-revoke
+make deploy-connector-reactivate
 ```
 
 Every command stops Raicho and Thunderbird. Successful `init`, `rotate`,
