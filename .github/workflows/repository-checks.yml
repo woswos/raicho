@@ -18,22 +18,26 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   lint:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build tooling image
-        run: docker compose -f compose/compose.tools.yaml build
+        run: docker compose -f automation/tooling/compose.yaml build
       - name: Check repository and languages
-        run: docker compose -f compose/compose.tools.yaml run --rm check make lint format-check typecheck test-tooling
+        run: docker compose -f automation/tooling/compose.yaml run --rm check make lint format-check typecheck test-python test-tooling
 
   pr-guards:
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -41,15 +45,15 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Build tooling image
-        run: docker compose -f compose/compose.tools.yaml build
+        run: docker compose -f automation/tooling/compose.yaml build
       - name: Check pull request policy
-        run: docker compose -f compose/compose.tools.yaml -f compose/compose.ci.yaml run --rm check make lint-pr
+        run: docker compose -f automation/tooling/compose.yaml -f automation/tooling/compose.ci.yaml run --rm check make lint-pr
 
   application-build:
     if: >-
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-build')
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 45
     env:
       RAICHO_COMMIT: ${{ github.sha }}
@@ -59,41 +63,37 @@ jobs:
           persist-credentials: false
       - name: Validate runtime configuration
         run: |
-          docker compose -f compose/compose.yaml config --quiet
-          docker compose -f compose/compose.yaml -f compose/compose.admin.yaml config --quiet
-          docker compose -f compose/compose.yaml -f compose/compose.test.yaml config --quiet
-          docker compose -f compose/compose.yaml -f compose/compose.test.yaml -f compose/compose.admin.yaml config --quiet
+          docker compose -f compose.yaml config --quiet
+          docker compose -f compose.yaml -f compose.admin.yaml config --quiet
+          docker compose -f compose.yaml -f automation/acceptance/runtime/compose.test.yaml config --quiet
+          docker compose -f compose.yaml -f automation/acceptance/runtime/compose.test.yaml -f compose.admin.yaml config --quiet
       - name: Build application images
-        run: docker compose -f compose/compose.yaml build
+        run: docker compose -f compose.yaml build
 
   application-test:
     if: >-
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-test')
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build tooling image
-        run: docker compose -f compose/compose.tools.yaml build
+        run: docker compose -f automation/tooling/compose.yaml build
       - name: Build and test application sources
-        run: docker compose -f compose/compose.tools.yaml run --rm check make build-app test-app
-      - name: Test Thunderbird process supervision
-        run: >-
-          docker compose -f compose/compose.tools.yaml run --rm check
-          python3 -B -m unittest discover -s containers/thunderbird -p '*_tests.py'
+        run: docker compose -f automation/tooling/compose.yaml run --rm check make build-app test-app
 
   runtime-test:
     if: >-
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-test')
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 45
     env:
       COMPOSE_PROJECT_NAME: raicho-ci-${{ github.run_id }}-${{ github.run_attempt }}
-      COMPOSE_FILE: compose/compose.yaml:compose/compose.test.yaml
+      COMPOSE_FILE: compose.yaml:automation/acceptance/runtime/compose.test.yaml
       RAICHO_COMMIT: ${{ github.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -113,7 +113,7 @@ jobs:
           docker compose run --rm smoke http
           docker compose run --rm smoke persistence
       - name: Verify administrative network isolation
-        run: bash devbin/raicho_check_admin_isolation.bash
+        run: bash automation/acceptance/runtime/check_admin_isolation.bash
       - name: Verify independent application readiness
         run: |
           docker compose stop thunderbird

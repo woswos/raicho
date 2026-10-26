@@ -7,13 +7,14 @@ Docker Compose 2.24 or newer is needed for the test override's reset syntax.
 Use Docker Engine 28 or newer for the
 [administrative network boundary](../reference/runtime.md#network-isolation).
 
-Compose files live in `compose/`, separate from image recipes in `containers/`.
+The base `compose.yaml` and the operator overlay `compose.admin.yaml` live at
+the repository root.
 Run the commands below from the repository root. Configuration may come from
 shell variables. If using a repository-root `.env` file, pass `--env-file .env`
 explicitly to Compose, for example:
 
 ```bash
-docker compose --env-file .env -f compose/compose.yaml config --quiet
+docker compose --env-file .env config --quiet
 ```
 
 ## Start and inspect
@@ -21,9 +22,9 @@ docker compose --env-file .env -f compose/compose.yaml config --quiet
 From the repository root:
 
 ```bash
-docker compose -f compose/compose.yaml config --quiet
-docker compose -f compose/compose.yaml build
-docker compose -f compose/compose.yaml up -d --wait
+docker compose config --quiet
+docker compose build
+docker compose up -d --wait
 ```
 
 Open <http://127.0.0.1:8080>. Expect a ready application and an unconfigured
@@ -32,7 +33,7 @@ Thunderbird connector. No viewer is needed to start Thunderbird.
 For explicit administration:
 
 ```bash
-docker compose -f compose/compose.yaml -f compose/compose.admin.yaml up -d --wait
+docker compose -f compose.yaml -f compose.admin.yaml up -d --wait
 ```
 
 Open <http://127.0.0.1:6080/vnc.html?autoconnect=true&resize=remote>. This is the
@@ -40,14 +41,14 @@ native Thunderbird desktop for setup and recovery. Foundation checks use empty
 profiles and no provider credentials. To disable the administrative listener:
 
 ```bash
-docker compose -f compose/compose.yaml up -d --force-recreate thunderbird
+docker compose up -d --force-recreate thunderbird
 ```
 
-Inspect failures with `docker compose -f compose/compose.yaml logs` and
-`docker compose -f compose/compose.yaml ps`. To stop while retaining both volumes:
+Inspect failures with `docker compose logs` and
+`docker compose ps`. To stop while retaining both volumes:
 
 ```bash
-docker compose -f compose/compose.yaml down
+docker compose down
 ```
 
 For another deployment, choose its own project name and host ports. Exporting
@@ -57,7 +58,7 @@ For example, in a separate shell:
 
 ```bash
 export COMPOSE_PROJECT_NAME=raicho-second RAICHO_PORT=8081 RAICHO_ADMIN_PORT=6081
-docker compose -f compose/compose.yaml up -d --wait
+docker compose up -d --wait
 ```
 
 ## Disposable automated checks
@@ -73,7 +74,7 @@ It restores Thunderbird without administration before returning.
 ```bash
 (
   export COMPOSE_PROJECT_NAME="raicho-check-$(date +%s)-$$"
-  export COMPOSE_FILE=compose/compose.yaml:compose/compose.test.yaml
+  export COMPOSE_FILE=compose.yaml:automation/acceptance/runtime/compose.test.yaml
   set -eu
   trap 'docker compose down --volumes --remove-orphans' EXIT
   docker compose --profile test build
@@ -84,7 +85,7 @@ It restores Thunderbird without administration before returning.
   docker compose up -d --force-recreate --wait --wait-timeout 120 raicho thunderbird
   docker compose run --rm smoke http
   docker compose run --rm smoke persistence
-  bash devbin/raicho_check_admin_isolation.bash
+  bash automation/acceptance/runtime/check_admin_isolation.bash
   docker compose stop thunderbird
   docker compose run --rm smoke http
 )

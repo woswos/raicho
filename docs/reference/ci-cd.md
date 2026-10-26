@@ -3,17 +3,19 @@
 [repository-checks.yml](../../.github/workflows/repository-checks.yml) runs on
 pushes to `main` and PR activity: opened, synchronized, reopened, edited,
 labeled, unlabeled, and ready for review. Body and label edits rerun the guard.
-The workflow uses a read-only token and does not retain checkout credentials.
+The workflow uses a read-only token and does not retain checkout credentials. A newer run for the same pull
+request cancels the older one, while runs for pushes to `main` and the release
+workflows always finish.
 
 ## Jobs
 
-- `lint`: repository integrity, guard regression tests, language linting,
+- `lint`: repository integrity, every Python unit suite, language linting,
   formatting checks, TypeScript type checking, and runner fixture tests on
   pushes and PRs, including designs.
 - `pr-guards`: PR context checks on PR events only, including the changelog
   entry required for user-visible changes.
-- `application-build`: runtime Compose validation and both application images.
-- `application-test`: Rust and browser builds/tests, plus process supervision tests.
+- `application-build`: runtime and fixture Compose validation and all runtime images.
+- `application-test`: Rust and browser builds/tests.
 - `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
   administrative network isolation and listener closure, and application readiness
   while Thunderbird is stopped, in a disposable project.
@@ -24,9 +26,16 @@ use no accounts and remove only their job-specific containers and volumes.
 
 Language jobs build the same pinned tooling image used locally. Runtime jobs
 build the application images and use that tooling image for the smoke driver.
+Thunderbird retains its own runtime image.
 Sources remain read-only, with separate cache/temp storage. No formatter writes
-or lint fixes run in CI. The hosted runner provides
-Docker and Compose, while language tools come from the image. Exact commands
+or lint fixes run in CI. Jobs run on the
+repository's self-hosted runners, labeled `self-hosted`, `Linux`, and `X64`. Each
+runner host provides Docker Engine 28 or newer with Compose 2.24 or newer and
+Buildx, Git, GNU Make, Bash, `flock`, and `timeout`. The release workflows install
+Python 3.13 with `actions/setup-python` and need the GitHub CLI. Language tools come from the image. Runners
+keep Docker images and volumes between jobs, so prune them occasionally. Run only
+one runner per Docker host, because jobs use fixed image tags, Compose project
+names, and Cargo caches. Exact commands
 and pins are in [build, test, and generate](build-test-generate.md) and
 [linting and formatting](../coding/linting-and-formatting.md).
 
@@ -38,14 +47,19 @@ Disposable runner
 fixtures still verify discovery and failure behavior independently. Missing
 project configuration fails rather than silently skipping application checks.
 Automated checks do not claim visual verification of the administrative desktop.
+Python automation suites and Thunderbird process supervision tests run through
+`test-python`, from component-local `tests/` directories.
 
 ## Repository integrity
 
-`make lint-repo` checks the AGENTS document references, canonical skills
-directory, documentation and source filenames, skill metadata/example
-paths, and the declared product version, then runs the guard tests. The
-[source naming guard](../coding/linting-and-formatting.md#scope-and-enforcement)
-runs in the existing `lint` job and is not bypassed by skip labels.
+`make lint-repo` checks the AGENTS document references, directory names,
+documentation and source filenames, skill metadata/example
+paths, and the declared product version through modules in
+`automation/repository/`. `make test-python` runs their policy tests, including
+changelog guard regressions, with every other Python unit suite described in the
+[command reference](build-test-generate.md#checks-and-formatting). The
+[naming guards](../coding/linting-and-formatting.md#scope-and-enforcement)
+run in the existing `lint` job and are not bypassed by skip labels.
 Documentation checks include tracked and untracked non-ignored
 documentation, including tracked paths missing from the worktree. `AGENTS.md`
 must `@`-load the working agreement, workflow, key conventions, and
@@ -60,7 +74,7 @@ fails the job.
 `make lint-pr` reads PR metadata from GitHub's event JSON as data. It uses explicit
 base/head commit hashes, not the synthetic merge commit at `GITHUB_SHA`.
 A full checkout supplies those objects, including fork history. The
-`compose/compose.ci.yaml` override mounts the event JSON read-only at
+`automation/tooling/compose.ci.yaml` override mounts the event JSON read-only at
 `/tmp/github-event.json`. Body, labels, and commit IDs are parsed as data and
 never interpolated into shell commands. The changed-path
 comparison uses `base...head`, disables rename detection to inspect both sides
@@ -96,7 +110,7 @@ that check and says so.
 | `skip-design-check` | Bypasses the design-link requirement. Does not bypass planning-only enforcement on a `design` PR. |
 | `skip-build` | Skips the dedicated application image build job. |
 | `skip-test` | Skips application and runtime test jobs. |
-| `no changelog` | Skips the changelog entry check. Does not skip design, build, or test checks. |
+| `skip-changelog` | Skips the changelog entry check. Does not skip design, build, or test checks. |
 
 The `design` label also skips all three application jobs. Jobs are independent,
 so a skipped build does not leave invalid test dependencies. Test jobs still

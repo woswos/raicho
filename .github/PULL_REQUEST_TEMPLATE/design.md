@@ -1,4 +1,4 @@
-<!-- Planning PR: select the design label explicitly in GitHub or with gh pr create --label design --template design.md. Templates do not apply labels automatically. -->
+<!-- Planning PR: create as a draft and select the design label explicitly with gh pr create --draft --label design --template design.md. Templates do not apply labels automatically. -->
 
 ## Design
 

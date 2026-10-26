@@ -1,6 +1,6 @@
 # Version the product from the changelog
 
-- Status: accepted
+- Status: accepted, amended by `20261026-skip-changelog-label`
 - Date: 2026-10-18
 - Deciders: Raicho maintainer
 

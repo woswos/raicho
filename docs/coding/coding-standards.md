@@ -18,20 +18,34 @@ over unexplained abbreviations, while retaining standard protocol acronyms.
 
 Use lower camel case for JavaScript variables/functions, upper snake case for
 Bash variables, and snake case for Python identifiers. Use `mock`, not `fake`,
-when naming test doubles. New Bash helpers live at `devbin/raicho_<purpose>.bash`
-with underscore-separated purpose words. Python helpers use the same prefix
-and `.py` suffix. Document filenames follow
+when naming test doubles. Name helper scripts and modules after their role
+within their directory, which already supplies the project and component. Do not
+repeat the project name or the directory name, as in
+`automation/repository/check_pr.py`, `automation/acceptance/runtime/checks.py`,
+or `web/build.mjs`. Their locations follow the
+[automation placement guide](../reference/project-structure.md#automation).
+Python modules that run inside containers are packages too, such as
+`deploy/thunderbird/runtime.py` and `automation/acceptance/runtime/checks.py`, so the same
+rule applies there. See the [helper naming decision](../decisions/20261026-naming-conventions.md#helper-files)
+and the [repository layout decision](../decisions/20261026-repository-layout.md).
+Document filenames follow
 [documentation organisation](../contributing/documentation-organisation.md#naming).
 
 Keep files focused on one concern. Split them by functionality at approximately
 150 lines or when they hold multiple concerns, unless stronger existing
 conventions apply. Keep search, navigation, and review mapped to one concern.
+File locations follow the [repository placement rules](../reference/project-structure.md#placement-rules).
 
 ## Source filenames
 
 Use lowercase `snake_case` source filenames across languages, such as
 `status_poller.ts` and `count_migrations.sql`. Separate words with one underscore.
-Numeric prefixes, including SQL migration timestamps, are allowed.
+Numeric prefixes are allowed. Files directly in `server/migrations/` use a
+unique four-digit sequence starting at `0000`, followed by a descriptive
+snake_case name, such as `0000_connector_credentials.sql`. Increment the
+sequence for each new migration, without using a date. The source naming guard
+checks the format and rejects duplicate versions. See the
+[migration naming decision](../decisions/20261026-naming-conventions.md#migrations).
 
 The naming guard covers Rust (`.rs`), Python (`.py`, `.pyi`), Bash (`.sh`, `.bash`
 and extensionless shell scripts), JavaScript (`.js`, `.mjs`, `.cjs`, `.jsx`),
@@ -51,9 +65,39 @@ source extensions are checked even when missing from the worktree. Extensionless
 scripts require a readable shell shebang. Stage a rename to remove its old name
 from the index before running it. Dependency/build directories and historical
 references use the [tooling exclusions](linting-and-formatting.md#scope-and-enforcement).
-Directory names, documentation, configuration data, and artwork retain their
+Documentation, configuration data, and artwork filenames retain their
 existing naming conventions. See the
 [decision](../decisions/20261018-source-filename-convention.md) for rationale.
+
+## Directory names
+
+Use ASCII lowercase letters and digits only for every owned directory name
+inside the repository, matching `[a-z0-9]+`. Join words without separators,
+such as `mailprobe`. This includes source, documentation,
+and asset directories. Skill directories use kebab-case instead, as the
+[skill rules](../contributing/documentation-organisation.md#skills) define.
+The exact reserved tool paths `.agents`,
+`.github`, and `.github/PULL_REQUEST_TEMPLATE` are exceptions. Their other
+descendants follow the normal rule.
+
+The directory guard checks parents of tracked and non-ignored untracked paths,
+including tracked paths missing from the worktree. Stage directory renames before
+running it so removed names leave the index. Dependency/build directories and
+historical references use the [tooling exclusions](linting-and-formatting.md#scope-and-enforcement).
+The [directory naming decision](../decisions/20261026-naming-conventions.md#directories)
+records the rationale and migration.
+
+## Database names
+
+Name every table, column, index, view, and trigger in lowercase `snake_case`:
+lowercase letters and digits in words separated by one underscore, starting with
+a letter, such as `connector_credentials.stored_key`. Never quote an identifier
+to admit spaces, capitals, or a leading digit. `make lint-repo` applies
+`server/migrations/` in order to an in-memory SQLite database and checks every
+name the migrations introduce, attributing each failure to its migration.
+SQLite's own `sqlite_` objects and the SQLx `_sqlx_migrations` table are not
+created by migrations and are outside the rule. See the
+[database naming decision](../decisions/20261026-naming-conventions.md#database-identifiers).
 
 ## Comments and prose
 
@@ -69,9 +113,11 @@ within each showcase file. Keep demo data in its separate module. Avoid new
 runtime dependencies for these static pages. New application framework choices
 need a design decision first.
 
-Repository guards are direct Python entry points. Use standard-library APIs for
+Repository guards are Python module entry points. Use standard-library APIs for
 JSON, file paths, and structured Git process arguments. Do not evaluate
-user-controlled text as code. Root and event-path handling follows
+user-controlled text as code. Module invocation follows the
+[automation guide](../reference/project-structure.md#automation). Root and
+event-path handling follows
 [build, test, and generate](../reference/build-test-generate.md#checks-and-formatting).
 
 Bash tooling uses `set -euo pipefail`, braces around parameter expansions, and
@@ -100,4 +146,4 @@ Select a UI framework only with the stage that requires it.
 Use concise sentences describing the failed operation and useful context.
 Follow existing error-format conventions within a subsystem. Never include
 account secrets or private message content. General error-handling principles
-live in [coding principles](../contributing/coding-principles.md#errors).
+live in [coding principles](coding-principles.md#errors).

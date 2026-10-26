@@ -1,0 +1,7 @@
+**
+!deploy/thunderbird/__init__.py
+!deploy/thunderbird/runtime.py
+!deploy/thunderbird/supervisor.py
+!deploy/thunderbird/health_check.py
+!deploy/thunderbird/policies.json
+**/__pycache__

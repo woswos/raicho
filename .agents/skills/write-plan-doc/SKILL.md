@@ -22,11 +22,12 @@ Skip for small, obvious changes, just plan inline and implement after approval.
    "done" looks like. Do not start writing until the goal is clear and the
    document edits are approved under `docs/contributing/workflow.md`.
 2. Investigate the relevant code so the plan is grounded in what exists. Cite
-   the packages/files involved (names, not line numbers).
+   the packages/files involved (names, not line numbers). Assess documentation
+   impact using the [documentation workflow](../../../docs/contributing/workflow.md#documentation-with-implementation).
 3. Write `docs/planning/active/<YYYYMMDD>-<slug>.md` using the structure below.
    Prefix the filename with today's date (`YYYYMMDD`). The slug is kebab-case.
    Design stages to be minimal and incrementally complex, with each stage
-   including explicit testing tasks and quality gates.
+   including documentation work, explicit testing tasks, and quality gates.
 4. Offer a critique pass: re-read the plan adversarially (or invoke the
    `review-plan-doc` skill) and surface risks, missing stages, ordering
    problems, and whether business value is front-loaded. Fold approved fixes in.
@@ -42,6 +43,10 @@ Skip for small, obvious changes, just plan inline and implement after approval.
     ## Approach
     The chosen design and the key trade-offs. Note rejected alternatives briefly.
 
+    ## Documentation impact
+    Name affected documents and instructions, their required updates, and the
+    stages that own them. Explain if no documentation changes are needed.
+
     ## Open questions
     Anything unresolved that needs a decision. Resolve before implementation.
 
@@ -52,7 +57,8 @@ Skip for small, obvious changes, just plan inline and implement after approval.
       Each stage is independently reviewable and ends in a working tree.
 
     Each stage should include:
-    - The core work (code, config, documentation, etc.)
+    - The core implementation work
+    - Documentation: affected files, updates, and verification, or why none are needed
     - Testing: explicit tests or manual verification steps
     - Quality gate: linting, type checking, or build validation as applicable
     - A stopping point for review before proceeding to the next stage

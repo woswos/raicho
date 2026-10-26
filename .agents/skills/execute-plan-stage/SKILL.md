@@ -15,13 +15,16 @@ between stages. Pairs with the `write-plan-doc` skill.
 2. Find the first unchecked `- [ ]` stage. That is the only stage you do this
    run unless the user explicitly authorized a named sequence of stages.
 3. Implement that stage. An approved stage authorizes edits inside its scope.
+   Include its documentation work under the
+   [documentation workflow](../../../docs/contributing/workflow.md#documentation-with-implementation).
    Defer anything that belongs to a later stage. Follow
    `docs/contributing/workflow.md` for what counts as approval.
 4. Verify with the checks named by the stage. `make lint-repo` has standing
    approval when run through the Docker check service, using the command in
    `docs/reference/build-test-generate.md`. Follow the same workflow for any
    other test or deployment command.
-5. Mark the stage `- [x]` and add a one-line debrief under it: what changed,
+5. Confirm the stage's documentation verification is complete, then mark the
+   stage `- [x]` and add a one-line debrief under it: what changed,
    decisions made, anything surprising, follow-ups discovered, and any
    deviation from the plan with why. If this was the last unchecked stage,
    move the plan from `docs/planning/active/` to `docs/planning/done/` with

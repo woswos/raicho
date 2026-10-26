@@ -11,7 +11,7 @@ extends that tooling to SQLite source.
 
 | Language or check | Configuration |
 | --- | --- |
-| Repository guards | Direct Python entry points and standard-library helpers in `devbin/`, with regression tests |
+| Repository guards | Python modules in `automation/repository/`, with package-local regression tests |
 | Bash | `bash -n`, ShellCheck with `.shellcheckrc`, `shfmt -ln bash -i 4 -ci` |
 | Python | Ruff lint and format with `pyproject.toml` |
 | JavaScript | ESLint recommended rules with `eslint.config.mjs`, Prettier with `.prettierrc.json` |
@@ -43,11 +43,31 @@ tests rather than proving query execution or migration safety.
 
 ## Scope and enforcement
 
-`make lint-repo` runs `devbin/raicho_check_source_naming.py` and its regression
-tests locally and in CI. It checks the
+`make lint-repo` runs `automation.repository.check_source_naming` locally and in
+CI, and `make test-python` runs its package-local regression tests. It checks the
 [source filename convention](coding-standards.md#source-filenames), including
 HTML and CSS names without adding them to the formatting scope. Renames are
 explicit edits, never formatter fixes.
+
+`automation.repository.check_directory_naming` enforces the separate
+[directory convention](coding-standards.md#directory-names). It also runs under
+`make lint-repo`. Its regression tests under `make test-python` cover nested
+paths, reserved paths, ignored and missing files, and CLI root selection. It shares Git discovery and
+the exclusions below with the source filename guard.
+
+Add a new repository guard the same way. Create
+`automation/repository/check_<rule>.py` with an optional repository-root
+argument, `FAIL:` diagnostics on stderr, and exit code 1 on failure. Write its
+tests first in `automation/repository/tests/<rule>_tests.py`, and add the guard
+with a failing case to `GUARDS` in `guard_cli_tests.py`. Run it from `lint-repo`
+in the Makefile, where `test-python` picks up its tests automatically, state the rule in the [coding standards](coding-standards.md),
+describe the guard here, and record a decision.
+
+`automation.repository.check_schema_naming` enforces the
+[database naming convention](coding-standards.md#database-names) under
+`make lint-repo`. It builds the schema from `server/migrations/` with Python's
+`sqlite3` instead of parsing SQL, so it also covers quoted identifiers that
+SQLFluff's capitalization rules ignore.
 
 Check and format commands discover tracked and non-ignored untracked source
 through Git. Disposable fixture directories use filesystem discovery. Scope
@@ -55,10 +75,8 @@ includes Bash (`.bash`, `.sh`, and shell shebangs), Python (`.py`, `.pyi`),
 JavaScript (`.js`, `.mjs`, `.cjs`), TypeScript (`.ts`, `.tsx`, `.mts`, `.cts`),
 Rust (`.rs` and Cargo projects), and SQL (`.sql`).
 
-Prettier also covers `package.json`, `.prettierrc.json`, `compose/compose.tools.yaml`,
-`compose/compose.ci.yaml`, the runtime/admin/test Compose files, browser package and
-TypeScript configuration, Thunderbird policy JSON, and
-`.github/workflows/repository-checks.yml`.
+Prettier also covers `package.json`, `.prettierrc.json`, every Compose file,
+browser package and TypeScript configuration, and the GitHub workflows.
 Do not broaden it to Markdown, HTML, CSS, SVG, exported previews, historical
 references, fonts, or vendor artifacts. Dependency directories, build output,
 and generated lockfile formatting are excluded. Preserve the approved artwork
@@ -84,7 +102,7 @@ before formatting migration files.
 
 ## Versions and updates
 
-The [tooling Dockerfile](../../containers/tooling/Dockerfile) pins each source
+The [tooling Dockerfile](../../automation/tooling/Dockerfile) pins each source
 image by digest. It installs Debian Bookworm support packages from the
 `20261018T000000Z` snapshot.
 
@@ -98,12 +116,18 @@ image by digest. It installs Debian Bookworm support packages from the
 | ShellCheck | 0.11.0 |
 | shfmt | 3.14.1 |
 | SQLFluff | 4.4.0 |
+| websockify (test fixtures) | 0.13.0 |
 
 Python tooling dependencies and their wheel hashes are locked in
-`containers/tooling/requirements.txt`, currently for Python 3.13 on Linux amd64.
+`automation/tooling/requirements.txt`, currently for Python 3.13 on Linux amd64.
 The image installs them with `pip --require-hashes --only-binary=:all:`.
-Refresh this lock inside Docker when upgrading SQLFluff, review all dependency
-changes, and rebuild the image. The entrypoint detects a stale requirements file.
+Refresh this lock inside Docker when upgrading SQLFluff or test dependencies,
+review all dependency changes, and rebuild the image. The entrypoint at
+`automation/tooling/entrypoint.bash` detects a stale requirements
+file.
+The [websockify release](https://pypi.org/project/websockify/0.13.0/) supplies
+the WebSocket fixture server. Thunderbird's optional desktop support retains its
+Debian package independently.
 
 JavaScript tools use exact versions in `package.json` and resolved dependencies
 in `package-lock.json`:
@@ -118,9 +142,15 @@ in `package-lock.json`:
 | globals | 17.13.0 |
 | TypeScript | 6.0.3 |
 
+Exact direct Rust dependencies live in `Cargo.toml`, with the graph locked in
+`Cargo.lock`.
+
+The public listener uses Axum 0.8.9 without its WebSocket support.
+
 GitHub checkout stays at v7.0.1, pinned to
-`3d3c42e5aac5ba805825da76410c181273ba90b1`. The `ubuntu-24.04` hosted runner
-provides Docker and Compose, not the language-tool versions. Rebuild the tooling
+`3d3c42e5aac5ba805825da76410c181273ba90b1`, and setup-python at
+v7.1.0, pinned to `6d4fd22b20465ccc0f7354476588e8df7c9ca0e0`. The self-hosted
+runners provide Docker and Compose, not the language-tool versions. Rebuild the tooling
 image after changing pins, then run the same check suite locally and in CI.
 
 Validation and commit authorization follow [workflow](../contributing/workflow.md) and

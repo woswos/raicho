@@ -1,28 +1,33 @@
-.PHONY: lint lint-repo lint-pr lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql format format-sql format-check format-check-rust format-check-javascript format-check-sql typecheck test-tooling
+.PHONY: lint lint-repo lint-pr test-python lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql format format-sql format-check format-check-rust format-check-javascript format-check-sql typecheck test-tooling
 .DEFAULT_GOAL := lint
 
 TOOLING_ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 QUALITY_ROOT ?= $(CURDIR)
-QUALITY = python3 -B "$(TOOLING_ROOT)devbin/raicho_quality.py" --root "$(QUALITY_ROOT)"
+export PYTHONPATH := $(TOOLING_ROOT)$(if $(PYTHONPATH),:$(PYTHONPATH))
+QUALITY = python3 -B -m automation.quality.runner --root "$(QUALITY_ROOT)"
 
 .PHONY: tooling
 tooling:
-	@test -f /opt/quality/package-lock.json || { echo 'Run Make through docker compose -f compose/compose.tools.yaml run --rm check' >&2; exit 1; }
+	@test -f /opt/quality/package-lock.json || { echo 'Run Make through docker compose -f automation/tooling/compose.yaml run --rm check' >&2; exit 1; }
 
-lint lint-repo lint-pr lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql format format-sql format-check format-check-rust format-check-javascript format-check-sql typecheck test-tooling: | tooling
+lint lint-repo lint-pr test-python lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql format format-sql format-check format-check-rust format-check-javascript format-check-sql typecheck test-tooling: | tooling
 
 lint: lint-repo lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql
 
 lint-repo:
-	@python3 -B devbin/raicho_check_agent_config.py
-	@python3 -B devbin/raicho_check_doc_naming.py
-	@python3 -B devbin/raicho_check_source_naming.py
-	@python3 -B devbin/raicho_check_skills.py
-	@python3 -B devbin/raicho_version.py
-	@python3 -B -m unittest discover -s devbin -p 'raicho_*_tests.py'
+	@python3 -B -m automation.repository.check_agent_config
+	@python3 -B -m automation.repository.check_doc_naming
+	@python3 -B -m automation.repository.check_source_naming
+	@python3 -B -m automation.repository.check_directory_naming
+	@python3 -B -m automation.repository.check_schema_naming
+	@python3 -B -m automation.repository.check_skills
+	@python3 -B -m automation.release.version
 
 lint-pr:
-	@python3 -B devbin/raicho_check_pr.py
+	@python3 -B -m automation.repository.check_pr
+
+test-python:
+	@python3 -B -m unittest discover -s . -t . -p '*_tests.py'
 
 lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql:
 	@$(QUALITY) $@
@@ -31,7 +36,7 @@ format format-sql format-check format-check-rust format-check-javascript format-
 	@$(QUALITY) $@
 
 test-tooling:
-	@python3 -B -m unittest discover -s devbin -p 'raicho_*tooling_checks.py'
+	@python3 -B -m unittest discover -s automation/quality/tests -t . -p '*tooling_checks.py'
 
 .PHONY: build-app build-server build-web test-app test-server test-web
 build-app: build-server build-web
@@ -39,4 +44,4 @@ test-app: test-server test-web
 build-server build-web test-server test-web: | tooling
 
 build-server build-web test-server test-web:
-	@python3 -B devbin/raicho_application.py $@
+	@python3 -B -m automation.build.application $@

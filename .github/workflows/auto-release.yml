@@ -20,7 +20,7 @@ permissions:
 jobs:
   cut:
     name: Cut a release if there is one
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 15
     if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
 
@@ -42,16 +42,21 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_TOKEN }}
 
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        if: steps.token.outputs.have == 'true'
+        with:
+          python-version: '3.13'
+
       - name: Work out the version and date the changelog
         id: cut
         if: steps.token.outputs.have == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 -B devbin/raicho_cut_release.py --write
+        run: python3 -B -m automation.release.cut_release --write
 
       - name: Check the notes read back
         if: steps.cut.outputs.released == 'true'
-        run: python3 -B devbin/raicho_release_notes.py "${{ steps.cut.outputs.version }}" >/dev/null
+        run: python3 -B -m automation.release.notes "${{ steps.cut.outputs.version }}" >/dev/null
 
       - name: Commit and tag
         if: steps.cut.outputs.released == 'true'

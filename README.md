@@ -54,8 +54,8 @@ Install Git and Docker with Compose, then clone the repository. On Linux amd64,
 build and start the foundation from the repository root:
 
 ```bash
-docker compose -f compose/compose.yaml build
-docker compose -f compose/compose.yaml up -d --wait
+docker compose build
+docker compose up -d --wait
 ```
 
 Open <http://127.0.0.1:8080> for diagnostics. Thunderbird starts without a viewer,
@@ -67,12 +67,13 @@ administration, disposable profiles, persistence checks, and stopping services.
 Build the tooling image and run development checks separately:
 
 ```bash
-docker compose -f compose/compose.tools.yaml build
-docker compose -f compose/compose.tools.yaml run --rm check make lint format-check typecheck
+docker compose -f automation/tooling/compose.yaml build
+docker compose -f automation/tooling/compose.yaml run --rm check make lint format-check typecheck test-python
 ```
 
-The tooling image provides the language tools, so host language toolchains are
-not required. It does not start runtime services.
+The tooling image provides the language tools and Python test fixtures, so host
+language toolchains are not required. The `check` service does not start runtime
+services.
 
 See [build, test, and generate](docs/reference/build-test-generate.md) for
 formatting, additional checks, and Git worktree setup.
@@ -102,6 +103,11 @@ Anyone can contribute. Start with the
 [contributor guide](docs/contributing/getting-started.md) and
 [delivery workflow](docs/contributing/workflow.md). Substantial changes begin
 with a design pull request before implementation.
+
+The [project structure](docs/reference/project-structure.md) describes the
+repository layout and where new files belong. Repository guards enforce the
+[naming conventions](docs/coding/coding-standards.md). Make remains the developer
+command interface, backed by Python modules and substantive Bash orchestration.
 
 [AGENTS.md](AGENTS.md) is the entry point for AI-assisted work, and
 [decision records](docs/decisions/README.md) explain the project's choices.
