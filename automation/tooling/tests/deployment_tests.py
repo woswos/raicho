@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import tempfile
 import unittest
@@ -6,7 +7,14 @@ from pathlib import Path
 
 from automation.paths import REPOSITORY_ROOT
 
-SELECTION = ('RAICHO_TOOLING_CONTAINER', 'RAICHO_PROJECT', 'COMPOSE_PROJECT_NAME', 'RAICHO_STATE_DIRECTORY', 'VERBOSE')
+SELECTION = (
+    'RAICHO_TOOLING_CONTAINER',
+    'RAICHO_PROJECT',
+    'COMPOSE_PROJECT_NAME',
+    'RAICHO_STATE_DIRECTORY',
+    'RAICHO_COMMIT',
+    'VERBOSE',
+)
 CREDENTIALS_FILE = f'-f {REPOSITORY_ROOT}/compose.credentials.yaml'
 
 
@@ -66,6 +74,10 @@ class DeploymentTests(unittest.TestCase):
             with self.subTest(command=command):
                 commands = dry_run(f'deploy-connector-{command}')
                 self.assertIn(f'deploy/credentials/connector.bash {command}\n', commands)
+
+    def test_images_record_the_checked_out_commit(self):
+        self.assertRegex(dry_run('images'), re.compile(r'^RAICHO_COMMIT=[0-9a-f]{40}(-dirty)? ', re.MULTILINE))
+        self.assertIn('RAICHO_COMMIT=custom ', dry_run('images', RAICHO_COMMIT='custom'))
 
 
 if __name__ == '__main__':
