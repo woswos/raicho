@@ -23,8 +23,10 @@ The workflow uses a read-only token and does not retain checkout credentials.
   isolation, same-profile upgrade, privacy canaries, and credential
   rotation/revocation recovery.
 - `compatibility-test`: unattended GreenMail draft/restart experiment.
+- `coverage`: on PRs only, `make check-patch-coverage` against the PR base. It
+  fails when fewer than 90 percent of changed, measured lines are covered.
 
-There are no coverage, image publication, or deployment jobs. Changelog
+There are no image publication or deployment jobs. Changelog
 releases are separate workflows described below. Runtime tests
 use no accounts and remove only their job-specific containers and volumes.
 
@@ -127,10 +129,11 @@ that check and says so.
 | `design` | Validates planning-only changes and exempts the reference check. |
 | `skip-design-check` | Bypasses the design-link requirement. Does not bypass planning-only enforcement on a `design` PR. |
 | `skip-build` | Skips the dedicated application image build job. |
-| `skip-test` | Skips application, runtime, connector, and compatibility test jobs. |
+| `skip-test` | Skips application, runtime, connector, compatibility, and coverage jobs. |
+| `skip-coverage-check` | Skips only the coverage job. |
 | `no changelog` | Skips the changelog entry check. Does not skip design, build, or test checks. |
 
-The `design` label also skips all five application jobs. Jobs are independent,
+The `design` label also skips all five application jobs and the coverage job. Jobs are independent,
 so a skipped build does not leave invalid test dependencies. Test jobs still
 compile/build their test prerequisites when `skip-build` is present. The labels
 do not bypass language linting, guard regression tests, or runner fixtures.
@@ -141,7 +144,7 @@ checks, or enforce review approval. These are repository settings to configure
 when publication is authorized. PRs can change their own workflow files, so this
 is a contributor workflow check rather than a tamper-proof governance boundary.
 
-Future coverage and image-publication checks belong to the
+Future image-publication checks belong to the
 [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md#future-ci-jobs)
 and are not part of the current workflow.
 
