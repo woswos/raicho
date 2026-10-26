@@ -26,7 +26,7 @@ COPY --from=shfmt /bin/shfmt /usr/local/bin/shfmt
 
 WORKDIR /opt/quality
 COPY automation/tooling/requirements.txt ./requirements.txt
-RUN python3 -m pip install --no-cache-dir --only-binary=:all: --require-hashes -r requirements.txt
+RUN PIP_NO_CACHE_DIR=1 python3 -m pip install -r requirements.txt
 COPY package.json package-lock.json .npmrc eslint.config.mjs ./
 RUN npm ci && npm cache clean --force
 COPY automation/tooling/entrypoint.bash /usr/local/bin/raicho-tooling
