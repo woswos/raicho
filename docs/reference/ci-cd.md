@@ -29,8 +29,8 @@ Sources remain read-only, with separate cache/temp storage. No formatter writes
 or lint fixes run in CI. Jobs run on the
 repository's self-hosted runners, labeled `self-hosted`, `Linux`, and `X64`. Each
 runner host provides Docker Engine 28 or newer with Compose 2.24 or newer and
-Buildx, Git, GNU Make, Bash, `flock`, and `timeout`. The release workflows also
-need Python 3.13 and the GitHub CLI. Language tools come from the image. Runners
+Buildx, Git, GNU Make, Bash, `flock`, and `timeout`. The release workflows install
+Python 3.13 with `actions/setup-python` and need the GitHub CLI. Language tools come from the image. Runners
 keep Docker images and volumes between jobs, so prune them occasionally. Run only
 one runner per Docker host, because jobs use fixed image tags, Compose project
 names, and Cargo caches. Exact commands
