@@ -244,7 +244,8 @@ with `-C instrument-coverage` into its own target directory in the cache, and th
 image's LLVM tools merge and export the profiles. TypeScript test builds emit source
 maps, so Node's built-in coverage reports lines of the `.ts` sources. The XPI never
 contains source maps. coverage.py measures Python, including subprocesses and the
-guard copies that tests run from temporary repositories. The lcov reports stay in
+guard copies that tests run from temporary repositories, with its settings under
+`[tool.coverage]` in `pyproject.toml`. The lcov reports stay in
 `/tmp/raicho-coverage` inside the container.
 
 Tests, generated files, dependencies, the acceptance drivers in

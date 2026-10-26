@@ -1,4 +1,3 @@
-import configparser
 import shutil
 from pathlib import Path
 
@@ -10,13 +9,6 @@ from protocol.generator.cli import test_typescript
 
 OUTPUT = Path('/tmp/raicho-coverage')
 TYPESCRIPT_IGNORED = ('**/tests/**', '**/node_modules/**', '**/*_generated.*')
-PYTHON_IGNORED = (
-    '*/tests/*',
-    '*_tests.py',
-    '*_checks.py',
-    '*/automation/acceptance/*',
-    '*/mailprobe/*',
-)
 
 
 def node_coverage(name):
@@ -42,29 +34,9 @@ def typescript():
     )
 
 
-def python_configuration(directory):
-    configuration = configparser.ConfigParser()
-    configuration['run'] = {
-        'data_file': str(directory / 'data'),
-        'parallel': 'true',
-        'patch': 'subprocess',
-        'include': f'\n{REPOSITORY_ROOT}/*\n/tmp/*/automation/*',
-        'omit': '\n'.join(PYTHON_IGNORED),
-    }
-    # Guard tests run copies of automation/ from temporary repositories.
-    configuration['paths'] = {
-        'automation': f'\n{REPOSITORY_ROOT}/automation/\n/tmp/*/automation/',
-    }
-    path = directory / 'coveragerc'
-    with path.open('w') as handle:
-        configuration.write(handle)
-    return path
-
-
 def python():
-    directory = OUTPUT / 'python'
-    directory.mkdir()
-    configuration = python_configuration(directory)
+    (OUTPUT / 'python').mkdir()
+    configuration = REPOSITORY_ROOT / 'pyproject.toml'
     coverage = ['python3', '-B', '-m', 'coverage']
     for start, pattern in (
         ('.', '*_tests.py'),
