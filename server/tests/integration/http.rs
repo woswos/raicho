@@ -51,6 +51,16 @@ async fn diagnostics_report_database_readiness_independently_of_thunderbird() {
         .unwrap();
     assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
     let response = application
+        .clone()
+        .oneshot(Request::builder().uri("/api/status").body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+    let body = to_bytes(response.into_body(), 4096).await.unwrap();
+    let status: Value = serde_json::from_slice(&body).unwrap();
+    assert_eq!(status["database"]["status"], "unavailable");
+    assert_eq!(status["backend"]["status"], "unavailable");
+    let response = application
         .oneshot(Request::builder().uri("/health/live").body(Body::empty()).unwrap())
         .await
         .unwrap();

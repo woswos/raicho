@@ -10,6 +10,8 @@ use serde::Serialize;
 use tower_http::services::ServeDir;
 use tower_http::set_header::SetResponseHeaderLayer;
 
+use raicho_protocol::diagnostics_generated::BackendState;
+
 use crate::connector::{BackendStatus, Connector};
 use crate::persistence::Database;
 
@@ -98,7 +100,13 @@ async fn ready(State(state): State<ApplicationState>) -> (StatusCode, Json<Healt
 
 async fn status(State(state): State<ApplicationState>) -> (StatusCode, Json<Status>) {
     let database = &state.database;
-    let (code, status) = readiness(database).await;
+    let backend = state.connector.snapshot().await;
+    // The snapshot's credential read already proves that the database responds.
+    let (code, status) = if backend.status == BackendState::Unavailable {
+        (StatusCode::SERVICE_UNAVAILABLE, "unavailable")
+    } else {
+        (StatusCode::OK, "ready")
+    };
     (
         code,
         Json(Status {
@@ -108,7 +116,7 @@ async fn status(State(state): State<ApplicationState>) -> (StatusCode, Json<Stat
                 engine: "sqlite",
                 version: database.version().into(),
             },
-            backend: state.connector.snapshot().await,
+            backend,
             version: crate::version::version(),
             commit: crate::version::commit(),
         }),
