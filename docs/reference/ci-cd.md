@@ -32,8 +32,9 @@ publication or deployment jobs. Changelog
 releases are separate workflows described below. Runtime tests
 use no accounts and remove only their job-specific containers and volumes.
 
-Language jobs build the same pinned tooling image used locally. Runtime jobs
-build the application images and use that tooling image for the smoke driver.
+Language jobs build the same pinned tooling image used locally, from the cached
+layers described below. Runtime jobs build the application images and use that
+tooling image for the smoke driver.
 Compatibility runners also use it for Python mock services, fixture unit tests,
 and the mail test extension build. Thunderbird and GreenMail retain their own
 runtime images.
@@ -71,6 +72,31 @@ builds and runtime checks. They have no dependencies on the optional build job.
 Native send permission, native draft editing, and interactive sending faults
 remain manual checks. CI does not grant native consent or claim to repeat those
 observations. See [acceptance evidence](connector-acceptance.md) for scope and limits.
+
+## Caching
+
+The [build caching decision](../decisions/20261026-build-caching.md) records this
+design. Every job first runs the local
+[image cache action](../../.github/actions/images/action.yml) for the images it
+builds. It starts a BuildKit container builder that loads its results into Docker
+and exposes the job's cache service to BuildKit. It then runs
+`automation/tooling/cache_images.bash`, which builds `tools`, `server`, `gateway`,
+or `thunderbird` from the GitHub Actions layer cache, one cache scope per image.
+Its builds match the Compose builds, so the later `make` targets, acceptance
+runners, and mail probe builds in the job reuse those layers through the same
+builder. Only `lint` writes the tooling image's layers, and only
+`application-build` writes the runtime images' layers. Every other job reads them.
+
+`lint`, `application-test`, and `coverage` also restore a Cargo cache with
+`actions/cache`, keyed by job, `Cargo.lock`, and `rust-toolchain.toml`. The workflow
+sets `RAICHO_CACHE_DIRECTORY`, which makes Make bind that folder at `/cache` through
+`automation/tooling/compose.cache.yaml` instead of the named volume. CI turns off
+incremental compilation, because each run starts from that restored folder.
+
+GitHub keeps about 10 GB of caches per repository and evicts the least recently
+used, so a run after eviction rebuilds cold and saves again. The deploy image's
+dependency layer and the cached Cargo output change only with the manifests and
+lockfile, so ordinary commits reuse them.
 
 ## Repository integrity
 

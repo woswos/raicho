@@ -93,7 +93,10 @@ The `check` service mounts the repository read-only. Tool caches and temporary
 outputs live outside that mount. Cargo's registry and build output persist in the
 `raicho-tools_cache` volume at `/cache`, which the `check` and `format` services
 share, so repeated runs reuse downloads and compiled dependencies. Cargo locks the
-cache, so concurrent runs wait for each other. Other temporary output lives on each
+cache, so concurrent runs wait for each other. When `RAICHO_CACHE_DIRECTORY` is set,
+as CI does, `automation/tooling/compose.cache.yaml` binds that folder at `/cache`
+instead. Nothing sweeps old artifacts out of the cache. `make clean` removes the
+whole volume, and the next build fills it again. Other temporary output lives on each
 container's own `/tmp` and disappears with it. The service does not mount the Docker socket or start
 application services, so Make inside the container never launches nested
 containers.

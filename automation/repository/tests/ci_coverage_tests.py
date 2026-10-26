@@ -87,3 +87,30 @@ class WorkflowCoverageTests(unittest.TestCase):
                 self.assertIn(f"'{label}'", job['if'])
         self.assertEqual(job['steps'][0]['with']['fetch-depth'], '0')
         self.assertIn('make check-patch-coverage', self.script('coverage'))
+
+    def image_caches(self):
+        return {
+            name: step['with']
+            for name, job in self.jobs.items()
+            for step in job['steps']
+            if step.get('uses') == './.github/actions/images'
+        }
+
+    def test_each_cached_image_has_exactly_one_writing_job(self):
+        caches = self.image_caches()
+        self.assertEqual(set(caches), set(self.jobs))
+        writers = [
+            image
+            for options in caches.values()
+            if options.get('write') == 'true'
+            for image in options['images'].split()
+        ]
+        self.assertEqual(sorted(writers), ['gateway', 'server', 'thunderbird', 'tools'])
+
+    def test_rust_building_jobs_restore_their_cargo_cache(self):
+        for name in ('lint', 'application-test', 'coverage'):
+            with self.subTest(job=name):
+                steps = self.jobs[name]['steps']
+                cache = next(step for step in steps if step.get('uses', '').startswith('actions/cache@'))
+                self.assertEqual(cache['with']['path'], '${{ env.RAICHO_CACHE_DIRECTORY }}')
+                self.assertIn("hashFiles('Cargo.lock', 'rust-toolchain.toml')", cache['with']['key'])

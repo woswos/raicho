@@ -1,0 +1,57 @@
+# Cache Rust builds and images
+
+- Status: accepted
+- Date: 2026-10-26
+- Deciders: Barkin Simsek
+
+## Context
+
+A measurement of the build showed that the local Cargo cache worked but held
+duplicate copies of many dependencies, and that CI cached nothing. Every job
+compiled Rust and built its images from scratch. Different Cargo selections
+resolved different dependency features. Clippy used its own target directory. Each
+integration test file linked its own binary. The deploy image recompiled every
+dependency whenever a source file or the commit changed. SQLx's compile-time
+macros built a second copy of SQLite and a large compile-time dependency tree for a
+single `migrate!` call.
+
+## Decision
+
+Every debug Cargo command uses `--workspace --all-targets --locked` in the shared
+target directory. The protocol generator runs from that directory. Clippy shares it
+for the root workspace, while nested workspaces keep their own directory, because
+Cargo's artifact hashes ignore a workspace's location. Local builds are incremental.
+CI builds are not.
+
+The server's integration tests compile into two binaries. Tests that spawn
+processes run apart from the rest, because a child briefly holds the parent's open
+files, including SQLite instance locks. Python test modules run in parallel worker
+processes.
+
+The server lists its migrations in code and builds the SQLx migrator without the
+`macros` feature. This amends the [runtime stack decision](20261018-foundation-runtime-stack.md),
+which chose SQLx with that feature. It keeps the bundled SQLite 3.51.3, rather than
+Debian's older system library, and keeps runtime schema validation of connector
+frames.
+
+The deploy image compiles its Rust dependencies in a layer that depends only on the
+manifests and lockfile, against placeholder workspace sources. A later layer
+compiles the real sources with `RAICHO_COMMIT`.
+
+CI restores a Cargo cache per job with `actions/cache` and builds images through
+the GitHub Actions BuildKit cache. One job writes each image's layers. The Make
+`build` target is removed. `make images` builds the deliverables, and the test and
+lint targets build what they check.
+
+## Consequences
+
+A source edit relinks two test binaries instead of one per file. A new commit
+recompiles only the workspace crates in the deploy image. CI jobs reuse compiled
+dependencies and image layers until `Cargo.lock`, the toolchain, or an image input
+changes, or GitHub evicts the cache.
+
+New server tests are modules of an existing test binary. New migrations need an
+entry in the migration list, and a test enforces it. New workspace targets need a
+placeholder in the deploy Dockerfile. The CI cache step hands the job's cache
+service token to later steps. Nothing sweeps old Cargo artifacts automatically.
+`make clean` resets the cache.

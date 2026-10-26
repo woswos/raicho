@@ -1,0 +1,15 @@
+# CI restores the Cargo cache into a host folder instead of the named volume.
+x-cache: &cache
+  type: bind
+  source: ${RAICHO_CACHE_DIRECTORY:?RAICHO_CACHE_DIRECTORY must name the restored cache folder}
+  target: /cache
+  bind:
+    create_host_path: false
+
+services:
+  check:
+    volumes:
+      - *cache
+  format:
+    volumes:
+      - *cache
