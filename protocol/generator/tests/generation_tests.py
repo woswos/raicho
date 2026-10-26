@@ -1,10 +1,12 @@
 import copy
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
-from protocol.generator.cli import ROOT, changed_outputs
+from protocol.generator.cli import NODE_REPORTER, ROOT, changed_outputs, node_reporter
 from protocol.generator.validation import validate_sources, validate_status
 
 
@@ -97,3 +99,8 @@ class ProtocolGenerationTests(unittest.TestCase):
             self.assertEqual(changed_outputs(generated, committed, ['contract.ts']), [])
             (committed / 'contract.ts').write_text('edited\n')
             self.assertEqual(changed_outputs(generated, committed, ['contract.ts']), ['contract.ts'])
+
+    def test_verbose_protocol_tests_use_the_standard_reporter(self):
+        for verbose, reporter in (('', NODE_REPORTER), ('1', '--test-reporter=spec')):
+            with self.subTest(verbose=verbose), mock.patch.dict(os.environ, {'VERBOSE': verbose}):
+                self.assertEqual(node_reporter(), reporter)

@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 
-from automation.build.application import NODE_REPORTER, extension, run, web
+from automation.build.application import extension, node_reporter, run, web
 from automation.build.lcov import merge, summary
 from automation.build.rust_coverage import rust
 from automation.paths import REPOSITORY_ROOT
@@ -16,7 +16,7 @@ def node_coverage(name):
         '--enable-source-maps',
         '--experimental-test-coverage',
         *(f'--test-coverage-exclude={pattern}' for pattern in TYPESCRIPT_IGNORED),
-        NODE_REPORTER,
+        node_reporter(),
         '--test-reporter-destination=stdout',
         '--test-reporter=lcov',
         f'--test-reporter-destination={OUTPUT / f"typescript-{name}.info"}',

@@ -4,6 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from automation.output import quiet
 from automation.paths import REPOSITORY_ROOT
 from automation.quality.files import (
     CONFIGURATION_SUFFIXES,
@@ -54,13 +55,13 @@ def python(root, files, action):
         return
     configuration = ['--config', REPOSITORY_ROOT / 'pyproject.toml']
     if action == 'lint':
-        run(['ruff', 'check', '--quiet', *configuration, *sources], root)
+        run(['ruff', 'check', *quiet('--quiet'), *configuration, *sources], root)
     elif action == 'format':
         run(
             [
                 'ruff',
                 'check',
-                '--quiet',
+                *quiet('--quiet'),
                 '--select',
                 'I',
                 '--fix',
@@ -69,9 +70,9 @@ def python(root, files, action):
             ],
             root,
         )
-        run(['ruff', 'format', '--quiet', *configuration, *sources], root)
+        run(['ruff', 'format', *quiet('--quiet'), *configuration, *sources], root)
     else:
-        run(['ruff', 'format', '--check', '--quiet', *configuration, *sources], root)
+        run(['ruff', 'format', '--check', *quiet('--quiet'), *configuration, *sources], root)
 
 
 def javascript(root, files, action, typed=False):
@@ -106,8 +107,7 @@ def javascript(root, files, action, typed=False):
                 [
                     'prettier',
                     mode,
-                    '--log-level',
-                    'warn',
+                    *quiet('--log-level', 'warn'),
                     '--config',
                     REPOSITORY_ROOT / '.prettierrc.json',
                     '--ignore-path',

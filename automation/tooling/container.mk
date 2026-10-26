@@ -1,5 +1,6 @@
 QUALITY_ROOT ?= $(CURDIR)
 export PYTHONPATH := $(REPOSITORY_ROOT)$(if $(PYTHONPATH),:$(PYTHONPATH))
+export CARGO_TERM_QUIET := $(if $(VERBOSE),false,true)
 PYTHON := python3 -B
 QUALITY := $(PYTHON) -m automation.quality.runner --root "$(QUALITY_ROOT)"
 
