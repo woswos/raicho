@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from automation.paths import REPOSITORY_ROOT
+from automation.testing.docker_mock import DockerMock
 
 SELECTION = (
     'RAICHO_TOOLING_CONTAINER',
@@ -18,15 +19,19 @@ SELECTION = (
 CREDENTIALS_FILE = f'-f {REPOSITORY_ROOT}/compose.credentials.yaml'
 
 
-def dry_run(target, **environment):
+def make(*arguments, **environment):
     host = {name: value for name, value in os.environ.items() if name not in SELECTION}
     return subprocess.run(
-        ['make', '--no-print-directory', '-n', '-f', str(REPOSITORY_ROOT / 'Makefile'), target],
+        ['make', '--no-print-directory', '-f', str(REPOSITORY_ROOT / 'Makefile'), *arguments],
         env=host | environment,
         capture_output=True,
         text=True,
         check=True,
     ).stdout
+
+
+def dry_run(target, **environment):
+    return make('-n', target, **environment)
 
 
 class DeploymentTests(unittest.TestCase):
@@ -78,6 +83,33 @@ class DeploymentTests(unittest.TestCase):
     def test_images_record_the_checked_out_commit(self):
         self.assertRegex(dry_run('images'), re.compile(r'^RAICHO_COMMIT=[0-9a-f]{40}(-dirty)? ', re.MULTILINE))
         self.assertIn('RAICHO_COMMIT=custom ', dry_run('images', RAICHO_COMMIT='custom'))
+
+    def test_the_guide_covers_every_deployment_target_without_docker(self):
+        docker = DockerMock(self.state / 'docker')
+        guide = make('deploy', PATH=docker.environment()['PATH'])
+        targets = make('--eval', 'print-targets: ; @echo $(DEPLOYMENT_TARGETS)', 'print-targets').split()
+        for target in targets:
+            with self.subTest(target=target):
+                if target.startswith('deploy-connector-'):
+                    self.assertIn(target.removeprefix('deploy-connector-'), guide)
+                elif target != 'deploy':
+                    self.assertIn(f'make {target} ', guide)
+        self.assertIn('make deploy-connector-<command>', guide)
+        self.assertEqual(docker.commands(), [])
+
+    def test_the_guide_describes_the_selected_deployment(self):
+        guide = make(
+            'deploy', COMPOSE_PROJECT_NAME='second', RAICHO_STATE_DIRECTORY=str(self.state), RAICHO_PORT='8081'
+        )
+        for line in (
+            'project            second',
+            f'state directory    {self.state}',
+            'connector          not enrolled',
+        ):
+            self.assertIn(line, guide)
+        self.assertIn('http://127.0.0.1:8081', guide)
+        (self.state / 'credentials').mkdir()
+        self.assertIn('connector          enrolled', make('deploy', RAICHO_STATE_DIRECTORY=str(self.state)))
 
 
 if __name__ == '__main__':

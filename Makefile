@@ -11,7 +11,7 @@ CONTAINER_TARGETS := build test lint generate lint-repo lint-pr test-python test
     check-patch-coverage $(QUALITY_TARGETS) $(APPLICATION_TARGETS) $(PROTOCOL_TARGETS)
 WRITING_TARGETS := format format-bash format-python format-javascript format-rust format-sql format-spelling \
     generate generate-protocol
-DEPLOYMENT_TARGETS := deploy-up deploy-admin deploy-down deploy-clean \
+DEPLOYMENT_TARGETS := deploy deploy-up deploy-admin deploy-down deploy-clean \
     $(addprefix deploy-connector-,init rotate verify status revoke reactivate)
 HOST_TARGETS := images acceptance acceptance-runtime acceptance-connector acceptance-credentials \
     acceptance-mail clean mrproper $(DEPLOYMENT_TARGETS)
