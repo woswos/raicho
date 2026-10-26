@@ -16,15 +16,11 @@ WRITE := $(RUN) format make
 tooling-image:
 	@$(STEP) $@ $(TOOLS) build
 
-$(filter-out build $(WRITING_TARGETS),$(CONTAINER_TARGETS)): tooling-image
+$(filter-out $(WRITING_TARGETS),$(CONTAINER_TARGETS)): tooling-image
 	@$(CHECK) $@
 
 $(WRITING_TARGETS): tooling-image
 	@$(WRITE) $@
-
-build: tooling-image
-	@$(CHECK) build
-	@$(MAKE) --no-print-directory images
 
 GIT_HEAD = $(shell git -C $(REPOSITORY_ROOT) rev-parse HEAD 2>/dev/null)
 RAICHO_COMMIT ?= $(if $(GIT_HEAD),$(GIT_HEAD)$(shell git -C $(REPOSITORY_ROOT) diff --quiet HEAD -- || echo -dirty),unknown)

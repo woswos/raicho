@@ -97,7 +97,7 @@ That command prints one dated section and fails when the section is missing.
 
 The diagnostics status reports `version` from the declared product version and
 `commit` from `RAICHO_COMMIT`. Compose passes that argument into the server
-image. `make images`, which `make build` and the `deploy-` targets run, sets it to
+image. `make images`, which the `deploy-` targets run, sets it to
 the full `HEAD` commit, with a `-dirty` suffix when tracked files have uncommitted
 changes. A `RAICHO_COMMIT` set in the environment takes precedence:
 

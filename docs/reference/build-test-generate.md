@@ -38,13 +38,12 @@ run without `VERBOSE`, so its value cannot change what they check.
 Each step prints one line when it starts and one with its duration when it
 finishes, such as `building server` and `built server, took 12 seconds`. A failed
 step prints `building server failed after 3 seconds` and keeps the command's exit
-status. Aggregate targets such as `build` print only their steps' lines.
+status. Aggregate targets such as `test` print only their steps' lines.
 `automation/tooling/step.bash` writes these lines, colored when `TERM` names an
 xterm terminal.
 
 | Target | Behavior |
 | --- | --- |
-| `build` | Tooling image, server, web page, and extension builds, then the runtime images |
 | `test` | Every source suite: Python, tooling fixtures, server, web, extension, mail probe, and protocol |
 | `lint` | Repository guards, language linters, spelling, formatting and type checks, and protocol generation drift |
 | `format` | Rewrite files in the documented formatting scope |
@@ -192,11 +191,12 @@ file. The checkout supplies the base/head Git objects.
 ## Application tooling
 
 ```bash
-make build test
+make test
 ```
 
-Inside the container, `build` combines `build-server`, `build-web`, and
-`build-extension`, and `test` runs every source suite. Rust uses `--workspace --all-targets --locked` and
+`test` runs every source suite, building what each one needs. `build-server`,
+`build-web`, and `build-extension` build one component without testing it. There
+is no aggregate `build` target: `make images` builds the deliverables. Rust uses `--workspace --all-targets --locked` and
 temporary Cargo output. The browser build uses `tsc`, copies public files and
 the selected identity assets, then runs Node's built-in tests against compiled
 modules. The web builder is `web/build.mjs`, and extension packaging
@@ -216,7 +216,7 @@ selection and the shared target directory: builds, tests, Clippy, and the protoc
 generator, which `check-protocol` runs from that directory. A different selection
 resolves different dependency features and compiles duplicate copies of them.
 
-`make images`, which `make build` runs last on the host, builds the runtime images
+`make images`, which the `deploy-` targets run first, builds the runtime images
 with `docker compose build`. This compiles release artifacts and installs the independently packaged Thunderbird runtime.
 The server image compiles its dependencies first, against placeholder workspace
 sources, in a layer that depends only on the Cargo manifests and `Cargo.lock`. A
@@ -431,7 +431,7 @@ bash mailprobe/tests/check_mail_compatibility.bash --native
 ```
 
 The separate `test-mailprobe` target compiles and tests the fixture extension.
-It is not part of `make build` and does not change the production XPI. The host runner builds
+It is not part of `build-extension` and does not change the production XPI. The host runner builds
 temporary tags for the tooling image and the normal Thunderbird image. The
 tooling image runs the controller, SMTP/IMAP fault proxy, and test driver as
 `mailprobe.tests` package modules. Their unit suites run under `test-python`. A one-off tooling service builds the mail test XPI into a
