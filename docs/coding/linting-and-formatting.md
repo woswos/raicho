@@ -120,17 +120,19 @@ image by digest. It installs Debian Bookworm support packages from the
 | Python | 3.13.16 |
 | Node.js | 24.22.0 |
 | npm | 11.19.1 |
-| Rust, Clippy, rustfmt | 1.99.1 toolchain |
+| Rust, Clippy, rustfmt, LLVM tools | 1.99.1 toolchain |
 | Ruff | 0.16.8 |
 | ShellCheck | 0.11.0 |
 | shfmt | 3.14.1 |
 | SQLFluff | 4.4.0 |
+| coverage.py | 7.16.2 |
+| diff-cover | 10.6.0 |
 | websockify (test fixtures) | 0.13.0 |
 
 Python tooling dependencies and their wheel hashes are locked in
 `automation/tooling/requirements.txt`, currently for Python 3.13 on Linux amd64.
 The image installs them with `pip --require-hashes --only-binary=:all:`.
-Refresh this lock inside Docker when upgrading SQLFluff or test dependencies,
+Refresh this lock inside Docker when upgrading SQLFluff, coverage, or test dependencies,
 review all dependency changes, and rebuild the image. The entrypoint at
 `automation/tooling/entrypoint.bash` detects a stale requirements
 file.
