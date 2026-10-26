@@ -13,7 +13,8 @@ that write files run in the writable `format` service with the caller's UID and
 GID, so rewritten files keep the caller's ownership. A linked Git worktree gets its
 shared Git metadata mounted read-only at the same absolute path. When
 `GITHUB_EVENT_PATH` is set, as in GitHub Actions, the event JSON is mounted too.
-Inside the tooling container the same targets run directly.
+Inside the tooling container the same targets run directly. The image sets
+`RAICHO_TOOLING_CONTAINER`, which selects that mode.
 `automation/tooling/host.mk` and `automation/tooling/container.mk` hold the two
 modes.
 
