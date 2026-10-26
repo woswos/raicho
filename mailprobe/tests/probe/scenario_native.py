@@ -22,9 +22,7 @@ def prepare(client):
     print("Use Thunderbird's Edit button on the selected draft.")
     print(f'Change Subject to: {SUBJECT}')
     print(f'Replace the body with: {BODY}')
-    print(
-        'Verify alias@raicho.test and probe.txt remain. Press Ctrl+S and leave the compose window open.'
-    )
+    print('Verify alias@raicho.test and probe.txt remain. Press Ctrl+S and leave the compose window open.')
 
 
 def verify(client):
@@ -34,10 +32,7 @@ def verify(client):
     assert len(matches) == 1, tabs
     current = matches[0]
     assert current['details']['type'] == 'draft', current
-    assert (
-        current['details']['identityId']
-        == client.read_record('drafts')['identity']['id']
-    ), current
+    assert current['details']['identityId'] == client.read_record('drafts')['identity']['id'], current
     messages = client.wait_messages(SUBJECT, 1, folder='Drafts', username='sender')
     assert not client.messages(baseline['subject'], folder='Drafts', username='sender')
     message = messages[0]
@@ -45,8 +40,7 @@ def verify(client):
     assert BODY in message['plain'] or BODY in message['html'], message
     expected_digest = hashlib.sha256(b'Raicho fixture attachment\n').hexdigest()
     assert any(
-        part['filename'] == 'probe.txt' and part['sha256'] == expected_digest
-        for part in message['attachments']
+        part['filename'] == 'probe.txt' and part['sha256'] == expected_digest for part in message['attachments']
     ), message
     client.record(
         'native_interoperability',

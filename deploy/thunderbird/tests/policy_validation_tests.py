@@ -12,9 +12,7 @@ class PolicyValidationTests(PolicyFixture, unittest.TestCase):
             environment = self.environment.copy()
             del environment[missing]
             with self.subTest(missing=missing):
-                with self.assertRaisesRegex(
-                    ValueError, 'configured together'
-                ) as context:
+                with self.assertRaisesRegex(ValueError, 'configured together') as context:
                     write_policies(self.runtime, self.extension, environment)
                 self.assertNotIn(self.token, str(context.exception))
 
@@ -34,9 +32,7 @@ class PolicyValidationTests(PolicyFixture, unittest.TestCase):
         ):
             with self.subTest(endpoint=endpoint):
                 self.environment['RAICHO_CONNECTOR_ENDPOINT'] = endpoint
-                with self.assertRaisesRegex(
-                    ValueError, 'Connector endpoint'
-                ) as context:
+                with self.assertRaisesRegex(ValueError, 'Connector endpoint') as context:
                     write_policies(self.runtime, self.extension, self.environment)
                 self.assertNotIn(endpoint, str(context.exception))
                 self.assertNotIn('secret', str(context.exception))

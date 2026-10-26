@@ -15,10 +15,7 @@ pub struct Owner {
     pub gid: u32,
 }
 
-pub const SERVICE_OWNER: Owner = Owner {
-    uid: 10001,
-    gid: 10001,
-};
+pub const SERVICE_OWNER: Owner = Owner { uid: 10001, gid: 10001 };
 
 impl Credential {
     pub fn read_file(path: &Path) -> Result<Self> {
@@ -35,13 +32,7 @@ fn read_file(path: &Path, owner: Owner) -> Result<String> {
     read_token(file, owner)
 }
 
-pub(super) fn check_owner(
-    uid: u32,
-    gid: u32,
-    mode: u32,
-    owner: Owner,
-    expected: u32,
-) -> Result<()> {
+pub(super) fn check_owner(uid: u32, gid: u32, mode: u32, owner: Owner, expected: u32) -> Result<()> {
     if uid != owner.uid || gid != owner.gid || mode & 0o7777 != expected {
         return Err(Error::message(
             "Connector files require the configured owner and private modes",
@@ -55,17 +46,9 @@ pub(super) fn read_token(file: File, owner: Owner) -> Result<String> {
         .metadata()
         .map_err(|_| Error::message("Cannot inspect connector token file"))?;
     if !metadata.is_file() || metadata.nlink() != 1 {
-        return Err(Error::message(
-            "Connector tokens must be regular files without links",
-        ));
+        return Err(Error::message("Connector tokens must be regular files without links"));
     }
-    check_owner(
-        metadata.uid(),
-        metadata.gid(),
-        metadata.mode(),
-        owner,
-        0o600,
-    )?;
+    check_owner(metadata.uid(), metadata.gid(), metadata.mode(), owner, 0o600)?;
     let mut contents = Vec::new();
     file.take(MAXIMUM_FILE_BYTES)
         .read_to_end(&mut contents)

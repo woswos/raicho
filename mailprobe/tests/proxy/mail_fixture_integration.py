@@ -39,10 +39,7 @@ class MailFixtureIntegration(unittest.TestCase):
             client.send_message(message)
 
     def count(self, message, **location):
-        return sum(
-            item['message_id'] == message['Message-ID']
-            for item in inspect_messages(**location)
-        )
+        return sum(item['message_id'] == message['Message-ID'] for item in inspect_messages(**location))
 
     def test_normal_submission_arrives_once(self):
         message = self.message('normal')

@@ -51,13 +51,7 @@
     },
     "BackendState": {
       "type": "string",
-      "enum": [
-        "unconfigured",
-        "disconnected",
-        "connected",
-        "revoked",
-        "unavailable"
-      ]
+      "enum": ["unconfigured", "disconnected", "connected", "revoked", "unavailable"]
     },
     "BackendError": {
       "type": "string",
@@ -88,13 +82,7 @@
     "BackendStatus": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "kind",
-        "status",
-        "generation",
-        "last_error",
-        "heartbeat_count"
-      ],
+      "required": ["kind", "status", "generation", "last_error", "heartbeat_count"],
       "properties": {
         "kind": {
           "type": "string",

@@ -112,15 +112,12 @@ class SchemaNamingTests(GuardTestCase):
         result = self.check(
             {
                 '0000_settings.sql': 'CREATE TABLE settings (theme TEXT);\n',
-                '0001_settings_owner.sql': (
-                    'ALTER TABLE settings ADD COLUMN ownerName TEXT;\n'
-                ),
+                '0001_settings_owner.sql': ('ALTER TABLE settings ADD COLUMN ownerName TEXT;\n'),
             }
         )
         self.assert_rejected(
             result,
-            'server/migrations/0001_settings_owner.sql: column settings.ownerName'
-            ' must use snake_case',
+            'server/migrations/0001_settings_owner.sql: column settings.ownerName must use snake_case',
         )
         self.assertNotIn('0000_settings.sql', result.stderr)
 
@@ -131,6 +128,4 @@ class SchemaNamingTests(GuardTestCase):
                 '0001_broken.sql': 'ALTER TABLE missing ADD COLUMN theme TEXT;\n',
             }
         )
-        self.assert_rejected(
-            result, 'server/migrations/0001_broken.sql: cannot apply migration'
-        )
+        self.assert_rejected(result, 'server/migrations/0001_broken.sql: cannot apply migration')

@@ -55,11 +55,10 @@ async fn failed_migration_rolls_back_schema_and_history() {
     let database = Database::open_with_migrations(directory.path(), &migrations(&[]))
         .await
         .unwrap();
-    let tables: Vec<String> =
-        sqlx::query_scalar("SELECT name FROM sqlite_schema WHERE type='table'")
-            .fetch_all(database.pool())
-            .await
-            .unwrap();
+    let tables: Vec<String> = sqlx::query_scalar("SELECT name FROM sqlite_schema WHERE type='table'")
+        .fetch_all(database.pool())
+        .await
+        .unwrap();
     assert_eq!(tables, ["_sqlx_migrations"]);
     let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM _sqlx_migrations")
         .fetch_one(database.pool())
@@ -94,11 +93,10 @@ async fn checksum_drift_missing_and_future_versions_fail_closed() {
     let unchanged = Database::open_with_migrations(directory.path(), &original)
         .await
         .unwrap();
-    let tables: Vec<String> =
-        sqlx::query_scalar("SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name")
-            .fetch_all(unchanged.pool())
-            .await
-            .unwrap();
+    let tables: Vec<String> = sqlx::query_scalar("SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name")
+        .fetch_all(unchanged.pool())
+        .await
+        .unwrap();
     assert_eq!(tables, ["_sqlx_migrations", "retained"]);
     unchanged.close().await;
 }

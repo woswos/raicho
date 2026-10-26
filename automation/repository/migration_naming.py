@@ -14,15 +14,12 @@ def migration_failures(paths):
         match = MIGRATION_NAME.fullmatch(path.name)
         if match is None:
             failures.append(
-                f'{path} must use a four-digit sequence and snake_case description: '
-                '0000_descriptive_name.sql'
+                f'{path} must use a four-digit sequence and snake_case description: 0000_descriptive_name.sql'
             )
             continue
         version = match.group('version')
         if version in versions:
-            failures.append(
-                f'duplicate migration version {version}: {versions[version]} and {path}'
-            )
+            failures.append(f'duplicate migration version {version}: {versions[version]} and {path}')
         else:
             versions[version] = path
     return failures

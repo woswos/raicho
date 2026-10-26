@@ -38,8 +38,7 @@ function validEndpoint(endpoint: string): boolean {
 }
 
 export function parseConfiguration(value: unknown): Configuration | undefined {
-  const invalid = () =>
-    new Error('Managed connector configuration is invalid.');
+  const invalid = () => new Error('Managed connector configuration is invalid.');
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw invalid();
   }

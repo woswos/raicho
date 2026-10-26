@@ -1,11 +1,5 @@
 {
-  "backend_states": [
-    "unconfigured",
-    "disconnected",
-    "connected",
-    "revoked",
-    "unavailable"
-  ],
+  "backend_states": ["unconfigured", "disconnected", "connected", "revoked", "unavailable"],
   "backend_errors": [
     "authentication_failed",
     "authentication_timeout",

@@ -37,10 +37,7 @@ test('answers the challenge with a proof, never the token, and accepts a proven 
     authenticate.client_proof,
     await authentication.clientProof(
       configuration.token,
-      authentication.authenticationMessage(
-        challenge.server_nonce,
-        authenticate,
-      ),
+      authentication.authenticationMessage(challenge.server_nonce, authenticate),
     ),
   );
   await socket.receive(await provenWelcome(authenticate));
@@ -51,15 +48,14 @@ test('answers the challenge with a proof, never the token, and accepts a proven 
   const pongs = socket.sent.slice(1);
   assert.equal(pongs.length, 2);
   for (const [index, pong] of pongs.entries()) {
-    assert.deepEqual(
-      await server.open(JSON.stringify(pong), 'client_control', generation),
-      { ...ping, type: 'pong', sequence: index + 1, mac: pong.mac },
-    );
+    assert.deepEqual(await server.open(JSON.stringify(pong), 'client_control', generation), {
+      ...ping,
+      type: 'pong',
+      sequence: index + 1,
+      mac: pong.mac,
+    });
   }
-  assert.equal(
-    JSON.stringify(socket.sent).includes(configuration.token),
-    false,
-  );
+  assert.equal(JSON.stringify(socket.sent).includes(configuration.token), false);
   fixture.stop();
   assert.equal(fixture.timers.size, 0);
 });
@@ -87,18 +83,9 @@ for (const message of [
 }
 
 for (const [name, change] of [
-  [
-    'forged signature',
-    (message) => ({ ...message, server_signature: 'e'.repeat(64) }),
-  ],
-  [
-    'another protocol version',
-    (message) => ({ ...message, protocol_version: 2 }),
-  ],
-  [
-    'removed heartbeat field',
-    (message) => ({ ...message, heartbeat_timeout_ms: 45000 }),
-  ],
+  ['forged signature', (message) => ({ ...message, server_signature: 'e'.repeat(64) })],
+  ['another protocol version', (message) => ({ ...message, protocol_version: 2 })],
+  ['removed heartbeat field', (message) => ({ ...message, heartbeat_timeout_ms: 45000 })],
   ['mail capability', (message) => ({ ...message, capabilities: ['mail'] })],
   ['invalid generation', (message) => ({ ...message, generation: 'bad' })],
 ]) {

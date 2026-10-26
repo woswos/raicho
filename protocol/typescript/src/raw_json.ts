@@ -52,10 +52,7 @@ export function isUnambiguousJson(raw: string, maximumDepth: number): boolean {
       offset = ending + 1;
     } else {
       if (frames.length > maximumDepth) return false;
-      while (
-        offset < raw.length &&
-        !/[ \t\r\n,}\]]/u.test(raw.charAt(offset))
-      ) {
+      while (offset < raw.length && !/[ \t\r\n,}\]]/u.test(raw.charAt(offset))) {
         offset += 1;
       }
     }

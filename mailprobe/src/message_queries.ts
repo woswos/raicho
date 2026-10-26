@@ -26,12 +26,8 @@ export async function collectMessages(api: MailApi, page: MessageList) {
 export async function inspectMessage(api: MailApi, identifier: number) {
   const attachments = [];
   for (const attachment of await api.messages.listAttachments(identifier)) {
-    if (attachment.size > 16384)
-      throw new Error('Fixture attachment is too large.');
-    const content = await api.messages.getAttachmentFile(
-      identifier,
-      attachment.partName,
-    );
+    if (attachment.size > 16384) throw new Error('Fixture attachment is too large.');
+    const content = await api.messages.getAttachmentFile(identifier, attachment.partName);
     attachments.push({ ...attachment, content: await content.text() });
   }
   return {

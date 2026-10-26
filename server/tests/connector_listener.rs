@@ -16,10 +16,7 @@ use support::{Fixture, authentication, elapse, receive};
 async fn partial_upgrade_headers_have_an_absolute_deadline() {
     let fixture = Fixture::new().await;
     let mut stream = TcpStream::connect(address(&fixture)).await.unwrap();
-    stream
-        .write_all(b"GET /connector/v1 HTTP/1.1\r\n")
-        .await
-        .unwrap();
+    stream.write_all(b"GET /connector/v1 HTTP/1.1\r\n").await.unwrap();
     tokio::time::sleep(Duration::from_millis(20)).await;
     tokio::time::pause();
     tokio::time::advance(Duration::from_secs(5)).await;
@@ -54,10 +51,7 @@ async fn leading_blank_lines_keep_the_upgrade_deadline() {
 async fn oversized_headers_are_dropped_before_websocket_authentication() {
     let fixture = Fixture::new().await;
     let mut stream = TcpStream::connect(address(&fixture)).await.unwrap();
-    let request = format!(
-        "GET /connector/v1 HTTP/1.1\r\nX-Padding: {}",
-        "a".repeat(9000)
-    );
+    let request = format!("GET /connector/v1 HTTP/1.1\r\nX-Padding: {}", "a".repeat(9000));
     stream.write_all(request.as_bytes()).await.unwrap();
     let mut response = [0; 128];
     let result = tokio::time::timeout(Duration::from_secs(2), stream.read(&mut response))
@@ -103,9 +97,7 @@ async fn one_deadline_covers_the_upgrade_and_authentication() {
     elapse(2500).await;
     let server_nonce = challenge["server_nonce"].as_str().unwrap();
     let _ = socket
-        .send(Message::Text(
-            authentication("a", server_nonce).to_string().into(),
-        ))
+        .send(Message::Text(authentication("a", server_nonce).to_string().into()))
         .await;
     assert_eq!(receive(&mut socket).await["code"], "authentication_failed");
     assert_eq!(

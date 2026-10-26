@@ -44,30 +44,22 @@ class ShutdownTests(unittest.TestCase):
                 'vnc',
                 'browser-admin',
             )
-            supervisor.children = [
-                (name, process_for(index)) for index, name in enumerate(names, 10)
-            ]
+            supervisor.children = [(name, process_for(index)) for index, name in enumerate(names, 10)]
             with (
                 patch(
                     'deploy.thunderbird.supervisor.time.monotonic',
                     side_effect=lambda: elapsed[0],
                 ),
-                patch(
-                    'deploy.thunderbird.supervisor.os.killpg', side_effect=record_signal
-                ),
+                patch('deploy.thunderbird.supervisor.os.killpg', side_effect=record_signal),
             ):
                 supervisor.stop()
         self.assertEqual(signals[0], (13, signal.SIGTERM))
         self.assertLessEqual(elapsed[0], 20)
         other_terminations = [
-            index
-            for index, (process_id, number) in enumerate(signals)
-            if process_id != 13 and number == signal.SIGTERM
+            index for index, (process_id, number) in enumerate(signals) if process_id != 13 and number == signal.SIGTERM
         ]
         other_kills = [
-            index
-            for index, (process_id, number) in enumerate(signals)
-            if process_id != 13 and number == signal.SIGKILL
+            index for index, (process_id, number) in enumerate(signals) if process_id != 13 and number == signal.SIGKILL
         ]
         self.assertLess(max(other_terminations), min(other_kills))
 

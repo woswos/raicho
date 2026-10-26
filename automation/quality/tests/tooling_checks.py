@@ -4,9 +4,7 @@ from automation.quality.tests.quality_fixture import QualityFixture
 
 RUST_SOURCE = 'pub fn answer() -> u32 {\n    42\n}\n'
 TYPESCRIPT_SOURCE = 'export const answer = 42;\n'
-CARGO_MANIFEST = (
-    '[package]\nname = "quality-fixture"\nversion = "0.1.0"\nedition = "2024"\n'
-)
+CARGO_MANIFEST = '[package]\nname = "quality-fixture"\nversion = "0.1.0"\nedition = "2024"\n'
 CARGO_LOCK = 'version = 4\n\n[[package]]\nname = "quality-fixture"\nversion = "0.1.0"\n'
 
 

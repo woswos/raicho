@@ -4,9 +4,7 @@ use serde_json::Value;
 use crate::{
     ContractError,
     contract_generated::ConnectorMessage,
-    limits_generated::{
-        MAXIMUM_AUTHENTICATION_BYTES, MAXIMUM_CONTROL_BYTES, MAXIMUM_JSON_DEPTH, PROTOCOL_VERSION,
-    },
+    limits_generated::{MAXIMUM_AUTHENTICATION_BYTES, MAXIMUM_CONTROL_BYTES, MAXIMUM_JSON_DEPTH, PROTOCOL_VERSION},
     raw_json,
 };
 
@@ -23,11 +21,7 @@ pub enum Phase {
     ServerControl,
 }
 
-pub fn decode_frame(
-    raw: &str,
-    phase: Phase,
-    generation: Option<&str>,
-) -> Result<ConnectorMessage, ContractError> {
+pub fn decode_frame(raw: &str, phase: Phase, generation: Option<&str>) -> Result<ConnectorMessage, ContractError> {
     decode_value(raw, phase, generation).map(|(_, message)| message)
 }
 
@@ -48,8 +42,7 @@ pub(crate) fn decode_value(
     check_unsupported_version(&message)?;
     normalize_numbers(&mut message);
     check_schema_bounds(&message)?;
-    let typed =
-        ConnectorMessage::deserialize(&message).map_err(|_| ContractError::InvalidMessage)?;
+    let typed = ConnectorMessage::deserialize(&message).map_err(|_| ContractError::InvalidMessage)?;
     check_phase(&message, phase, generation)?;
     Ok((message, typed))
 }
@@ -103,15 +96,10 @@ fn check_unsupported_version(message: &Value) -> Result<(), ContractError> {
     Ok(())
 }
 
-fn check_phase(
-    message: &Value,
-    phase: Phase,
-    generation: Option<&str>,
-) -> Result<(), ContractError> {
+fn check_phase(message: &Value, phase: Phase, generation: Option<&str>) -> Result<(), ContractError> {
     let message_type = message["type"].as_str();
-    let unclaimed_error = message_type == Some("error")
-        && message.get("generation").is_none()
-        && message.get("mac").is_none();
+    let unclaimed_error =
+        message_type == Some("error") && message.get("generation").is_none() && message.get("mac").is_none();
     let permitted = match phase {
         Phase::Authentication => message_type == Some("authenticate"),
         Phase::Challenge => message_type == Some("challenge") || unclaimed_error,

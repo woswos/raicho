@@ -6,10 +6,7 @@ RUST_PROTOCOL_PATHS = (
     'protocol/rust/src/raw_json.rs',
     'protocol/rust/src/diagnostics_generated.rs',
 )
-PROBE_PATHS = tuple(
-    f'mailprobe/{path}'
-    for path in ('src/background.ts', 'manifest.json', 'background.html')
-)
+PROBE_PATHS = tuple(f'mailprobe/{path}' for path in ('src/background.ts', 'manifest.json', 'background.html'))
 DECISION_PATH = 'docs/decisions/20261025-protocol-changelog.md'
 CHANGELOG_ENTRY = '\n## Changelog\n\n### Fixed\n\n- Reject invalid connector frames.\n'
 

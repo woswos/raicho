@@ -36,9 +36,7 @@ def gateway_routes():
         'CONNECT thunderbird:6080 HTTP/1.1',
     ):
         assert raw_request(request_line) in (400, 404, 405)
-    print(
-        'Gateway rejected alternate paths, queries, encoded paths, destinations and methods'
-    )
+    print('Gateway rejected alternate paths, queries, encoded paths, destinations and methods')
 
 
 def browser_route():
@@ -60,16 +58,12 @@ EXPECTED_NETWORKS = {
 
 def networks(container):
     project = container['Config']['Labels']['com.docker.compose.project']
-    return {
-        name.removeprefix(f'{project}_')
-        for name in container['NetworkSettings']['Networks']
-    }
+    return {name.removeprefix(f'{project}_') for name in container['NetworkSettings']['Networks']}
 
 
 def deployment():
     containers = {
-        container['Config']['Labels']['com.docker.compose.service']: container
-        for container in json.load(sys.stdin)
+        container['Config']['Labels']['com.docker.compose.service']: container for container in json.load(sys.stdin)
     }
     gateway = containers['gateway']
     assert gateway['Config']['User'] == '10001:10001'
@@ -81,17 +75,12 @@ def deployment():
     for service, expected in EXPECTED_NETWORKS.items():
         assert networks(containers[service]) == expected, service
     assert not networks(containers['raicho']) & networks(containers['thunderbird'])
-    print(
-        'Only the gateway bridges Raicho and Thunderbird, and it has no ports, '
-        'secrets or data mounts'
-    )
+    print('Only the gateway bridges Raicho and Thunderbird, and it has no ports, secrets or data mounts')
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        'mode', choices=('wait', 'routes', 'browser', 'deployment', 'snapshot', 'idle')
-    )
+    parser.add_argument('mode', choices=('wait', 'routes', 'browser', 'deployment', 'snapshot', 'idle'))
     parser.add_argument('--status', default='connected')
     parser.add_argument('--previous-generation')
     parser.add_argument('--minimum-heartbeats', type=int, default=1)

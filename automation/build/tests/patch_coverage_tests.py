@@ -18,11 +18,7 @@ class PatchCoverageTests(unittest.TestCase):
         self.addCleanup(self.repo.cleanup)
         self.repo.write('README.md', 'base\n')
         self.repo.commit()
-        environment = {
-            name: value
-            for name, value in os.environ.items()
-            if name not in CLEARED_ENVIRONMENT
-        }
+        environment = {name: value for name, value in os.environ.items() if name not in CLEARED_ENVIRONMENT}
         patcher = mock.patch.dict(os.environ, environment, clear=True)
         patcher.start()
         self.addCleanup(patcher.stop)
@@ -36,10 +32,7 @@ class PatchCoverageTests(unittest.TestCase):
 
     def test_reports_only_files_with_uncovered_lines(self):
         report = (
-            'Diff Coverage\n'
-            'server/src/http.rs (100%)\n'
-            'server/src/cli.rs (65.9%): Missing lines 35,49\n'
-            'Coverage: 92%\n'
+            'Diff Coverage\nserver/src/http.rs (100%)\nserver/src/cli.rs (65.9%): Missing lines 35,49\nCoverage: 92%\n'
         )
         self.assertEqual(
             partly_covered(report),
@@ -83,17 +76,13 @@ class PatchCoverageMainTests(unittest.TestCase):
         base_patch = (
             mock.patch.object(patch_coverage, 'comparison_base', return_value=base)
             if base
-            else mock.patch.object(
-                patch_coverage, 'comparison_base', side_effect=ValueError('no base')
-            )
+            else mock.patch.object(patch_coverage, 'comparison_base', side_effect=ValueError('no base'))
         )
         with (
             base_patch,
             mock.patch.object(patch_coverage, 'OUTPUT', reports),
             mock.patch.object(patch_coverage, 'collect') as collect,
-            mock.patch.object(
-                patch_coverage.subprocess, 'run', return_value=completed
-            ) as run,
+            mock.patch.object(patch_coverage.subprocess, 'run', return_value=completed) as run,
             contextlib.redirect_stdout(output),
             contextlib.redirect_stderr(io.StringIO()),
         ):

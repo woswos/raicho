@@ -2,16 +2,9 @@ import type { MailApi } from './mail_api.js';
 import type { Command } from './validation.js';
 import { integerValue, stringValue } from './validation.js';
 import { messageDetails } from './message_details.js';
-import {
-  collectMessages,
-  inspectMessage,
-  queryDetails,
-} from './message_queries.js';
+import { collectMessages, inspectMessage, queryDetails } from './message_queries.js';
 
-export async function dispatchCommand(
-  api: MailApi,
-  command: Command,
-): Promise<unknown> {
+export async function dispatchCommand(api: MailApi, command: Command): Promise<unknown> {
   const parameters = command.arguments;
   switch (command.action) {
     case 'permission_status':
@@ -37,8 +30,7 @@ export async function dispatchCommand(
       });
     case 'send': {
       const mode = parameters.mode;
-      if (mode !== 'sendNow' && mode !== 'sendLater')
-        throw new Error('An explicit send mode is required.');
+      if (mode !== 'sendNow' && mode !== 'sendLater') throw new Error('An explicit send mode is required.');
       if (typeof api.messages.sendMessage !== 'function')
         throw new Error('Background send permission has not been granted.');
       return api.messages.sendMessage(messageDetails(parameters.details), {
@@ -46,15 +38,9 @@ export async function dispatchCommand(
       });
     }
     case 'query':
-      return collectMessages(
-        api,
-        await api.messages.query(queryDetails(parameters.query ?? {})),
-      );
+      return collectMessages(api, await api.messages.query(queryDetails(parameters.query ?? {})));
     case 'list':
-      return collectMessages(
-        api,
-        await api.messages.list(stringValue(parameters.folder_id)),
-      );
+      return collectMessages(api, await api.messages.list(stringValue(parameters.folder_id)));
     case 'get_message':
       return inspectMessage(api, integerValue(parameters.message_id));
     case 'begin_new': {
@@ -66,10 +52,7 @@ export async function dispatchCommand(
     }
     case 'update_compose': {
       const identifier = integerValue(parameters.tab_id);
-      await api.compose.setComposeDetails(
-        identifier,
-        messageDetails(parameters.details, false),
-      );
+      await api.compose.setComposeDetails(identifier, messageDetails(parameters.details, false));
       return api.compose.getComposeDetails(identifier);
     }
     case 'save_compose':
@@ -79,9 +62,7 @@ export async function dispatchCommand(
     case 'inspect_native_compose': {
       const tabs =
         parameters.tab_id === undefined
-          ? (await api.tabs.query({})).filter(
-              (tab) => tab.type === 'messageCompose',
-            )
+          ? (await api.tabs.query({})).filter((tab) => tab.type === 'messageCompose')
           : [{ id: integerValue(parameters.tab_id) }];
       return Promise.all(
         tabs.map(async (tab) => ({
@@ -96,9 +77,7 @@ export async function dispatchCommand(
     case 'select_draft': {
       const tab = (await api.mailTabs.query({}))[0];
       if (!tab) throw new Error('No native mail tab is available.');
-      await api.mailTabs.setSelectedMessages(tab.id, [
-        integerValue(parameters.message_id),
-      ]);
+      await api.mailTabs.setSelectedMessages(tab.id, [integerValue(parameters.message_id)]);
       return { tab };
     }
     case 'select_folder': {

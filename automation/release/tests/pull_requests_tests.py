@@ -42,9 +42,7 @@ class ReleaseRequestTests(unittest.TestCase):
         self.assertEqual(labels, ['skip-changelog'])
 
     def test_null_body_is_empty(self):
-        self.assertEqual(
-            self.request(response(payload={'body': None, 'labels': []})), ('', [])
-        )
+        self.assertEqual(self.request(response(payload={'body': None, 'labels': []})), ('', []))
 
     def test_nonexistent_pull_request_is_skipped(self):
         self.assertIsNone(self.request(response(404, {'message': 'Not Found'})))

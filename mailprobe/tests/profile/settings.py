@@ -65,10 +65,5 @@ def preferences():
             'stationery_folder': 'imap://sender@mail-proxy/Templates',
             'archive_folder': 'imap://sender@mail-proxy/Archives',
         }
-        configured.update(
-            {
-                f'mail.identity.{identity}.{name}': value
-                for name, value in values.items()
-            }
-        )
+        configured.update({f'mail.identity.{identity}.{name}': value for name, value in values.items()})
     return configured

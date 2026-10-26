@@ -32,12 +32,7 @@ class ReleaseWorkflowTests(unittest.TestCase):
         step = self.confirmation_step()
         context = {'inputs.confirm': confirmation, 'secrets.RELEASE_TOKEN': token}
         environment = {'PATH': '/usr/bin:/bin'}
-        environment.update(
-            {
-                name: interpolate(value, context)
-                for name, value in step.get('env', {}).items()
-            }
-        )
+        environment.update({name: interpolate(value, context) for name, value in step.get('env', {}).items()})
         return subprocess.run(
             [
                 'bash',

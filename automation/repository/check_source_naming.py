@@ -92,9 +92,7 @@ def check_source_naming(root):
         return [f'cannot inspect Git repository {root}: {error}']
     failures = migration_failures(paths)
     for path in paths:
-        if EXCLUDED.intersection(path.parts[:-1]) or path.is_relative_to(
-            'assets/brand/references'
-        ):
+        if EXCLUDED.intersection(path.parts[:-1]) or path.is_relative_to('assets/brand/references'):
             continue
         try:
             if is_source(root, path) and not valid_filename(path):

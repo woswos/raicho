@@ -1,13 +1,7 @@
-import type {
-  ApplicationStatus as StatusDocument,
-  BackendStatus as BackendDocument,
-} from './status_generated.js';
+import type { ApplicationStatus as StatusDocument, BackendStatus as BackendDocument } from './status_generated.js';
 import validateStatus from './status_validator_generated.js';
 
-export type BackendStatus = Pick<
-  BackendDocument,
-  'status' | 'kind' | 'last_error'
->;
+export type BackendStatus = Pick<BackendDocument, 'status' | 'kind' | 'last_error'>;
 
 export interface ApplicationStatus extends Omit<StatusDocument, 'backend'> {
   backend: BackendStatus;

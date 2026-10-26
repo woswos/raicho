@@ -20,20 +20,13 @@ def wait_query(client, subject, count, body=None):
             return None
         if body is None:
             return messages
-        response = client.command(
-            'get_message', {'message_id': messages[0]['id']}, timeout=10
-        )
+        response = client.command('get_message', {'message_id': messages[0]['id']}, timeout=10)
         assert response['ok'], response
-        if any(
-            body in part.get('body', '')
-            for part in message_parts(response['result']['full'])
-        ):
+        if any(body in part.get('body', '') for part in message_parts(response['result']['full'])):
             return messages
         return None
 
-    return wait_until(
-        matching, 30, f'Expected fixture messages did not become queryable: {subject}'
-    )
+    return wait_until(matching, 30, f'Expected fixture messages did not become queryable: {subject}')
 
 
 def saved_message(client, details):
@@ -46,11 +39,7 @@ def saved_message(client, details):
         return result['messages'][0]
 
     def saved():
-        matches = [
-            message
-            for message in query(client, details['subject'])
-            if message['id'] not in before
-        ]
+        matches = [message for message in query(client, details['subject']) if message['id'] not in before]
         return matches[0] if len(matches) == 1 else None
 
     return wait_until(saved, 30, 'Saved fixture draft did not become queryable.')

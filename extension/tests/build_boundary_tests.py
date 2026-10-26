@@ -37,7 +37,5 @@ class ExtensionBoundaryTests(unittest.TestCase):
                         )
                         for module in imports:
                             self.assertTrue(module.startswith('.'), module)
-                            target = posixpath.normpath(
-                                posixpath.join(posixpath.dirname(name), module)
-                            )
+                            target = posixpath.normpath(posixpath.join(posixpath.dirname(name), module))
                             self.assertIn(target, names, f'{name} imports {module}')

@@ -37,8 +37,7 @@ class ReleaseCollectionTests(GuardTestCase):
         original = {
             'Cargo.toml': '[workspace.package]\nversion = "0.1.0"\n',
             'Cargo.lock': 'version = 4\n',
-            'CHANGELOG.md': '# Changelog\n\n## [Unreleased]\n\n'
-            '### Fixed\n\n- Written correction.\n',
+            'CHANGELOG.md': '# Changelog\n\n## [Unreleased]\n\n### Fixed\n\n- Written correction.\n',
         }
         for name, content in original.items():
             repo.write(name, content)

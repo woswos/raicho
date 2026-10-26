@@ -23,10 +23,7 @@ SOURCE_SUFFIXES = (
 
 def run(arguments, root, capture=False):
     return subprocess.run(
-        [
-            str(root / argument) if isinstance(argument, Path) else argument
-            for argument in arguments
-        ],
+        [str(root / argument) if isinstance(argument, Path) else argument for argument in arguments],
         cwd=root,
         check=True,
         text=True,
@@ -37,9 +34,7 @@ def run(arguments, root, capture=False):
 def require_tools(*names):
     for name in names:
         if shutil.which(name) is None:
-            raise ValueError(
-                f'{name} is unavailable. Run this target in the tooling container.'
-            )
+            raise ValueError(f'{name} is unavailable. Run this target in the tooling container.')
 
 
 def source_files(root):
@@ -51,21 +46,15 @@ def source_files(root):
         check=False,
     )
     if (root / '.git').exists() and repository.returncode:
-        raise ValueError(
-            'Git metadata is unavailable. Mount linked-worktree Git directories read-only.'
-        )
+        raise ValueError('Git metadata is unavailable. Mount linked-worktree Git directories read-only.')
     if repository.returncode == 0 and Path(repository.stdout.strip()) == root:
-        output = run(
-            ['git', 'ls-files', '-cz', '--others', '--exclude-standard'], root, True
-        )
+        output = run(['git', 'ls-files', '-cz', '--others', '--exclude-standard'], root, True)
         paths = {Path(name) for name in output.stdout.split('\0') if name}
     else:
         paths = set()
         for directory, directories, filenames in os.walk(root):
             directories[:] = [name for name in directories if name not in EXCLUDED]
-            paths.update(
-                (Path(directory) / name).relative_to(root) for name in filenames
-            )
+            paths.update((Path(directory) / name).relative_to(root) for name in filenames)
     selected = sorted(
         path
         for path in paths
@@ -81,9 +70,7 @@ def source_files(root):
             or (path.name.startswith('tsconfig') and path.suffix == '.json')
             or path.suffix in CONFIGURATION_SUFFIXES
         ):
-            raise ValueError(
-                f'Quality tools require regular source files, not symlinks: {path}'
-            )
+            raise ValueError(f'Quality tools require regular source files, not symlinks: {path}')
     return selected
 
 

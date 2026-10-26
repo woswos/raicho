@@ -28,14 +28,9 @@ export default async function* nodeReporter(source) {
       if (data.skip !== undefined || data.todo !== undefined) skipped += 1;
       else passed += 1;
       if (data.file) {
-        directories.add(
-          path.relative(process.cwd(), path.dirname(data.file)) || '.',
-        );
+        directories.add(path.relative(process.cwd(), path.dirname(data.file)) || '.');
       }
-    } else if (
-      type === 'test:fail' &&
-      data.details?.error?.failureType !== 'subtestsFailed'
-    ) {
+    } else if (type === 'test:fail' && data.details?.error?.failureType !== 'subtestsFailed') {
       failed += 1;
       yield `✖ ${data.name}${location(data)}\n${failureDetail(data)}\n\n`;
     }

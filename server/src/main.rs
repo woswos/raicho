@@ -31,11 +31,7 @@ async fn run() -> Result<()> {
     configuration.validate_web_assets()?;
     let database = Arc::new(Database::open(&configuration.data_dir).await?);
     let connector = Connector::new(Arc::clone(&database));
-    let application = router(
-        Arc::clone(&database),
-        &configuration.web_dir,
-        Arc::clone(&connector),
-    );
+    let application = router(Arc::clone(&database), &configuration.web_dir, Arc::clone(&connector));
     let result = async {
         let listener = TcpListener::bind(configuration.bind)
             .await
@@ -44,13 +40,7 @@ async fn run() -> Result<()> {
             .await
             .map_err(|error| Error::new("Cannot bind connector listener", error))?;
         eprintln!("Raicho server ready");
-        shutdown::serve(
-            listener,
-            application,
-            connector_listener,
-            Arc::clone(&connector),
-        )
-        .await
+        shutdown::serve(listener, application, connector_listener, Arc::clone(&connector)).await
     }
     .await;
     tokio::time::timeout(Duration::from_secs(5), database.close())

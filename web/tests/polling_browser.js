@@ -1,9 +1,6 @@
 export function mockBrowser() {
   const originalValues = new Map(
-    ['window', 'document', 'fetch'].map((name) => [
-      name,
-      Object.getOwnPropertyDescriptor(globalThis, name),
-    ]),
+    ['window', 'document', 'fetch'].map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]),
   );
   const timers = new Map();
   const listeners = new Map();
@@ -26,9 +23,7 @@ export function mockBrowser() {
   globalThis.fetch = (url, options) =>
     new Promise((resolve, reject) => {
       requests.push({ url, options, resolve });
-      options.signal.addEventListener('abort', () =>
-        reject(new Error('aborted')),
-      );
+      options.signal.addEventListener('abort', () => reject(new Error('aborted')));
     });
 
   function setHidden(hidden) {

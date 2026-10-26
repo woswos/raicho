@@ -26,9 +26,9 @@ impl Failure {
             BackendError::StaleGeneration => ProtocolErrorCode::StaleGeneration,
             BackendError::HeartbeatTimeout => ProtocolErrorCode::HeartbeatTimeout,
             BackendError::SessionReplaced => ProtocolErrorCode::SessionReplaced,
-            BackendError::Disconnected
-            | BackendError::StorageUnavailable
-            | BackendError::ServerBusy => ProtocolErrorCode::ServerBusy,
+            BackendError::Disconnected | BackendError::StorageUnavailable | BackendError::ServerBusy => {
+                ProtocolErrorCode::ServerBusy
+            }
         };
         Self { diagnostic, code }
     }

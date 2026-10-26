@@ -18,36 +18,22 @@ def evaluate_pr(root):
     paths = changed_paths(context, root)
     if 'design' in context['labels']:
         if not paths:
-            raise ValueError(
-                'design PR needs a comparison base and at least one changed plan'
-            )
+            raise ValueError('design PR needs a comparison base and at least one changed plan')
         invalid = [
-            path
-            for path in paths
-            if not re.fullmatch(
-                r'docs/planning/active/\d{8}-[a-z0-9]+(?:-[a-z0-9]+)*\.md', path
-            )
+            path for path in paths if not re.fullmatch(r'docs/planning/active/\d{8}-[a-z0-9]+(?:-[a-z0-9]+)*\.md', path)
         ]
         if invalid:
-            raise ValueError(
-                'design PR changes non-planning paths: ' + ', '.join(invalid)
-            )
+            raise ValueError('design PR changes non-planning paths: ' + ', '.join(invalid))
         for path in paths:
             if not regular_file_in_change(context, path, root):
                 raise ValueError(f'design PR path is not a regular document: {path}')
-        print(
-            'PR labeled design: planning-only diff verified, design-link guard exempt'
-        )
+        print('PR labeled design: planning-only diff verified, design-link guard exempt')
     elif 'skip-design-check' in context['labels']:
         print('design-link: skipped via skip-design-check label')
     elif paths is not None and all(path.endswith('.md') for path in paths):
-        irregular = [
-            path for path in paths if not regular_file_in_change(context, path, root)
-        ]
+        irregular = [path for path in paths if not regular_file_in_change(context, path, root)]
         if irregular:
-            raise ValueError(
-                'changed Markdown path is not a regular file: ' + ', '.join(irregular)
-            )
+            raise ValueError('changed Markdown path is not a regular file: ' + ', '.join(irregular))
         print('design-link: skipped, PR changes Markdown documentation only')
     else:
         path = check_design_reference(context, root)

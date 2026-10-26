@@ -73,9 +73,7 @@ class CoverageReportTests(unittest.TestCase):
             rust.assert_called_once_with(self.output)
             typescript.assert_called_once_with()
             python.assert_called_once_with()
-            (self.output / 'web.info').write_text(
-                'SF:web/src/status.ts\nDA:1,1\nDA:2,0\nend_of_record\n'
-            )
+            (self.output / 'web.info').write_text('SF:web/src/status.ts\nDA:1,1\nDA:2,0\nend_of_record\n')
             output = io.StringIO()
             with (
                 mock.patch.object(coverage_report, 'collect'),

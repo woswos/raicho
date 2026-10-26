@@ -89,8 +89,7 @@ class GuardCliTests(GuardTestCase):
         caller = self.repo()
         repo.write(
             '.agents/skills/add-test/SKILL.md',
-            '---\nname: add-test\ndescription: Test example.\nexamples:\n'
-            f'  - {DECISION}\n---\nSee `{DECISION}`.\n',
+            f'---\nname: add-test\ndescription: Test example.\nexamples:\n  - {DECISION}\n---\nSee `{DECISION}`.\n',
         )
         repo.commit()
         environment = {
@@ -102,9 +101,7 @@ class GuardCliTests(GuardTestCase):
             expected = self.run_guard(repo, script, environment)
             for root in (str(repo.root), os.path.relpath(repo.root, caller.root)):
                 with self.subTest(guard=guard, root=root):
-                    result = self.run_guard_cli(
-                        source, script, environment, caller.root, (root,)
-                    )
+                    result = self.run_guard_cli(source, script, environment, caller.root, (root,))
                     self.assert_result(result, expected, 0)
 
     def test_relative_github_event_path_uses_the_selected_repository(self):
@@ -135,9 +132,7 @@ class GuardCliTests(GuardTestCase):
             expected = self.run_guard(repo, script, environment)
             for location, arguments in ((repo, ()), (source, (str(repo.root),))):
                 with self.subTest(guard=guard, arguments=arguments):
-                    result = self.run_guard_cli(
-                        location, script, environment, caller.root, arguments
-                    )
+                    result = self.run_guard_cli(location, script, environment, caller.root, arguments)
                     self.assert_result(result, expected, 0)
 
     def test_extra_root_arguments_are_rejected(self):

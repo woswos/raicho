@@ -51,14 +51,12 @@ impl<'database> CredentialStore<'database> {
         let mut transaction = self.database.pool().begin().await.map_err(storage_error)?;
         match read(&mut *transaction).await? {
             None => {
-                sqlx::query(include_str!(
-                    "../../queries/initialize_connector_credential.sql"
-                ))
-                .bind(credential.stored_key())
-                .bind(credential.server_key())
-                .execute(&mut *transaction)
-                .await
-                .map_err(storage_error)?;
+                sqlx::query(include_str!("../../queries/initialize_connector_credential.sql"))
+                    .bind(credential.stored_key())
+                    .bind(credential.server_key())
+                    .execute(&mut *transaction)
+                    .await
+                    .map_err(storage_error)?;
             }
             Some((stored_key, _, false)) if credential.matches(&stored_key) => {}
             _ => return Err(Error::message("Connector is already configured or revoked")),
@@ -68,22 +66,18 @@ impl<'database> CredentialStore<'database> {
 
     pub async fn rotate(&self, current: &Credential, replacement: &Credential) -> Result<()> {
         if current.matches(replacement.stored_key()) {
-            return Err(Error::message(
-                "Replacement connector credential must differ",
-            ));
+            return Err(Error::message("Replacement connector credential must differ"));
         }
         let mut transaction = self.database.pool().begin().await.map_err(storage_error)?;
         match read(&mut *transaction).await? {
             Some((stored_key, _, false)) if replacement.matches(&stored_key) => {}
             Some((stored_key, _, false)) if current.matches(&stored_key) => {
-                sqlx::query(include_str!(
-                    "../../queries/rotate_connector_credential.sql"
-                ))
-                .bind(replacement.stored_key())
-                .bind(replacement.server_key())
-                .execute(&mut *transaction)
-                .await
-                .map_err(storage_error)?;
+                sqlx::query(include_str!("../../queries/rotate_connector_credential.sql"))
+                    .bind(replacement.stored_key())
+                    .bind(replacement.server_key())
+                    .execute(&mut *transaction)
+                    .await
+                    .map_err(storage_error)?;
             }
             _ => return Err(Error::message("Current connector credential is not active")),
         }
@@ -95,12 +89,10 @@ impl<'database> CredentialStore<'database> {
         if read(&mut *transaction).await?.is_none() {
             return Err(Error::message("Connector is not configured"));
         }
-        sqlx::query(include_str!(
-            "../../queries/revoke_connector_credential.sql"
-        ))
-        .execute(&mut *transaction)
-        .await
-        .map_err(storage_error)?;
+        sqlx::query(include_str!("../../queries/revoke_connector_credential.sql"))
+            .execute(&mut *transaction)
+            .await
+            .map_err(storage_error)?;
         transaction.commit().await.map_err(storage_error)
     }
 
@@ -109,14 +101,12 @@ impl<'database> CredentialStore<'database> {
         match read(&mut *transaction).await? {
             Some((stored_key, _, false)) if replacement.matches(&stored_key) => {}
             Some((stored_key, _, true)) if !replacement.matches(&stored_key) => {
-                sqlx::query(include_str!(
-                    "../../queries/reactivate_connector_credential.sql"
-                ))
-                .bind(replacement.stored_key())
-                .bind(replacement.server_key())
-                .execute(&mut *transaction)
-                .await
-                .map_err(storage_error)?;
+                sqlx::query(include_str!("../../queries/reactivate_connector_credential.sql"))
+                    .bind(replacement.stored_key())
+                    .bind(replacement.server_key())
+                    .execute(&mut *transaction)
+                    .await
+                    .map_err(storage_error)?;
             }
             _ => {
                 return Err(Error::message(

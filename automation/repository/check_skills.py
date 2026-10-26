@@ -23,9 +23,7 @@ def scalar(value):
         return value[1:-1].replace("''", "'")
     if value[0] in '|>!&*[]{},#%@`' or ': ' in value or ' #' in value:
         raise ValueError('unsupported YAML syntax, use a quoted single-line scalar')
-    if value in {'null', 'true', 'false', '~'} or re.fullmatch(
-        r'[-+]?\d+(?:\.\d+)?', value
-    ):
+    if value in {'null', 'true', 'false', '~'} or re.fullmatch(r'[-+]?\d+(?:\.\d+)?', value):
         raise ValueError('expected a string scalar')
     return value
 

@@ -11,9 +11,7 @@ MODES = {
 
 
 def write_json(path: Path, document: dict) -> None:
-    with tempfile.NamedTemporaryFile(
-        mode='w', dir=path.parent, delete=False
-    ) as temporary:
+    with tempfile.NamedTemporaryFile(mode='w', dir=path.parent, delete=False) as temporary:
         temporary_path = Path(temporary.name)
         try:
             json.dump(document, temporary, sort_keys=True)
@@ -39,9 +37,7 @@ class FaultState:
 
     def setting(self, name: str) -> str:
         settings = json.loads(self.settings_path.read_text())
-        if set(settings) != set(MODES) or any(
-            mode not in MODES[protocol] for protocol, mode in settings.items()
-        ):
+        if set(settings) != set(MODES) or any(mode not in MODES[protocol] for protocol, mode in settings.items()):
             raise ValueError('Invalid fixture fault settings')
         return settings[name]
 

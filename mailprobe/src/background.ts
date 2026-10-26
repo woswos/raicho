@@ -6,9 +6,7 @@ import { startProbeTransport } from './probe_transport.js';
 declare const messenger: MailApi;
 
 async function start() {
-  const configuration = parseConfiguration(
-    await messenger.storage.managed.get(),
-  );
+  const configuration = parseConfiguration(await messenger.storage.managed.get());
   if (!configuration) throw new Error('Mail API probe is not configured.');
   const browser = await messenger.runtime.getBrowserInfo();
   const metadata = {
@@ -18,9 +16,7 @@ async function start() {
     extension_version: messenger.runtime.getManifest().version,
     session_id: crypto.randomUUID(),
   };
-  startProbeTransport(configuration.endpoint, metadata, (command) =>
-    dispatchCommand(messenger, command),
-  );
+  startProbeTransport(configuration.endpoint, metadata, (command) => dispatchCommand(messenger, command));
 }
 
 void start().catch(() => console.error('Mail API probe could not start.'));

@@ -8,9 +8,7 @@ from pathlib import Path
 
 from automation.paths import REPOSITORY_ROOT
 
-NODE_REPORTER = (
-    f'--test-reporter={REPOSITORY_ROOT / "automation/build/node_reporter.mjs"}'
-)
+NODE_REPORTER = f'--test-reporter={REPOSITORY_ROOT / "automation/build/node_reporter.mjs"}'
 
 
 def run(arguments, **options):
@@ -39,9 +37,7 @@ def cargo_test(arguments, env=None):
 
 def test_summary(output):
     results = re.findall(r'^test result: ok\. (\d+) passed', output, re.MULTILINE)
-    return (
-        f'Rust: {sum(map(int, results))} tests passed in {len(results)} test binaries'
-    )
+    return f'Rust: {sum(map(int, results))} tests passed in {len(results)} test binaries'
 
 
 def extension(
@@ -66,12 +62,8 @@ def extension(
             ]
         )
         if testing:
-            environment = os.environ | {
-                'RAICHO_EXTENSION_BUILD_DIR': str(output / 'modules')
-            }
-            tests = sorted(
-                str(path) for path in (source_root / 'tests').glob('*.test.mjs')
-            )
+            environment = os.environ | {'RAICHO_EXTENSION_BUILD_DIR': str(output / 'modules')}
+            tests = sorted(str(path) for path in (source_root / 'tests').glob('*.test.mjs'))
             if not tests:
                 raise ValueError('No extension tests were found.')
             run(['node', '--test', *test_arguments, *tests], env=environment)
@@ -89,9 +81,7 @@ def web(testing=False, build_arguments=(), test_arguments=(NODE_REPORTER,)):
         )
         if testing:
             environment = os.environ | {'RAICHO_WEB_BUILD_DIR': directory}
-            tests = sorted(
-                str(path) for path in (REPOSITORY_ROOT / 'web/tests').glob('*.mjs')
-            )
+            tests = sorted(str(path) for path in (REPOSITORY_ROOT / 'web/tests').glob('*.mjs'))
             if not tests:
                 raise ValueError('No browser application tests were found.')
             run(['node', '--test', *test_arguments, *tests], env=environment)

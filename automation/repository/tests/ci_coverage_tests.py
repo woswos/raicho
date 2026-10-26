@@ -28,9 +28,7 @@ class WorkflowCoverageTests(unittest.TestCase):
         self.jobs = yaml.load(self.text, Loader=yaml.BaseLoader)['jobs']
 
     def script(self, *names):
-        return '\n'.join(
-            step.get('run', '') for name in names for step in self.jobs[name]['steps']
-        )
+        return '\n'.join(step.get('run', '') for name in names for step in self.jobs[name]['steps'])
 
     def test_every_acceptance_runner_runs_unattended_in_an_independent_job(self):
         runners = sorted(
@@ -47,9 +45,7 @@ class WorkflowCoverageTests(unittest.TestCase):
         )
         targets = {
             target
-            for target, recipe in re.findall(
-                r'^(acceptance-[a-z]+):\n\t@(.*)$', recipes, re.MULTILINE
-            )
+            for target, recipe in re.findall(r'^(acceptance-[a-z]+):\n\t@(.*)$', recipes, re.MULTILINE)
             if any(recipe == f'bash {runner}' for runner in runners)
         }
         self.assertEqual(len(targets), len(runners))
@@ -68,9 +64,7 @@ class WorkflowCoverageTests(unittest.TestCase):
         for step in self.jobs['connector-test']['steps']:
             if 'name' in step:
                 with self.subTest(step=step['name']):
-                    self.assertEqual(
-                        step.get('env', {}).get('TMPDIR'), '${{ runner.temp }}'
-                    )
+                    self.assertEqual(step.get('env', {}).get('TMPDIR'), '${{ runner.temp }}')
 
     def test_every_compose_file_is_exercised(self):
         paths = subprocess.run(
@@ -81,20 +75,14 @@ class WorkflowCoverageTests(unittest.TestCase):
             text=True,
         ).stdout.split()
         self.assertTrue(paths)
-        commands = self.text + HOST_MAKEFILE.read_text().replace(
-            '$(REPOSITORY_ROOT)', ''
-        )
+        commands = self.text + HOST_MAKEFILE.read_text().replace('$(REPOSITORY_ROOT)', '')
         for path in paths:
             with self.subTest(file=path):
                 self.assertIn(f'-f {path}', commands)
 
     def test_application_job_runs_every_source_suite(self):
         self.assertIn('make test', self.script('application-test'))
-        aggregate = next(
-            line
-            for line in CONTAINER_MAKEFILE.read_text().splitlines()
-            if line.startswith('test:')
-        )
+        aggregate = next(line for line in CONTAINER_MAKEFILE.read_text().splitlines() if line.startswith('test:'))
         for target in SOURCE_SUITES:
             with self.subTest(target=target):
                 self.assertIn(target, aggregate.split())

@@ -1,17 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import {
-  challenge,
-  connectorFixture,
-  generation,
-  ping,
-} from './connector_fixture.mjs';
+import { challenge, connectorFixture, generation, ping } from './connector_fixture.mjs';
 
 test('uses bounded exponential retry for connection and handshake timeouts', () => {
   const fixture = connectorFixture();
-  for (const [attempt, delay] of [
-    1000, 2000, 4000, 8000, 16000, 30000, 30000,
-  ].entries()) {
+  for (const [attempt, delay] of [1000, 2000, 4000, 8000, 16000, 30000, 30000].entries()) {
     if (attempt % 2 !== 0) fixture.sockets.at(-1).open();
     fixture.fireTimer(5000);
     assert.equal(fixture.timers.size, 1);

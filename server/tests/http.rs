@@ -46,22 +46,12 @@ async fn diagnostics_report_database_readiness_independently_of_thunderbird() {
     database.close().await;
     let response = application
         .clone()
-        .oneshot(
-            Request::builder()
-                .uri("/health/ready")
-                .body(Body::empty())
-                .unwrap(),
-        )
+        .oneshot(Request::builder().uri("/health/ready").body(Body::empty()).unwrap())
         .await
         .unwrap();
     assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
     let response = application
-        .oneshot(
-            Request::builder()
-                .uri("/health/live")
-                .body(Body::empty())
-                .unwrap(),
-        )
+        .oneshot(Request::builder().uri("/health/live").body(Body::empty()).unwrap())
         .await
         .unwrap();
     assert_eq!(response.status(), StatusCode::OK);
@@ -79,18 +69,10 @@ async fn static_files_are_served_without_api_or_path_traversal_fallbacks() {
     fs::create_dir(web.join("health")).unwrap();
     fs::write(web.join("health/missing"), "must not shadow health routes").unwrap();
     fs::create_dir(web.join("connector")).unwrap();
-    fs::write(
-        web.join("connector/v1"),
-        "must not expose the internal connector",
-    )
-    .unwrap();
+    fs::write(web.join("connector/v1"), "must not expose the internal connector").unwrap();
     fs::write(directory.path().join("private.txt"), "not public").unwrap();
     let database = Arc::new(Database::open(directory.path()).await.unwrap());
-    let application = router(
-        Arc::clone(&database),
-        &web,
-        Connector::new(Arc::clone(&database)),
-    );
+    let application = router(Arc::clone(&database), &web, Connector::new(Arc::clone(&database)));
     for path in ["/", "/diagnostics.js"] {
         let response = application
             .clone()
@@ -118,8 +100,7 @@ async fn static_files_are_served_without_api_or_path_traversal_fallbacks() {
 
 #[tokio::test]
 async fn status_responses_follow_the_shared_contract() {
-    let schema: Value =
-        serde_json::from_str(include_str!("../../protocol/schema/status.schema.json")).unwrap();
+    let schema: Value = serde_json::from_str(include_str!("../../protocol/schema/status.schema.json")).unwrap();
     let contract = jsonschema::options()
         .with_draft(jsonschema::Draft::Draft7)
         .build(&schema)
@@ -140,12 +121,7 @@ async fn status_responses_follow_the_shared_contract() {
         }
         let response = application
             .clone()
-            .oneshot(
-                Request::builder()
-                    .uri("/api/status")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
+            .oneshot(Request::builder().uri("/api/status").body(Body::empty()).unwrap())
             .await
             .unwrap();
         assert_eq!(response.status(), code);

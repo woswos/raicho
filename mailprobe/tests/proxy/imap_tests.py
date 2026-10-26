@@ -23,9 +23,7 @@ class ImapProxyTests(unittest.TestCase):
         self.assertEqual(events, ['sent_append_rejected'])
 
     def test_discards_nonsynchronizing_rejected_literal(self):
-        upstream, replies, _events = self.relay(
-            b'one APPEND Sent {4+}\r\nbody\r\ntwo NOOP\r\n', 'reject_sent_append'
-        )
+        upstream, replies, _events = self.relay(b'one APPEND Sent {4+}\r\nbody\r\ntwo NOOP\r\n', 'reject_sent_append')
         self.assertEqual(upstream, b'two NOOP\r\n')
         self.assertIn(b'one NO', replies)
 

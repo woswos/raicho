@@ -122,12 +122,7 @@ class ChangelogTests(GuardTestCase):
         parsed = parse_description_entries(description, '15')
         self.assertEqual(
             parsed,
-            {
-                'Fixed': [
-                    '- The diagnostics page shows the build commit\n'
-                    '  after the version. (#15)'
-                ]
-            },
+            {'Fixed': ['- The diagnostics page shows the build commit\n  after the version. (#15)']},
         )
 
     def test_unreleased_text_stops_at_the_previous_release(self):
@@ -140,9 +135,7 @@ class ChangelogTests(GuardTestCase):
             release_notes(CHANGELOG, '0.2.0')
 
     def test_version_bump_follows_the_entry_kind(self):
-        self.assertEqual(
-            next_version(None, False, True), ('0.1.0', 'the first release')
-        )
+        self.assertEqual(next_version(None, False, True), ('0.1.0', 'the first release'))
         self.assertEqual(
             next_version('0.1.0', False, False),
             ('0.1.1', 'fixes and changes only'),
@@ -151,9 +144,7 @@ class ChangelogTests(GuardTestCase):
             next_version('0.1.4', True, False),
             ('0.2.0', 'something was added or removed'),
         )
-        self.assertEqual(
-            next_version('0.9.1', False, True), ('1.0.0', 'asked for by hand')
-        )
+        self.assertEqual(next_version('0.9.1', False, True), ('1.0.0', 'asked for by hand'))
         self.assertTrue(requests_minor('### Added\n\n- A page.', {}))
         self.assertFalse(requests_minor('### Security\n\n- A fix.', {}))
         with self.assertRaises(ValueError):
@@ -161,9 +152,7 @@ class ChangelogTests(GuardTestCase):
 
     def test_dated_changelog_keeps_hand_written_text_and_appends_entries(self):
         original = '# Changelog\n\n## [Unreleased]\n\n### Fixed\n\n- Hand written.\n'
-        parsed = parse_description_entries(
-            '## Changelog\n\n### Added\n\n- A new page.\n', '4'
-        )
+        parsed = parse_description_entries('## Changelog\n\n### Added\n\n- A new page.\n', '4')
         section = release_section(unreleased_body(original), parsed)
         dated = date_changelog(original, '0.2.0', '2026-10-18', section)
         self.assertIn('## [Unreleased]\n\n## [0.2.0] - 2026-10-18\n', dated)
@@ -197,9 +186,7 @@ class ChangelogTests(GuardTestCase):
             output = Path(directory) / 'output.txt'
             written = self.cut(repo, '--write', extra={'GITHUB_OUTPUT': str(output)})
             self.assertEqual(written.returncode, 0, written.stderr)
-            self.assertIn(
-                'released=true\nversion=0.1.1\ntag=v0.1.1\n', output.read_text()
-            )
+            self.assertIn('released=true\nversion=0.1.1\ntag=v0.1.1\n', output.read_text())
         changelog = (repo.root / 'CHANGELOG.md').read_text()
         self.assertIn('## [0.1.1] - ', changelog)
         self.assertIn('## [Unreleased]\n', changelog)
@@ -243,8 +230,7 @@ class ChangelogTests(GuardTestCase):
         body = '' if not unreleased else f'\n{unreleased}'
         repo.write(
             'CHANGELOG.md',
-            f'# Changelog\n\n## [Unreleased]\n{body}\n## [0.1.0] - 2026-01-01\n\n'
-            '### Added\n\n- Initial diagnostics.\n',
+            f'# Changelog\n\n## [Unreleased]\n{body}\n## [0.1.0] - 2026-01-01\n\n### Added\n\n- Initial diagnostics.\n',
         )
         repo.write('Cargo.toml', '[workspace]\nmembers = ["server"]\n\n' + CARGO)
         repo.write(

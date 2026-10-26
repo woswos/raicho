@@ -44,9 +44,7 @@ class RustCoverageTests(unittest.TestCase):
                 'rustc': '/sysroot/lib/rustlib/x86_64/lib\n',
                 'llvm-cov': 'SF:server/src/http.rs\nend_of_record\n',
             }
-            return subprocess.CompletedProcess(
-                command, 0, stdout=outputs.get(Path(str(command[0])).name, '')
-            )
+            return subprocess.CompletedProcess(command, 0, stdout=outputs.get(Path(str(command[0])).name, ''))
 
         with (
             tempfile.TemporaryDirectory() as directory,

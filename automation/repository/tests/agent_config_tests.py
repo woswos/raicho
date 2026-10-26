@@ -10,9 +10,7 @@ from automation.testing.guard_fixtures import GuardTestCase
 class AgentConfigTests(GuardTestCase):
     def test_live_repository_matches_the_loader_contract(self):
         imported = [
-            line[1:]
-            for line in (REPOSITORY_ROOT / 'AGENTS.md').read_text().splitlines()
-            if line.startswith('@')
+            line[1:] for line in (REPOSITORY_ROOT / 'AGENTS.md').read_text().splitlines() if line.startswith('@')
         ]
         self.assertEqual(imported, list(REQUIRED_IMPORTS))
         self.assertEqual(check_agent_config(REPOSITORY_ROOT), [])
@@ -27,9 +25,7 @@ class AgentConfigTests(GuardTestCase):
         text = text.replace('@docs/contributing/workflow.md\n', '')
         (repo.root / 'AGENTS.md').write_text(text)
         failures = check_agent_config(repo.root)
-        self.assertIn(
-            'AGENTS.md must reference docs/contributing/workflow.md', failures
-        )
+        self.assertIn('AGENTS.md must reference docs/contributing/workflow.md', failures)
 
     def test_mistyped_citation_fails(self):
         repo = self.instructions()
@@ -53,9 +49,7 @@ class AgentConfigTests(GuardTestCase):
         with (repo.root / 'AGENTS.md').open('a') as handle:
             handle.write('- Outside: `../outside.md`\n')
         failures = check_agent_config(repo.root)
-        self.assertIn(
-            'instruction reference escapes repository: ../outside.md', failures
-        )
+        self.assertIn('instruction reference escapes repository: ../outside.md', failures)
 
     def test_malformed_skill_fails(self):
         repo = self.repo()

@@ -34,16 +34,9 @@ class ExtensionPackagingTests(unittest.TestCase):
             self.assertEqual(names, sorted(names))
             self.assertIn('background.html', names)
             self.assertIn('extension/src/background.js', names)
-            self.assertTrue(
-                all(name.endswith(('.js', '.html', '.json')) for name in names)
-            )
+            self.assertTrue(all(name.endswith(('.js', '.html', '.json')) for name in names))
             self.assertNotIn('package.json', names)
-            self.assertFalse(
-                any(
-                    name.startswith(('automation/', 'deploy/', 'protocol/generator/'))
-                    for name in names
-                )
-            )
+            self.assertFalse(any(name.startswith(('automation/', 'deploy/', 'protocol/generator/')) for name in names))
             manifest = json.loads(archive.read('manifest.json'))
             self.assertTrue(manifest['background']['persistent'])
             for entry in archive.infolist():
@@ -54,9 +47,7 @@ class ExtensionPackagingTests(unittest.TestCase):
         with zipfile.ZipFile(output) as archive:
             manifest = json.loads(archive.read('manifest.json'))
         self.assertEqual(manifest['version'], '0.1.1')
-        self.assertEqual(
-            manifest['browser_specific_settings']['gecko']['id'], 'connector@raicho'
-        )
+        self.assertEqual(manifest['browser_specific_settings']['gecko']['id'], 'connector@raicho')
 
     def test_rejects_unsafe_output_and_version(self):
         bad = str(self.directory / 'bad.xpi')

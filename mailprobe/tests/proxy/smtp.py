@@ -36,10 +36,7 @@ def filter_capabilities(reply: bytes) -> bytes:
         for line in reply.splitlines(keepends=True)
         if line[4:].split()[0].upper() not in {b'STARTTLS', b'CHUNKING'}
     ]
-    return b''.join(
-        b'250' + (b' ' if index == len(lines) - 1 else b'-') + line
-        for index, line in enumerate(lines)
-    )
+    return b''.join(b'250' + (b' ' if index == len(lines) - 1 else b'-') + line for index, line in enumerate(lines))
 
 
 def relay_smtp(client, upstream, state) -> None:
@@ -84,9 +81,7 @@ class SmtpHandler(socketserver.StreamRequestHandler):
     timeout = 30
 
     def handle(self):
-        with socket.create_connection(
-            (self.server.upstream, 3025), timeout=30
-        ) as remote:
+        with socket.create_connection((self.server.upstream, 3025), timeout=30) as remote:
             with remote.makefile('rwb') as upstream:
                 relay_smtp(self, upstream, self.server.state)
 

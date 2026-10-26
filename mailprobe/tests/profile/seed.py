@@ -26,10 +26,7 @@ def seed_profile(profile):
     configured = preferences()
     destination = profile / 'user.js'
     destination.write_text(
-        ''.join(
-            f'user_pref({json.dumps(name)}, {json.dumps(value)});\n'
-            for name, value in sorted(configured.items())
-        )
+        ''.join(f'user_pref({json.dumps(name)}, {json.dumps(value)});\n' for name, value in sorted(configured.items()))
     )
     destination.chmod(0o600)
     write_credentials(profile)

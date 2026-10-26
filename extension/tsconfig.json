@@ -12,8 +12,5 @@
     "rootDir": "..",
     "outDir": "dist"
   },
-  "include": [
-    "src/**/*.ts",
-    "../protocol/typescript/src/validator_generated.js"
-  ]
+  "include": ["src/**/*.ts", "../protocol/typescript/src/validator_generated.js"]
 }

@@ -13,9 +13,7 @@ from automation.repository.pr_context import (
 
 
 def reference_failure(kind, path):
-    directory = (
-        r'docs/planning/(?:active|done)' if kind == 'Design' else r'docs/decisions'
-    )
+    directory = r'docs/planning/(?:active|done)' if kind == 'Design' else r'docs/decisions'
     if not re.fullmatch(directory + r'/\d{8}-[a-z0-9]+(?:-[a-z0-9]+)*\.md', path):
         return f'invalid {kind} document path: {path}'
     try:
@@ -28,9 +26,7 @@ def reference_failure(kind, path):
 def check_design_reference(context, root):
     references = description_references(context['description'])
     if len(references) != 1:
-        raise ValueError(
-            'description needs exactly one standalone Design: or Decision: path'
-        )
+        raise ValueError('description needs exactly one standalone Design: or Decision: path')
     kind, path = references[0]
     failure = reference_failure(kind, path)
     if failure:
@@ -39,14 +35,8 @@ def check_design_reference(context, root):
     if commit is None:
         raise ValueError('Design lookup requires PR_BASE_SHA in local runs')
     if not regular_file_at(commit, path, root):
-        location = (
-            'target commit (merge the design first)'
-            if kind == 'Design'
-            else 'PR head commit'
-        )
-        raise ValueError(
-            f'{kind} document is not a regular file at the {location}: {path}'
-        )
+        location = 'target commit (merge the design first)' if kind == 'Design' else 'PR head commit'
+        raise ValueError(f'{kind} document is not a regular file at the {location}: {path}')
     return path
 
 

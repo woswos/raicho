@@ -18,15 +18,7 @@ services:
     read_only: true
     tmpfs:
       - /tmp:mode=1777
-    command:
-      [
-        node,
-        /workspace/extension/build.mjs,
-        --version,
-        65535.0.0,
-        --output-directory,
-        /artifact,
-      ]
+    command: [node, /workspace/extension/build.mjs, --version, 65535.0.0, --output-directory, /artifact]
     volumes:
       - .:/workspace:ro
       - upgrade-extension:/artifact

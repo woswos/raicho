@@ -42,10 +42,7 @@ def pull_request_numbers(root, latest):
 
 def fetch_blocker():
     if not os.environ.get('GITHUB_REPOSITORY'):
-        return (
-            'Not reading pull request descriptions: no GITHUB_REPOSITORY '
-            'in the environment.'
-        )
+        return 'Not reading pull request descriptions: no GITHUB_REPOSITORY in the environment.'
     if not (os.environ.get('GH_TOKEN') or os.environ.get('GITHUB_TOKEN')):
         return (
             'Not reading pull request descriptions: no GH_TOKEN or GITHUB_TOKEN. '
@@ -69,10 +66,7 @@ def github_pull_request(number):
         if re.match(r'^HTTP/[\d.]+ 404(?:\s|$)', headers):
             print(f'#{number} is not a pull request. Skipping it.', file=sys.stderr)
             return None
-        raise ValueError(
-            f'Cannot read pull request #{number} in {repository}: '
-            f'{result.stderr.strip() or headers}'
-        )
+        raise ValueError(f'Cannot read pull request #{number} in {repository}: {result.stderr.strip() or headers}')
     if not separator:
         raise ValueError(f'Cannot read pull request #{number}: missing HTTP response')
     try:
@@ -86,8 +80,7 @@ def github_pull_request(number):
     if body is not None and not isinstance(body, str):
         raise ValueError(f'Pull request #{number} has an invalid body')
     if not isinstance(labels, list) or any(
-        not isinstance(label, dict) or not isinstance(label.get('name'), str)
-        for label in labels
+        not isinstance(label, dict) or not isinstance(label.get('name'), str) for label in labels
     ):
         raise ValueError(f'Pull request #{number} has invalid or missing labels')
     return body or '', [label['name'] for label in labels]

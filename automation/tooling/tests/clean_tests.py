@@ -106,9 +106,7 @@ class CleanTests(unittest.TestCase):
         self.assertIn(['container', 'rm', '--force', 'runtime-container'], commands)
         self.assertIn(['volume', 'rm', 'connector-volume'], commands)
         self.assertIn(['network', 'rm', 'ci-network'], commands)
-        filters = {
-            word for command in commands for word in command if PROJECT_FILTER in word
-        }
+        filters = {word for command in commands for word in command if PROJECT_FILTER in word}
         self.assertEqual(
             {name.removeprefix(PROJECT_FILTER) for name in filters},
             {
@@ -135,9 +133,7 @@ class CleanTests(unittest.TestCase):
     def test_removes_the_tooling_cache_unless_a_container_uses_it(self):
         commands, _ = self.clean()
         self.assertIn(['volume', 'rm', 'raicho-tools_cache'], commands)
-        _, result = self.clean(
-            Response(('volume', 'rm', 'raicho-tools_cache'), status=1)
-        )
+        _, result = self.clean(Response(('volume', 'rm', 'raicho-tools_cache'), status=1))
         self.assertIn('Kept cache volume raicho-tools_cache', result.stderr)
 
     def test_removes_acceptance_state_directories_only(self):

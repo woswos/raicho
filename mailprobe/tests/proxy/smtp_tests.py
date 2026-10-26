@@ -52,9 +52,7 @@ class SmtpProxyTests(unittest.TestCase):
 
     def test_relays_successful_submission_once(self):
         client = MockConnection(b'DATA\r\nBody\r\n.\r\nQUIT\r\n')
-        upstream = MockConnection(
-            b'220 ready\r\n354 continue\r\n250 stored\r\n221 bye\r\n'
-        )
+        upstream = MockConnection(b'220 ready\r\n354 continue\r\n250 stored\r\n221 bye\r\n')
         state = MockState('normal')
         relay_smtp(client, upstream, state)
         self.assertIn(b'250 stored', client.output.getvalue())

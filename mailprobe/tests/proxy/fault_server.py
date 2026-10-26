@@ -33,9 +33,7 @@ def main():
     state = FaultState(arguments.directory)
     with contextlib.ExitStack() as stack:
         servers = [
-            stack.enter_context(
-                FaultServer(('0.0.0.0', port), handler, arguments.upstream, state)
-            )
+            stack.enter_context(FaultServer(('0.0.0.0', port), handler, arguments.upstream, state))
             for port, handler in [(3025, SmtpHandler), (3143, ImapHandler)]
         ]
         for server in servers:

@@ -60,11 +60,7 @@ pub fn to_hex(key: &Key) -> String {
 }
 
 pub fn from_hex(value: &str) -> Option<Key> {
-    if value.len() != KEY_BYTES * 2
-        || !value
-            .bytes()
-            .all(|byte| matches!(byte, b'0'..=b'9' | b'a'..=b'f'))
-    {
+    if value.len() != KEY_BYTES * 2 || !value.bytes().all(|byte| matches!(byte, b'0'..=b'9' | b'a'..=b'f')) {
         return None;
     }
     let mut key = [0; KEY_BYTES];

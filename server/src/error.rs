@@ -11,10 +11,7 @@ pub struct Error {
 
 impl Error {
     pub fn message(context: &'static str) -> Self {
-        Self {
-            context,
-            source: None,
-        }
+        Self { context, source: None }
     }
 
     pub fn new(context: &'static str, source: impl StandardError + Send + Sync + 'static) -> Self {
@@ -37,8 +34,6 @@ impl fmt::Display for Error {
 
 impl StandardError for Error {
     fn source(&self) -> Option<&(dyn StandardError + 'static)> {
-        self.source
-            .as_deref()
-            .map(|source| source as &dyn StandardError)
+        self.source.as_deref().map(|source| source as &dyn StandardError)
     }
 }

@@ -13,10 +13,7 @@ async fn initialization_is_idempotent_only_for_the_current_credential() {
     let database = Database::open(directory.path()).await.unwrap();
     let store = CredentialStore::new(&database);
     let original = credential('a');
-    assert_eq!(
-        store.status().await.unwrap(),
-        CredentialStatus::Unconfigured
-    );
+    assert_eq!(store.status().await.unwrap(), CredentialStatus::Unconfigured);
     assert!(!store.verify(&original).await.unwrap());
     store.initialize(&original).await.unwrap();
     store.initialize(&original).await.unwrap();
@@ -101,34 +98,20 @@ async fn database_and_wal_never_contain_raw_credential() {
     let database = Database::open(directory.path()).await.unwrap();
     let raw = "0123456789abcdef".repeat(4);
     let store = CredentialStore::new(&database);
-    store
-        .initialize(&Credential::parse(&raw).unwrap())
-        .await
-        .unwrap();
+    store.initialize(&Credential::parse(&raw).unwrap()).await.unwrap();
     for entry in std::fs::read_dir(directory.path()).unwrap() {
         let contents = std::fs::read(entry.unwrap().path()).unwrap();
-        assert!(
-            !contents
-                .windows(raw.len())
-                .any(|window| window == raw.as_bytes())
-        );
+        assert!(!contents.windows(raw.len()).any(|window| window == raw.as_bytes()));
     }
     let (backend, stored_key, server_key, revision): (String, Vec<u8>, Vec<u8>, i64) =
-        sqlx::query_as(
-            "SELECT backend_kind, stored_key, server_key, revision FROM connector_credentials",
-        )
-        .fetch_one(database.pool())
-        .await
-        .unwrap();
+        sqlx::query_as("SELECT backend_kind, stored_key, server_key, revision FROM connector_credentials")
+            .fetch_one(database.pool())
+            .await
+            .unwrap();
     let keys = ConnectorKeys::derive(&raw);
     assert_eq!(
         (backend.as_str(), stored_key, server_key, revision),
-        (
-            "thunderbird",
-            keys.stored_key.to_vec(),
-            keys.server_key.to_vec(),
-            1
-        )
+        ("thunderbird", keys.stored_key.to_vec(), keys.server_key.to_vec(), 1)
     );
     database.close().await;
 }
@@ -137,9 +120,7 @@ async fn database_and_wal_never_contain_raw_credential() {
 async fn existing_stage_one_database_migrates_without_enrolling_a_credential() {
     let directory = tempdir().unwrap();
     let empty = sqlx::migrate::Migrator::with_migrations(Vec::new());
-    let old = Database::open_with_migrations(directory.path(), &empty)
-        .await
-        .unwrap();
+    let old = Database::open_with_migrations(directory.path(), &empty).await.unwrap();
     old.close().await;
     drop(old);
     let database = Database::open(directory.path()).await.unwrap();

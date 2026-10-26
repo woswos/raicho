@@ -19,8 +19,7 @@ import { parseArgs } from 'node:util';
 import { crc32 } from 'node:zlib';
 
 const EXTENSION_ROOT = path.dirname(fileURLToPath(import.meta.url));
-const VERSION_PATTERN =
-  /^(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})$/u;
+const VERSION_PATTERN = /^(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})$/u;
 // The DOS date for 1980-01-01, the earliest timestamp a ZIP entry can carry.
 const FIXED_DATE = 0x21;
 const REGULAR_FILE_MODE = 0o100644;
@@ -34,19 +33,14 @@ function prepareDirectory(directory) {
   if (!path.isAbsolute(directory)) {
     throw new Error('The extension output directory must be absolute.');
   }
-  if (
-    existsSync(directory) &&
-    (!statSync(directory).isDirectory() || readdirSync(directory).length !== 0)
-  ) {
+  if (existsSync(directory) && (!statSync(directory).isDirectory() || readdirSync(directory).length !== 0)) {
     throw new Error('The extension output directory must be empty.');
   }
   mkdirSync(directory, { recursive: true });
 }
 
 function extensionManifest(version, sourceRoot) {
-  const manifest = JSON.parse(
-    readFileSync(path.join(sourceRoot, 'manifest.json'), 'utf8'),
-  );
+  const manifest = JSON.parse(readFileSync(path.join(sourceRoot, 'manifest.json'), 'utf8'));
   if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
     throw new Error('The extension manifest must be an object.');
   }
@@ -56,9 +50,7 @@ function extensionManifest(version, sourceRoot) {
     !VERSION_PATTERN.test(selected) ||
     selected.split('.').some((component) => Number(component) > 65535)
   ) {
-    throw new Error(
-      'The extension version must contain three components from 0 to 65535 without leading zeros.',
-    );
+    throw new Error('The extension version must contain three components from 0 to 65535 without leading zeros.');
   }
   manifest.version = selected;
   return manifest;
@@ -67,35 +59,17 @@ function extensionManifest(version, sourceRoot) {
 function compileExtension(directory, manifest, sourceRoot, sourceMap = false) {
   execFileSync(
     'tsc',
-    [
-      '--project',
-      path.join(sourceRoot, 'tsconfig.json'),
-      '--outDir',
-      directory,
-      ...(sourceMap ? ['--sourceMap'] : []),
-    ],
+    ['--project', path.join(sourceRoot, 'tsconfig.json'), '--outDir', directory, ...(sourceMap ? ['--sourceMap'] : [])],
     { stdio: 'inherit' },
   );
-  writeFileSync(
-    path.join(directory, 'manifest.json'),
-    `${JSON.stringify(manifest, null, 2)}\n`,
-  );
-  cpSync(
-    path.join(sourceRoot, 'background.html'),
-    path.join(directory, 'background.html'),
-  );
+  writeFileSync(path.join(directory, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
+  cpSync(path.join(sourceRoot, 'background.html'), path.join(directory, 'background.html'));
   const optionsPage = manifest.options_ui?.page;
   if (optionsPage !== undefined) {
-    if (
-      typeof optionsPage !== 'string' ||
-      !/^[a-z_]+\.html$/u.test(optionsPage)
-    ) {
+    if (typeof optionsPage !== 'string' || !/^[a-z_]+\.html$/u.test(optionsPage)) {
       throw new Error('The options page must be a root-level HTML file.');
     }
-    cpSync(
-      path.join(sourceRoot, optionsPage),
-      path.join(directory, optionsPage),
-    );
+    cpSync(path.join(sourceRoot, optionsPage), path.join(directory, optionsPage));
   }
 }
 
@@ -111,9 +85,7 @@ function archiveEntries(directory) {
 }
 
 function header(fields) {
-  const buffer = Buffer.alloc(
-    fields.reduce((size, [bytes]) => size + bytes, 0),
-  );
+  const buffer = Buffer.alloc(fields.reduce((size, [bytes]) => size + bytes, 0));
   let offset = 0;
   for (const [bytes, value] of fields) {
     if (bytes === 2) buffer.writeUInt16LE(value, offset);
@@ -142,11 +114,7 @@ function writeArchive(output, entries) {
       [2, name.length],
       [2, 0],
     ];
-    const record = Buffer.concat([
-      header([[4, 0x04034b50], [2, 20], ...common]),
-      name,
-      contents,
-    ]);
+    const record = Buffer.concat([header([[4, 0x04034b50], [2, 20], ...common]), name, contents]);
     central.push(
       Buffer.concat([
         header([
@@ -184,14 +152,7 @@ function writeArchive(output, entries) {
   });
 }
 
-function build({
-  output,
-  version,
-  directory,
-  outputDirectory,
-  sourceRoot,
-  sourceMap,
-}) {
+function build({ output, version, directory, outputDirectory, sourceRoot, sourceMap }) {
   const manifest = extensionManifest(version, sourceRoot);
   if ((output === undefined) === (outputDirectory === undefined)) {
     throw new Error('Choose exactly one extension output mode.');
@@ -200,22 +161,13 @@ function build({
     throw new Error('Source maps apply only to the compiled output directory.');
   }
   if (outputDirectory !== undefined) {
-    if (
-      directory !== undefined &&
-      (within(directory, outputDirectory) || within(outputDirectory, directory))
-    ) {
-      throw new Error(
-        'Artifact and compiled output directories must be separate.',
-      );
+    if (directory !== undefined && (within(directory, outputDirectory) || within(outputDirectory, directory))) {
+      throw new Error('Artifact and compiled output directories must be separate.');
     }
     prepareDirectory(outputDirectory);
     output = path.join(outputDirectory, `raicho-${manifest.version}.xpi`);
   }
-  if (
-    !path.isAbsolute(output) ||
-    path.extname(output) !== '.xpi' ||
-    existsSync(output)
-  ) {
+  if (!path.isAbsolute(output) || path.extname(output) !== '.xpi' || existsSync(output)) {
     throw new Error('Supply an absolute, unused .xpi output path.');
   }
   if (directory !== undefined) {
@@ -229,10 +181,7 @@ function build({
     compileExtension(compiled, manifest, sourceRoot);
     writeArchive(output, archiveEntries(compiled));
     if (outputDirectory !== undefined) {
-      cpSync(
-        path.join(compiled, 'manifest.json'),
-        path.join(outputDirectory, 'manifest.json'),
-      );
+      cpSync(path.join(compiled, 'manifest.json'), path.join(outputDirectory, 'manifest.json'));
     }
     if (sourceMap) {
       compileExtension(directory, manifest, sourceRoot, true);
@@ -240,10 +189,7 @@ function build({
       cpSync(compiled, directory, { recursive: true });
     }
     if (directory !== undefined) {
-      writeFileSync(
-        path.join(directory, 'package.json'),
-        '{"type":"module"}\n',
-      );
+      writeFileSync(path.join(directory, 'package.json'), '{"type":"module"}\n');
     }
   } finally {
     rmSync(compiled, { recursive: true, force: true });

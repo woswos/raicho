@@ -120,13 +120,7 @@
     "Welcome": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "type",
-        "protocol_version",
-        "generation",
-        "capabilities",
-        "server_signature"
-      ],
+      "required": ["type", "protocol_version", "generation", "capabilities", "server_signature"],
       "properties": {
         "type": {
           "type": "string",
