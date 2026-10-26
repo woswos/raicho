@@ -69,7 +69,7 @@ class VersionTests(GuardTestCase):
         repo = self.repo()
         repo.write('Cargo.toml', CARGO)
         repo.write('extension/manifest.json', MANIFEST)
-        repo.write('mailprobe/manifest.json', MANIFEST)
+        repo.write('extension/probe/manifest.json', MANIFEST)
         repo.write('extension/tests/manifest.json', MANIFEST.replace('0.1.0', '9.9.9'))
         repo.commit()
         self.assertEqual(check_product_version(repo.root), [])
@@ -78,6 +78,11 @@ class VersionTests(GuardTestCase):
         failures = check_product_version(repo.root)
         self.assertEqual(len(failures), 1)
         self.assertIn('extension/manifest.json version 0.2.0', failures[0])
+        repo.write('extension/manifest.json', MANIFEST)
+        repo.write('extension/probe/manifest.json', drifted)
+        failures = check_product_version(repo.root)
+        self.assertEqual(len(failures), 1)
+        self.assertIn('extension/probe/manifest.json version 0.2.0', failures[0])
 
     def test_manifest_replacement_ignores_other_version_fields(self):
         updated = replace_manifest_version(MANIFEST, '0.2.0')
