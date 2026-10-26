@@ -26,8 +26,11 @@ build: tooling-image
 	@$(CHECK) build
 	@$(MAKE) --no-print-directory images
 
+GIT_HEAD = $(shell git -C $(REPOSITORY_ROOT) rev-parse HEAD 2>/dev/null)
+RAICHO_COMMIT ?= $(if $(GIT_HEAD),$(GIT_HEAD)$(shell git -C $(REPOSITORY_ROOT) diff --quiet HEAD -- || echo -dirty),unknown)
+
 images:
-	@$(STEP) $@ docker compose --progress $(PROGRESS) -f $(REPOSITORY_ROOT)compose.yaml build
+	@RAICHO_COMMIT=$(RAICHO_COMMIT) $(STEP) $@ docker compose --progress $(PROGRESS) -f $(REPOSITORY_ROOT)compose.yaml build
 
 QUIET_DOCKER := $(if $(VERBOSE),,COMPOSE_PROGRESS=quiet BUILDKIT_PROGRESS=quiet)
 ACCEPTANCE := $(QUIET_DOCKER) $(STEP)
