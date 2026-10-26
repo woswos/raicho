@@ -4,7 +4,10 @@ from pathlib import Path
 
 from automation.build.application import run
 
-RUST_TARGET = Path('/tmp/raicho-coverage-target')
+RUST_TARGET = (
+    Path(os.environ.get('CARGO_TARGET_DIR', '/tmp/raicho-target')).parent
+    / 'coverage-target'
+)
 RUST_IGNORED = r'(/registry/|^/rustc/|/tests/|_generated\.rs$)'
 
 
