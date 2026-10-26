@@ -58,10 +58,10 @@ def main():
         text=True,
         check=False,
     )
-    print(
-        partly_covered(result.stdout) if result.returncode else totals(result.stdout),
-        end='',
+    report = (
+        partly_covered(result.stdout) if result.returncode else totals(result.stdout)
     )
+    print(report, end='', flush=True)
     print(result.stderr, end='', file=sys.stderr)
     return result.returncode
 

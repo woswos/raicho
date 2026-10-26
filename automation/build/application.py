@@ -8,6 +8,10 @@ from pathlib import Path
 
 from automation.paths import REPOSITORY_ROOT
 
+NODE_REPORTER = (
+    f'--test-reporter={REPOSITORY_ROOT / "automation/build/node_reporter.mjs"}'
+)
+
 
 def run(arguments, **options):
     return subprocess.run(arguments, cwd=REPOSITORY_ROOT, check=True, **options)
@@ -29,7 +33,7 @@ def cargo_test(arguments, env=None):
     if result.returncode:
         sys.stdout.write(result.stdout)
         raise subprocess.CalledProcessError(result.returncode, command)
-    print(test_summary(result.stdout))
+    print(test_summary(result.stdout), flush=True)
     return result
 
 
@@ -44,7 +48,7 @@ def extension(
     source_root,
     testing=False,
     build_arguments=(),
-    test_arguments=('--test-reporter=dot',),
+    test_arguments=(NODE_REPORTER,),
 ):
     with tempfile.TemporaryDirectory(prefix='raicho-extension-') as directory:
         output = Path(directory)
@@ -73,7 +77,7 @@ def extension(
             run(['node', '--test', *test_arguments, *tests], env=environment)
 
 
-def web(testing=False, build_arguments=(), test_arguments=('--test-reporter=dot',)):
+def web(testing=False, build_arguments=(), test_arguments=(NODE_REPORTER,)):
     with tempfile.TemporaryDirectory(prefix='raicho-web-') as directory:
         run(
             [

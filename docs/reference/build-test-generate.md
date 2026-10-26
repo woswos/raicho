@@ -23,9 +23,8 @@ make lint test
 ```
 
 Output stays short when commands succeed. Docker builds, Cargo, and the acceptance
-suites' Docker commands print no progress. The Rust tests print one summary line,
-the Node and Python suites one character per test, and the patch coverage gate
-only its totals. Formatters print only problems, except that shfmt lists the
+suites' Docker commands print no progress. Each Rust, Node, and Python suite
+prints one summary line, and the patch coverage gate only its totals. Formatters print only problems, except that shfmt lists the
 files it rewrites. Guards still print one passed line each, and failures print
 in full. Add `VERBOSE=1`, as in `make VERBOSE=1 build`, to restore Docker and
 Cargo progress and live Rust test output.
