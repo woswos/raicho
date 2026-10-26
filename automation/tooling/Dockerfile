@@ -31,7 +31,7 @@ COPY package.json package-lock.json eslint.config.mjs ./
 RUN npm ci --ignore-scripts --no-audit --no-fund && npm cache clean --force
 COPY automation/tooling/entrypoint.bash /usr/local/bin/raicho-tooling
 COPY mailprobe/tests/ /opt/raicho/mailprobe/tests/
-RUN install -d -o 10001 -g 10001 -m 0700 /config /artifact
+RUN install -d -o 10001 -g 10001 -m 0700 /config /artifact && install -d -m 1777 /cache
 
 ENV PATH="/opt/quality/node_modules/.bin:/usr/local/cargo/bin:${PATH}" \
     RUSTUP_HOME=/usr/local/rustup CARGO_HOME=/tmp/cargo \

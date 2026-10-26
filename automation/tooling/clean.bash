@@ -10,6 +10,7 @@ PROJECT_LABEL=com.docker.compose.project
 DISPOSABLE_PROJECT='^raicho-[a-z]+-[0-9]+-[0-9]+$'
 DISPOSABLE_IMAGE='^raicho-[a-z]+-[0-9]+-[0-9]+[:-]'
 PROJECT_IMAGES=(raicho-tools:local raicho-server:local raicho-gateway:local raicho-thunderbird:local)
+CACHE_VOLUME=raicho-tools_cache
 TEMPORARY_DIRECTORY="${TMPDIR:-/tmp}"
 
 remove_ignored_output() {
@@ -84,6 +85,17 @@ remove_state_directories() {
     done
 }
 
+remove_cache() {
+    if ! docker volume inspect "${CACHE_VOLUME}" >/dev/null 2>&1; then
+        return 0
+    fi
+    if docker volume rm "${CACHE_VOLUME}" >/dev/null 2>&1; then
+        echo "Removed cache volume ${CACHE_VOLUME}"
+    else
+        echo "Kept cache volume ${CACHE_VOLUME}, which a container still uses" >&2
+    fi
+}
+
 remove_images() {
     local IMAGES IMAGE
     mapfile -t IMAGES < <(
@@ -104,5 +116,6 @@ remove_images() {
 remove_ignored_output
 remove_disposable_projects
 remove_state_directories
+remove_cache
 remove_images
 echo 'Clean finished. The raicho deployment, its volumes, and .raicho/ were not touched.'

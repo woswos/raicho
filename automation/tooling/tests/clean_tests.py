@@ -132,6 +132,14 @@ class CleanTests(unittest.TestCase):
         self.assertNotIn('other:latest', removed)
         self.assertIn('Kept image raicho-server:local', result.stderr)
 
+    def test_removes_the_tooling_cache_unless_a_container_uses_it(self):
+        commands, _ = self.clean()
+        self.assertIn(['volume', 'rm', 'raicho-tools_cache'], commands)
+        _, result = self.clean(
+            Response(('volume', 'rm', 'raicho-tools_cache'), status=1)
+        )
+        self.assertIn('Kept cache volume raicho-tools_cache', result.stderr)
+
     def test_removes_acceptance_state_directories_only(self):
         state = self.temporary / 'raicho-credentials.Ab3dE5gH'
         (state / 'credentials').mkdir(parents=True)

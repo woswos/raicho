@@ -8,9 +8,9 @@ procedure is maintained in the [showcase guide](../../assets/brand/showcase/READ
 Run Make from the repository root, or with `-f` from anywhere. The host needs
 Docker, Compose, Git, and GNU Make, but no language toolchains. On the host, each
 target first builds the tooling image, which the Docker cache keeps quick when
-nothing changed, then runs the same target inside the tooling container. Targets
-that write files run in the writable `format` service with the caller's UID and
-GID, so rewritten files keep the caller's ownership. A linked Git worktree gets its
+nothing changed, then runs the same target inside the tooling container as the
+caller's UID and GID. Targets that write files use the writable `format` service,
+so rewritten files keep the caller's ownership. A linked Git worktree gets its
 shared Git metadata mounted read-only at the same absolute path. When
 `GITHUB_EVENT_PATH` is set, as in GitHub Actions, the event JSON is mounted too.
 Inside the tooling container the same targets run directly. The image sets
@@ -61,7 +61,11 @@ installed dependencies or lint rules. Make on the host rebuilds the image first,
 so the mismatch only appears when the container runs without it.
 
 The `check` service mounts the repository read-only. Tool caches and temporary
-outputs live outside that mount. It does not mount the Docker socket or start
+outputs live outside that mount. Cargo's registry and build output persist in the
+`raicho-tools_cache` volume at `/cache`, which the `check` and `format` services
+share, so repeated runs reuse downloads and compiled dependencies. Cargo locks the
+cache, so concurrent runs wait for each other. Other temporary output lives on each
+container's own `/tmp` and disappears with it. The service does not mount the Docker socket or start
 application services, so Make inside the container never launches nested
 containers.
 
@@ -164,8 +168,7 @@ uses `extension/build.mjs`. Both run on Node alone. The shared dispatcher remain
 outside the source mount.
 
 Tooling defaults to no Rust debug symbols or incremental output, keeping the
-complete workspace build within the temporary filesystem on CI runners. These
-settings affect check containers, not release images. Set
+build cache small. These settings affect check containers, not release images. Set
 `CARGO_PROFILE_DEV_DEBUG=2`, `CARGO_PROFILE_TEST_DEBUG=2`, or `CARGO_INCREMENTAL=1`
 before running Make when that output is needed for local debugging.
 
@@ -213,6 +216,8 @@ make clean
 - The `raicho-tools:local`, `raicho-server:local`, `raicho-gateway:local`, and
   `raicho-thunderbird:local` images. An image a container still uses is kept and
   reported.
+- The `raicho-tools_cache` volume with Cargo's downloads and build output, unless a
+  container is using it.
 
 It never touches the `raicho` deployment, its volumes, or `.raicho/`, and it does
 not prune the Docker build cache, which the default builder cannot limit to one
@@ -228,7 +233,7 @@ PR_BASE_SHA="$(git rev-parse origin/main)" make check-patch-coverage
 `coverage` runs the Rust workspace tests, the protocol, web, and extension
 TypeScript suites, and the `test-python` and `test-tooling` suites with coverage
 instrumentation. It prints line coverage for each measured source file. Rust builds
-with `-C instrument-coverage` into its own temporary target directory, and the
+with `-C instrument-coverage` into its own target directory in the cache, and the
 image's LLVM tools merge and export the profiles. TypeScript test builds emit source
 maps, so Node's built-in coverage reports lines of the `.ts` sources. The XPI never
 contains source maps. coverage.py measures Python, including subprocesses and the
