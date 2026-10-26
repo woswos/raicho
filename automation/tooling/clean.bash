@@ -49,7 +49,6 @@ remove_project() {
             docker "${KIND}" rm "${IDS[@]}" >/dev/null
         fi
     done
-    echo "Removed acceptance project ${PROJECT}"
 }
 
 remove_disposable_projects() {
@@ -61,6 +60,7 @@ remove_disposable_projects() {
     )
     for PROJECT in "${PROJECTS[@]}"; do
         remove_project "${PROJECT}"
+        echo "Removed acceptance project ${PROJECT}"
     done
 }
 
