@@ -2,13 +2,15 @@ use std::time::Duration;
 
 use futures_util::{Sink, SinkExt, StreamExt};
 use raicho_protocol::diagnostics_generated::BackendError;
-use raicho_protocol::limits_generated::AUTHENTICATION_DEADLINE_MS;
 use serde::Serialize;
 use tokio_tungstenite::tungstenite::error::{Error, ProtocolError};
 use tokio_tungstenite::tungstenite::{Message, Utf8Bytes};
 
 use super::failure::Failure;
 use super::handshake::Socket;
+
+// A peer that stops reading must not hold a session open indefinitely.
+pub(super) const WRITE_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub(super) async fn send(socket: &mut (impl Sink<Message> + Unpin), value: &impl Serialize) -> Result<(), Failure> {
     send_text(
@@ -19,13 +21,10 @@ pub(super) async fn send(socket: &mut (impl Sink<Message> + Unpin), value: &impl
 }
 
 pub(super) async fn send_text(socket: &mut (impl Sink<Message> + Unpin), text: String) -> Result<(), Failure> {
-    tokio::time::timeout(
-        Duration::from_millis(AUTHENTICATION_DEADLINE_MS as u64),
-        socket.send(Message::Text(text.into())),
-    )
-    .await
-    .map_err(|_| Failure::new(BackendError::Disconnected))?
-    .map_err(|_| Failure::new(BackendError::Disconnected))
+    tokio::time::timeout(WRITE_TIMEOUT, socket.send(Message::Text(text.into())))
+        .await
+        .map_err(|_| Failure::new(BackendError::Disconnected))?
+        .map_err(|_| Failure::new(BackendError::Disconnected))
 }
 
 pub(super) async fn receive_text(socket: &mut Socket) -> Result<Utf8Bytes, Failure> {
@@ -59,12 +58,12 @@ fn diagnostic(error: Error) -> BackendError {
 mod tests {
     use std::convert::Infallible;
     use std::future::pending;
-    use std::time::Duration;
 
     use futures_util::sink;
     use raicho_protocol::diagnostics_generated::BackendError;
-    use raicho_protocol::limits_generated::AUTHENTICATION_DEADLINE_MS;
     use tokio::time::Instant;
+
+    use super::WRITE_TIMEOUT;
 
     #[tokio::test(start_paused = true)]
     async fn blocked_peer_flush_expires_without_an_unbounded_outgoing_queue() {
@@ -77,9 +76,6 @@ mod tests {
             .err()
             .unwrap();
         assert_eq!(failure.diagnostic, BackendError::Disconnected);
-        assert_eq!(
-            started.elapsed(),
-            Duration::from_millis(AUTHENTICATION_DEADLINE_MS as u64)
-        );
+        assert_eq!(started.elapsed(), WRITE_TIMEOUT);
     }
 }
