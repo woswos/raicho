@@ -199,8 +199,8 @@ make test
 
 `test` runs every source suite, building what each one needs. `build-server`,
 `build-web`, and `build-extension` build one component without testing it. There
-is no aggregate `build` target: `make images` builds the deliverables. Rust uses `--workspace --all-targets --locked` and
-temporary Cargo output. The browser build uses `tsc`, copies public files and
+is no aggregate `build` target: `make images` builds the deliverables. The Rust
+build selection and target directory are described below. The browser build uses `tsc`, copies public files and
 the selected identity assets, then runs Node's built-in tests against compiled
 modules. The web builder is `web/build.mjs`, and extension packaging
 uses `extension/build.mjs`. Both run on Node alone. The shared dispatcher remains in
@@ -279,8 +279,9 @@ its volumes, or `.raicho/`.
 
 `mrproper` runs `automation/tooling/mrproper.bash`. It stops and removes the
 containers and networks of the `raicho` deployment, of every deployment with a
-`.raicho/<project>` directory, and of the `raicho-tools` project, including
-running tooling containers. It then runs every `clean` step and removes the four
+`.raicho/<project>` directory, of every other Compose project whose working-directory
+label lies in this checkout, such as a deployment that was never enrolled, and of the
+`raicho-tools` project, including running tooling containers. It then runs every `clean` step and removes the four
 project images. An image that another project's container still uses is kept and
 reported. Deployment volumes and `.raicho/` are never removed, so rebuilding with
 `make images` and starting the deployment again, as in the
