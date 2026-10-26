@@ -79,14 +79,20 @@ class WorkflowCoverageTests(unittest.TestCase):
     def test_lint_job_runs_every_python_suite(self):
         self.assertIn('test-python', self.script('lint').split())
 
+    def coverage_steps(self):
+        return {step['run']: step.get('if') for step in self.jobs['coverage']['steps'] if 'run' in step}
+
     def test_coverage_job_gates_pull_requests_on_changed_lines(self):
         job = self.jobs['coverage']
-        self.assertIn("github.event_name == 'pull_request'", job['if'])
         for label in ('design', 'skip-test', 'skip-coverage-check'):
             with self.subTest(label=label):
                 self.assertIn(f"'{label}'", job['if'])
         self.assertEqual(job['steps'][0]['with']['fetch-depth'], '0')
-        self.assertIn('make check-patch-coverage', self.script('coverage'))
+        self.assertEqual(self.coverage_steps()['make check-patch-coverage'], "github.event_name == 'pull_request'")
+
+    def test_pushes_to_main_save_the_coverage_cache_for_pull_requests(self):
+        self.assertNotIn('event_name', self.jobs['coverage']['if'])
+        self.assertEqual(self.coverage_steps()['make coverage'], "github.event_name == 'push'")
 
     def image_caches(self):
         return {

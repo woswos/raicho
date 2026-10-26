@@ -104,7 +104,6 @@ jobs:
 
   coverage:
     if: >-
-      github.event_name == 'pull_request' &&
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-test') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-coverage-check')
@@ -124,7 +123,12 @@ jobs:
           key: rust-${{ github.job }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
           restore-keys: rust-${{ github.job }}-
       - name: Check patch coverage
+        if: github.event_name == 'pull_request'
         run: make check-patch-coverage
+      # Pull requests can restore caches saved on main, but not each other's.
+      - name: Save the coverage build for pull requests
+        if: github.event_name == 'push'
+        run: make coverage
 
   runtime-test:
     if: >-

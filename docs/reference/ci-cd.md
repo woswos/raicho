@@ -23,8 +23,10 @@ The workflow uses a read-only token and does not retain checkout credentials.
   isolation, same-profile upgrade, privacy canaries, and credential
   rotation/revocation recovery.
 - `compatibility-test`: unattended GreenMail draft/restart experiment.
-- `coverage`: on PRs only, `make check-patch-coverage` against the PR base. It
-  fails when fewer than 90 percent of changed, measured lines are covered.
+- `coverage`: on PRs, `make check-patch-coverage` against the PR base. It
+  fails when fewer than 90 percent of changed, measured lines are covered. On
+  pushes to `main` it runs `make coverage` instead, which saves the coverage
+  build's Cargo cache for later PRs.
 
 The acceptance jobs run `make acceptance-runtime`, `make acceptance-connector` and
 `make acceptance-credentials`, and `make acceptance-mail`. There are no image
@@ -92,6 +94,8 @@ builder. Only `lint` writes the tooling image's layers, and only
 sets `RAICHO_CACHE_DIRECTORY`, which makes Make bind that folder at `/cache` through
 `automation/tooling/compose.cache.yaml` instead of the named volume. CI turns off
 incremental compilation, because each run starts from that restored folder.
+A PR can restore caches saved on `main`, but not another PR's, so every job that
+restores a Cargo cache also runs on pushes to `main`.
 
 GitHub keeps about 10 GB of caches per repository and evicts the least recently
 used, so a run after eviction rebuilds cold and saves again. The deploy image's

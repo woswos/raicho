@@ -44,7 +44,9 @@ manifests and lockfile, against placeholder workspace sources. A later layer
 compiles the real sources with `RAICHO_COMMIT`.
 
 CI restores a Cargo cache per job with `actions/cache` and builds images through
-the GitHub Actions BuildKit cache. One job writes each image's layers. The Make
+the GitHub Actions BuildKit cache. One job writes each image's layers. The coverage
+job also runs on pushes to `main`, because a pull request can restore caches saved
+on `main` but not another pull request's. The Make
 `build` target is removed. `make images` builds the deliverables, and the test and
 lint targets build what they check.
 
