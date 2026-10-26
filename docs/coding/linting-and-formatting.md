@@ -153,7 +153,7 @@ in `package-lock.json`:
 | json-schema-to-typescript | 16.0.0 |
 | esbuild | 0.28.2 |
 
-The contract uses typify 0.8.0 and schemars 0.8.22 for Rust generation,
+The contract uses typify 0.8.0 for Rust generation,
 jsonschema 0.59.0 in tests that check the decoders and status documents against the
 schemas, and prettyplease 0.3.0 with
 syn 3.0.9 for generated syntax. Exact direct dependencies live in `Cargo.toml`,

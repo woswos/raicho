@@ -89,8 +89,7 @@ fn check_wire_values(message: &Value) -> Result<(), ContractError> {
 }
 
 fn is_printable_ascii(text: &str) -> bool {
-    text.bytes()
-        .all(|character| (32..=126).contains(&character))
+    text.bytes().all(|byte| (32..=126).contains(&byte))
 }
 
 fn check_unsupported_version(message: &Value) -> Result<(), ContractError> {
@@ -137,11 +136,11 @@ fn check_phase(
 fn normalize_numbers(message: &mut Value) {
     match message {
         Value::Number(number) => {
-            if let Some(integer) = number.as_f64()
-                && integer.fract() == 0.0
-                && (0.0..=2_147_483_647.0).contains(&integer)
+            if let Some(value) = number.as_f64()
+                && value.fract() == 0.0
+                && (0.0..=2_147_483_647.0).contains(&value)
             {
-                *number = (integer as u64).into();
+                *number = (value as u64).into();
             }
         }
         Value::Object(properties) => {

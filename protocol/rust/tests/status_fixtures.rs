@@ -8,7 +8,7 @@ fn shared_status_fixtures_agree_with_the_status_schema() {
     let read = |path: &str| -> Value {
         serde_json::from_slice(&fs::read(protocol.join(path)).unwrap()).unwrap()
     };
-    let contract = jsonschema::options()
+    let status_validator = jsonschema::options()
         .with_draft(jsonschema::Draft::Draft7)
         .offline()
         .build(&read("schema/status.schema.json"))
@@ -18,7 +18,7 @@ fn shared_status_fixtures_agree_with_the_status_schema() {
     assert!(fixtures.len() > 10);
     for fixture in fixtures {
         assert_eq!(
-            contract.is_valid(&fixture["document"]),
+            status_validator.is_valid(&fixture["document"]),
             fixture["valid"].as_bool().unwrap(),
             "{}",
             fixture["name"]

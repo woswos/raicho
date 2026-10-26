@@ -1216,7 +1216,6 @@ name = "raicho-protocol-generator"
 version = "0.1.0"
 dependencies = [
  "prettyplease",
- "schemars",
  "serde_json",
  "syn 3.0.9",
  "typify",
