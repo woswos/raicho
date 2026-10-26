@@ -5,8 +5,6 @@ from automation.build.coverage_report import OUTPUT, collect
 from automation.paths import REPOSITORY_ROOT
 from automation.repository.pr_context import git_output, load_context
 
-MINIMUM_PERCENT = 90
-
 
 def comparison_base(root):
     base = load_context(root)['base']
@@ -41,7 +39,8 @@ def main():
             'diff-cover',
             *map(str, reports),
             f'--compare-branch={base}',
-            f'--fail-under={MINIMUM_PERCENT}',
+            '--config-file',
+            str(REPOSITORY_ROOT / 'pyproject.toml'),
         ],
         cwd=REPOSITORY_ROOT,
         capture_output=True,

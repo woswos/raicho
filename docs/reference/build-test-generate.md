@@ -255,7 +255,8 @@ reports rather than reported as uncovered.
 
 `check-patch-coverage` runs `coverage`, then diff-cover over the reports. It fails
 when fewer than 90 percent of the changed, measured lines are covered, and lists
-the uncovered lines. The comparison base is the PR base from the GitHub event or
+the uncovered lines. The threshold is `fail_under` under `[tool.diff_cover]` in
+`pyproject.toml`. The comparison base is the PR base from the GitHub event or
 `PR_BASE_SHA`, otherwise the merge base with `origin/main`. Uncommitted changes
 count. The [patch coverage decision](../decisions/20261026-repository-layout.md#patch-coverage)
 records the tool choices.
