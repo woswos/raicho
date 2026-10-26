@@ -23,7 +23,7 @@ class ReleaseCollectionTests(GuardTestCase):
                 'automation.release.pull_requests.github_pull_request',
                 side_effect=[
                     None,
-                    ('## Changelog\n\n### Added\n\n- Hidden.', ['skip changelog']),
+                    ('## Changelog\n\n### Added\n\n- Hidden.', ['skip-changelog']),
                     ('## Changelog\n\n### Fixed\n\n- Corrected.', []),
                 ],
             ),

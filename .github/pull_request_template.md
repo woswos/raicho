@@ -8,7 +8,7 @@ Design: docs/planning/active/YYYYMMDD-slug.md
 
 ## Changelog
 
-<!-- One real bullet under one heading. The pipe heading and the TODO line do not count. Use the "skip changelog" label when an operator would notice nothing. -->
+<!-- One real bullet under one heading. The pipe heading and the TODO line do not count. Use the "skip-changelog" label when an operator would notice nothing. -->
 
 ### Added | Changed | Deprecated | Removed | Fixed | Security
 
