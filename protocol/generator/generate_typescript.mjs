@@ -15,6 +15,9 @@ const repositoryRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
   '../..',
 );
+const formatting = JSON.parse(
+  await readFile(resolve(repositoryRoot, '.prettierrc.json'), 'utf8'),
+);
 const [outputDirectory, webDirectory] = process.argv.slice(2);
 if (
   !outputDirectory ||
@@ -155,8 +158,8 @@ for (const [directory, outputs] of [
     await writeFile(
       resolve(directory, filename),
       await format(content, {
+        ...formatting,
         parser: filename.endsWith('.js') ? 'babel' : 'typescript',
-        singleQuote: true,
       }),
     );
   }

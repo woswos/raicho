@@ -19,8 +19,11 @@ extends that tooling to SQLite source.
 | Rust | Clippy for Cargo targets, rustfmt with edition 2024 from `rustfmt.toml` |
 | SQL | SQLFluff lint and format using the root `.sqlfluff` configuration |
 
-Ruff checks `E4`, `E7`, `E9`, `F`, `I`, `UP`, and `B`, targeting Python 3.13.
-Its formatter uses 88 columns and single quotes. Prettier also uses single
+Every formatter uses 120-column lines: Ruff's `line-length`, Prettier's
+`printWidth`, rustfmt's `max_width`, and SQLFluff's `max_line_length`. The
+protocol generator formats its TypeScript output with the same Prettier
+configuration. Ruff checks `E4`, `E7`, `E9`, `F`, `I`, `UP`, and `B`, targeting
+Python 3.13, and its formatter uses single quotes. Prettier also uses single
 quotes. ESLint treats showcase scripts as browser classic scripts and its own
 configuration as Node code. TypeScript uses project-aware linting without a
 fallback project. Pyright and mypy are not configured.
@@ -33,7 +36,7 @@ unreferenced `.rs` files or every conditional feature combination. Formatting
 checks cover Cargo projects and each discovered owned `.rs` file independently.
 
 SQLFluff uses the SQLite dialect and raw templater, four-space indentation with
-implicit indents allowed, and 88-column lines. Keywords are uppercase, while
+implicit indents allowed, and 120-column lines. Keywords are uppercase, while
 functions, literals, types, and unquoted identifiers are lowercase. Quoted
 literals use single quotes, and casts use `CAST(... AS ...)`, since SQLite has no
 `::` operator. Every SQLFluff rule applies. Formatting applies only SQLFluff's
