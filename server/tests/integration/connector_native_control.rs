@@ -1,5 +1,3 @@
-mod support;
-
 use raicho_protocol::diagnostics_generated::{BackendError, BackendState};
 use std::time::Duration;
 
@@ -7,7 +5,7 @@ use futures_util::{SinkExt, StreamExt};
 use raicho_protocol::limits_generated::{HEARTBEAT_INTERVAL_MS, HEARTBEAT_TIMEOUT_MS};
 use tokio_tungstenite::tungstenite::Message;
 
-use support::{Fixture, Socket, authentication, elapse, receive};
+use crate::support::{Fixture, Socket, authentication, elapse, receive};
 
 #[tokio::test]
 async fn native_ping_and_pong_are_transport_controls_before_and_after_authentication() {

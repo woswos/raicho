@@ -100,7 +100,7 @@ async fn static_files_are_served_without_api_or_path_traversal_fallbacks() {
 
 #[tokio::test]
 async fn status_responses_follow_the_shared_contract() {
-    let schema: Value = serde_json::from_str(include_str!("../../protocol/schema/status.schema.json")).unwrap();
+    let schema: Value = serde_json::from_str(include_str!("../../../protocol/schema/status.schema.json")).unwrap();
     let contract = jsonschema::options()
         .with_draft(jsonschema::Draft::Draft7)
         .build(&schema)
