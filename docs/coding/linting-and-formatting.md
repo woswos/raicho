@@ -159,7 +159,10 @@ syn 3.0.9 for generated syntax. Exact direct dependencies live in `Cargo.toml`,
 with the graph locked in `Cargo.lock`. Ajv and esbuild run only during generation,
 producing a self-contained validator with no runtime compiler.
 
-The public listener uses Axum 0.8.9 without its WebSocket support.
+The public listener uses Axum 0.8.9 without its WebSocket support. The connector
+listener accepts WebSockets with tokio-tungstenite 0.29.0, which its socket tests
+also use, futures-util 0.3.34 for socket writes, and getrandom 0.4.3 for session
+generations.
 
 GitHub checkout stays at v7.0.1, pinned to
 `3d3c42e5aac5ba805825da76410c181273ba90b1`, and setup-python at

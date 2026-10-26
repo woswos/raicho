@@ -13,18 +13,27 @@ from that target.
 
 Docker Compose runs a Rust diagnostics server and an independently built
 Thunderbird container. The server serves the TypeScript diagnostics page and
-initializes SQLite, currently with migration metadata only. Its status reports
+initializes SQLite with backend configuration and keys derived from the connector token. Its status reports
 the [product version](versioning.md) and the build commit. Thunderbird owns a
 separate profile volume. Its internal display starts without a viewer, and a
 local override enables browser administration. Separate Compose networks prevent
 Raicho from reaching Thunderbird's administrative listener. Both retain provider
-internet access. There is no extension, live mail connection to Raicho, or
-browser login yet.
+internet access. The server also runs a separate Rust WebSocket listener for the
+connector, and the browser displays the connection status it reports. The
+Thunderbird extension and the network path to that listener are not deployed yet,
+so the status stays unconfigured or disconnected. Browser login and mail
+operations remain planned.
 
 The [connector contract](connector-contract.md) provides a shared control
 schema, generated Rust/TypeScript bindings, and bounded decoders under
-`protocol/rust/` and `protocol/typescript/`. It carries authentication and heartbeat only,
+`protocol/rust/` and `protocol/typescript/`. The server uses the Rust bindings.
+It carries authentication and heartbeat only,
 and every frame after the handshake carries a MAC under a per-session key.
+
+Offline `raicho-server connector` commands acquire the database's exclusive
+instance lock to provision, rotate, revoke, and reactivate the credential. The
+`connector files` subcommand owns host token generation and file rotation.
+Ordinary server startup never imports tokens.
 
 The [runtime reference](runtime.md) describes endpoints, storage, migrations,
 image packaging, and configuration. The existing showcase in `assets/brand/`
@@ -46,9 +55,13 @@ using the same tooling image locally and in CI. See the
 flowchart LR
     Browser[TypeScript diagnostics] --> Server[Rust HTTP server]
     Server --> State[(SQLite metadata)]
+    Provisioner[Offline credential command] --> State
+    Token[Private host token] --> Provisioner
     Admin[Optional local browser desktop] -.-> Display[Internal display]
     Display --> Thunderbird[Thunderbird]
     Thunderbird --> Profile[(Thunderbird profile)]
+    Listener[Rust connector listener] --> State
+    Listener -->|Connection diagnostics| Server
 ```
 
 ## Target architecture
@@ -85,9 +98,9 @@ tokio-tungstenite. The
 [connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
 selects MV2 packaging, managed configuration, a fixed internal gateway, and a
 versioned authenticated protocol.
-The shared connector contract and its generated bindings are implemented. The
-server listener, credential storage, connection diagnostics, extension, and
-gateway are not. The static showcase remains a design
+Credential persistence, offline provisioning commands, the server's control
+transport, and connection diagnostics are implemented. The extension, gateway,
+and operator credential procedure are not. The static showcase remains a design
 reference.
 
 Current tooling commands and planned application commands are distinguished in

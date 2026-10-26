@@ -1,3 +1,4 @@
+mod connector_credentials;
 mod instance;
 mod migrations;
 
@@ -9,6 +10,8 @@ use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, S
 use sqlx::{ConnectOptions, SqlitePool, migrate::Migrator};
 
 use crate::error::{Error, Result};
+
+pub use connector_credentials::{CredentialStatus, CredentialStore};
 
 static MIGRATIONS: Migrator = sqlx::migrate!("./migrations");
 
