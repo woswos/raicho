@@ -37,7 +37,9 @@ in `/opt/raicho/packages.tsv` inside the Raicho and Thunderbird images. Runtime
 support is Linux amd64.
 
 `deploy/gateway/Dockerfile` pins Nginx 1.30.6 Alpine by digest.
-Its routing configuration lives in `deploy/gateway/nginx.conf`.
+Its routing configuration lives in `deploy/gateway/nginx.conf`. It writes no access
+log and sends warnings and errors to standard error, which `docker compose logs`
+shows. The connector token never crosses the gateway, so its logs cannot contain it.
 The gateway runs as UID/GID 10001 with a read-only root, bounded temporary storage,
 no data or secret mounts, and no published port.
 
