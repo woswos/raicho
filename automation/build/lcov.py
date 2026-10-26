@@ -30,17 +30,23 @@ def merge(reports):
 
 def summary(merged):
     rows = []
-    total = covered = 0
+    total = covered = complete = 0
     for source, lines in sorted(merged.items()):
         if not lines or not source.is_relative_to(REPOSITORY_ROOT):
             continue
         hit = sum(1 for hits in lines.values() if hits > 0)
         total += len(lines)
         covered += hit
+        if hit == len(lines):
+            complete += 1
+            continue
         relative = source.relative_to(REPOSITORY_ROOT)
         rows.append(
             f'{100 * hit / len(lines):6.1f}%  {hit:5}/{len(lines):<5}  {relative}'
         )
     if total:
-        rows.append(f'{100 * covered / total:6.1f}%  {covered:5}/{total:<5}  total')
+        rows.append(
+            f'{100 * covered / total:6.1f}%  {covered:5}/{total:<5}  total, '
+            f'{complete} more files fully covered'
+        )
     return rows

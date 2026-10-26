@@ -18,6 +18,7 @@ class LcovTests(unittest.TestCase):
             extension.write_text(
                 f'SF:{absolute}\nDA:1,1\nDA:3,0\nend_of_record\n'
                 'SF:/tmp/outside.py\nDA:1,1\nend_of_record\n'
+                'SF:web/src/status.ts\nDA:1,1\nend_of_record\n'
             )
             merged = merge([protocol, extension])
         self.assertEqual(merged[absolute], {1: 1, 2: 3, 3: 0})
@@ -25,7 +26,7 @@ class LcovTests(unittest.TestCase):
             [row.split() for row in summary(merged)],
             [
                 ['66.7%', '2/3', 'protocol/typescript/src/channel.ts'],
-                ['66.7%', '2/3', 'total'],
+                ['75.0%', '3/4', 'total,', '1', 'more', 'files', 'fully', 'covered'],
             ],
         )
 

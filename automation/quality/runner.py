@@ -48,9 +48,9 @@ def python(root, files, action):
         run(['ruff', 'check', *configuration, *sources], root)
     elif action == 'format':
         run(['ruff', 'check', '--select', 'I', '--fix', *configuration, *sources], root)
-        run(['ruff', 'format', *configuration, *sources], root)
+        run(['ruff', 'format', '--quiet', *configuration, *sources], root)
     else:
-        run(['ruff', 'format', '--check', *configuration, *sources], root)
+        run(['ruff', 'format', '--check', '--quiet', *configuration, *sources], root)
 
 
 def javascript(root, files, action, typed=False):
@@ -86,6 +86,8 @@ def javascript(root, files, action, typed=False):
                 [
                     'prettier',
                     mode,
+                    '--log-level',
+                    'warn',
                     '--config',
                     REPOSITORY_ROOT / '.prettierrc.json',
                     '--ignore-path',

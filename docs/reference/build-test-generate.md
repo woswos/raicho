@@ -22,6 +22,11 @@ modes.
 make lint test
 ```
 
+Output stays short when commands succeed. Docker builds and Cargo print no progress,
+the Node and Python suites print one character per test, and formatters report
+only files they change or reject. Failures still print in full. Add `VERBOSE=1`,
+as in `make VERBOSE=1 build`, to restore Docker and Cargo progress.
+
 | Target | Behavior |
 | --- | --- |
 | `build` | Tooling image, server, web page, and extension builds, then the runtime images |
