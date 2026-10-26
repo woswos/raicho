@@ -36,7 +36,7 @@ $(APPLICATION_TARGETS):
 coverage:
 	@$(PYTHON) -m automation.build.coverage_report
 
-check-patch-coverage: coverage
+check-patch-coverage:
 	@$(PYTHON) -m automation.build.patch_coverage
 
 generate-protocol:

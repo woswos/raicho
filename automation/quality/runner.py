@@ -55,9 +55,21 @@ def python(root, files, action):
         return
     configuration = ['--config', REPOSITORY_ROOT / 'pyproject.toml']
     if action == 'lint':
-        run(['ruff', 'check', *configuration, *sources], root)
+        run(['ruff', 'check', '--quiet', *configuration, *sources], root)
     elif action == 'format':
-        run(['ruff', 'check', '--select', 'I', '--fix', *configuration, *sources], root)
+        run(
+            [
+                'ruff',
+                'check',
+                '--quiet',
+                '--select',
+                'I',
+                '--fix',
+                *configuration,
+                *sources,
+            ],
+            root,
+        )
         run(['ruff', 'format', '--quiet', *configuration, *sources], root)
     else:
         run(['ruff', 'format', '--check', '--quiet', *configuration, *sources], root)

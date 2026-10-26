@@ -22,10 +22,13 @@ modes.
 make lint test
 ```
 
-Output stays short when commands succeed. Docker builds and Cargo print no progress,
-the Node and Python suites print one character per test, and formatters report
-only files they change or reject. Failures still print in full. Add `VERBOSE=1`,
-as in `make VERBOSE=1 build`, to restore Docker and Cargo progress.
+Output stays short when commands succeed. Docker builds, Cargo, and the acceptance
+suites' Docker commands print no progress. The Rust tests print one summary line,
+the Node and Python suites one character per test, and the patch coverage gate
+only its totals. Formatters print only problems, except that shfmt lists the
+files it rewrites. Guards still print one passed line each, and failures print
+in full. Add `VERBOSE=1`, as in `make VERBOSE=1 build`, to restore Docker and
+Cargo progress and live Rust test output.
 
 | Target | Behavior |
 | --- | --- |

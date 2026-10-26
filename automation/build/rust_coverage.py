@@ -2,7 +2,7 @@ import json
 import os
 from pathlib import Path
 
-from automation.build.application import run
+from automation.build.application import cargo_test, run
 
 RUST_TARGET = (
     Path(os.environ.get('CARGO_TARGET_DIR', '/tmp/raicho-target')).parent
@@ -30,10 +30,10 @@ def rust(output):
         'CARGO_TARGET_DIR': str(RUST_TARGET),
         'LLVM_PROFILE_FILE': str(profiles / '%p-%m.profraw'),
     }
-    command = ['cargo', 'test', '--workspace', '--all-targets', '--locked']
-    run(command, env=environment)
+    arguments = ['--workspace', '--all-targets', '--locked']
+    cargo_test(arguments, env=environment)
     listing = run(
-        [*command, '--no-run', '--message-format=json'],
+        ['cargo', 'test', *arguments, '--no-run', '--message-format=json'],
         env=environment,
         capture_output=True,
         text=True,

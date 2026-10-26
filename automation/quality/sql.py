@@ -1,7 +1,18 @@
+import subprocess
 import tempfile
 from pathlib import Path
 
 from automation.quality.files import require_tools, run
+
+
+def check_syntax(options, root):
+    try:
+        run(
+            ['sqlfluff', 'parse', *options, '--format', 'none', '.'], root, capture=True
+        )
+    except subprocess.CalledProcessError as error:
+        print(error.stdout, end='')
+        raise
 
 
 def sql(root, files, action, tooling_root):
@@ -47,7 +58,7 @@ def sql(root, files, action, tooling_root):
             destination = temporary_root / path
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_bytes(contents)
-        run(['sqlfluff', 'parse', *options, '--format', 'none', '.'], temporary_root)
+        check_syntax(options, temporary_root)
         run(
             [
                 'sqlfluff',
@@ -59,7 +70,7 @@ def sql(root, files, action, tooling_root):
             ],
             temporary_root,
         )
-        run(['sqlfluff', 'parse', *options, '--format', 'none', '.'], temporary_root)
+        check_syntax(options, temporary_root)
         changed = {
             path: (temporary_root / path).read_bytes()
             for path, contents in originals.items()

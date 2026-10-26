@@ -2,7 +2,7 @@ import os
 import unittest
 from unittest import mock
 
-from automation.build.patch_coverage import comparison_base, partly_covered
+from automation.build.patch_coverage import comparison_base, partly_covered, totals
 from automation.testing.guard_fixtures import CLEARED_ENVIRONMENT, TemporaryRepo
 
 
@@ -38,6 +38,19 @@ class PatchCoverageTests(unittest.TestCase):
         self.assertEqual(
             partly_covered(report),
             'Diff Coverage\nserver/src/cli.rs (65.9%): Missing lines 35,49\nCoverage: 92%\n',
+        )
+
+    def test_a_passing_gate_prints_only_its_totals(self):
+        report = (
+            'Diff Coverage\n'
+            'server/src/cli.rs (65.9%): Missing lines 35,49\n'
+            'Total:   3096 lines\n'
+            'Missing: 306 lines\n'
+            'Coverage: 90%\n'
+        )
+        self.assertEqual(
+            totals(report),
+            'Total:   3096 lines\nMissing: 306 lines\nCoverage: 90%\n',
         )
 
     def test_requires_a_base_without_origin_main(self):
