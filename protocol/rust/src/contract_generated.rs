@@ -52,9 +52,7 @@ impl ::std::convert::TryFrom<&str> for AuthenticateBackendKind {
 }
 impl ::std::convert::TryFrom<::std::string::String> for AuthenticateBackendKind {
     type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
 }
@@ -65,9 +63,7 @@ impl<'de> ::serde::Deserialize<'de> for AuthenticateBackendKind {
     {
         ::std::string::String::deserialize(deserializer)?
             .parse()
-            .map_err(|e: self::error::ConversionError| {
-                <D::Error as ::serde::de::Error>::custom(e.to_string())
-            })
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
 }
 ///`AuthenticateBackendVersion`
@@ -110,9 +106,7 @@ impl ::std::convert::TryFrom<&str> for AuthenticateBackendVersion {
 }
 impl ::std::convert::TryFrom<::std::string::String> for AuthenticateBackendVersion {
     type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
 }
@@ -123,9 +117,7 @@ impl<'de> ::serde::Deserialize<'de> for AuthenticateBackendVersion {
     {
         ::std::string::String::deserialize(deserializer)?
             .parse()
-            .map_err(|e: self::error::ConversionError| {
-                <D::Error as ::serde::de::Error>::custom(e.to_string())
-            })
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
 }
 ///`AuthenticateConnectorVersion`
@@ -168,9 +160,7 @@ impl ::std::convert::TryFrom<&str> for AuthenticateConnectorVersion {
 }
 impl ::std::convert::TryFrom<::std::string::String> for AuthenticateConnectorVersion {
     type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
 }
@@ -181,9 +171,7 @@ impl<'de> ::serde::Deserialize<'de> for AuthenticateConnectorVersion {
     {
         ::std::string::String::deserialize(deserializer)?
             .parse()
-            .map_err(|e: self::error::ConversionError| {
-                <D::Error as ::serde::de::Error>::custom(e.to_string())
-            })
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
 }
 ///`AuthenticateProtocolVersion`
@@ -221,9 +209,7 @@ impl<'de> ::serde::Deserialize<'de> for AuthenticateProtocolVersion {
     }
 }
 ///`AuthenticateType`
-#[derive(
-    ::serde::Deserialize, ::serde::Serialize, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd,
-)]
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum AuthenticateType {
     #[serde(rename = "authenticate")]
     Authenticate,
@@ -252,9 +238,7 @@ impl ::std::convert::TryFrom<&str> for AuthenticateType {
 }
 impl ::std::convert::TryFrom<::std::string::String> for AuthenticateType {
     type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
 }
@@ -322,9 +306,7 @@ impl<'de> ::serde::Deserialize<'de> for ChallengeProtocolVersion {
     }
 }
 ///`ChallengeType`
-#[derive(
-    ::serde::Deserialize, ::serde::Serialize, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd,
-)]
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum ChallengeType {
     #[serde(rename = "challenge")]
     Challenge,
@@ -353,9 +335,7 @@ impl ::std::convert::TryFrom<&str> for ChallengeType {
 }
 impl ::std::convert::TryFrom<::std::string::String> for ChallengeType {
     type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
 }
@@ -440,9 +420,7 @@ impl ::std::convert::TryFrom<&str> for Generation {
 }
 impl ::std::convert::TryFrom<::std::string::String> for Generation {
     type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
 }
@@ -453,9 +431,7 @@ impl<'de> ::serde::Deserialize<'de> for Generation {
     {
         ::std::string::String::deserialize(deserializer)?
             .parse()
-            .map_err(|e: self::error::ConversionError| {
-                <D::Error as ::serde::de::Error>::custom(e.to_string())
-            })
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
 }
 ///`Nonce`
@@ -498,9 +474,7 @@ impl ::std::convert::TryFrom<&str> for Nonce {
 }
 impl ::std::convert::TryFrom<::std::string::String> for Nonce {
     type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
 }
@@ -511,9 +485,7 @@ impl<'de> ::serde::Deserialize<'de> for Nonce {
     {
         ::std::string::String::deserialize(deserializer)?
             .parse()
-            .map_err(|e: self::error::ConversionError| {
-                <D::Error as ::serde::de::Error>::custom(e.to_string())
-            })
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
 }
 ///`Ping`
@@ -562,9 +534,7 @@ impl<'de> ::serde::Deserialize<'de> for PingProtocolVersion {
     }
 }
 ///`PingType`
-#[derive(
-    ::serde::Deserialize, ::serde::Serialize, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd,
-)]
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum PingType {
     #[serde(rename = "ping")]
     Ping,
@@ -593,9 +563,7 @@ impl ::std::convert::TryFrom<&str> for PingType {
 }
 impl ::std::convert::TryFrom<::std::string::String> for PingType {
     type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
 }
@@ -645,9 +613,7 @@ impl<'de> ::serde::Deserialize<'de> for PongProtocolVersion {
     }
 }
 ///`PongType`
-#[derive(
-    ::serde::Deserialize, ::serde::Serialize, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd,
-)]
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum PongType {
     #[serde(rename = "pong")]
     Pong,
@@ -676,9 +642,7 @@ impl ::std::convert::TryFrom<&str> for PongType {
 }
 impl ::std::convert::TryFrom<::std::string::String> for PongType {
     type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
 }
@@ -696,9 +660,7 @@ pub struct ProtocolError {
     pub type_: ProtocolErrorType,
 }
 ///`ProtocolErrorCode`
-#[derive(
-    ::serde::Deserialize, ::serde::Serialize, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd,
-)]
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum ProtocolErrorCode {
     #[serde(rename = "authentication_failed")]
     AuthenticationFailed,
@@ -759,9 +721,7 @@ impl ::std::convert::TryFrom<&str> for ProtocolErrorCode {
 }
 impl ::std::convert::TryFrom<::std::string::String> for ProtocolErrorCode {
     type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
 }
@@ -800,9 +760,7 @@ impl<'de> ::serde::Deserialize<'de> for ProtocolErrorProtocolVersion {
     }
 }
 ///`ProtocolErrorType`
-#[derive(
-    ::serde::Deserialize, ::serde::Serialize, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd,
-)]
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum ProtocolErrorType {
     #[serde(rename = "error")]
     Error,
@@ -831,9 +789,7 @@ impl ::std::convert::TryFrom<&str> for ProtocolErrorType {
 }
 impl ::std::convert::TryFrom<::std::string::String> for ProtocolErrorType {
     type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
 }
@@ -877,9 +833,7 @@ impl ::std::convert::TryFrom<&str> for Signature {
 }
 impl ::std::convert::TryFrom<::std::string::String> for Signature {
     type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
 }
@@ -890,9 +844,7 @@ impl<'de> ::serde::Deserialize<'de> for Signature {
     {
         ::std::string::String::deserialize(deserializer)?
             .parse()
-            .map_err(|e: self::error::ConversionError| {
-                <D::Error as ::serde::de::Error>::custom(e.to_string())
-            })
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
 }
 ///`Welcome`
@@ -1011,9 +963,7 @@ impl<'de> ::serde::Deserialize<'de> for WelcomeProtocolVersion {
     }
 }
 ///`WelcomeType`
-#[derive(
-    ::serde::Deserialize, ::serde::Serialize, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd,
-)]
+#[derive(::serde::Deserialize, ::serde::Serialize, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum WelcomeType {
     #[serde(rename = "welcome")]
     Welcome,
@@ -1042,9 +992,7 @@ impl ::std::convert::TryFrom<&str> for WelcomeType {
 }
 impl ::std::convert::TryFrom<::std::string::String> for WelcomeType {
     type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
 }

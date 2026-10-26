@@ -3,14 +3,7 @@ var __getOwnPropNames = Object.getOwnPropertyNames;
 var __commonJS = (cb, mod) =>
   function __require() {
     try {
-      return (
-        mod ||
-          (0, cb[__getOwnPropNames(cb)[0]])(
-            (mod = { exports: {} }).exports,
-            mod,
-          ),
-        mod.exports
-      );
+      return (mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports);
     } catch (e) {
       throw ((mod = 0), e);
     }
@@ -57,23 +50,17 @@ var schema12 = {
 var func0 = Object.prototype.hasOwnProperty;
 var func51 = require_ucs2length().default;
 var pattern0 = new RegExp('^[a-f0-9]{64}$', 'u');
-function validate11(
-  data,
-  { instancePath = '', parentData, parentDataProperty, rootData = data } = {},
-) {
+function validate11(data, { instancePath = '', parentData, parentDataProperty, rootData = data } = {}) {
   let vErrors = null;
   let errors = 0;
   if (errors === 0) {
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       let missing0;
       if (
-        ((data.type === void 0 || !func0.call(data, 'type')) &&
-          (missing0 = 'type')) ||
-        ((data.protocol_version === void 0 ||
-          !func0.call(data, 'protocol_version')) &&
+        ((data.type === void 0 || !func0.call(data, 'type')) && (missing0 = 'type')) ||
+        ((data.protocol_version === void 0 || !func0.call(data, 'protocol_version')) &&
           (missing0 = 'protocol_version')) ||
-        ((data.server_nonce === void 0 || !func0.call(data, 'server_nonce')) &&
-          (missing0 = 'server_nonce'))
+        ((data.server_nonce === void 0 || !func0.call(data, 'server_nonce')) && (missing0 = 'server_nonce'))
       ) {
         validate11.errors = [
           {
@@ -88,11 +75,7 @@ function validate11(
       } else {
         const _errs1 = errors;
         for (const key0 of Object.keys(data)) {
-          if (!(
-            key0 === 'type' ||
-            key0 === 'protocol_version' ||
-            key0 === 'server_nonce'
-          )) {
+          if (!(key0 === 'type' || key0 === 'protocol_version' || key0 === 'server_nonce')) {
             validate11.errors = [
               {
                 instancePath,
@@ -139,18 +122,10 @@ function validate11(
             var valid0 = true;
           }
           if (valid0) {
-            if (
-              data.protocol_version !== void 0 &&
-              func0.call(data, 'protocol_version')
-            ) {
+            if (data.protocol_version !== void 0 && func0.call(data, 'protocol_version')) {
               let data1 = data.protocol_version;
               const _errs4 = errors;
-              if (!(
-                typeof data1 == 'number' &&
-                !(data1 % 1) &&
-                !isNaN(data1) &&
-                isFinite(data1)
-              )) {
+              if (!(typeof data1 == 'number' && !(data1 % 1) && !isNaN(data1) && isFinite(data1))) {
                 validate11.errors = [
                   {
                     instancePath: instancePath + '/protocol_version',
@@ -168,9 +143,7 @@ function validate11(
                     instancePath: instancePath + '/protocol_version',
                     schemaPath: '#/properties/protocol_version/enum',
                     keyword: 'enum',
-                    params: {
-                      allowedValues: schema12.properties.protocol_version.enum,
-                    },
+                    params: { allowedValues: schema12.properties.protocol_version.enum },
                     message: 'must be equal to one of the allowed values',
                   },
                 ];
@@ -181,10 +154,7 @@ function validate11(
               var valid0 = true;
             }
             if (valid0) {
-              if (
-                data.server_nonce !== void 0 &&
-                func0.call(data, 'server_nonce')
-              ) {
+              if (data.server_nonce !== void 0 && func0.call(data, 'server_nonce')) {
                 let data2 = data.server_nonce;
                 const _errs6 = errors;
                 const _errs7 = errors;
@@ -251,13 +221,7 @@ function validate11(
       }
     } else {
       validate11.errors = [
-        {
-          instancePath,
-          schemaPath: '#/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        },
+        { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' },
       ];
       return false;
     }
@@ -281,24 +245,9 @@ var schema14 = {
   properties: {
     type: { type: 'string', enum: ['authenticate'] },
     protocol_version: { type: 'integer', enum: [1] },
-    backend_kind: {
-      type: 'string',
-      minLength: 1,
-      maxLength: 32,
-      pattern: '^[a-z][a-z0-9_]*$',
-    },
-    backend_version: {
-      type: 'string',
-      minLength: 1,
-      maxLength: 64,
-      pattern: '^[ -~]+$',
-    },
-    connector_version: {
-      type: 'string',
-      minLength: 1,
-      maxLength: 64,
-      pattern: '^[ -~]+$',
-    },
+    backend_kind: { type: 'string', minLength: 1, maxLength: 32, pattern: '^[a-z][a-z0-9_]*$' },
+    backend_version: { type: 'string', minLength: 1, maxLength: 64, pattern: '^[ -~]+$' },
+    connector_version: { type: 'string', minLength: 1, maxLength: 64, pattern: '^[ -~]+$' },
     capabilities: { $ref: '#/definitions/Capabilities' },
     client_nonce: { $ref: '#/definitions/Nonce' },
     client_proof: { $ref: '#/definitions/Signature' },
@@ -306,35 +255,23 @@ var schema14 = {
 };
 var pattern1 = new RegExp('^[a-z][a-z0-9_]*$', 'u');
 var pattern2 = new RegExp('^[ -~]+$', 'u');
-function validate13(
-  data,
-  { instancePath = '', parentData, parentDataProperty, rootData = data } = {},
-) {
+function validate13(data, { instancePath = '', parentData, parentDataProperty, rootData = data } = {}) {
   let vErrors = null;
   let errors = 0;
   if (errors === 0) {
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       let missing0;
       if (
-        ((data.type === void 0 || !func0.call(data, 'type')) &&
-          (missing0 = 'type')) ||
-        ((data.protocol_version === void 0 ||
-          !func0.call(data, 'protocol_version')) &&
+        ((data.type === void 0 || !func0.call(data, 'type')) && (missing0 = 'type')) ||
+        ((data.protocol_version === void 0 || !func0.call(data, 'protocol_version')) &&
           (missing0 = 'protocol_version')) ||
-        ((data.backend_kind === void 0 || !func0.call(data, 'backend_kind')) &&
-          (missing0 = 'backend_kind')) ||
-        ((data.backend_version === void 0 ||
-          !func0.call(data, 'backend_version')) &&
-          (missing0 = 'backend_version')) ||
-        ((data.connector_version === void 0 ||
-          !func0.call(data, 'connector_version')) &&
+        ((data.backend_kind === void 0 || !func0.call(data, 'backend_kind')) && (missing0 = 'backend_kind')) ||
+        ((data.backend_version === void 0 || !func0.call(data, 'backend_version')) && (missing0 = 'backend_version')) ||
+        ((data.connector_version === void 0 || !func0.call(data, 'connector_version')) &&
           (missing0 = 'connector_version')) ||
-        ((data.capabilities === void 0 || !func0.call(data, 'capabilities')) &&
-          (missing0 = 'capabilities')) ||
-        ((data.client_nonce === void 0 || !func0.call(data, 'client_nonce')) &&
-          (missing0 = 'client_nonce')) ||
-        ((data.client_proof === void 0 || !func0.call(data, 'client_proof')) &&
-          (missing0 = 'client_proof'))
+        ((data.capabilities === void 0 || !func0.call(data, 'capabilities')) && (missing0 = 'capabilities')) ||
+        ((data.client_nonce === void 0 || !func0.call(data, 'client_nonce')) && (missing0 = 'client_nonce')) ||
+        ((data.client_proof === void 0 || !func0.call(data, 'client_proof')) && (missing0 = 'client_proof'))
       ) {
         validate13.errors = [
           {
@@ -405,18 +342,10 @@ function validate13(
             var valid0 = true;
           }
           if (valid0) {
-            if (
-              data.protocol_version !== void 0 &&
-              func0.call(data, 'protocol_version')
-            ) {
+            if (data.protocol_version !== void 0 && func0.call(data, 'protocol_version')) {
               let data1 = data.protocol_version;
               const _errs4 = errors;
-              if (!(
-                typeof data1 == 'number' &&
-                !(data1 % 1) &&
-                !isNaN(data1) &&
-                isFinite(data1)
-              )) {
+              if (!(typeof data1 == 'number' && !(data1 % 1) && !isNaN(data1) && isFinite(data1))) {
                 validate13.errors = [
                   {
                     instancePath: instancePath + '/protocol_version',
@@ -434,9 +363,7 @@ function validate13(
                     instancePath: instancePath + '/protocol_version',
                     schemaPath: '#/properties/protocol_version/enum',
                     keyword: 'enum',
-                    params: {
-                      allowedValues: schema14.properties.protocol_version.enum,
-                    },
+                    params: { allowedValues: schema14.properties.protocol_version.enum },
                     message: 'must be equal to one of the allowed values',
                   },
                 ];
@@ -447,10 +374,7 @@ function validate13(
               var valid0 = true;
             }
             if (valid0) {
-              if (
-                data.backend_kind !== void 0 &&
-                func0.call(data, 'backend_kind')
-              ) {
+              if (data.backend_kind !== void 0 && func0.call(data, 'backend_kind')) {
                 let data2 = data.backend_kind;
                 const _errs6 = errors;
                 if (errors === _errs6) {
@@ -511,10 +435,7 @@ function validate13(
                 var valid0 = true;
               }
               if (valid0) {
-                if (
-                  data.backend_version !== void 0 &&
-                  func0.call(data, 'backend_version')
-                ) {
+                if (data.backend_version !== void 0 && func0.call(data, 'backend_version')) {
                   let data3 = data.backend_version;
                   const _errs8 = errors;
                   if (errors === _errs8) {
@@ -523,8 +444,7 @@ function validate13(
                         validate13.errors = [
                           {
                             instancePath: instancePath + '/backend_version',
-                            schemaPath:
-                              '#/properties/backend_version/maxLength',
+                            schemaPath: '#/properties/backend_version/maxLength',
                             keyword: 'maxLength',
                             params: { limit: 64 },
                             message: 'must NOT have more than 64 characters',
@@ -536,8 +456,7 @@ function validate13(
                           validate13.errors = [
                             {
                               instancePath: instancePath + '/backend_version',
-                              schemaPath:
-                                '#/properties/backend_version/minLength',
+                              schemaPath: '#/properties/backend_version/minLength',
                               keyword: 'minLength',
                               params: { limit: 1 },
                               message: 'must NOT have fewer than 1 characters',
@@ -549,8 +468,7 @@ function validate13(
                             validate13.errors = [
                               {
                                 instancePath: instancePath + '/backend_version',
-                                schemaPath:
-                                  '#/properties/backend_version/pattern',
+                                schemaPath: '#/properties/backend_version/pattern',
                                 keyword: 'pattern',
                                 params: { pattern: '^[ -~]+$' },
                                 message: 'must match pattern "^[ -~]+$"',
@@ -578,10 +496,7 @@ function validate13(
                   var valid0 = true;
                 }
                 if (valid0) {
-                  if (
-                    data.connector_version !== void 0 &&
-                    func0.call(data, 'connector_version')
-                  ) {
+                  if (data.connector_version !== void 0 && func0.call(data, 'connector_version')) {
                     let data4 = data.connector_version;
                     const _errs10 = errors;
                     if (errors === _errs10) {
@@ -590,8 +505,7 @@ function validate13(
                           validate13.errors = [
                             {
                               instancePath: instancePath + '/connector_version',
-                              schemaPath:
-                                '#/properties/connector_version/maxLength',
+                              schemaPath: '#/properties/connector_version/maxLength',
                               keyword: 'maxLength',
                               params: { limit: 64 },
                               message: 'must NOT have more than 64 characters',
@@ -602,14 +516,11 @@ function validate13(
                           if (func51(data4) < 1) {
                             validate13.errors = [
                               {
-                                instancePath:
-                                  instancePath + '/connector_version',
-                                schemaPath:
-                                  '#/properties/connector_version/minLength',
+                                instancePath: instancePath + '/connector_version',
+                                schemaPath: '#/properties/connector_version/minLength',
                                 keyword: 'minLength',
                                 params: { limit: 1 },
-                                message:
-                                  'must NOT have fewer than 1 characters',
+                                message: 'must NOT have fewer than 1 characters',
                               },
                             ];
                             return false;
@@ -617,10 +528,8 @@ function validate13(
                             if (!pattern2.test(data4)) {
                               validate13.errors = [
                                 {
-                                  instancePath:
-                                    instancePath + '/connector_version',
-                                  schemaPath:
-                                    '#/properties/connector_version/pattern',
+                                  instancePath: instancePath + '/connector_version',
+                                  schemaPath: '#/properties/connector_version/pattern',
                                   keyword: 'pattern',
                                   params: { pattern: '^[ -~]+$' },
                                   message: 'must match pattern "^[ -~]+$"',
@@ -648,10 +557,7 @@ function validate13(
                     var valid0 = true;
                   }
                   if (valid0) {
-                    if (
-                      data.capabilities !== void 0 &&
-                      func0.call(data, 'capabilities')
-                    ) {
+                    if (data.capabilities !== void 0 && func0.call(data, 'capabilities')) {
                       let data5 = data.capabilities;
                       const _errs12 = errors;
                       const _errs13 = errors;
@@ -661,8 +567,7 @@ function validate13(
                             validate13.errors = [
                               {
                                 instancePath: instancePath + '/capabilities',
-                                schemaPath:
-                                  '#/definitions/Capabilities/maxItems',
+                                schemaPath: '#/definitions/Capabilities/maxItems',
                                 keyword: 'maxItems',
                                 params: { limit: 0 },
                                 message: 'must NOT have more than 0 items',
@@ -677,10 +582,8 @@ function validate13(
                               if (typeof data5[i0] !== 'string') {
                                 validate13.errors = [
                                   {
-                                    instancePath:
-                                      instancePath + '/capabilities/' + i0,
-                                    schemaPath:
-                                      '#/definitions/Capabilities/items/type',
+                                    instancePath: instancePath + '/capabilities/' + i0,
+                                    schemaPath: '#/definitions/Capabilities/items/type',
                                     keyword: 'type',
                                     params: { type: 'string' },
                                     message: 'must be string',
@@ -707,10 +610,8 @@ function validate13(
                                     j0 = indices0[item0];
                                     validate13.errors = [
                                       {
-                                        instancePath:
-                                          instancePath + '/capabilities',
-                                        schemaPath:
-                                          '#/definitions/Capabilities/uniqueItems',
+                                        instancePath: instancePath + '/capabilities',
+                                        schemaPath: '#/definitions/Capabilities/uniqueItems',
                                         keyword: 'uniqueItems',
                                         params: { i: i1, j: j0 },
                                         message:
@@ -747,10 +648,7 @@ function validate13(
                       var valid0 = true;
                     }
                     if (valid0) {
-                      if (
-                        data.client_nonce !== void 0 &&
-                        func0.call(data, 'client_nonce')
-                      ) {
+                      if (data.client_nonce !== void 0 && func0.call(data, 'client_nonce')) {
                         let data7 = data.client_nonce;
                         const _errs17 = errors;
                         const _errs18 = errors;
@@ -763,8 +661,7 @@ function validate13(
                                   schemaPath: '#/definitions/Nonce/maxLength',
                                   keyword: 'maxLength',
                                   params: { limit: 64 },
-                                  message:
-                                    'must NOT have more than 64 characters',
+                                  message: 'must NOT have more than 64 characters',
                                 },
                               ];
                               return false;
@@ -772,13 +669,11 @@ function validate13(
                               if (func51(data7) < 64) {
                                 validate13.errors = [
                                   {
-                                    instancePath:
-                                      instancePath + '/client_nonce',
+                                    instancePath: instancePath + '/client_nonce',
                                     schemaPath: '#/definitions/Nonce/minLength',
                                     keyword: 'minLength',
                                     params: { limit: 64 },
-                                    message:
-                                      'must NOT have fewer than 64 characters',
+                                    message: 'must NOT have fewer than 64 characters',
                                   },
                                 ];
                                 return false;
@@ -786,13 +681,11 @@ function validate13(
                                 if (!pattern0.test(data7)) {
                                   validate13.errors = [
                                     {
-                                      instancePath:
-                                        instancePath + '/client_nonce',
+                                      instancePath: instancePath + '/client_nonce',
                                       schemaPath: '#/definitions/Nonce/pattern',
                                       keyword: 'pattern',
                                       params: { pattern: '^[a-f0-9]{64}$' },
-                                      message:
-                                        'must match pattern "^[a-f0-9]{64}$"',
+                                      message: 'must match pattern "^[a-f0-9]{64}$"',
                                     },
                                   ];
                                   return false;
@@ -817,10 +710,7 @@ function validate13(
                         var valid0 = true;
                       }
                       if (valid0) {
-                        if (
-                          data.client_proof !== void 0 &&
-                          func0.call(data, 'client_proof')
-                        ) {
+                        if (data.client_proof !== void 0 && func0.call(data, 'client_proof')) {
                           let data8 = data.client_proof;
                           const _errs20 = errors;
                           const _errs21 = errors;
@@ -829,14 +719,11 @@ function validate13(
                               if (func51(data8) > 64) {
                                 validate13.errors = [
                                   {
-                                    instancePath:
-                                      instancePath + '/client_proof',
-                                    schemaPath:
-                                      '#/definitions/Signature/maxLength',
+                                    instancePath: instancePath + '/client_proof',
+                                    schemaPath: '#/definitions/Signature/maxLength',
                                     keyword: 'maxLength',
                                     params: { limit: 64 },
-                                    message:
-                                      'must NOT have more than 64 characters',
+                                    message: 'must NOT have more than 64 characters',
                                   },
                                 ];
                                 return false;
@@ -844,14 +731,11 @@ function validate13(
                                 if (func51(data8) < 64) {
                                   validate13.errors = [
                                     {
-                                      instancePath:
-                                        instancePath + '/client_proof',
-                                      schemaPath:
-                                        '#/definitions/Signature/minLength',
+                                      instancePath: instancePath + '/client_proof',
+                                      schemaPath: '#/definitions/Signature/minLength',
                                       keyword: 'minLength',
                                       params: { limit: 64 },
-                                      message:
-                                        'must NOT have fewer than 64 characters',
+                                      message: 'must NOT have fewer than 64 characters',
                                     },
                                   ];
                                   return false;
@@ -859,14 +743,11 @@ function validate13(
                                   if (!pattern0.test(data8)) {
                                     validate13.errors = [
                                       {
-                                        instancePath:
-                                          instancePath + '/client_proof',
-                                        schemaPath:
-                                          '#/definitions/Signature/pattern',
+                                        instancePath: instancePath + '/client_proof',
+                                        schemaPath: '#/definitions/Signature/pattern',
                                         keyword: 'pattern',
                                         params: { pattern: '^[a-f0-9]{64}$' },
-                                        message:
-                                          'must match pattern "^[a-f0-9]{64}$"',
+                                        message: 'must match pattern "^[a-f0-9]{64}$"',
                                       },
                                     ];
                                     return false;
@@ -901,13 +782,7 @@ function validate13(
       }
     } else {
       validate13.errors = [
-        {
-          instancePath,
-          schemaPath: '#/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        },
+        { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' },
       ];
       return false;
     }
@@ -938,34 +813,23 @@ var schema18 = {
   },
 };
 var pattern6 = new RegExp('^[a-f0-9]{32}$', 'u');
-function validate15(
-  data,
-  { instancePath = '', parentData, parentDataProperty, rootData = data } = {},
-) {
+function validate15(data, { instancePath = '', parentData, parentDataProperty, rootData = data } = {}) {
   let vErrors = null;
   let errors = 0;
   if (errors === 0) {
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       let missing0;
       if (
-        ((data.type === void 0 || !func0.call(data, 'type')) &&
-          (missing0 = 'type')) ||
-        ((data.protocol_version === void 0 ||
-          !func0.call(data, 'protocol_version')) &&
+        ((data.type === void 0 || !func0.call(data, 'type')) && (missing0 = 'type')) ||
+        ((data.protocol_version === void 0 || !func0.call(data, 'protocol_version')) &&
           (missing0 = 'protocol_version')) ||
-        ((data.generation === void 0 || !func0.call(data, 'generation')) &&
-          (missing0 = 'generation')) ||
-        ((data.capabilities === void 0 || !func0.call(data, 'capabilities')) &&
-          (missing0 = 'capabilities')) ||
-        ((data.heartbeat_interval_ms === void 0 ||
-          !func0.call(data, 'heartbeat_interval_ms')) &&
+        ((data.generation === void 0 || !func0.call(data, 'generation')) && (missing0 = 'generation')) ||
+        ((data.capabilities === void 0 || !func0.call(data, 'capabilities')) && (missing0 = 'capabilities')) ||
+        ((data.heartbeat_interval_ms === void 0 || !func0.call(data, 'heartbeat_interval_ms')) &&
           (missing0 = 'heartbeat_interval_ms')) ||
-        ((data.heartbeat_timeout_ms === void 0 ||
-          !func0.call(data, 'heartbeat_timeout_ms')) &&
+        ((data.heartbeat_timeout_ms === void 0 || !func0.call(data, 'heartbeat_timeout_ms')) &&
           (missing0 = 'heartbeat_timeout_ms')) ||
-        ((data.server_signature === void 0 ||
-          !func0.call(data, 'server_signature')) &&
-          (missing0 = 'server_signature'))
+        ((data.server_signature === void 0 || !func0.call(data, 'server_signature')) && (missing0 = 'server_signature'))
       ) {
         validate15.errors = [
           {
@@ -1035,18 +899,10 @@ function validate15(
             var valid0 = true;
           }
           if (valid0) {
-            if (
-              data.protocol_version !== void 0 &&
-              func0.call(data, 'protocol_version')
-            ) {
+            if (data.protocol_version !== void 0 && func0.call(data, 'protocol_version')) {
               let data1 = data.protocol_version;
               const _errs4 = errors;
-              if (!(
-                typeof data1 == 'number' &&
-                !(data1 % 1) &&
-                !isNaN(data1) &&
-                isFinite(data1)
-              )) {
+              if (!(typeof data1 == 'number' && !(data1 % 1) && !isNaN(data1) && isFinite(data1))) {
                 validate15.errors = [
                   {
                     instancePath: instancePath + '/protocol_version',
@@ -1064,9 +920,7 @@ function validate15(
                     instancePath: instancePath + '/protocol_version',
                     schemaPath: '#/properties/protocol_version/enum',
                     keyword: 'enum',
-                    params: {
-                      allowedValues: schema18.properties.protocol_version.enum,
-                    },
+                    params: { allowedValues: schema18.properties.protocol_version.enum },
                     message: 'must be equal to one of the allowed values',
                   },
                 ];
@@ -1077,10 +931,7 @@ function validate15(
               var valid0 = true;
             }
             if (valid0) {
-              if (
-                data.generation !== void 0 &&
-                func0.call(data, 'generation')
-              ) {
+              if (data.generation !== void 0 && func0.call(data, 'generation')) {
                 let data2 = data.generation;
                 const _errs6 = errors;
                 const _errs7 = errors;
@@ -1142,10 +993,7 @@ function validate15(
                 var valid0 = true;
               }
               if (valid0) {
-                if (
-                  data.capabilities !== void 0 &&
-                  func0.call(data, 'capabilities')
-                ) {
+                if (data.capabilities !== void 0 && func0.call(data, 'capabilities')) {
                   let data3 = data.capabilities;
                   const _errs9 = errors;
                   const _errs10 = errors;
@@ -1170,10 +1018,8 @@ function validate15(
                           if (typeof data3[i0] !== 'string') {
                             validate15.errors = [
                               {
-                                instancePath:
-                                  instancePath + '/capabilities/' + i0,
-                                schemaPath:
-                                  '#/definitions/Capabilities/items/type',
+                                instancePath: instancePath + '/capabilities/' + i0,
+                                schemaPath: '#/definitions/Capabilities/items/type',
                                 keyword: 'type',
                                 params: { type: 'string' },
                                 message: 'must be string',
@@ -1200,10 +1046,8 @@ function validate15(
                                 j0 = indices0[item0];
                                 validate15.errors = [
                                   {
-                                    instancePath:
-                                      instancePath + '/capabilities',
-                                    schemaPath:
-                                      '#/definitions/Capabilities/uniqueItems',
+                                    instancePath: instancePath + '/capabilities',
+                                    schemaPath: '#/definitions/Capabilities/uniqueItems',
                                     keyword: 'uniqueItems',
                                     params: { i: i1, j: j0 },
                                     message:
@@ -1240,18 +1084,10 @@ function validate15(
                   var valid0 = true;
                 }
                 if (valid0) {
-                  if (
-                    data.heartbeat_interval_ms !== void 0 &&
-                    func0.call(data, 'heartbeat_interval_ms')
-                  ) {
+                  if (data.heartbeat_interval_ms !== void 0 && func0.call(data, 'heartbeat_interval_ms')) {
                     let data5 = data.heartbeat_interval_ms;
                     const _errs14 = errors;
-                    if (!(
-                      typeof data5 == 'number' &&
-                      !(data5 % 1) &&
-                      !isNaN(data5) &&
-                      isFinite(data5)
-                    )) {
+                    if (!(typeof data5 == 'number' && !(data5 % 1) && !isNaN(data5) && isFinite(data5))) {
                       validate15.errors = [
                         {
                           instancePath: instancePath + '/heartbeat_interval_ms',
@@ -1269,10 +1105,7 @@ function validate15(
                           instancePath: instancePath + '/heartbeat_interval_ms',
                           schemaPath: '#/properties/heartbeat_interval_ms/enum',
                           keyword: 'enum',
-                          params: {
-                            allowedValues:
-                              schema18.properties.heartbeat_interval_ms.enum,
-                          },
+                          params: { allowedValues: schema18.properties.heartbeat_interval_ms.enum },
                           message: 'must be equal to one of the allowed values',
                         },
                       ];
@@ -1283,24 +1116,14 @@ function validate15(
                     var valid0 = true;
                   }
                   if (valid0) {
-                    if (
-                      data.heartbeat_timeout_ms !== void 0 &&
-                      func0.call(data, 'heartbeat_timeout_ms')
-                    ) {
+                    if (data.heartbeat_timeout_ms !== void 0 && func0.call(data, 'heartbeat_timeout_ms')) {
                       let data6 = data.heartbeat_timeout_ms;
                       const _errs16 = errors;
-                      if (!(
-                        typeof data6 == 'number' &&
-                        !(data6 % 1) &&
-                        !isNaN(data6) &&
-                        isFinite(data6)
-                      )) {
+                      if (!(typeof data6 == 'number' && !(data6 % 1) && !isNaN(data6) && isFinite(data6))) {
                         validate15.errors = [
                           {
-                            instancePath:
-                              instancePath + '/heartbeat_timeout_ms',
-                            schemaPath:
-                              '#/properties/heartbeat_timeout_ms/type',
+                            instancePath: instancePath + '/heartbeat_timeout_ms',
+                            schemaPath: '#/properties/heartbeat_timeout_ms/type',
                             keyword: 'type',
                             params: { type: 'integer' },
                             message: 'must be integer',
@@ -1311,17 +1134,11 @@ function validate15(
                       if (!(data6 === 45e3)) {
                         validate15.errors = [
                           {
-                            instancePath:
-                              instancePath + '/heartbeat_timeout_ms',
-                            schemaPath:
-                              '#/properties/heartbeat_timeout_ms/enum',
+                            instancePath: instancePath + '/heartbeat_timeout_ms',
+                            schemaPath: '#/properties/heartbeat_timeout_ms/enum',
                             keyword: 'enum',
-                            params: {
-                              allowedValues:
-                                schema18.properties.heartbeat_timeout_ms.enum,
-                            },
-                            message:
-                              'must be equal to one of the allowed values',
+                            params: { allowedValues: schema18.properties.heartbeat_timeout_ms.enum },
+                            message: 'must be equal to one of the allowed values',
                           },
                         ];
                         return false;
@@ -1331,10 +1148,7 @@ function validate15(
                       var valid0 = true;
                     }
                     if (valid0) {
-                      if (
-                        data.server_signature !== void 0 &&
-                        func0.call(data, 'server_signature')
-                      ) {
+                      if (data.server_signature !== void 0 && func0.call(data, 'server_signature')) {
                         let data7 = data.server_signature;
                         const _errs18 = errors;
                         const _errs19 = errors;
@@ -1343,14 +1157,11 @@ function validate15(
                             if (func51(data7) > 64) {
                               validate15.errors = [
                                 {
-                                  instancePath:
-                                    instancePath + '/server_signature',
-                                  schemaPath:
-                                    '#/definitions/Signature/maxLength',
+                                  instancePath: instancePath + '/server_signature',
+                                  schemaPath: '#/definitions/Signature/maxLength',
                                   keyword: 'maxLength',
                                   params: { limit: 64 },
-                                  message:
-                                    'must NOT have more than 64 characters',
+                                  message: 'must NOT have more than 64 characters',
                                 },
                               ];
                               return false;
@@ -1358,14 +1169,11 @@ function validate15(
                               if (func51(data7) < 64) {
                                 validate15.errors = [
                                   {
-                                    instancePath:
-                                      instancePath + '/server_signature',
-                                    schemaPath:
-                                      '#/definitions/Signature/minLength',
+                                    instancePath: instancePath + '/server_signature',
+                                    schemaPath: '#/definitions/Signature/minLength',
                                     keyword: 'minLength',
                                     params: { limit: 64 },
-                                    message:
-                                      'must NOT have fewer than 64 characters',
+                                    message: 'must NOT have fewer than 64 characters',
                                   },
                                 ];
                                 return false;
@@ -1373,14 +1181,11 @@ function validate15(
                                 if (!pattern0.test(data7)) {
                                   validate15.errors = [
                                     {
-                                      instancePath:
-                                        instancePath + '/server_signature',
-                                      schemaPath:
-                                        '#/definitions/Signature/pattern',
+                                      instancePath: instancePath + '/server_signature',
+                                      schemaPath: '#/definitions/Signature/pattern',
                                       keyword: 'pattern',
                                       params: { pattern: '^[a-f0-9]{64}$' },
-                                      message:
-                                        'must match pattern "^[a-f0-9]{64}$"',
+                                      message: 'must match pattern "^[a-f0-9]{64}$"',
                                     },
                                   ];
                                   return false;
@@ -1390,8 +1195,7 @@ function validate15(
                           } else {
                             validate15.errors = [
                               {
-                                instancePath:
-                                  instancePath + '/server_signature',
+                                instancePath: instancePath + '/server_signature',
                                 schemaPath: '#/definitions/Signature/type',
                                 keyword: 'type',
                                 params: { type: 'string' },
@@ -1415,13 +1219,7 @@ function validate15(
       }
     } else {
       validate15.errors = [
-        {
-          instancePath,
-          schemaPath: '#/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        },
+        { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' },
       ];
       return false;
     }
@@ -1441,27 +1239,19 @@ var schema22 = {
     mac: { $ref: '#/definitions/Signature' },
   },
 };
-function validate17(
-  data,
-  { instancePath = '', parentData, parentDataProperty, rootData = data } = {},
-) {
+function validate17(data, { instancePath = '', parentData, parentDataProperty, rootData = data } = {}) {
   let vErrors = null;
   let errors = 0;
   if (errors === 0) {
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       let missing0;
       if (
-        ((data.type === void 0 || !func0.call(data, 'type')) &&
-          (missing0 = 'type')) ||
-        ((data.protocol_version === void 0 ||
-          !func0.call(data, 'protocol_version')) &&
+        ((data.type === void 0 || !func0.call(data, 'type')) && (missing0 = 'type')) ||
+        ((data.protocol_version === void 0 || !func0.call(data, 'protocol_version')) &&
           (missing0 = 'protocol_version')) ||
-        ((data.generation === void 0 || !func0.call(data, 'generation')) &&
-          (missing0 = 'generation')) ||
-        ((data.sequence === void 0 || !func0.call(data, 'sequence')) &&
-          (missing0 = 'sequence')) ||
-        ((data.mac === void 0 || !func0.call(data, 'mac')) &&
-          (missing0 = 'mac'))
+        ((data.generation === void 0 || !func0.call(data, 'generation')) && (missing0 = 'generation')) ||
+        ((data.sequence === void 0 || !func0.call(data, 'sequence')) && (missing0 = 'sequence')) ||
+        ((data.mac === void 0 || !func0.call(data, 'mac')) && (missing0 = 'mac'))
       ) {
         validate17.errors = [
           {
@@ -1529,18 +1319,10 @@ function validate17(
             var valid0 = true;
           }
           if (valid0) {
-            if (
-              data.protocol_version !== void 0 &&
-              func0.call(data, 'protocol_version')
-            ) {
+            if (data.protocol_version !== void 0 && func0.call(data, 'protocol_version')) {
               let data1 = data.protocol_version;
               const _errs4 = errors;
-              if (!(
-                typeof data1 == 'number' &&
-                !(data1 % 1) &&
-                !isNaN(data1) &&
-                isFinite(data1)
-              )) {
+              if (!(typeof data1 == 'number' && !(data1 % 1) && !isNaN(data1) && isFinite(data1))) {
                 validate17.errors = [
                   {
                     instancePath: instancePath + '/protocol_version',
@@ -1558,9 +1340,7 @@ function validate17(
                     instancePath: instancePath + '/protocol_version',
                     schemaPath: '#/properties/protocol_version/enum',
                     keyword: 'enum',
-                    params: {
-                      allowedValues: schema22.properties.protocol_version.enum,
-                    },
+                    params: { allowedValues: schema22.properties.protocol_version.enum },
                     message: 'must be equal to one of the allowed values',
                   },
                 ];
@@ -1571,10 +1351,7 @@ function validate17(
               var valid0 = true;
             }
             if (valid0) {
-              if (
-                data.generation !== void 0 &&
-                func0.call(data, 'generation')
-              ) {
+              if (data.generation !== void 0 && func0.call(data, 'generation')) {
                 let data2 = data.generation;
                 const _errs6 = errors;
                 const _errs7 = errors;
@@ -1639,12 +1416,7 @@ function validate17(
                 if (data.sequence !== void 0 && func0.call(data, 'sequence')) {
                   let data3 = data.sequence;
                   const _errs9 = errors;
-                  if (!(
-                    typeof data3 == 'number' &&
-                    !(data3 % 1) &&
-                    !isNaN(data3) &&
-                    isFinite(data3)
-                  )) {
+                  if (!(typeof data3 == 'number' && !(data3 % 1) && !isNaN(data3) && isFinite(data3))) {
                     validate17.errors = [
                       {
                         instancePath: instancePath + '/sequence',
@@ -1715,8 +1487,7 @@ function validate17(
                                 schemaPath: '#/definitions/Signature/minLength',
                                 keyword: 'minLength',
                                 params: { limit: 64 },
-                                message:
-                                  'must NOT have fewer than 64 characters',
+                                message: 'must NOT have fewer than 64 characters',
                               },
                             ];
                             return false;
@@ -1728,8 +1499,7 @@ function validate17(
                                   schemaPath: '#/definitions/Signature/pattern',
                                   keyword: 'pattern',
                                   params: { pattern: '^[a-f0-9]{64}$' },
-                                  message:
-                                    'must match pattern "^[a-f0-9]{64}$"',
+                                  message: 'must match pattern "^[a-f0-9]{64}$"',
                                 },
                               ];
                               return false;
@@ -1761,13 +1531,7 @@ function validate17(
       }
     } else {
       validate17.errors = [
-        {
-          instancePath,
-          schemaPath: '#/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        },
+        { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' },
       ];
       return false;
     }
@@ -1787,27 +1551,19 @@ var schema25 = {
     mac: { $ref: '#/definitions/Signature' },
   },
 };
-function validate19(
-  data,
-  { instancePath = '', parentData, parentDataProperty, rootData = data } = {},
-) {
+function validate19(data, { instancePath = '', parentData, parentDataProperty, rootData = data } = {}) {
   let vErrors = null;
   let errors = 0;
   if (errors === 0) {
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       let missing0;
       if (
-        ((data.type === void 0 || !func0.call(data, 'type')) &&
-          (missing0 = 'type')) ||
-        ((data.protocol_version === void 0 ||
-          !func0.call(data, 'protocol_version')) &&
+        ((data.type === void 0 || !func0.call(data, 'type')) && (missing0 = 'type')) ||
+        ((data.protocol_version === void 0 || !func0.call(data, 'protocol_version')) &&
           (missing0 = 'protocol_version')) ||
-        ((data.generation === void 0 || !func0.call(data, 'generation')) &&
-          (missing0 = 'generation')) ||
-        ((data.sequence === void 0 || !func0.call(data, 'sequence')) &&
-          (missing0 = 'sequence')) ||
-        ((data.mac === void 0 || !func0.call(data, 'mac')) &&
-          (missing0 = 'mac'))
+        ((data.generation === void 0 || !func0.call(data, 'generation')) && (missing0 = 'generation')) ||
+        ((data.sequence === void 0 || !func0.call(data, 'sequence')) && (missing0 = 'sequence')) ||
+        ((data.mac === void 0 || !func0.call(data, 'mac')) && (missing0 = 'mac'))
       ) {
         validate19.errors = [
           {
@@ -1875,18 +1631,10 @@ function validate19(
             var valid0 = true;
           }
           if (valid0) {
-            if (
-              data.protocol_version !== void 0 &&
-              func0.call(data, 'protocol_version')
-            ) {
+            if (data.protocol_version !== void 0 && func0.call(data, 'protocol_version')) {
               let data1 = data.protocol_version;
               const _errs4 = errors;
-              if (!(
-                typeof data1 == 'number' &&
-                !(data1 % 1) &&
-                !isNaN(data1) &&
-                isFinite(data1)
-              )) {
+              if (!(typeof data1 == 'number' && !(data1 % 1) && !isNaN(data1) && isFinite(data1))) {
                 validate19.errors = [
                   {
                     instancePath: instancePath + '/protocol_version',
@@ -1904,9 +1652,7 @@ function validate19(
                     instancePath: instancePath + '/protocol_version',
                     schemaPath: '#/properties/protocol_version/enum',
                     keyword: 'enum',
-                    params: {
-                      allowedValues: schema25.properties.protocol_version.enum,
-                    },
+                    params: { allowedValues: schema25.properties.protocol_version.enum },
                     message: 'must be equal to one of the allowed values',
                   },
                 ];
@@ -1917,10 +1663,7 @@ function validate19(
               var valid0 = true;
             }
             if (valid0) {
-              if (
-                data.generation !== void 0 &&
-                func0.call(data, 'generation')
-              ) {
+              if (data.generation !== void 0 && func0.call(data, 'generation')) {
                 let data2 = data.generation;
                 const _errs6 = errors;
                 const _errs7 = errors;
@@ -1985,12 +1728,7 @@ function validate19(
                 if (data.sequence !== void 0 && func0.call(data, 'sequence')) {
                   let data3 = data.sequence;
                   const _errs9 = errors;
-                  if (!(
-                    typeof data3 == 'number' &&
-                    !(data3 % 1) &&
-                    !isNaN(data3) &&
-                    isFinite(data3)
-                  )) {
+                  if (!(typeof data3 == 'number' && !(data3 % 1) && !isNaN(data3) && isFinite(data3))) {
                     validate19.errors = [
                       {
                         instancePath: instancePath + '/sequence',
@@ -2061,8 +1799,7 @@ function validate19(
                                 schemaPath: '#/definitions/Signature/minLength',
                                 keyword: 'minLength',
                                 params: { limit: 64 },
-                                message:
-                                  'must NOT have fewer than 64 characters',
+                                message: 'must NOT have fewer than 64 characters',
                               },
                             ];
                             return false;
@@ -2074,8 +1811,7 @@ function validate19(
                                   schemaPath: '#/definitions/Signature/pattern',
                                   keyword: 'pattern',
                                   params: { pattern: '^[a-f0-9]{64}$' },
-                                  message:
-                                    'must match pattern "^[a-f0-9]{64}$"',
+                                  message: 'must match pattern "^[a-f0-9]{64}$"',
                                 },
                               ];
                               return false;
@@ -2107,13 +1843,7 @@ function validate19(
       }
     } else {
       validate19.errors = [
-        {
-          instancePath,
-          schemaPath: '#/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        },
+        { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' },
       ];
       return false;
     }
@@ -2146,23 +1876,17 @@ var schema28 = {
     mac: { $ref: '#/definitions/Signature' },
   },
 };
-function validate21(
-  data,
-  { instancePath = '', parentData, parentDataProperty, rootData = data } = {},
-) {
+function validate21(data, { instancePath = '', parentData, parentDataProperty, rootData = data } = {}) {
   let vErrors = null;
   let errors = 0;
   if (errors === 0) {
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       let missing0;
       if (
-        ((data.type === void 0 || !func0.call(data, 'type')) &&
-          (missing0 = 'type')) ||
-        ((data.protocol_version === void 0 ||
-          !func0.call(data, 'protocol_version')) &&
+        ((data.type === void 0 || !func0.call(data, 'type')) && (missing0 = 'type')) ||
+        ((data.protocol_version === void 0 || !func0.call(data, 'protocol_version')) &&
           (missing0 = 'protocol_version')) ||
-        ((data.code === void 0 || !func0.call(data, 'code')) &&
-          (missing0 = 'code'))
+        ((data.code === void 0 || !func0.call(data, 'code')) && (missing0 = 'code'))
       ) {
         validate21.errors = [
           {
@@ -2230,18 +1954,10 @@ function validate21(
             var valid0 = true;
           }
           if (valid0) {
-            if (
-              data.protocol_version !== void 0 &&
-              func0.call(data, 'protocol_version')
-            ) {
+            if (data.protocol_version !== void 0 && func0.call(data, 'protocol_version')) {
               let data1 = data.protocol_version;
               const _errs4 = errors;
-              if (!(
-                typeof data1 == 'number' &&
-                !(data1 % 1) &&
-                !isNaN(data1) &&
-                isFinite(data1)
-              )) {
+              if (!(typeof data1 == 'number' && !(data1 % 1) && !isNaN(data1) && isFinite(data1))) {
                 validate21.errors = [
                   {
                     instancePath: instancePath + '/protocol_version',
@@ -2259,9 +1975,7 @@ function validate21(
                     instancePath: instancePath + '/protocol_version',
                     schemaPath: '#/properties/protocol_version/enum',
                     keyword: 'enum',
-                    params: {
-                      allowedValues: schema28.properties.protocol_version.enum,
-                    },
+                    params: { allowedValues: schema28.properties.protocol_version.enum },
                     message: 'must be equal to one of the allowed values',
                   },
                 ];
@@ -2272,10 +1986,7 @@ function validate21(
               var valid0 = true;
             }
             if (valid0) {
-              if (
-                data.generation !== void 0 &&
-                func0.call(data, 'generation')
-              ) {
+              if (data.generation !== void 0 && func0.call(data, 'generation')) {
                 let data2 = data.generation;
                 const _errs6 = errors;
                 const _errs7 = errors;
@@ -2368,9 +2079,7 @@ function validate21(
                         instancePath: instancePath + '/code',
                         schemaPath: '#/properties/code/enum',
                         keyword: 'enum',
-                        params: {
-                          allowedValues: schema28.properties.code.enum,
-                        },
+                        params: { allowedValues: schema28.properties.code.enum },
                         message: 'must be equal to one of the allowed values',
                       },
                     ];
@@ -2406,8 +2115,7 @@ function validate21(
                                 schemaPath: '#/definitions/Signature/minLength',
                                 keyword: 'minLength',
                                 params: { limit: 64 },
-                                message:
-                                  'must NOT have fewer than 64 characters',
+                                message: 'must NOT have fewer than 64 characters',
                               },
                             ];
                             return false;
@@ -2419,8 +2127,7 @@ function validate21(
                                   schemaPath: '#/definitions/Signature/pattern',
                                   keyword: 'pattern',
                                   params: { pattern: '^[a-f0-9]{64}$' },
-                                  message:
-                                    'must match pattern "^[a-f0-9]{64}$"',
+                                  message: 'must match pattern "^[a-f0-9]{64}$"',
                                 },
                               ];
                               return false;
@@ -2452,13 +2159,7 @@ function validate21(
       }
     } else {
       validate21.errors = [
-        {
-          instancePath,
-          schemaPath: '#/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        },
+        { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' },
       ];
       return false;
     }
@@ -2466,26 +2167,15 @@ function validate21(
   validate21.errors = vErrors;
   return errors === 0;
 }
-function validate10(
-  data,
-  { instancePath = '', parentData, parentDataProperty, rootData = data } = {},
-) {
+function validate10(data, { instancePath = '', parentData, parentDataProperty, rootData = data } = {}) {
   let vErrors = null;
   let errors = 0;
   const _errs0 = errors;
   let valid0 = false;
   let passing0 = null;
   const _errs1 = errors;
-  if (
-    !validate11(data, {
-      instancePath,
-      parentData,
-      parentDataProperty,
-      rootData,
-    })
-  ) {
-    vErrors =
-      vErrors === null ? validate11.errors : vErrors.concat(validate11.errors);
+  if (!validate11(data, { instancePath, parentData, parentDataProperty, rootData })) {
+    vErrors = vErrors === null ? validate11.errors : vErrors.concat(validate11.errors);
     errors = vErrors.length;
   }
   var _valid0 = _errs1 === errors;
@@ -2494,16 +2184,8 @@ function validate10(
     passing0 = 0;
   }
   const _errs2 = errors;
-  if (
-    !validate13(data, {
-      instancePath,
-      parentData,
-      parentDataProperty,
-      rootData,
-    })
-  ) {
-    vErrors =
-      vErrors === null ? validate13.errors : vErrors.concat(validate13.errors);
+  if (!validate13(data, { instancePath, parentData, parentDataProperty, rootData })) {
+    vErrors = vErrors === null ? validate13.errors : vErrors.concat(validate13.errors);
     errors = vErrors.length;
   }
   var _valid0 = _errs2 === errors;
@@ -2516,18 +2198,8 @@ function validate10(
       passing0 = 1;
     }
     const _errs3 = errors;
-    if (
-      !validate15(data, {
-        instancePath,
-        parentData,
-        parentDataProperty,
-        rootData,
-      })
-    ) {
-      vErrors =
-        vErrors === null
-          ? validate15.errors
-          : vErrors.concat(validate15.errors);
+    if (!validate15(data, { instancePath, parentData, parentDataProperty, rootData })) {
+      vErrors = vErrors === null ? validate15.errors : vErrors.concat(validate15.errors);
       errors = vErrors.length;
     }
     var _valid0 = _errs3 === errors;
@@ -2540,18 +2212,8 @@ function validate10(
         passing0 = 2;
       }
       const _errs4 = errors;
-      if (
-        !validate17(data, {
-          instancePath,
-          parentData,
-          parentDataProperty,
-          rootData,
-        })
-      ) {
-        vErrors =
-          vErrors === null
-            ? validate17.errors
-            : vErrors.concat(validate17.errors);
+      if (!validate17(data, { instancePath, parentData, parentDataProperty, rootData })) {
+        vErrors = vErrors === null ? validate17.errors : vErrors.concat(validate17.errors);
         errors = vErrors.length;
       }
       var _valid0 = _errs4 === errors;
@@ -2564,18 +2226,8 @@ function validate10(
           passing0 = 3;
         }
         const _errs5 = errors;
-        if (
-          !validate19(data, {
-            instancePath,
-            parentData,
-            parentDataProperty,
-            rootData,
-          })
-        ) {
-          vErrors =
-            vErrors === null
-              ? validate19.errors
-              : vErrors.concat(validate19.errors);
+        if (!validate19(data, { instancePath, parentData, parentDataProperty, rootData })) {
+          vErrors = vErrors === null ? validate19.errors : vErrors.concat(validate19.errors);
           errors = vErrors.length;
         }
         var _valid0 = _errs5 === errors;
@@ -2588,18 +2240,8 @@ function validate10(
             passing0 = 4;
           }
           const _errs6 = errors;
-          if (
-            !validate21(data, {
-              instancePath,
-              parentData,
-              parentDataProperty,
-              rootData,
-            })
-          ) {
-            vErrors =
-              vErrors === null
-                ? validate21.errors
-                : vErrors.concat(validate21.errors);
+          if (!validate21(data, { instancePath, parentData, parentDataProperty, rootData })) {
+            vErrors = vErrors === null ? validate21.errors : vErrors.concat(validate21.errors);
             errors = vErrors.length;
           }
           var _valid0 = _errs6 === errors;
