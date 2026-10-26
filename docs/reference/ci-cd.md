@@ -28,7 +28,9 @@ workflows always finish.
 - `coverage`: on PRs only, `make check-patch-coverage` against the PR base. It
   fails when fewer than 90 percent of changed, measured lines are covered.
 
-There are no image publication or deployment jobs. Changelog
+The acceptance jobs run `make acceptance-runtime`, `make acceptance-connector` and
+`make acceptance-credentials`, and `make acceptance-mail`. There are no image
+publication or deployment jobs. Changelog
 releases are separate workflows described below. Runtime tests
 use no accounts and remove only their job-specific containers and volumes.
 

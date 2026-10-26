@@ -31,6 +31,7 @@ make lint test
 | `coverage` | Line coverage of the source suites |
 | `check-patch-coverage` | Fail when changed lines are below the coverage threshold |
 | `images` | Runtime images only |
+| `acceptance` | Every disposable deployment suite, on the host |
 | `lint-pr` | PR metadata, design/decision policy, and changelog guard |
 
 Component targets run one piece of those: `build-server`, `build-web`,
@@ -38,7 +39,9 @@ Component targets run one piece of those: `build-server`, `build-web`,
 `test-protocol`, `test-python`, and `test-tooling`; `lint-repo`, `lint-bash`,
 `lint-python`, `lint-javascript`, `lint-typescript`, `lint-rust`, and `lint-sql`;
 `format-check` with its `-rust`, `-javascript`, and `-sql` variants, `typecheck`,
-and `format-sql`; and `generate-protocol` and `check-protocol`.
+and `format-sql`; and `generate-protocol` and `check-protocol`. The acceptance
+suites run one at a time as `acceptance-runtime`, `acceptance-connector`,
+`acceptance-credentials`, and `acceptance-mail`.
 
 ## Tooling image
 
@@ -174,6 +177,21 @@ startup, administration, persistence checks, and cleanup.
 not start the application. Application state belongs to the runtime volumes, not the
 checkout. Control-contract generation is described below.
 
+## Acceptance
+
+```bash
+make acceptance
+```
+
+`acceptance` needs Docker on the host and runs each disposable deployment suite in
+turn. `acceptance-runtime` runs `automation/acceptance/runtime/check_runtime.bash`,
+which builds a `raicho-runtime-...` project with the test overlay, checks startup,
+persistence across recreation, administrative isolation, and readiness while
+Thunderbird is stopped, then removes the project. It uses `COMPOSE_PROJECT_NAME`
+when set, as CI does, and refuses the `raicho` project. The connector, credential,
+and mail runners are described below. Each suite owns uniquely named resources, so
+the suites can also run concurrently from separate shells.
+
 ## Coverage
 
 ```bash
@@ -223,8 +241,7 @@ for sources, parsing rules, and integration responsibilities.
 ## Credential persistence
 
 ```bash
-make test-server lint-repo lint-sql format-check-sql
-bash automation/acceptance/credentials/check_credentials.bash
+make test-server lint-repo lint-sql format-check-sql acceptance-credentials
 ```
 
 The source checks cover credential state transitions, token-file recovery and
@@ -239,8 +256,7 @@ previous token file.
 ## Production connector
 
 ```bash
-make test-server test-extension test-web
-bash automation/acceptance/connector/check_connector.bash
+make test-server test-extension test-web acceptance-connector
 ```
 
 The host runner owns a fresh `raicho-connector-...` deployment and credentials.
@@ -295,8 +311,7 @@ documented in [CI](ci-cd.md), and runtime details in [runtime](runtime.md).
 ## Mail API compatibility
 
 ```bash
-make test-mailprobe
-bash mailprobe/tests/check_mail_compatibility.bash
+make test-mailprobe acceptance-mail
 bash mailprobe/tests/check_mail_compatibility.bash --native
 ```
 

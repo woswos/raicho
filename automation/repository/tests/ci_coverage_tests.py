@@ -1,3 +1,4 @@
+import re
 import subprocess
 import unittest
 
@@ -18,7 +19,7 @@ SOURCE_SUITES = (
     'test-mailprobe',
     'test-protocol',
 )
-ACCEPTANCE_JOBS = ('connector-test', 'compatibility-test')
+ACCEPTANCE_JOBS = ('runtime-test', 'connector-test', 'compatibility-test')
 
 
 class WorkflowCoverageTests(unittest.TestCase):
@@ -39,11 +40,20 @@ class WorkflowCoverageTests(unittest.TestCase):
             if path.name != 'check_admin_isolation.bash'
         )
         self.assertTrue(runners)
+        recipes = HOST_MAKEFILE.read_text().replace('$(REPOSITORY_ROOT)', '')
+        targets = {
+            target
+            for target, recipe in re.findall(
+                r'^(acceptance-[a-z]+):\n\t@(.*)$', recipes, re.MULTILINE
+            )
+            if any(recipe == f'bash {runner}' for runner in runners)
+        }
+        self.assertEqual(len(targets), len(runners))
         script = self.script(*ACCEPTANCE_JOBS)
-        for runner in runners:
-            with self.subTest(runner=runner):
-                self.assertIn(f'bash {runner}', script)
-        self.assertNotIn('--native', script)
+        for target in sorted(targets):
+            with self.subTest(target=target):
+                self.assertIn(f'make {target}', script)
+        self.assertNotIn('--native', script + recipes)
         for name in ACCEPTANCE_JOBS:
             with self.subTest(job=name):
                 job = self.jobs[name]

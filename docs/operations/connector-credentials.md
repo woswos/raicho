@@ -140,7 +140,7 @@ first, as for administration.
 ## Validation
 
 ```bash
-bash automation/acceptance/credentials/check_credentials.bash
+make acceptance-credentials
 ```
 
 The runner owns a uniquely named disposable Compose project and temporary host

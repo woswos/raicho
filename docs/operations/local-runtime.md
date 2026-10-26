@@ -108,32 +108,16 @@ Thunderbird's profile volume is untouched.
 
 ## Disposable automated checks
 
-These commands create their own project, build the same images as CI, and remove
+The runtime check creates its own project, builds the same images as CI, and removes
 only that project's resources. Test overrides publish no application host port.
 Fixture seeding requires both services stopped. Fixtures add a test-only SQLite
 record and Thunderbird preference, not production tables or account data.
-Run them on a Linux Docker host. The administration check temporarily publishes
+Run it on a Linux Docker host. The administration check temporarily publishes
 an ephemeral loopback port and uses containerized probes in the host network.
 It restores Thunderbird without administration before returning.
 
 ```bash
-(
-  export COMPOSE_PROJECT_NAME="raicho-check-$(date +%s)-$$"
-  export COMPOSE_FILE=compose.yaml:automation/acceptance/runtime/compose.test.yaml
-  set -eu
-  trap 'docker compose down --volumes --remove-orphans' EXIT
-  docker compose --profile test build
-  docker compose up -d --wait --wait-timeout 120 raicho thunderbird
-  docker compose run --rm smoke http
-  docker compose stop raicho thunderbird
-  docker compose run --rm smoke seed
-  docker compose up -d --force-recreate --wait --wait-timeout 120 raicho thunderbird
-  docker compose run --rm smoke http
-  docker compose run --rm smoke persistence
-  bash automation/acceptance/runtime/check_admin_isolation.bash
-  docker compose stop thunderbird
-  docker compose run --rm smoke http
-)
+make acceptance-runtime
 ```
 
 Expected evidence: HTTP/asset isolation passes, SQLite contents and actual
