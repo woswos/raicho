@@ -103,7 +103,9 @@ captured proof cannot be replayed, and a spoofed endpoint can neither learn a
 usable secret nor stop the connector. Injected, altered, replayed, reordered, and
 reflected frames fail, and mail commands can use the same channel without another
 protocol change. A database copy can impersonate the server and derive session
-keys, but cannot impersonate the connector. A wrong token or a genuine protocol
+keys. Alone it cannot impersonate the connector, but with one captured
+authentication exchange it recovers the connector key, as in SCRAM, and can then
+authenticate as the connector until the credential is rotated. A wrong token or a genuine protocol
 rejection retries at the capped interval instead of stopping. Policy changes, and
 a connector stopped by an authenticated `session_replaced`, require restarting
 Thunderbird.

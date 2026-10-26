@@ -10,14 +10,21 @@ records the approved design.
 See [architecture](architecture.md) for component boundaries and
 [mail API compatibility](mail-api-compatibility.md) for the separate experiment.
 No fixture command, account identity, message handle, or mail content belongs in
-this contract. The backend kind is an identifier, not a Thunderbird-specific type.
+this contract. The backend kind is an identifier, not a Thunderbird-specific type,
+but `thunderbird` is its only accepted value today. The schema, the server's
+authentication, the status schema, and the connector credential table's `CHECK`
+constraint all fix it. A second backend needs those changes and a migration that
+rebuilds the table, because SQLite cannot alter a `CHECK` constraint.
 
 Offline [credential provisioning](../operations/connector-credentials.md)
 persists one active credential or a revoked record. The Rust `Credential::parse`
 boundary derives two keys from the canonical 64-character lowercase hexadecimal
 token. The stored key verifies the connector's proof, and the server key signs
-the server's reply and keys every later frame. Neither key lets a database copy
-produce a connector proof. The token never crosses the connection, and an
+the server's reply and keys every later frame. A database copy alone cannot
+produce a connector proof. Combined with one captured `authenticate` frame and its
+challenge, though, the stored key recovers the connector key, because the proof is
+that key XOR an HMAC under the stored key. Rotate the credential when the database
+may have leaked. The token never crosses the connection, and an
 incoming frame never enrolls a token. See the
 [handshake decision](../decisions/20261026-thunderbird-connector.md#handshake) and
 the [frame authentication decision](../decisions/20261026-thunderbird-connector.md#frame-authentication).
