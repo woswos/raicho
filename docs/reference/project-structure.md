@@ -8,7 +8,7 @@ AGENTS.md          Always-loaded instructions and pointers to task-specific docs
 CHANGELOG.md       Product changelog used to cut semantic versions
 compose*.yaml      Base deployment and its administration and credential overlays
 .agents/skills/    Canonical shared workflow skills
-.github/           Pull request templates and GitHub Actions workflows
+.github/           Pull request templates, GitHub Actions workflows, and the image cache action
 assets/brand/      Production identity masters, fonts, guides, and prototypes
 deploy/            Per-service image recipes, runtime code, configuration, and tests
 server/            Rust diagnostics, SQLite queries, migrations, and tests
@@ -83,7 +83,7 @@ Do not add thin compatibility wrappers or restore a flat helper directory.
 | --- | --- |
 | Agent, naming, changelog, and pull request guards | `automation/repository/` |
 | Language linting, formatting, and type checking | `automation/quality/` |
-| Development tooling image, entrypoint, Compose files, Make modes, step logs, and cleanup | `automation/tooling/` |
+| Development tooling image, entrypoint, Compose files, Make modes, step logs, CI image cache, and cleanup | `automation/tooling/` |
 | Cross-component application build/test dispatch and coverage | `automation/build/` |
 | Versioning, changelogs, and release preparation | `automation/release/` |
 | Cross-service disposable deployment checks | `automation/acceptance/` |

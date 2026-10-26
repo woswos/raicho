@@ -3,6 +3,9 @@ TOOLS := docker compose --progress $(PROGRESS) -f $(REPOSITORY_ROOT)automation/t
 ifdef GITHUB_EVENT_PATH
 TOOLS += -f $(REPOSITORY_ROOT)automation/tooling/compose.ci.yaml
 endif
+ifdef RAICHO_CACHE_DIRECTORY
+TOOLS += -f $(REPOSITORY_ROOT)automation/tooling/compose.cache.yaml
+endif
 # A linked worktree keeps its Git metadata outside the mounted checkout.
 GIT_COMMON := $(shell git -C $(REPOSITORY_ROOT) rev-parse --path-format=absolute --git-common-dir 2>/dev/null)
 MOUNTS := $(if $(GIT_COMMON),$(if $(filter $(REPOSITORY_ROOT)%,$(GIT_COMMON)/),,--volume $(GIT_COMMON):$(GIT_COMMON):ro))
@@ -14,7 +17,7 @@ WRITE := $(RUN) format make
 
 .PHONY: tooling-image
 tooling-image:
-	@$(STEP) $@ $(TOOLS) build
+	@$(if $(RAICHO_CACHE_DIRECTORY),mkdir -p '$(RAICHO_CACHE_DIRECTORY)' && )$(STEP) $@ $(TOOLS) build
 
 $(filter-out $(WRITING_TARGETS),$(CONTAINER_TARGETS)): tooling-image
 	@$(CHECK) $@

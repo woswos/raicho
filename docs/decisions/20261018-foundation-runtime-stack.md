@@ -1,6 +1,6 @@
 # Containerized foundation runtime
 
-- Status: accepted
+- Status: accepted, amended by `20261026-build-caching`
 - Date: 2026-10-18
 - Deciders: project maintainer
 
