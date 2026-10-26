@@ -31,8 +31,13 @@ processes.
 The server lists its migrations in code and builds the SQLx migrator without the
 `macros` feature. This amends the [runtime stack decision](20261018-foundation-runtime-stack.md),
 which chose SQLx with that feature. It keeps the bundled SQLite 3.51.3, rather than
-Debian's older system library, and keeps runtime schema validation of connector
-frames.
+Debian's older system library.
+
+The Rust connector decoder no longer runs `jsonschema` on every frame. The generated
+types already enforce the schema's types, lengths, patterns, and unknown-field rules,
+and the decoder checks the two bounds they miss. `jsonschema` stays a test-only
+dependency, in a conformance test over the shared fixtures, which removes its
+regular expression and number libraries from the server binary.
 
 The deploy image compiles its Rust dependencies in a layer that depends only on the
 manifests and lockfile, against placeholder workspace sources. A later layer
