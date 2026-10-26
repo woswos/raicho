@@ -135,7 +135,8 @@ image by digest. It installs Debian Bookworm support packages from the
 
 Python tooling dependencies and their wheel hashes are locked in
 `automation/tooling/requirements.txt`, currently for Python 3.13 on Linux amd64.
-The image installs them with `pip --require-hashes --only-binary=:all:`.
+Its first lines set `--only-binary=:all:` and `--require-hashes`, so the image installs it with a plain
+`pip install -r` and keep them when refreshing the lock.
 Refresh this lock inside Docker when upgrading SQLFluff, coverage, or test dependencies,
 review all dependency changes, and rebuild the image. The entrypoint at
 `automation/tooling/entrypoint.bash` detects a stale requirements
