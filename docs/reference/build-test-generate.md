@@ -40,7 +40,7 @@ xterm terminal.
 | --- | --- |
 | `build` | Tooling image, server, web page, and extension builds, then the runtime images |
 | `test` | Every source suite: Python, tooling fixtures, server, web, extension, mail probe, and protocol |
-| `lint` | Repository guards, language linters, formatting and type checks, and protocol generation drift |
+| `lint` | Repository guards, language linters, spelling, formatting and type checks, and protocol generation drift |
 | `format` | Rewrite files in the documented formatting scope |
 | `generate` | Regenerate the committed protocol outputs |
 | `coverage` | Line coverage of the source suites |
@@ -53,9 +53,10 @@ xterm terminal.
 Component targets run one piece of those: `build-server`, `build-web`,
 `build-extension`, `test-server`, `test-web`, `test-extension`, `test-mailprobe`,
 `test-protocol`, `test-python`, and `test-tooling`; `lint-repo`, `lint-bash`,
-`lint-python`, `lint-javascript`, `lint-typescript`, `lint-rust`, and `lint-sql`;
-`format` and `format-check`, each with `-bash`, `-python`, `-javascript`, `-rust`,
-and `-sql` variants, and `typecheck`; and `generate-protocol` and `check-protocol`.
+`lint-python`, `lint-javascript`, `lint-typescript`, `lint-rust`, `lint-sql`, and
+`lint-spelling`; `format` and `format-check`, each with `-bash`, `-python`,
+`-javascript`, `-rust`, and `-sql` variants, `format-spelling`, and `typecheck`;
+and `generate-protocol` and `check-protocol`.
 The `-javascript` formatting variants also cover TypeScript, JSON, and YAML. The acceptance
 suites run one at a time as `acceptance-runtime`, `acceptance-connector`,
 `acceptance-credentials`, and `acceptance-mail`.
@@ -99,6 +100,11 @@ TypeScript, and SQL fixtures that exercise the runners. `lint-sql` checks owned
 SQLite source for syntax and configured lint rules, `format-check-sql` compares
 formatted temporary copies with the SQL sources, and `format-sql` rewrites them
 using formatting rules only.
+
+`lint-spelling` runs typos over the same files and reports one line per known
+misspelling. `make format-spelling` applies its corrections. `make format`
+leaves spelling alone, because a correction changes words in code and prose
+and needs its own review. Add accepted false positives to `.typos.toml`.
 
 The guards in `automation/repository/` are Python module entry points. Their
 optional repository-root argument defaults to the repository containing the

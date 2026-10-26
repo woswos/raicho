@@ -5,7 +5,7 @@ QUALITY := $(PYTHON) -m automation.quality.runner --root "$(QUALITY_ROOT)"
 
 build: build-server build-web build-extension
 test: test-python test-tooling test-server test-web test-extension test-mailprobe test-protocol
-lint: lint-repo lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql \
+lint: lint-repo lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql lint-spelling \
     format-check typecheck check-protocol
 generate: generate-protocol
 

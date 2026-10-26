@@ -1,0 +1,7 @@
+[default]
+# The duplicate-key fixture spells a key with a Unicode escape.
+extend-ignore-re = ['versio\\+u006e']
+
+[default.extend-identifiers]
+PNGs = "PNGs"
+WRONLY = "WRONLY"

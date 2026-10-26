@@ -17,11 +17,13 @@ describe() {
         test-*) echo "testing|tested|${TARGET#test-}" ;;
         acceptance-*) echo "testing|tested|${TARGET#acceptance-} acceptance" ;;
         lint-pr) echo 'checking|checked|pull request' ;;
+        lint-spelling) echo 'checking|checked|spelling' ;;
         lint-repo) echo 'linting|linted|repository' ;;
         lint-*) echo "linting|linted|${TARGET#lint-}" ;;
         format-check) echo 'checking|checked|formatting' ;;
         format-check-*) echo "checking|checked|${TARGET#format-check-} formatting" ;;
         format) echo 'formatting|formatted|sources' ;;
+        format-spelling) echo 'fixing|fixed|typos' ;;
         format-*) echo "formatting|formatted|${TARGET#format-}" ;;
         typecheck) echo 'checking|checked|TypeScript types' ;;
         generate-protocol) echo 'generating|generated|protocol bindings' ;;
