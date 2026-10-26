@@ -1,7 +1,7 @@
 import subprocess
 import sys
 
-from automation.build.coverage_report import OUTPUT
+from automation.build.coverage_report import OUTPUT, collect
 from automation.paths import REPOSITORY_ROOT
 from automation.repository.pr_context import git_output, load_context
 
@@ -30,16 +30,22 @@ def partly_covered(report):
     )
 
 
+def totals(report):
+    return ''.join(
+        line
+        for line in report.splitlines(keepends=True)
+        if line.startswith(('Total:', 'Missing:', 'Coverage:'))
+    )
+
+
 def main():
     try:
         base = comparison_base(REPOSITORY_ROOT)
     except ValueError as error:
         print(f'FAIL: {error}', file=sys.stderr)
         return 1
+    collect()
     reports = sorted(OUTPUT.glob('*.info'))
-    if not reports:
-        print('FAIL: No coverage reports. Run make coverage first.', file=sys.stderr)
-        return 1
     result = subprocess.run(
         [
             'diff-cover',
@@ -52,7 +58,10 @@ def main():
         text=True,
         check=False,
     )
-    print(partly_covered(result.stdout), end='')
+    print(
+        partly_covered(result.stdout) if result.returncode else totals(result.stdout),
+        end='',
+    )
     print(result.stderr, end='', file=sys.stderr)
     return result.returncode
 

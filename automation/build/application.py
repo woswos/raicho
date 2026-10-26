@@ -1,6 +1,8 @@
 import argparse
 import os
+import re
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -9,6 +11,33 @@ from automation.paths import REPOSITORY_ROOT
 
 def run(arguments, **options):
     return subprocess.run(arguments, cwd=REPOSITORY_ROOT, check=True, **options)
+
+
+def cargo_test(arguments, env=None):
+    command = ['cargo', 'test', *arguments]
+    if (env or os.environ).get('CARGO_TERM_QUIET') != 'true':
+        return run(command, env=env)
+    result = subprocess.run(
+        command,
+        cwd=REPOSITORY_ROOT,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        check=False,
+    )
+    if result.returncode:
+        sys.stdout.write(result.stdout)
+        raise subprocess.CalledProcessError(result.returncode, command)
+    print(test_summary(result.stdout))
+    return result
+
+
+def test_summary(output):
+    results = re.findall(r'^test result: ok\. (\d+) passed', output, re.MULTILINE)
+    return (
+        f'Rust: {sum(map(int, results))} tests passed in {len(results)} test binaries'
+    )
 
 
 def extension(
@@ -80,8 +109,11 @@ def main():
     )
     target = parser.parse_args().target
     if target.endswith('server'):
-        action = 'build' if target == 'build-server' else 'test'
-        run(['cargo', action, '--workspace', '--all-targets', '--locked'])
+        arguments = ['--workspace', '--all-targets', '--locked']
+        if target == 'build-server':
+            run(['cargo', 'build', *arguments])
+        else:
+            cargo_test(arguments)
     elif target.endswith('extension') or target == 'test-mailprobe':
         if target == 'test-mailprobe':
             extension(REPOSITORY_ROOT / 'mailprobe', testing=True)

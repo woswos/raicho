@@ -101,12 +101,16 @@ def python():
     )
 
 
-def main():
+def collect():
     shutil.rmtree(OUTPUT, ignore_errors=True)
     OUTPUT.mkdir(parents=True)
     rust(OUTPUT)
     typescript()
     python()
+
+
+def main():
+    collect()
     print('\n'.join(summary(merge(sorted(OUTPUT.glob('*.info'))))))
 
 

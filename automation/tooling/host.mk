@@ -29,19 +29,21 @@ build: tooling-image
 images:
 	@docker compose --progress $(PROGRESS) -f $(REPOSITORY_ROOT)compose.yaml build
 
+ACCEPTANCE := $(if $(VERBOSE),,COMPOSE_PROGRESS=quiet BUILDKIT_PROGRESS=quiet) bash $(REPOSITORY_ROOT)
+
 acceptance: acceptance-runtime acceptance-connector acceptance-credentials acceptance-mail
 
 acceptance-runtime:
-	@bash $(REPOSITORY_ROOT)automation/acceptance/runtime/check_runtime.bash
+	@$(ACCEPTANCE)automation/acceptance/runtime/check_runtime.bash
 
 acceptance-connector:
-	@bash $(REPOSITORY_ROOT)automation/acceptance/connector/check_connector.bash
+	@$(ACCEPTANCE)automation/acceptance/connector/check_connector.bash
 
 acceptance-credentials:
-	@bash $(REPOSITORY_ROOT)automation/acceptance/credentials/check_credentials.bash
+	@$(ACCEPTANCE)automation/acceptance/credentials/check_credentials.bash
 
 acceptance-mail:
-	@bash $(REPOSITORY_ROOT)mailprobe/tests/check_mail_compatibility.bash
+	@$(ACCEPTANCE)mailprobe/tests/check_mail_compatibility.bash
 
 clean:
 	@bash $(REPOSITORY_ROOT)automation/tooling/clean.bash
