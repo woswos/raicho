@@ -8,10 +8,10 @@ from automation.paths import REPOSITORY_ROOT
 
 
 def run(arguments, **options):
-    subprocess.run(arguments, cwd=REPOSITORY_ROOT, check=True, **options)
+    return subprocess.run(arguments, cwd=REPOSITORY_ROOT, check=True, **options)
 
 
-def extension(source_root, testing=False):
+def extension(source_root, testing=False, build_arguments=(), test_arguments=()):
     with tempfile.TemporaryDirectory(prefix='raicho-extension-') as directory:
         output = Path(directory)
         run(
@@ -24,6 +24,7 @@ def extension(source_root, testing=False):
                 str(output / 'raicho.xpi'),
                 '--directory',
                 str(output / 'modules'),
+                *build_arguments,
             ]
         )
         if testing:
@@ -35,7 +36,27 @@ def extension(source_root, testing=False):
             )
             if not tests:
                 raise ValueError('No extension tests were found.')
-            run(['node', '--test', *tests], env=environment)
+            run(['node', '--test', *test_arguments, *tests], env=environment)
+
+
+def web(testing=False, build_arguments=(), test_arguments=()):
+    with tempfile.TemporaryDirectory(prefix='raicho-web-') as directory:
+        run(
+            [
+                'node',
+                str(REPOSITORY_ROOT / 'web/build.mjs'),
+                directory,
+                *build_arguments,
+            ]
+        )
+        if testing:
+            environment = os.environ | {'RAICHO_WEB_BUILD_DIR': directory}
+            tests = sorted(
+                str(path) for path in (REPOSITORY_ROOT / 'web/tests').glob('*.mjs')
+            )
+            if not tests:
+                raise ValueError('No browser application tests were found.')
+            run(['node', '--test', *test_arguments, *tests], env=environment)
 
 
 def main():
@@ -62,22 +83,7 @@ def main():
         else:
             extension(REPOSITORY_ROOT / 'extension', testing=target.startswith('test-'))
     else:
-        with tempfile.TemporaryDirectory(prefix='raicho-web-') as directory:
-            run(
-                [
-                    'node',
-                    str(REPOSITORY_ROOT / 'web/build.mjs'),
-                    directory,
-                ]
-            )
-            if target == 'test-web':
-                environment = os.environ | {'RAICHO_WEB_BUILD_DIR': directory}
-                tests = sorted(
-                    str(path) for path in (REPOSITORY_ROOT / 'web/tests').glob('*.mjs')
-                )
-                if not tests:
-                    raise ValueError('No browser application tests were found.')
-                run(['node', '--test', *tests], env=environment)
+        web(testing=target == 'test-web')
 
 
 if __name__ == '__main__':
