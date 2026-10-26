@@ -122,8 +122,11 @@ The [credential procedure](../operations/connector-credentials.md) provisions
 the production token and SQLite keys. The credentials override mounts the
 file into Thunderbird and selects `ws://gateway:8081/connector/v1`.
 Managed policy is read at startup. Thunderbird does not support managed-storage
-change events, so policy changes and terminal authentication failures require
-restarting Thunderbird. The credential wrapper force-recreates it.
+change events, so policy changes require restarting Thunderbird. The credential
+wrapper force-recreates it. The connector retries every failure except an
+authenticated `session_replaced`, which stops it until Thunderbird restarts, as the
+[credential procedure](../operations/connector-credentials.md#a-connector-that-stops-retrying)
+describes.
 
 The production MV2 extension shares the [declared product version](versioning.md)
 and uses only the `storage`
