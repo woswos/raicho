@@ -29,13 +29,13 @@ Personal configuration must respect [precedence](working-agreement.md#precedence
 
 ## Current repository checks
 
-Install Docker with Compose and clone the repository with Git. Language tools
-run inside the pinned tooling image. Versions and commands are recorded in
+Install Docker with Compose and GNU Make, and clone the repository with Git.
+Language tools run inside the pinned tooling image, which Make builds and runs for
+each target. Versions and commands are recorded in
 [build, test, and generate](../reference/build-test-generate.md).
 
 ```bash
-docker compose -f automation/tooling/compose.yaml build
-docker compose -f automation/tooling/compose.yaml run --rm check make lint format-check typecheck test-python
+make lint test
 ```
 
 ## Application development

@@ -208,14 +208,12 @@ nesting regressions exercise agreement between the two decoders.
 ## Generation and verification
 
 ```bash
-docker compose -f automation/tooling/compose.yaml build
-LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)" \
-  docker compose -f automation/tooling/compose.yaml run --rm format make generate-protocol
-docker compose -f automation/tooling/compose.yaml run --rm check make check-protocol test-protocol
+make generate
+make check-protocol test-protocol
 ```
 
-Set `LOCAL_UID` and `LOCAL_GID` for writable generation as described in
-[build commands](build-test-generate.md#checks-and-formatting). Generation builds
+Make runs generation in the writable service as described in
+[build commands](build-test-generate.md#make). Generation builds
 both language outputs in temporary directories before publishing changed files.
 The check regenerates and compares bytes without changing the checkout. The
 Python entry point validates every source before either generator runs. Schema

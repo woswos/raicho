@@ -28,8 +28,8 @@ at scale, use `execute-doc-housekeeping`.
    than restating them.
 4. Cross-link: add the doc to any relevant index with a one-line note on why
    it is relevant. Use relative paths.
-5. Verify links and naming with `make lint-repo` through the Docker check service,
-   using the command in `docs/reference/build-test-generate.md`.
+5. Verify links and naming with `make lint-repo`, as
+   `docs/reference/build-test-generate.md` describes it.
 6. Commit when authorized, per the repo conventions.
 
 ## Structure

@@ -6,6 +6,17 @@ import yaml
 from automation.paths import REPOSITORY_ROOT
 
 WORKFLOW = REPOSITORY_ROOT / '.github/workflows/repository-checks.yml'
+HOST_MAKEFILE = REPOSITORY_ROOT / 'automation/tooling/host.mk'
+CONTAINER_MAKEFILE = REPOSITORY_ROOT / 'automation/tooling/container.mk'
+SOURCE_SUITES = (
+    'test-python',
+    'test-tooling',
+    'test-server',
+    'test-web',
+    'test-extension',
+    'test-mailprobe',
+    'test-protocol',
+)
 ACCEPTANCE_JOBS = ('connector-test', 'compatibility-test')
 
 
@@ -47,15 +58,23 @@ class WorkflowCoverageTests(unittest.TestCase):
             text=True,
         ).stdout.split()
         self.assertTrue(paths)
+        commands = self.text + HOST_MAKEFILE.read_text().replace(
+            '$(REPOSITORY_ROOT)', ''
+        )
         for path in paths:
             with self.subTest(file=path):
-                self.assertIn(f'-f {path}', self.text)
+                self.assertIn(f'-f {path}', commands)
 
     def test_application_job_runs_every_source_suite(self):
-        words = set(self.script('application-test').split())
-        for target in ('build-app', 'test-app', 'test-mailprobe', 'test-protocol'):
+        self.assertIn('make test', self.script('application-test'))
+        aggregate = next(
+            line
+            for line in CONTAINER_MAKEFILE.read_text().splitlines()
+            if line.startswith('test:')
+        )
+        for target in SOURCE_SUITES:
             with self.subTest(target=target):
-                self.assertIn(target, words)
+                self.assertIn(target, aggregate.split())
 
     def test_lint_job_runs_every_python_suite(self):
         self.assertIn('test-python', self.script('lint').split())

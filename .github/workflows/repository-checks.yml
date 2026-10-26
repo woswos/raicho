@@ -26,10 +26,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Build tooling image
-        run: docker compose -f automation/tooling/compose.yaml build
       - name: Check repository and languages
-        run: docker compose -f automation/tooling/compose.yaml run --rm check make lint format-check typecheck test-python test-tooling
+        run: make lint test-python test-tooling
 
   pr-guards:
     if: github.event_name == 'pull_request'
@@ -40,10 +38,8 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Build tooling image
-        run: docker compose -f automation/tooling/compose.yaml build
       - name: Check pull request policy
-        run: docker compose -f automation/tooling/compose.yaml -f automation/tooling/compose.ci.yaml run --rm check make lint-pr
+        run: make lint-pr
 
   application-build:
     if: >-
@@ -73,7 +69,7 @@ jobs:
           docker compose -f mailprobe/compose.yaml --profile test config --quiet
           docker compose -f mailprobe/compose.yaml -f mailprobe/compose.admin.yaml --profile test config --quiet
       - name: Build application images
-        run: docker compose -f compose.yaml build
+        run: make images
 
   application-test:
     if: >-
@@ -85,10 +81,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Build tooling image
-        run: docker compose -f automation/tooling/compose.yaml build
       - name: Build and test application sources
-        run: docker compose -f automation/tooling/compose.yaml run --rm check make build-app test-app test-mailprobe test-protocol
+        run: make test
 
   coverage:
     if: >-
@@ -103,10 +97,8 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Build tooling image
-        run: docker compose -f automation/tooling/compose.yaml build
       - name: Check patch coverage
-        run: docker compose -f automation/tooling/compose.yaml -f automation/tooling/compose.ci.yaml run --rm check make check-patch-coverage
+        run: make check-patch-coverage
 
   runtime-test:
     if: >-
