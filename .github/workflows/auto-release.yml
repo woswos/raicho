@@ -20,7 +20,7 @@ permissions:
 jobs:
   cut:
     name: Cut a release if there is one
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 15
     if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
 

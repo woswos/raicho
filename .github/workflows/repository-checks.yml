@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   lint:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -33,7 +33,7 @@ jobs:
 
   pr-guards:
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -49,7 +49,7 @@ jobs:
     if: >-
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-build')
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 45
     env:
       RAICHO_COMMIT: ${{ github.sha }}
@@ -70,7 +70,7 @@ jobs:
     if: >-
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-test')
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -85,7 +85,7 @@ jobs:
     if: >-
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-test')
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 45
     env:
       COMPOSE_PROJECT_NAME: raicho-ci-${{ github.run_id }}-${{ github.run_attempt }}

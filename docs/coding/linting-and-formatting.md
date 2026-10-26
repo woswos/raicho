@@ -148,8 +148,8 @@ Exact direct Rust dependencies live in `Cargo.toml`, with the graph locked in
 The public listener uses Axum 0.8.9 without its WebSocket support.
 
 GitHub checkout stays at v7.0.1, pinned to
-`3d3c42e5aac5ba805825da76410c181273ba90b1`. The `ubuntu-24.04` hosted runner
-provides Docker and Compose, not the language-tool versions. Rebuild the tooling
+`3d3c42e5aac5ba805825da76410c181273ba90b1`. The self-hosted
+runners provide Docker and Compose, not the language-tool versions. Rebuild the tooling
 image after changing pins, then run the same check suite locally and in CI.
 
 Validation and commit authorization follow [workflow](../contributing/workflow.md) and
