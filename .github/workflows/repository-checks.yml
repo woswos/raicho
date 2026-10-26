@@ -64,6 +64,8 @@ jobs:
       - name: Validate runtime configuration
         env:
           RAICHO_CREDENTIAL_DIRECTORY: /tmp/raicho-ci-credentials
+          RAICHO_TEST_TOOLING_IMAGE: raicho-tools:local
+          RAICHO_MAIL_TEST_IMAGE: raicho-thunderbird:local
         run: |
           docker compose -f compose.yaml config --quiet
           docker compose -f compose.yaml -f compose.admin.yaml config --quiet
@@ -72,6 +74,8 @@ jobs:
           docker compose -f compose.yaml -f compose.credentials.yaml config --quiet
           docker compose -f compose.yaml -f automation/acceptance/runtime/compose.test.yaml -f compose.admin.yaml -f compose.credentials.yaml config --quiet
           docker compose -f compose.yaml -f compose.credentials.yaml -f automation/acceptance/runtime/compose.test.yaml -f automation/acceptance/connector/compose.upgrade.yaml --profile test config --quiet
+          docker compose -f mailprobe/compose.yaml --profile test config --quiet
+          docker compose -f mailprobe/compose.yaml -f mailprobe/compose.admin.yaml --profile test config --quiet
       - name: Build application images
         run: docker compose -f compose.yaml build
 
@@ -88,7 +92,7 @@ jobs:
       - name: Build tooling image
         run: docker compose -f automation/tooling/compose.yaml build
       - name: Build and test application sources
-        run: docker compose -f automation/tooling/compose.yaml run --rm check make build-app test-app test-protocol
+        run: docker compose -f automation/tooling/compose.yaml run --rm check make build-app test-app test-mailprobe test-protocol
 
   runtime-test:
     if: >-
@@ -148,3 +152,16 @@ jobs:
         env:
           TMPDIR: ${{ runner.temp }}
         run: bash automation/acceptance/credentials/check_credentials.bash
+
+  compatibility-test:
+    if: >-
+      !contains(github.event.pull_request.labels.*.name, 'design') &&
+      !contains(github.event.pull_request.labels.*.name, 'skip-test')
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify unattended mail API compatibility
+        run: bash mailprobe/tests/check_mail_compatibility.bash

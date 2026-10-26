@@ -7,7 +7,7 @@ from automation.paths import REPOSITORY_ROOT
 
 WORKFLOW = REPOSITORY_ROOT / '.github/workflows/repository-checks.yml'
 PULL_REQUEST_EVENT = "${{ github.event_name == 'pull_request' }}"
-ACCEPTANCE_JOBS = ('connector-test',)
+ACCEPTANCE_JOBS = ('connector-test', 'compatibility-test')
 
 
 class WorkflowCoverageTests(unittest.TestCase):
@@ -23,7 +23,7 @@ class WorkflowCoverageTests(unittest.TestCase):
     def test_every_acceptance_runner_runs_unattended_in_an_independent_job(self):
         runners = sorted(
             path.relative_to(REPOSITORY_ROOT).as_posix()
-            for directory in ('automation/acceptance',)
+            for directory in ('automation/acceptance', 'mailprobe')
             for path in (REPOSITORY_ROOT / directory).rglob('check_*.bash')
             if path.name != 'check_admin_isolation.bash'
         )
@@ -62,7 +62,7 @@ class WorkflowCoverageTests(unittest.TestCase):
 
     def test_application_job_runs_every_source_suite(self):
         words = set(self.script('application-test').split())
-        for target in ('build-app', 'test-app', 'test-protocol'):
+        for target in ('build-app', 'test-app', 'test-mailprobe', 'test-protocol'):
             with self.subTest(target=target):
                 self.assertIn(target, words)
 

@@ -76,7 +76,8 @@ and invocation convention.
 `test-python` runs one `unittest` discovery of `*_tests.py` from the repository
 root. Discovery enters only Python packages, so every directory on a test's
 import path needs an `__init__.py`. The suites cover repository policy including
-changelog guards, quality discovery, extension packaging, releases, the operational credential wrapper, the Thunderbird
+changelog guards, quality discovery, extension and mail probe packaging, mail
+probe fixtures, releases, the operational credential wrapper, the Thunderbird
 runtime, protocol generation, and acceptance-driver support.
 
 Rust compilation is checked by Clippy under `lint`. While Rust or TypeScript
@@ -240,7 +241,8 @@ directory, and requires the same profile to activate that version and reconnect.
 It runs unchanged in CI's `connector-test` job alongside the credential runner. See [acceptance evidence](connector-acceptance.md).
 
 The connector runner takes about 20 minutes because of its idle observation. The
-credential runner takes about 6 minutes, after cached image builds. Each owns a uniquely named project and networks, so they can run
+credential runner takes about 6 minutes and the mail runner about 3, after cached
+image builds. Each owns a uniquely named project and networks, so they can run
 concurrently. They run unchanged from a linked worktree, which tests a fixed
 commit while editing continues in another checkout.
 
@@ -270,3 +272,32 @@ python3 -B -m automation.release.cut_release
 
 Authorization follows [workflow](../contributing/workflow.md). CI behavior is
 documented in [CI](ci-cd.md), and runtime details in [runtime](runtime.md).
+
+## Mail API compatibility
+
+```bash
+docker compose -f automation/tooling/compose.yaml run --rm check make test-mailprobe
+bash mailprobe/tests/check_mail_compatibility.bash
+bash mailprobe/tests/check_mail_compatibility.bash --native
+```
+
+The separate `test-mailprobe` target compiles and tests the fixture extension.
+It does not change `build-app` or the production XPI. The host runner builds
+temporary tags for the tooling image and the normal Thunderbird image. The
+tooling image runs the controller, SMTP/IMAP fault proxy, and test driver as
+`mailprobe.tests` package modules. Their unit suites run under `test-python`. A one-off tooling service builds the mail test XPI into a
+disposable artifact volume. Thunderbird mounts it read-only over its production
+extension directory, with volume copy-up disabled, and mounts the profile setup
+package read-only under `/opt/fixture/`. Only Thunderbird loads its own NSS library to seed credentials.
+GreenMail retains its pinned upstream image. There is no separate mail-probe
+image recipe. The runner cleans up its own images, containers, networks, and volumes.
+The default run covers drafts and restart. After the scenarios, the runner checks
+fault proxy submission, rejection, lost acknowledgment, and Sent-copy rejection
+against GreenMail from inside the proxy container. `--native` also requires a
+browser on the Linux Docker host for the sending permission and native draft
+checkpoints. The probe modules compile with the shared production configuration
+parser, so the mail probe XPI keeps their `mailprobe/src/` paths.
+Sending and native checks are explicitly skipped in unattended mode. CI's
+`application-test` job tests the probe TypeScript sources, `lint` runs its Python
+suites, and `compatibility-test` runs the unattended experiment. The
+[compatibility matrix](mail-api-compatibility.md) records limits and results.

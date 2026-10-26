@@ -25,7 +25,7 @@ repeat the project name or the directory name, as in
 or `extension/build.mjs`. Their locations follow the
 [automation placement guide](../reference/project-structure.md#automation).
 Python modules that run inside containers are packages too, such as
-`deploy/thunderbird/policy.py` and `automation/acceptance/runtime/checks.py`, so the same
+`deploy/thunderbird/policy.py` and `mailprobe/tests/probe/driver.py`, so the same
 rule applies there. See the [helper naming decision](../decisions/20261026-naming-conventions.md#helper-files)
 and the [repository layout decision](../decisions/20261026-repository-layout.md).
 Document filenames follow

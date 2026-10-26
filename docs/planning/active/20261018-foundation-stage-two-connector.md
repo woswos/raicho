@@ -166,7 +166,7 @@ native consent on the pinned runtime. Keep unattended draft checks separate
 from the interactive sending checks. Record native-tab selection when needed
 to make IMAP drafts queryable after restart. Neither behavior establishes a
 production permission or folder-initialization strategy. See the
-compatibility matrix (`docs/reference/mail-api-compatibility.md`).
+[compatibility matrix](../../reference/mail-api-compatibility.md).
 
 Draft creation does not establish draft replacement. `compose.beginNew(id)`
 documents editing as a new message. Test reopening and resaving explicitly for
@@ -189,7 +189,7 @@ These experiment gates have the following bounded outcomes:
   design gate before dependent compose work, not an implemented capability.
 - SMTP submission and Sent-copy success are separate. The API returned success
   despite an injected copy failure. Lost results retain `unknown` and are never
-  automatically replayed. See the compatibility matrix (`docs/reference/mail-api-compatibility.md`).
+  automatically replayed. See the [compatibility matrix](../../reference/mail-api-compatibility.md).
 
 Future dependent work must resolve the recorded API limitations. Stop and revise
 its design if it requires a mail replica, privileged Experiment, host daemon,
@@ -324,9 +324,10 @@ The existing implementation checks are:
 ```bash
 docker compose -f automation/tooling/compose.yaml build
 docker compose -f automation/tooling/compose.yaml run --rm check \
-  make lint format-check typecheck test-python test-tooling build-app test-app test-protocol
+  make lint format-check typecheck test-python test-tooling build-app test-app test-mailprobe test-protocol
 bash automation/acceptance/connector/check_connector.bash
 bash automation/acceptance/credentials/check_credentials.bash
+bash mailprobe/tests/check_mail_compatibility.bash
 ```
 
 The extension is included in `build-app` and `test-app`, while protocol drift runs
@@ -337,8 +338,6 @@ projects, never use personal profiles or provider credentials, and clean up
 only their own resources. The existing CI labels and independent readiness
 are preserved. The [acceptance record](../../reference/connector-acceptance.md)
 separates local results, configured CI coverage, and earlier manual evidence.
-The mail probe and its compatibility check arrive with stage 2 in
-[#9](https://github.com/woswos/raicho/pull/9).
 
 The original design PR needed documentation and PR-policy checks only. The
 implementation slices additionally ran the source and runtime checks above.

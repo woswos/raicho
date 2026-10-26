@@ -7,7 +7,8 @@ decoders for authentication and heartbeat. The
 the [connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
 records the approved design.
 
-See [architecture](architecture.md) for component boundaries.
+See [architecture](architecture.md) for component boundaries and
+[mail API compatibility](mail-api-compatibility.md) for the separate experiment.
 No fixture command, account identity, message handle, or mail content belongs in
 this contract. The backend kind is an identifier, not a Thunderbird-specific type.
 
@@ -234,6 +235,7 @@ fail before generation. Review schema, generated changes, and corpus together.
 independently compiled TypeScript protocol suite. `test-server` covers the Rust
 protocol crate and generator with the rest of the workspace, and `test-extension`
 covers the compiled extension, including shared contract fixtures.
-Packaging tests require the production validator. The CSP test loads the standalone artifact with dynamic code
+Packaging tests require the production validator and exclude it from the separate
+mail probe. The CSP test loads the standalone artifact with dynamic code
 generation disabled. The [acceptance record](connector-acceptance.md) describes
 the connector lifecycle checks that CI runs.

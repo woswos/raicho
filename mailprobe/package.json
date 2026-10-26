@@ -1,0 +1,5 @@
+{
+  "name": "@raicho/mail-api-probe",
+  "private": true,
+  "type": "module"
+}

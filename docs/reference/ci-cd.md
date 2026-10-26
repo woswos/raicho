@@ -15,7 +15,8 @@ workflows always finish.
 - `pr-guards`: PR context checks on PR events only, including the changelog
   entry required for user-visible changes.
 - `application-build`: runtime and fixture Compose validation and all runtime images.
-- `application-test`: Rust, browser, extension, and shared protocol builds/tests.
+- `application-test`: Rust, browser, extension, and shared protocol builds/tests,
+  plus separate mail probe TypeScript tests.
 - `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
   administrative network isolation and listener closure, and application readiness
   while Thunderbird is stopped, in a disposable project.
@@ -23,6 +24,7 @@ workflows always finish.
   authenticated heartbeat, service/network recovery, DNS refresh, administrative
   isolation, same-profile upgrade, privacy canaries, and credential
   rotation/revocation recovery.
+- `compatibility-test`: unattended GreenMail draft/restart experiment.
 
 There are no coverage, image publication, or deployment jobs. Changelog
 releases are separate workflows described below. Runtime tests
@@ -30,7 +32,9 @@ use no accounts and remove only their job-specific containers and volumes.
 
 Language jobs build the same pinned tooling image used locally. Runtime jobs
 build the application images and use that tooling image for the smoke driver.
-Thunderbird retains its own runtime image.
+Compatibility runners also use it for Python mock services, fixture unit tests,
+and the mail test extension build. Thunderbird and GreenMail retain their own
+runtime images.
 Sources remain read-only, with separate cache/temp storage. No formatter writes
 or lint fixes run in CI. Jobs run on the
 repository's self-hosted runners, labeled `self-hosted`, `Linux`, and `X64`. Each
@@ -59,16 +63,20 @@ The Rust workspace and extension application tests exercise the same
 authentication, session replacement, heartbeat timeouts, extension retries, and
 diagnostics.
 Rust credential persistence and CLI tests run in `application-test`. Python
-automation suites, extension packaging, XPI inspection, secret-file/wrapper verification, Thunderbird process supervision and
+automation suites, extension packaging, XPI inspection, mail probe fixture
+regressions, secret-file/wrapper verification, Thunderbird process supervision and
 generated-policy tests, and protocol generation regressions run through
 `test-python`, from component-local `tests/` directories.
-The [credential](build-test-generate.md#credential-persistence) and
-[production connector](build-test-generate.md#production-connector) runners use
+The [credential](build-test-generate.md#credential-persistence),
+[production connector](build-test-generate.md#production-connector), and
+[mail compatibility](build-test-generate.md#mail-api-compatibility) runners use
 the same commands locally and in their dedicated jobs. Each owns its disposable
 project and traps exit, including failures, to remove its resources.
-The connector job allows 60 minutes for cold
+The connector job allows 60 minutes and compatibility allows 45 minutes for cold
 builds and runtime checks. They have no dependencies on the optional build job.
-See [acceptance evidence](connector-acceptance.md) for scope and limits.
+Native send permission, native draft editing, and interactive sending faults
+remain manual checks. CI does not grant native consent or claim to repeat those
+observations. See [acceptance evidence](connector-acceptance.md) for scope and limits.
 
 ## Repository integrity
 
@@ -129,10 +137,10 @@ that check and says so.
 | `design` | Validates planning-only changes and exempts the reference check. |
 | `skip-design-check` | Bypasses the design-link requirement. Does not bypass planning-only enforcement on a `design` PR. |
 | `skip-build` | Skips the dedicated application image build job. |
-| `skip-test` | Skips application, runtime, and connector test jobs. |
+| `skip-test` | Skips application, runtime, connector, and compatibility test jobs. |
 | `skip-changelog` | Skips the changelog entry check. Does not skip design, build, or test checks. |
 
-The `design` label also skips all four application jobs. Jobs are independent,
+The `design` label also skips all five application jobs. Jobs are independent,
 so a skipped build does not leave invalid test dependencies. Test jobs still
 compile/build their test prerequisites when `skip-build` is present. The labels
 do not bypass language linting, guard regression tests, or runner fixtures.
