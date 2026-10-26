@@ -168,7 +168,8 @@ in `package-lock.json`:
 | esbuild | 0.28.2 |
 
 The contract uses typify 0.8.0 and schemars 0.8.22 for Rust generation,
-jsonschema 0.59.0 for offline runtime validation, and prettyplease 0.3.0 with
+jsonschema 0.59.0 in tests that check the decoders and status documents against the
+schemas, and prettyplease 0.3.0 with
 syn 3.0.9 for generated syntax. Exact direct dependencies live in `Cargo.toml`,
 with the graph locked in `Cargo.lock`. Ajv and esbuild run only during generation,
 producing a self-contained extension validator with no runtime compiler.

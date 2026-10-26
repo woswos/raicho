@@ -123,7 +123,7 @@ impl Channel {
     }
 
     pub fn open(&mut self, raw: &str, phase: Phase, generation: &str) -> Result<ConnectorMessage, ContractError> {
-        let message = decode_value(raw, phase, Some(generation))?;
+        let (message, typed) = decode_value(raw, phase, Some(generation))?;
         let received = message["mac"]
             .as_str()
             .and_then(from_hex)
@@ -133,6 +133,6 @@ impl Channel {
             return Err(ContractError::AuthenticationFailed);
         }
         self.received += 1;
-        serde_json::from_value(message).map_err(|_| ContractError::InvalidMessage)
+        Ok(typed)
     }
 }
