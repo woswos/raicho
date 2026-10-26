@@ -36,6 +36,8 @@ LIMIT_NAMES = {
 }
 DIAGNOSTIC_LISTS = {'backend_states', 'backend_errors', 'contract_errors'}
 DIAGNOSTIC_CODE = re.compile(r'[a-z]+(?:_[a-z]+)*')
+DRAFT_7 = 'http://json-schema.org/draft-07/schema#'
+MAXIMUM_JSON_DEPTH = 100
 
 
 def validate_schema(schema, definitions):
@@ -86,9 +88,6 @@ def validate_diagnostics(diagnostics, schema):
         raise ValueError('Every contract error must be a protocol error code.')
 
 
-DRAFT_7 = 'http://json-schema.org/draft-07/schema#'
-
-
 def validate_document(schema):
     if schema.get('$schema') != DRAFT_7:
         raise ValueError('The protocol uses JSON Schema draft 7.')
@@ -114,6 +113,9 @@ def validate_sources(schema, limits, diagnostics):
         for value in limits.values()
     ):
         raise ValueError('Protocol limits must contain the expected positive integers.')
+    # serde_json stops parsing at depth 128, so a deeper limit would make the decoders disagree.
+    if limits['maximum_json_depth'] > MAXIMUM_JSON_DEPTH:
+        raise ValueError(f'maximum_json_depth must not exceed {MAXIMUM_JSON_DEPTH}.')
     for definition in definitions.values():
         properties = definition.get('properties', {})
         if 'protocol_version' in properties and properties['protocol_version'].get(

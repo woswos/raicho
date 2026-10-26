@@ -54,11 +54,15 @@ class ProtocolGenerationTests(unittest.TestCase):
             validate_sources(self.schema, self.limits, self.diagnostics)
 
     def test_schema_and_runtime_protocol_versions_cannot_drift(self):
-        limits = self.limits | {
-            'protocol_version': self.limits['protocol_version'] + 1
-        }
+        limits = self.limits | {'protocol_version': self.limits['protocol_version'] + 1}
         with self.assertRaisesRegex(ValueError, 'disagrees'):
             validate_sources(self.schema, limits, self.diagnostics)
+
+    def test_json_depth_stays_below_the_parser_limits(self):
+        with self.assertRaisesRegex(ValueError, 'depth'):
+            validate_sources(
+                self.schema, self.limits | {'maximum_json_depth': 101}, self.diagnostics
+            )
 
     def test_limits_must_be_positive_integers(self):
         for value in [0, -1, True, 1.5, '4096']:

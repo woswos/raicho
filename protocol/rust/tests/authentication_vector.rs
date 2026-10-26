@@ -60,4 +60,6 @@ fn proofs_fail_for_another_token_message_or_altered_byte() {
     assert!(!verify_client_proof(&keys.stored_key, message, &altered));
     assert_eq!(from_hex("0"), None);
     assert_eq!(from_hex(&"g".repeat(64)), None);
+    assert_eq!(from_hex(&"A".repeat(64)), None);
+    assert_eq!(from_hex(&"+f".repeat(32)), None);
 }
