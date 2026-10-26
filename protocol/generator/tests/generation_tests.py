@@ -53,16 +53,12 @@ class ProtocolGenerationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'vocabulary'):
             validate_sources(self.schema, self.limits, self.diagnostics)
 
-    def test_schema_and_runtime_limits_cannot_drift(self):
-        for name in [
-            'protocol_version',
-            'heartbeat_interval_ms',
-            'heartbeat_timeout_ms',
-        ]:
-            with self.subTest(name=name):
-                limits = self.limits | {name: self.limits[name] + 1}
-                with self.assertRaisesRegex(ValueError, 'disagrees'):
-                    validate_sources(self.schema, limits, self.diagnostics)
+    def test_schema_and_runtime_protocol_versions_cannot_drift(self):
+        limits = self.limits | {
+            'protocol_version': self.limits['protocol_version'] + 1
+        }
+        with self.assertRaisesRegex(ValueError, 'disagrees'):
+            validate_sources(self.schema, limits, self.diagnostics)
 
     def test_limits_must_be_positive_integers(self):
         for value in [0, -1, True, 1.5, '4096']:

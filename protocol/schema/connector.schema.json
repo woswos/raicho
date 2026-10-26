@@ -125,8 +125,6 @@
         "protocol_version",
         "generation",
         "capabilities",
-        "heartbeat_interval_ms",
-        "heartbeat_timeout_ms",
         "server_signature"
       ],
       "properties": {
@@ -143,14 +141,6 @@
         },
         "capabilities": {
           "$ref": "#/definitions/Capabilities"
-        },
-        "heartbeat_interval_ms": {
-          "type": "integer",
-          "enum": [15000]
-        },
-        "heartbeat_timeout_ms": {
-          "type": "integer",
-          "enum": [45000]
         },
         "server_signature": {
           "$ref": "#/definitions/Signature"
