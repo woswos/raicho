@@ -29,8 +29,6 @@ export interface Welcome {
   protocol_version: 1;
   generation: Generation;
   capabilities: Capabilities;
-  heartbeat_interval_ms: 15000;
-  heartbeat_timeout_ms: 45000;
   server_signature: Signature;
 }
 export interface Ping {

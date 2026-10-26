@@ -108,13 +108,10 @@ def validate_sources(schema, limits, diagnostics):
         raise ValueError('Protocol limits must contain the expected positive integers.')
     for definition in definitions.values():
         properties = definition.get('properties', {})
-        for name in [
-            'protocol_version',
-            'heartbeat_interval_ms',
-            'heartbeat_timeout_ms',
+        if 'protocol_version' in properties and properties['protocol_version'].get('enum') != [
+            limits['protocol_version']
         ]:
-            if name in properties and properties[name].get('enum') != [limits[name]]:
-                raise ValueError(f'Protocol schema disagrees with limit {name}.')
+            raise ValueError('Protocol schema disagrees with limit protocol_version.')
     if limits['maximum_authentication_bytes'] > limits['maximum_control_bytes']:
         raise ValueError('Authentication frames cannot exceed the control limit.')
     if limits['heartbeat_interval_ms'] >= limits['heartbeat_timeout_ms']:

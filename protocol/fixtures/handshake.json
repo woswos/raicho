@@ -71,8 +71,6 @@
       "protocol_version": 1,
       "generation": "0123456789abcdef0123456789abcdef",
       "capabilities": [],
-      "heartbeat_interval_ms": 15000,
-      "heartbeat_timeout_ms": 45000,
       "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
     }
   },
@@ -118,9 +116,7 @@
       "type": "welcome",
       "protocol_version": 1,
       "generation": "0123456789abcdef0123456789abcdef",
-      "capabilities": [],
-      "heartbeat_interval_ms": 15000,
-      "heartbeat_timeout_ms": 45000
+      "capabilities": []
     }
   },
   {
@@ -147,8 +143,6 @@
       "protocol_version": 1,
       "generation": "0123456789abcdef0123456789abcdef",
       "capabilities": [],
-      "heartbeat_interval_ms": 15000,
-      "heartbeat_timeout_ms": 45000,
       "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
     }
   },
@@ -428,28 +422,11 @@
       "protocol_version": 1,
       "generation": "0123456789abcdef0123456789abcdef",
       "capabilities": ["mail"],
-      "heartbeat_interval_ms": 15000,
-      "heartbeat_timeout_ms": 45000,
       "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
     }
   },
   {
-    "name": "unsupported heartbeat interval",
-    "phase": "handshake",
-    "valid": false,
-    "error": "invalid_message",
-    "message": {
-      "type": "welcome",
-      "protocol_version": 1,
-      "generation": "0123456789abcdef0123456789abcdef",
-      "capabilities": [],
-      "heartbeat_interval_ms": 1000,
-      "heartbeat_timeout_ms": 45000,
-      "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-    }
-  },
-  {
-    "name": "unsupported heartbeat timeout",
+    "name": "welcome with a removed heartbeat field",
     "phase": "handshake",
     "valid": false,
     "error": "invalid_message",
@@ -459,7 +436,6 @@
       "generation": "0123456789abcdef0123456789abcdef",
       "capabilities": [],
       "heartbeat_interval_ms": 15000,
-      "heartbeat_timeout_ms": 0,
       "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
     }
   },

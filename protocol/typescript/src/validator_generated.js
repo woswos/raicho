@@ -793,22 +793,12 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
 var schema18 = {
   type: 'object',
   additionalProperties: false,
-  required: [
-    'type',
-    'protocol_version',
-    'generation',
-    'capabilities',
-    'heartbeat_interval_ms',
-    'heartbeat_timeout_ms',
-    'server_signature',
-  ],
+  required: ['type', 'protocol_version', 'generation', 'capabilities', 'server_signature'],
   properties: {
     type: { type: 'string', enum: ['welcome'] },
     protocol_version: { type: 'integer', enum: [1] },
     generation: { $ref: '#/definitions/Generation' },
     capabilities: { $ref: '#/definitions/Capabilities' },
-    heartbeat_interval_ms: { type: 'integer', enum: [15e3] },
-    heartbeat_timeout_ms: { type: 'integer', enum: [45e3] },
     server_signature: { $ref: '#/definitions/Signature' },
   },
 };
@@ -825,10 +815,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
           (missing0 = 'protocol_version')) ||
         ((data.generation === void 0 || !func0.call(data, 'generation')) && (missing0 = 'generation')) ||
         ((data.capabilities === void 0 || !func0.call(data, 'capabilities')) && (missing0 = 'capabilities')) ||
-        ((data.heartbeat_interval_ms === void 0 || !func0.call(data, 'heartbeat_interval_ms')) &&
-          (missing0 = 'heartbeat_interval_ms')) ||
-        ((data.heartbeat_timeout_ms === void 0 || !func0.call(data, 'heartbeat_timeout_ms')) &&
-          (missing0 = 'heartbeat_timeout_ms')) ||
         ((data.server_signature === void 0 || !func0.call(data, 'server_signature')) && (missing0 = 'server_signature'))
       ) {
         validate15.errors = [
@@ -849,8 +835,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
             key0 === 'protocol_version' ||
             key0 === 'generation' ||
             key0 === 'capabilities' ||
-            key0 === 'heartbeat_interval_ms' ||
-            key0 === 'heartbeat_timeout_ms' ||
             key0 === 'server_signature'
           )) {
             validate15.errors = [
@@ -1084,132 +1068,66 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                   var valid0 = true;
                 }
                 if (valid0) {
-                  if (data.heartbeat_interval_ms !== void 0 && func0.call(data, 'heartbeat_interval_ms')) {
-                    let data5 = data.heartbeat_interval_ms;
+                  if (data.server_signature !== void 0 && func0.call(data, 'server_signature')) {
+                    let data5 = data.server_signature;
                     const _errs14 = errors;
-                    if (!(typeof data5 == 'number' && !(data5 % 1) && !isNaN(data5) && isFinite(data5))) {
-                      validate15.errors = [
-                        {
-                          instancePath: instancePath + '/heartbeat_interval_ms',
-                          schemaPath: '#/properties/heartbeat_interval_ms/type',
-                          keyword: 'type',
-                          params: { type: 'integer' },
-                          message: 'must be integer',
-                        },
-                      ];
-                      return false;
-                    }
-                    if (!(data5 === 15e3)) {
-                      validate15.errors = [
-                        {
-                          instancePath: instancePath + '/heartbeat_interval_ms',
-                          schemaPath: '#/properties/heartbeat_interval_ms/enum',
-                          keyword: 'enum',
-                          params: { allowedValues: schema18.properties.heartbeat_interval_ms.enum },
-                          message: 'must be equal to one of the allowed values',
-                        },
-                      ];
-                      return false;
+                    const _errs15 = errors;
+                    if (errors === _errs15) {
+                      if (typeof data5 === 'string') {
+                        if (func51(data5) > 64) {
+                          validate15.errors = [
+                            {
+                              instancePath: instancePath + '/server_signature',
+                              schemaPath: '#/definitions/Signature/maxLength',
+                              keyword: 'maxLength',
+                              params: { limit: 64 },
+                              message: 'must NOT have more than 64 characters',
+                            },
+                          ];
+                          return false;
+                        } else {
+                          if (func51(data5) < 64) {
+                            validate15.errors = [
+                              {
+                                instancePath: instancePath + '/server_signature',
+                                schemaPath: '#/definitions/Signature/minLength',
+                                keyword: 'minLength',
+                                params: { limit: 64 },
+                                message: 'must NOT have fewer than 64 characters',
+                              },
+                            ];
+                            return false;
+                          } else {
+                            if (!pattern0.test(data5)) {
+                              validate15.errors = [
+                                {
+                                  instancePath: instancePath + '/server_signature',
+                                  schemaPath: '#/definitions/Signature/pattern',
+                                  keyword: 'pattern',
+                                  params: { pattern: '^[a-f0-9]{64}$' },
+                                  message: 'must match pattern "^[a-f0-9]{64}$"',
+                                },
+                              ];
+                              return false;
+                            }
+                          }
+                        }
+                      } else {
+                        validate15.errors = [
+                          {
+                            instancePath: instancePath + '/server_signature',
+                            schemaPath: '#/definitions/Signature/type',
+                            keyword: 'type',
+                            params: { type: 'string' },
+                            message: 'must be string',
+                          },
+                        ];
+                        return false;
+                      }
                     }
                     var valid0 = _errs14 === errors;
                   } else {
                     var valid0 = true;
-                  }
-                  if (valid0) {
-                    if (data.heartbeat_timeout_ms !== void 0 && func0.call(data, 'heartbeat_timeout_ms')) {
-                      let data6 = data.heartbeat_timeout_ms;
-                      const _errs16 = errors;
-                      if (!(typeof data6 == 'number' && !(data6 % 1) && !isNaN(data6) && isFinite(data6))) {
-                        validate15.errors = [
-                          {
-                            instancePath: instancePath + '/heartbeat_timeout_ms',
-                            schemaPath: '#/properties/heartbeat_timeout_ms/type',
-                            keyword: 'type',
-                            params: { type: 'integer' },
-                            message: 'must be integer',
-                          },
-                        ];
-                        return false;
-                      }
-                      if (!(data6 === 45e3)) {
-                        validate15.errors = [
-                          {
-                            instancePath: instancePath + '/heartbeat_timeout_ms',
-                            schemaPath: '#/properties/heartbeat_timeout_ms/enum',
-                            keyword: 'enum',
-                            params: { allowedValues: schema18.properties.heartbeat_timeout_ms.enum },
-                            message: 'must be equal to one of the allowed values',
-                          },
-                        ];
-                        return false;
-                      }
-                      var valid0 = _errs16 === errors;
-                    } else {
-                      var valid0 = true;
-                    }
-                    if (valid0) {
-                      if (data.server_signature !== void 0 && func0.call(data, 'server_signature')) {
-                        let data7 = data.server_signature;
-                        const _errs18 = errors;
-                        const _errs19 = errors;
-                        if (errors === _errs19) {
-                          if (typeof data7 === 'string') {
-                            if (func51(data7) > 64) {
-                              validate15.errors = [
-                                {
-                                  instancePath: instancePath + '/server_signature',
-                                  schemaPath: '#/definitions/Signature/maxLength',
-                                  keyword: 'maxLength',
-                                  params: { limit: 64 },
-                                  message: 'must NOT have more than 64 characters',
-                                },
-                              ];
-                              return false;
-                            } else {
-                              if (func51(data7) < 64) {
-                                validate15.errors = [
-                                  {
-                                    instancePath: instancePath + '/server_signature',
-                                    schemaPath: '#/definitions/Signature/minLength',
-                                    keyword: 'minLength',
-                                    params: { limit: 64 },
-                                    message: 'must NOT have fewer than 64 characters',
-                                  },
-                                ];
-                                return false;
-                              } else {
-                                if (!pattern0.test(data7)) {
-                                  validate15.errors = [
-                                    {
-                                      instancePath: instancePath + '/server_signature',
-                                      schemaPath: '#/definitions/Signature/pattern',
-                                      keyword: 'pattern',
-                                      params: { pattern: '^[a-f0-9]{64}$' },
-                                      message: 'must match pattern "^[a-f0-9]{64}$"',
-                                    },
-                                  ];
-                                  return false;
-                                }
-                              }
-                            }
-                          } else {
-                            validate15.errors = [
-                              {
-                                instancePath: instancePath + '/server_signature',
-                                schemaPath: '#/definitions/Signature/type',
-                                keyword: 'type',
-                                params: { type: 'string' },
-                                message: 'must be string',
-                              },
-                            ];
-                            return false;
-                          }
-                        }
-                        var valid0 = _errs18 === errors;
-                      } else {
-                        var valid0 = true;
-                      }
-                    }
                   }
                 }
               }

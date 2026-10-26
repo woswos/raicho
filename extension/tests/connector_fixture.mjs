@@ -29,8 +29,6 @@ export const welcome = {
   protocol_version: 1,
   generation,
   capabilities: [],
-  heartbeat_interval_ms: 15000,
-  heartbeat_timeout_ms: 45000,
 };
 export const ping = {
   type: 'ping',

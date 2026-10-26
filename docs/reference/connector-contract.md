@@ -72,7 +72,7 @@ list only. Heartbeat is mandatory connection control, not an advertised mail fea
 | --- | --- | --- |
 | `challenge` | Server to connector, `challenge` | 256-bit server nonce |
 | `authenticate` | Connector to server, `authentication` | 256-bit client nonce and proof, backend kind/version, connector version, empty capabilities |
-| `welcome` | Server to connector, `handshake` | Server-issued generation, server signature, empty capabilities, fixed heartbeat interval/timeout |
+| `welcome` | Server to connector, `handshake` | Server-issued generation, server signature, empty capabilities. Both sides take heartbeat timing from `protocol/limits.json` |
 | `ping` | Server to connector, `server_control` | Current generation, bounded positive sequence, and frame MAC |
 | `pong` | Connector to server, `client_control` | Current generation, echoed sequence, and frame MAC |
 | `error` | Server to connector, challenge, handshake, or control | Enumerated code, generation and frame MAC only after negotiation |

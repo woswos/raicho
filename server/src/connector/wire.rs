@@ -6,9 +6,7 @@ use raicho_protocol::contract_generated::{
     Capabilities, Challenge, ChallengeType, Generation, Nonce, Ping, PingType, ProtocolError, ProtocolErrorType,
     Signature, Welcome, WelcomeType,
 };
-use raicho_protocol::limits_generated::{
-    AUTHENTICATION_DEADLINE_MS, HEARTBEAT_INTERVAL_MS, HEARTBEAT_TIMEOUT_MS, PROTOCOL_VERSION,
-};
+use raicho_protocol::limits_generated::{AUTHENTICATION_DEADLINE_MS, PROTOCOL_VERSION};
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::tungstenite::protocol::{CloseFrame, frame::coding::CloseCode};
 
@@ -43,12 +41,6 @@ pub(super) async fn welcome(
             capabilities: Capabilities(Vec::new()),
             generation: generation.clone(),
             server_signature: server_signature.clone(),
-            heartbeat_interval_ms: (HEARTBEAT_INTERVAL_MS as i64)
-                .try_into()
-                .expect("Shared heartbeat interval"),
-            heartbeat_timeout_ms: (HEARTBEAT_TIMEOUT_MS as i64)
-                .try_into()
-                .expect("Shared heartbeat timeout"),
             protocol_version: protocol_version(),
             type_: WelcomeType::Welcome,
         },

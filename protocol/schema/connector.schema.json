@@ -120,15 +120,7 @@
     "Welcome": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "type",
-        "protocol_version",
-        "generation",
-        "capabilities",
-        "heartbeat_interval_ms",
-        "heartbeat_timeout_ms",
-        "server_signature"
-      ],
+      "required": ["type", "protocol_version", "generation", "capabilities", "server_signature"],
       "properties": {
         "type": {
           "type": "string",
@@ -143,14 +135,6 @@
         },
         "capabilities": {
           "$ref": "#/definitions/Capabilities"
-        },
-        "heartbeat_interval_ms": {
-          "type": "integer",
-          "enum": [15000]
-        },
-        "heartbeat_timeout_ms": {
-          "type": "integer",
-          "enum": [45000]
         },
         "server_signature": {
           "$ref": "#/definitions/Signature"

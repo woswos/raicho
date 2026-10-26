@@ -85,7 +85,7 @@ for (const message of [
 for (const [name, change] of [
   ['forged signature', (message) => ({ ...message, server_signature: 'e'.repeat(64) })],
   ['another protocol version', (message) => ({ ...message, protocol_version: 2 })],
-  ['unsupported heartbeat', (message) => ({ ...message, heartbeat_timeout_ms: 99999 })],
+  ['removed heartbeat field', (message) => ({ ...message, heartbeat_timeout_ms: 45000 })],
   ['mail capability', (message) => ({ ...message, capabilities: ['mail'] })],
   ['invalid generation', (message) => ({ ...message, generation: 'bad' })],
 ]) {
