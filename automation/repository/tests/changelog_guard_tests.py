@@ -34,6 +34,7 @@ class ChangelogGuardTests(GuardTestCase):
         self.assertFalse(is_shipping('docs/reference/versioning.md'))
         self.assertFalse(is_shipping('deploy/raicho/Dockerfile.dockerignore'))
         self.assertFalse(is_shipping('deploy/gateway/Dockerfile.dockerignore'))
+        self.assertFalse(is_shipping('deploy/gateway/README.md'))
 
     def test_shipping_change_requires_an_entry(self):
         repo, environment = self.shipping_change()

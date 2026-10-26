@@ -19,7 +19,7 @@ def is_shipping(path):
     name = path.rsplit('/', 1)[-1]
     if '/tests/' in f'/{path}' or name.endswith(('_tests.py', '_test.rs')):
         return False
-    if '.test.' in name or name.endswith('.dockerignore'):
+    if '.test.' in name or name.endswith(('.dockerignore', '.md')):
         return False
     if path.startswith(('server/src/', 'protocol/rust/src/')) and name.endswith('.rs'):
         return True
