@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-for CONFIGURATION in package.json package-lock.json eslint.config.mjs; do
+for CONFIGURATION in package.json package-lock.json .npmrc eslint.config.mjs; do
     if ! cmp -s "/workspace/${CONFIGURATION}" "/opt/quality/${CONFIGURATION}"; then
         echo "FAIL: ${CONFIGURATION} changed. Run make on the host, which rebuilds the image first." >&2
         exit 1

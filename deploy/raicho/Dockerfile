@@ -1,7 +1,7 @@
 FROM node:24.22.0-bookworm-slim@sha256:a5f4366e834695d5f363b920c104953a535d3a9864d1bdf74566a0ebe01daee5 AS web
 WORKDIR /source
-COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts --no-audit --no-fund
+COPY package.json package-lock.json .npmrc ./
+RUN npm ci
 ENV PATH="/source/node_modules/.bin:${PATH}"
 COPY web/ web/
 COPY assets/brand/ assets/brand/

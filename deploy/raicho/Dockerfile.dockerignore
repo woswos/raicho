@@ -3,6 +3,7 @@
 !Cargo.lock
 !package.json
 !package-lock.json
+!.npmrc
 !server/
 !server/**
 !protocol/
