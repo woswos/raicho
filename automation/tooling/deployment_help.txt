@@ -25,7 +25,8 @@ one deployment, chosen by RAICHO_PROJECT, then COMPOSE_PROJECT_NAME, then
 # Remove
   make deploy-clean   List the deployment and ask you to type its name, then
                       delete its containers, networks, volumes (including the
-                      Thunderbird profile), and .raicho/<project>/.
+                      Thunderbird profile), and .raicho/<project>/, and run
+                      everything make clean does.
 
 Add VERBOSE=1 for Docker progress. Details: docs/operations/local-runtime.md
 and docs/operations/connector-credentials.md.

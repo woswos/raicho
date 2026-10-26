@@ -118,8 +118,9 @@ make deploy-clean
 networks, both volumes, including the Thunderbird profile, and its state directory
 with the connector token. It lists what it found and asks you to type the project
 name. Any other answer, or no input, cancels without removing anything and exits
-with an error. Images stay, so `make deploy-up` starts a fresh, unconfigured
-deployment.
+with an error. After removing the deployment, or finding nothing to remove, it
+runs every `make clean` step. Images stay, so `make deploy-up` starts a fresh,
+unconfigured deployment.
 
 It refuses the `raicho-tools` project, a state directory that is a symlink or is
 not owned by you with mode 0700, and a deployment whose operation lock a

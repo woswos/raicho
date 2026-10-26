@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Permanently remove one deployment: its containers, networks, volumes, and state directory.
+# Permanently remove one deployment: its containers, networks, volumes, and state directory. Then clean.
 set -euo pipefail
 
 # shellcheck source=automation/tooling/clean.bash
@@ -31,6 +31,7 @@ mapfile -t NETWORKS < <(list network --format '{{.Name}}' --filter "${FILTER}")
 mapfile -t VOLUMES < <(list volume --format '{{.Name}}' --filter "${FILTER}")
 if ((${#CONTAINERS[@]} + ${#NETWORKS[@]} + ${#VOLUMES[@]} == 0)) && [[ ! -e ${STATE_DIRECTORY} ]]; then
     echo "Deployment ${PROJECT} has nothing to remove"
+    clean
     exit 0
 fi
 
@@ -68,3 +69,4 @@ if [[ -e ${STATE_DIRECTORY} ]] && ! remove_directory "${STATE_DIRECTORY}"; then
 fi
 remove_project "${PROJECT}"
 echo "Removed deployment ${PROJECT}, its volumes, and its state directory"
+clean
