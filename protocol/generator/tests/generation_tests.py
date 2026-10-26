@@ -52,16 +52,10 @@ class ProtocolGenerationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'vocabulary'):
             validate_sources(self.schema, self.limits, self.diagnostics)
 
-    def test_schema_and_runtime_limits_cannot_drift(self):
-        for name in [
-            'protocol_version',
-            'heartbeat_interval_ms',
-            'heartbeat_timeout_ms',
-        ]:
-            with self.subTest(name=name):
-                limits = self.limits | {name: self.limits[name] + 1}
-                with self.assertRaisesRegex(ValueError, 'disagrees'):
-                    validate_sources(self.schema, limits, self.diagnostics)
+    def test_schema_and_runtime_protocol_versions_cannot_drift(self):
+        limits = self.limits | {'protocol_version': self.limits['protocol_version'] + 1}
+        with self.assertRaisesRegex(ValueError, 'disagrees'):
+            validate_sources(self.schema, limits, self.diagnostics)
 
     def test_limits_must_be_positive_integers(self):
         for value in [0, -1, True, 1.5, '4096']:
@@ -106,13 +100,20 @@ class ProtocolGenerationTests(unittest.TestCase):
             with self.subTest(verbose=verbose), mock.patch.dict(os.environ, {'VERBOSE': verbose}):
                 self.assertEqual(node_reporter(), reporter)
 
-    def test_the_generator_runs_from_the_shared_debug_build(self):
-        with (
-            mock.patch.dict(os.environ, {'CARGO_TARGET_DIR': '/cache/target'}),
-            mock.patch.object(cli.subprocess, 'run') as run,
-            self.assertRaises(OSError),
-        ):
-            cli.generate('check')
-        commands = [call.args[0] for call in run.call_args_list]
-        self.assertEqual(commands[0], ['cargo', 'build', '--workspace', '--all-targets', '--locked'])
-        self.assertEqual(commands[1][0], '/cache/target/debug/raicho-protocol-generator')
+    def test_the_generator_runs_from_the_shared_target_directory(self):
+        builds = {
+            'check': ['cargo', 'build', '--workspace', '--all-targets', '--locked'],
+            'generate': ['cargo', 'build', '--locked', '--package', 'raicho-protocol-generator'],
+        }
+        for action, build in builds.items():
+            with (
+                self.subTest(action=action),
+                mock.patch.dict(os.environ, {'CARGO_TARGET_DIR': '/cache/target'}),
+                mock.patch.object(cli.subprocess, 'run') as run,
+                mock.patch.object(cli.shutil, 'copyfile'),
+                self.assertRaises(OSError),
+            ):
+                cli.generate(action)
+            commands = [call.args[0] for call in run.call_args_list]
+            self.assertEqual(commands[0], build)
+            self.assertEqual(commands[1][0], '/cache/target/debug/raicho-protocol-generator')

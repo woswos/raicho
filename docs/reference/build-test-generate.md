@@ -216,7 +216,9 @@ for debugger symbols, or `CARGO_INCREMENTAL=0` to match CI.
 
 Every debug Cargo command uses the same `--workspace --all-targets --locked`
 selection and the shared target directory: builds, tests, Clippy, and the protocol
-generator, which `check-protocol` runs from that directory. A different selection
+generator, which `check-protocol` runs from that directory. `generate-protocol`
+builds only the generator, because the consumers may not compile until they
+receive the bindings it writes. A different selection
 resolves different dependency features and compiles duplicate copies of them.
 
 `make images`, which the `deploy-` targets run first, builds the runtime images
