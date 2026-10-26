@@ -62,6 +62,7 @@ class StepTests(unittest.TestCase):
             'clean': ('cleaning up', 'cleaned up'),
             'deploy-up': ('starting deployment', 'started deployment'),
             'deploy-down': ('stopping deployment', 'stopped deployment'),
+            'deploy-clean': ('removing deployment', 'removed deployment'),
             'deploy-connector-init': ('running connector init', 'ran connector init'),
             'mrproper': ('removing everything', 'removed everything'),
         }

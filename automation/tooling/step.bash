@@ -15,6 +15,7 @@ describe() {
         deploy-up) echo 'starting|started|deployment' ;;
         deploy-admin) echo 'starting|started|deployment with the Thunderbird desktop' ;;
         deploy-down) echo 'stopping|stopped|deployment' ;;
+        deploy-clean) echo 'removing|removed|deployment' ;;
         deploy-connector-*) echo "running|ran|connector ${TARGET#deploy-connector-}" ;;
         tooling-image) echo 'building|built|tooling image' ;;
         images) echo 'building|built|runtime images' ;;

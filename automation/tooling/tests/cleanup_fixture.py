@@ -9,7 +9,7 @@ from automation.testing.docker_mock import DockerMock
 
 PROJECT_FORMAT = '{{.Label "com.docker.compose.project"}}'
 PROJECT_FILTER = 'label=com.docker.compose.project='
-SCRIPTS = ('clean.bash', 'mrproper.bash')
+SCRIPTS = ('clean.bash', 'mrproper.bash', 'deploy_clean.bash')
 
 
 class CleanupFixture(unittest.TestCase):
@@ -33,14 +33,15 @@ class CleanupFixture(unittest.TestCase):
         path.write_text(text)
         return path
 
-    def run_script(self, script, *responses):
+    def run_script(self, script, *responses, answer='', status=0, **environment):
         docker = DockerMock(self.directory / 'commands', responses)
         result = subprocess.run(
             ['bash', str(self.root / 'automation/tooling' / script)],
-            env=docker.environment(TMPDIR=str(self.temporary)),
+            env=docker.environment(TMPDIR=str(self.temporary), **environment),
+            input=answer,
             capture_output=True,
             text=True,
             check=False,
         )
-        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.returncode, status, result.stderr)
         return docker.commands(), result

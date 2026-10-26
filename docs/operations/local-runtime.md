@@ -107,6 +107,19 @@ make deploy-connector-init
 This deletes Raicho's application state, including the connector credential.
 Thunderbird's profile volume is untouched.
 
+## Remove a deployment
+
+```bash
+make deploy-clean
+```
+
+`deploy-clean` permanently deletes the selected deployment: its containers,
+networks, both volumes, including the Thunderbird profile, and its state directory
+with the connector token. It lists what it found and asks you to type the project
+name. Any other answer, or no input, cancels without removing anything. It
+refuses to run while a credential command holds the deployment's operation lock.
+Images stay, so `make deploy-up` starts a fresh, unconfigured deployment.
+
 ## Disposable automated checks
 
 The runtime check creates its own project, builds the same images as CI, and removes
