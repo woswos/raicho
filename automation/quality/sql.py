@@ -26,12 +26,6 @@ def sql(root, files, action, tooling_root):
         '--ignore-local-config',
         '--config',
         configuration,
-        '--templater',
-        'raw',
-        '--dialect',
-        'sqlite',
-        '--encoding',
-        'utf-8',
         '--nocolor',
     ]
     if action == 'lint':
