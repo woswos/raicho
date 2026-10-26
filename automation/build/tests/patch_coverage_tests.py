@@ -1,0 +1,37 @@
+import os
+import unittest
+from unittest import mock
+
+from automation.build.patch_coverage import comparison_base
+from automation.testing.guard_fixtures import CLEARED_ENVIRONMENT, TemporaryRepo
+
+
+class PatchCoverageTests(unittest.TestCase):
+    def setUp(self):
+        self.repo = TemporaryRepo()
+        self.addCleanup(self.repo.cleanup)
+        self.repo.write('README.md', 'base\n')
+        self.repo.commit()
+        environment = {
+            name: value
+            for name, value in os.environ.items()
+            if name not in CLEARED_ENVIRONMENT
+        }
+        patcher = mock.patch.dict(os.environ, environment, clear=True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_compares_against_the_pull_request_base(self):
+        base = self.repo.head()
+        self.repo.write('README.md', 'change\n')
+        self.repo.commit()
+        with mock.patch.dict(os.environ, {'PR_BASE_SHA': base}):
+            self.assertEqual(comparison_base(self.repo.root), base)
+
+    def test_requires_a_base_without_origin_main(self):
+        with self.assertRaisesRegex(ValueError, 'PR_BASE_SHA'):
+            comparison_base(self.repo.root)
+
+
+if __name__ == '__main__':
+    unittest.main()

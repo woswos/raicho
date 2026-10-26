@@ -184,6 +184,8 @@ checkout. Control-contract generation is described below.
 
 ```bash
 docker compose -f automation/tooling/compose.yaml run --rm check make coverage
+PR_BASE_SHA="$(git rev-parse origin/main)" \
+  docker compose -f automation/tooling/compose.yaml run --rm check make check-patch-coverage
 ```
 
 `coverage` runs the Rust workspace tests, the protocol, web, and extension
@@ -199,9 +201,14 @@ guard copies that tests run from temporary repositories. The lcov reports stay i
 Tests, generated files, dependencies, the acceptance drivers in
 `automation/acceptance/`, and the `mailprobe/` test artifact are not measured. A
 source that no test loads, such as a browser entry point, is absent from the
-reports rather than reported as uncovered. The
-[patch coverage decision](../decisions/20261026-repository-layout.md#patch-coverage) records the
-tool choices.
+reports rather than reported as uncovered.
+
+`check-patch-coverage` runs `coverage`, then diff-cover over the reports. It fails
+when fewer than 90 percent of the changed, measured lines are covered, and lists
+the uncovered lines. The comparison base is the PR base from the GitHub event or
+`PR_BASE_SHA`, otherwise the merge base with `origin/main`. Uncommitted changes
+count. The [patch coverage decision](../decisions/20261026-repository-layout.md#patch-coverage)
+records the tool choices.
 
 ## Connector contract
 

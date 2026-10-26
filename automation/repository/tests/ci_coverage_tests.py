@@ -79,3 +79,12 @@ class WorkflowCoverageTests(unittest.TestCase):
 
     def test_lint_job_runs_every_python_suite(self):
         self.assertIn('test-python', self.script('lint').split())
+
+    def test_coverage_job_gates_pull_requests_on_changed_lines(self):
+        job = self.jobs['coverage']
+        self.assertIn("github.event_name == 'pull_request'", job['if'])
+        for label in ('design', 'skip-test', 'skip-coverage-check'):
+            with self.subTest(label=label):
+                self.assertIn(f"'{label}'", job['if'])
+        self.assertEqual(job['steps'][0]['with']['fetch-depth'], '0')
+        self.assertIn('make check-patch-coverage', self.script('coverage'))
