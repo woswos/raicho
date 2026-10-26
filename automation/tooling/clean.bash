@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Remove regenerable build output, interrupted acceptance deployments, and this project's images.
+# Remove regenerable build output and interrupted acceptance deployments.
 set -euo pipefail
 
 SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,7 +9,6 @@ cd "${REPOSITORY_ROOT}"
 PROJECT_LABEL=com.docker.compose.project
 DISPOSABLE_PROJECT='^raicho-[a-z]+-[0-9]+-[0-9]+$'
 DISPOSABLE_IMAGE='^raicho-[a-z]+-[0-9]+-[0-9]+[:-]'
-PROJECT_IMAGES=(raicho-tools:local raicho-server:local raicho-gateway:local raicho-thunderbird:local)
 CACHE_VOLUME=raicho-tools_cache
 TEMPORARY_DIRECTORY="${TMPDIR:-/tmp}"
 
@@ -97,11 +96,8 @@ remove_cache() {
 }
 
 remove_images() {
-    local IMAGES IMAGE
-    mapfile -t IMAGES < <(
-        docker image ls --format '{{.Repository}}:{{.Tag}}' | grep -E "${DISPOSABLE_IMAGE}"
-    )
-    for IMAGE in "${IMAGES[@]}" "${PROJECT_IMAGES[@]}"; do
+    local IMAGE
+    for IMAGE in "${@}"; do
         if ! docker image inspect "${IMAGE}" >/dev/null 2>&1; then
             continue
         fi
@@ -113,9 +109,19 @@ remove_images() {
     done
 }
 
-remove_ignored_output
-remove_disposable_projects
-remove_state_directories
-remove_cache
-remove_images
-echo 'Clean finished. The raicho deployment, its volumes, and .raicho/ were not touched.'
+clean() {
+    local DISPOSABLE_IMAGES
+    remove_ignored_output
+    remove_disposable_projects
+    remove_state_directories
+    remove_cache
+    mapfile -t DISPOSABLE_IMAGES < <(
+        docker image ls --format '{{.Repository}}:{{.Tag}}' | grep -E "${DISPOSABLE_IMAGE}"
+    )
+    remove_images "${DISPOSABLE_IMAGES[@]}"
+}
+
+if [[ ${BASH_SOURCE[0]} == "${0}" ]]; then
+    clean
+    echo 'Clean finished. Project images, the raicho deployment, its volumes, and .raicho/ were kept.'
+fi

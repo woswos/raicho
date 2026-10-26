@@ -60,6 +60,7 @@ class StepTests(unittest.TestCase):
             'coverage': ('measuring coverage', 'measured coverage'),
             'benchmark': ('benchmarking Rust code', 'benchmarked Rust code'),
             'clean': ('cleaning up', 'cleaned up'),
+            'mrproper': ('removing everything', 'removed everything'),
         }
         for target, (started, finished) in cases.items():
             with self.subTest(target=target):

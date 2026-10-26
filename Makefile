@@ -12,7 +12,7 @@ CONTAINER_TARGETS := build test lint generate lint-repo lint-pr test-python test
 WRITING_TARGETS := format format-bash format-python format-javascript format-rust format-sql format-spelling \
     generate generate-protocol
 HOST_TARGETS := images acceptance acceptance-runtime acceptance-connector acceptance-credentials \
-    acceptance-mail clean
+    acceptance-mail clean mrproper
 
 ifneq ($(findstring xterm,${TERM}),)
     override COLOR_BLACK := $(shell tput -Txterm setaf 0)

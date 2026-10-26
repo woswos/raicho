@@ -32,6 +32,7 @@ describe() {
         coverage) echo 'measuring|measured|coverage' ;;
         benchmark) echo 'benchmarking|benchmarked|Rust code' ;;
         clean) echo 'cleaning|cleaned|up' ;;
+        mrproper) echo 'removing|removed|everything' ;;
         *) echo "running|ran|${TARGET}" ;;
     esac
 }

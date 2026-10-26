@@ -60,8 +60,10 @@ Inspect failures with `docker compose logs` and
 docker compose down
 ```
 
-`make clean` removes development leftovers and rebuildable images without stopping
-this deployment or touching its volumes. See
+`make clean` removes development leftovers without stopping this deployment,
+removing its images, or touching its volumes. `make mrproper` also stops and
+removes this deployment's containers and every project image, but keeps its
+volumes and `.raicho/`. Run `make images` before starting it again. See
 [build commands](../reference/build-test-generate.md#clean).
 
 For another deployment, choose its own project name and host ports. Exporting

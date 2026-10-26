@@ -48,7 +48,8 @@ xterm terminal.
 | `benchmark` | Rust benchmarks, each compared with its previous run |
 | `images` | Runtime images only |
 | `acceptance` | Every disposable deployment suite, on the host |
-| `clean` | Remove ignored build output, interrupted acceptance runs, and this project's images, on the host |
+| `clean` | Remove ignored build output, interrupted acceptance runs, and the tooling cache, on the host |
+| `mrproper` | `clean`, plus every Raicho container, network, and image, keeping deployment data, on the host |
 | `lint-pr` | PR metadata, design/decision policy, and changelog guard |
 
 Component targets run one piece of those: `build-server`, `build-web`,
@@ -224,6 +225,7 @@ the suites can also run concurrently from separate shells.
 
 ```bash
 make clean
+make mrproper
 ```
 
 `clean` runs `automation/tooling/clean.bash` on the host. It removes:
@@ -235,15 +237,25 @@ make clean
   which are named `raicho-<suite>-<timestamp>-<number>`, as `raicho-ci-...` is.
 - Acceptance state directories named `raicho-<suite>.XXXXXXXX` under `TMPDIR` or
   `/tmp`. Fixture files owned by root are removed through `raicho-tools:local`.
-- The `raicho-tools:local`, `raicho-server:local`, `raicho-gateway:local`, and
-  `raicho-thunderbird:local` images. An image a container still uses is kept and
-  reported.
 - The `raicho-tools_cache` volume with Cargo's downloads and build output, unless a
   container is using it.
 
-It never touches the `raicho` deployment, its volumes, or `.raicho/`, and it does
-not prune the Docker build cache, which the default builder cannot limit to one
-project. The next `make` rebuilds the tooling image.
+It keeps the `raicho-tools:local`, `raicho-server:local`, `raicho-gateway:local`,
+and `raicho-thunderbird:local` images, and never touches the `raicho` deployment,
+its volumes, or `.raicho/`.
+
+`mrproper` runs `automation/tooling/mrproper.bash`. It stops and removes the
+containers and networks of the `raicho` deployment, of every deployment with a
+`.raicho/<project>` directory, and of the `raicho-tools` project, including
+running tooling containers. It then runs every `clean` step and removes the four
+project images. An image that another project's container still uses is kept and
+reported. Deployment volumes and `.raicho/` are never removed, so rebuilding with
+`make images` and starting the deployment again, as in the
+[local runtime guide](../operations/local-runtime.md), keeps its Thunderbird
+profile and connector credentials.
+
+Neither target prunes the Docker build cache, which the default builder cannot
+limit to one project. The next `make` rebuilds the tooling image.
 
 ## Coverage
 
