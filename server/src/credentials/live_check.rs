@@ -5,6 +5,7 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 use tokio::time::Instant;
 
+use crate::connector::BACKEND_KIND;
 use crate::error::{Error, Result};
 
 const MAXIMUM_RESPONSE_BYTES: u64 = 65536 + 4096;
@@ -65,7 +66,7 @@ async fn status(address: &str) -> Option<Value> {
 
 fn backend(payload: &Value) -> Backend {
     let backend = &payload["backend"];
-    if backend["kind"] != "thunderbird" {
+    if backend["kind"] != BACKEND_KIND {
         return Backend::Waiting;
     }
     if matches!(backend["status"].as_str(), Some("revoked" | "unconfigured")) {

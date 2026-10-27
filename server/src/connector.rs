@@ -18,6 +18,8 @@ use crate::persistence::{CredentialStatus, CredentialStore, Database};
 
 pub use state::BackendStatus;
 
+pub const BACKEND_KIND: &str = "thunderbird";
+
 // Room beyond the pending and active sessions lets excess upgrades receive a 503.
 pub const SOCKET_LIMIT: usize = MAXIMUM_ACTIVE_CONNECTIONS + 2 * MAXIMUM_PENDING_AUTHENTICATIONS;
 
@@ -51,7 +53,7 @@ impl Connector {
             Err(_) => BackendState::Unavailable,
         };
         BackendStatus {
-            kind: "thunderbird",
+            kind: BACKEND_KIND,
             status,
             generation: state.active.as_ref().map(|active| active.generation.to_string()),
             last_error: if status == BackendState::Unavailable {

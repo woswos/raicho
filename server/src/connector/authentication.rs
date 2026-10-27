@@ -11,7 +11,7 @@ use tokio::time::{Instant, timeout_at};
 use crate::persistence::CredentialStore;
 
 use super::handshake::Socket;
-use super::{Connector, failure::Failure, transport, wire};
+use super::{BACKEND_KIND, Connector, failure::Failure, transport, wire};
 
 pub(super) struct Authenticated {
     pub generation: Generation,
@@ -37,7 +37,7 @@ pub(super) async fn authenticate(
     let ConnectorMessage::Authenticate(authentication) = decoded else {
         return Err(Failure::new(BackendError::UnexpectedMessage));
     };
-    if authentication.backend_kind.as_str() != "thunderbird" {
+    if authentication.backend_kind.as_str() != BACKEND_KIND {
         return Err(Failure::new(BackendError::InvalidMessage));
     }
     let keys = timeout_at(deadline, CredentialStore::new(&connector.database).active_keys())
