@@ -1,6 +1,7 @@
 mod authentication;
 mod failure;
 mod handshake;
+mod handshake_limit;
 mod heartbeat;
 mod listener;
 mod session;
