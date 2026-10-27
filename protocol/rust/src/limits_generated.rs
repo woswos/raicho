@@ -1,3 +1,4 @@
+// Generated from protocol/limits.json.
 pub const AUTHENTICATION_DEADLINE_MS: usize = 5000;
 pub const AUTHENTICATION_FAILURE_CLOSE_CODE: usize = 4001;
 pub const HEARTBEAT_INTERVAL_MS: usize = 15000;
