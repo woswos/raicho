@@ -4,8 +4,16 @@ import { challenge, connectorFixture, generation, ping } from './connector_fixtu
 
 test('uses bounded exponential retry for connection and handshake timeouts', () => {
   const fixture = connectorFixture();
-  for (const [attempt, delay] of [1000, 2000, 4000, 8000, 16000, 30000, 30000].entries()) {
-    if (attempt % 2 !== 0) fixture.sockets.at(-1).open();
+  for (const [opens, delay] of [
+    [false, 1000],
+    [true, 2000],
+    [false, 4000],
+    [true, 8000],
+    [false, 16000],
+    [true, 30000],
+    [false, 30000],
+  ]) {
+    if (opens) fixture.sockets.at(-1).open();
     fixture.fireTimer(5000);
     assert.equal(fixture.timers.size, 1);
     fixture.fireTimer(delay);

@@ -72,7 +72,6 @@ export function connectorFixture() {
       socket.server = await serverChannel(authenticate);
     };
     socket.receiveSealed = async (message) => socket.receive(await socket.server.seal(message));
-    socket.verifySent = (message) => socket.server.open(JSON.stringify(message), 'client_control', generation);
     return socket;
   };
   fixture.stop = startConnectorTransport(configuration, metadata, fixture.dependencies);

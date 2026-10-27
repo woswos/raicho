@@ -4,12 +4,12 @@ import process from 'node:process';
 import { test } from 'node:test';
 import { setImmediate } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
+import { configuration } from './connector_fixture.mjs';
 
 const { startManagedConnector } = await import(
   pathToFileURL(resolve(process.env.RAICHO_EXTENSION_BUILD_DIR, 'extension/src/managed_connector.js')).href
 );
-const token = 'a'.repeat(64);
-const endpoint = 'ws://connector-proxy:8081/connector/v1';
+const { endpoint, token } = configuration;
 function fixture() {
   let resolveSettings;
   const connections = [];
