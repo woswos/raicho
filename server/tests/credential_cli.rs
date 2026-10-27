@@ -1,8 +1,8 @@
 use std::fs;
-use std::os::unix::fs::PermissionsExt;
+use std::os::unix::fs::{MetadataExt, PermissionsExt};
 use std::process::{Command, Output};
 
-use raicho_server::credentials::Credential;
+use raicho_server::credentials::{Credential, SERVICE_OWNER};
 use raicho_server::persistence::{CredentialStore, Database};
 use tempfile::tempdir;
 
@@ -93,6 +93,11 @@ fn token_operations_require_files_owned_by_the_service() {
     let token = directory.path().join("connector.token");
     fs::write(&token, "a".repeat(64)).unwrap();
     fs::set_permissions(&token, fs::Permissions::from_mode(0o600)).unwrap();
+    let metadata = fs::metadata(&token).unwrap();
+    // Only root could give the fixture an owner other than the test's own.
+    if (metadata.uid(), metadata.gid()) == (SERVICE_OWNER.uid, SERVICE_OWNER.gid) {
+        return;
+    }
     let token = token.to_str().unwrap();
     for arguments in [
         vec!["connector", "init", "--token-file", token],
