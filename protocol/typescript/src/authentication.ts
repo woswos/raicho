@@ -1,12 +1,12 @@
 import type { Authenticate } from './contract_generated.js';
 
-const CLIENT_KEY_LABEL = 'raicho connector client key';
+const CONNECTOR_KEY_LABEL = 'raicho connector client key';
 const SERVER_KEY_LABEL = 'raicho connector server key';
 const encoder = new TextEncoder();
 
 export type AuthenticationFields = Omit<Authenticate, 'type' | 'client_proof'>;
 
-export function hex(bytes: Uint8Array): string {
+export function toHex(bytes: Uint8Array): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
@@ -18,7 +18,7 @@ export async function hmac(key: Bytes, message: string): Promise<Bytes> {
 }
 
 export function randomNonce(): string {
-  return hex(crypto.getRandomValues(new Uint8Array(32)));
+  return toHex(crypto.getRandomValues(new Uint8Array(32)));
 }
 
 export function authenticationMessage(serverNonce: string, fields: AuthenticationFields): string {
@@ -36,10 +36,10 @@ export function authenticationMessage(serverNonce: string, fields: Authenticatio
 }
 
 export async function clientProof(token: string, message: string): Promise<string> {
-  const clientKey = await hmac(encoder.encode(token), CLIENT_KEY_LABEL);
-  const storedKey = new Uint8Array(await crypto.subtle.digest('SHA-256', clientKey));
+  const connectorKey = await hmac(encoder.encode(token), CONNECTOR_KEY_LABEL);
+  const storedKey = new Uint8Array(await crypto.subtle.digest('SHA-256', connectorKey));
   const signature = await hmac(storedKey, message);
-  return hex(clientKey.map((byte, index) => byte ^ (signature[index] ?? 0)));
+  return toHex(connectorKey.map((byte, index) => byte ^ (signature[index] ?? 0)));
 }
 
 export function serverKey(token: string): Promise<Bytes> {
@@ -47,7 +47,7 @@ export function serverKey(token: string): Promise<Bytes> {
 }
 
 export async function serverSignature(token: string, message: string): Promise<string> {
-  return hex(await hmac(await serverKey(token), message));
+  return toHex(await hmac(await serverKey(token), message));
 }
 
 // Comparing secrets byte by byte in constant time keeps their timing from leaking matches.

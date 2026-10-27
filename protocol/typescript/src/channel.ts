@@ -1,4 +1,4 @@
-import { constantTimeEqual, hex, hmac, type Bytes } from './authentication.js';
+import { constantTimeEqual, hmac, toHex, type Bytes } from './authentication.js';
 import type { ConnectorMessage } from './contract_generated.js';
 import { ContractError, decodeFrame, type Phase } from './decode_frame.js';
 
@@ -32,7 +32,7 @@ export function canonicalJson(message: object): string {
 }
 
 export async function frameMac(key: Bytes, sender: Peer, counter: number, message: object): Promise<string> {
-  return hex(await hmac(key, `${FRAME_LABEL}\n${sender}\n${String(counter)}\n${canonicalJson(message)}`));
+  return toHex(await hmac(key, `${FRAME_LABEL}\n${sender}\n${String(counter)}\n${canonicalJson(message)}`));
 }
 
 export function createChannel(key: Bytes, local: Peer) {
