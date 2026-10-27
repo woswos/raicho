@@ -21,6 +21,9 @@ def main():
     if not result.wasSuccessful():
         sys.stdout.write(report.getvalue())
         return 1
+    if result.testsRun == 0:
+        print(f'FAIL: no tests matched {arguments.pattern} in {arguments.start}', file=sys.stderr)
+        return 1
     print(summary(arguments.start, result.testsRun, len(result.skipped)))
     return 0
 
