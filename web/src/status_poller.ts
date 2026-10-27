@@ -1,8 +1,10 @@
 import {
-  parseStatus,
+  readStatus,
   StatusResponseError,
   type ApplicationStatus,
 } from './status.js';
+
+const UNAVAILABLE = 503;
 
 export interface StatusHandlers {
   onLoading: () => void;
@@ -34,19 +36,25 @@ export function createStatusPoller(handlers: StatusHandlers) {
         headers: { Accept: 'application/json' },
         signal: controller.signal,
       });
-      if (!response.ok) {
-        handlers.onError(
-          `Raicho could not provide its status (HTTP ${String(response.status)}).`,
-        );
-        return;
-      }
       let payload: unknown;
       try {
         payload = await response.json();
       } catch {
+        payload = undefined;
+      }
+      const status =
+        response.ok || response.status === UNAVAILABLE
+          ? readStatus(payload)
+          : undefined;
+      if (status !== undefined) {
+        handlers.onStatus(status);
+      } else if (!response.ok) {
+        handlers.onError(
+          `Raicho could not provide its status (HTTP ${String(response.status)}).`,
+        );
+      } else {
         throw new StatusResponseError();
       }
-      handlers.onStatus(parseStatus(payload));
     } catch (error: unknown) {
       if (controller.signal.reason === 'hidden' || stopped) return;
       const message =

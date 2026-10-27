@@ -1,24 +1,26 @@
 # Connector contract
 
-The first connector contract defines connection control only. Its Rust crate and
-TypeScript project provide generated bindings and boundary decoders for
-authentication and heartbeat. The
-[connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
+The first connector contract defines connection control only. The Rust listener
+uses its generated bindings and boundary decoders for authentication and
+heartbeat, and the TypeScript project provides the same bindings for the
+connector. The [connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
 records the approved design.
 
 See [architecture](architecture.md) for component boundaries.
 No fixture command, account identity, message handle, or mail content belongs in
 this contract. The backend kind is an identifier, not a Thunderbird-specific type.
 
-The shared authentication derives two keys from a canonical 64-character
-lowercase hexadecimal token. The stored key verifies the connector's proof, and
-the server key signs the server's reply and keys every later frame. A database
-copy alone cannot produce a connector proof. Combined with one captured
-`authenticate` frame and its challenge, though, the stored key recovers the
-connector key, because the proof is that key XOR an HMAC under the stored key, and
-the server key derives every session key from the public transcript. Rotate the
-credential when the database may have leaked. The token never crosses the
-connection, and an incoming frame never enrolls a token. See the
+Offline credential provisioning
+persists one active credential or a revoked record. The Rust `Credential::parse`
+boundary derives two keys from the canonical 64-character lowercase hexadecimal
+token. The stored key verifies the connector's proof, and the server key signs
+the server's reply and keys every later frame. A database copy alone cannot
+produce a connector proof. Combined with one captured `authenticate` frame and its
+challenge, though, the stored key recovers the connector key, because the proof is
+that key XOR an HMAC under the stored key, and the server key derives every
+session key from the public transcript. Rotate the credential when the database
+may have leaked. The token never crosses the connection, and an incoming frame
+never enrolls a token. See the
 [handshake decision](../decisions/20261026-thunderbird-connector.md#handshake) and
 the [frame authentication decision](../decisions/20261026-thunderbird-connector.md#frame-authentication).
 
@@ -38,8 +40,7 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
   response. Its state and error lists must equal the diagnostics. It generates
   the browser's `web/src/status_generated.ts` types and bundled
   `status_validator_generated.js`, and shared documents in
-  `protocol/fixtures/status/` run against the schema in Rust tests. The server and
-  the diagnostics page keep their own status types.
+  `protocol/fixtures/status/` run against the Rust and browser validators.
 - [Shared fixtures](../../protocol/fixtures/): the same accepted/rejected frames,
   phases, expected generations, and error codes run in both languages.
 - [Rust crate](../../protocol/rust/src/lib.rs): generated types and limits, and a
@@ -85,6 +86,10 @@ Error codes contain no free-text details or echoed credential. Supported codes
 are defined in the schema, rather than accepted as arbitrary strings.
 
 ## Integration semantics
+
+The internal listener accepts only the exact connector path, a single canonical
+`moz-extension://<UUID>` Origin, and no WebSocket subprotocol. Origin is an
+additional boundary check, not a substitute for the credential.
 
 ```mermaid
 sequenceDiagram
@@ -151,6 +156,23 @@ two connectors with the same token do not compete. Transient disconnects use
 exponential backoff with jitter capped at 30 seconds, reset after a valid heartbeat.
 Managed policy changes require Thunderbird restart. No command or mail operation
 is replayed.
+
+The internal listener accepts the WebSocket upgrade itself with tokio-tungstenite,
+without an HTTP framework. It holds at most nine sockets, one active session plus
+twice the four pending authentications, so excess upgrades still receive a 503.
+The upgrade request must fit 8 KiB. Requests for another path receive 404, and a
+query, a missing or malformed `moz-extension` origin, or a subprotocol receives
+403. One five-second deadline starts when the TCP connection is accepted and covers
+the upgrade, the challenge, the 4 KiB authentication frame, and the credential
+lookup. A credential lookup that fails or outlasts the deadline closes with
+retryable `server_busy` instead of an authentication rejection. A connection lost without
+a close frame is recorded as `disconnected`, and a frame over the transport limit
+as `message_too_large`. The WebSocket allocation
+limit is 64 KiB even before authentication, and control frames have the same
+64 KiB limit. Writes are bounded to five seconds. Neither endpoint maintains an
+application send queue.
+The extension retries if its browser socket already has buffered data. Server
+shutdown closes sessions before releasing database ownership.
 
 ## Versioning
 

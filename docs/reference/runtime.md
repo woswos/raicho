@@ -1,7 +1,10 @@
 # Foundation runtime
 
-Raicho currently provides diagnostics and persistent application initialization.
-The Thunderbird container runs independently. No extension connects them yet.
+Raicho provides diagnostics, persistent application initialization, and a
+listener for the authenticated Thunderbird connector. No Compose service runs a
+connector, and the control protocol carries no mail operations. The
+[connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
+adds the extension and its deployment.
 
 See [architecture](architecture.md) for ownership,
 [runtime decision](../decisions/20261018-foundation-runtime-stack.md) for choices,
@@ -24,6 +27,9 @@ These modules live beside the image recipe in `deploy/thunderbird/` as
 `runtime.py`, `supervisor.py`, and `health_check.py`, with the static
 `policies.json`. The image installs them as the `/opt/raicho/thunderbird/` package
 and runs `python3 -m thunderbird.runtime` and `python3 -m thunderbird.health_check`.
+The server's `raicho-server connector` subcommands provision, rotate, revoke, and
+reactivate the connector credential, write token files, and wait for a live
+connection.
 
 Base images use digests, support packages use the 20261018 Debian snapshot, and
 downloaded application assets use checksums. Installed OS packages are recorded
@@ -53,16 +59,24 @@ External Thunderbird mail directories require their own explicit mounts.
 | --- | --- |
 | `/health/live` | HTTP process responds |
 | `/health/ready` | Initialization succeeded and the application database responds |
-| `/api/status` | Readiness, product version, build commit, database status, and unconfigured backend |
+| `/api/status` | Readiness, product version, build commit, database status, and connector diagnostics |
 | `/` | Static diagnostics page |
 
 Diagnostics use `Cache-Control: no-store`. Unknown API paths and missing assets
-return 404. The status response does not inspect a Thunderbird profile or claim
-connector readiness. Stopping Thunderbird does not make Raicho unready.
+return 404, including `/connector/v1` on this listener. Stopping Thunderbird does
+not make Raicho unready. Backend status is `unconfigured`, `disconnected`,
+`connected`, `revoked`, or `unavailable`. Diagnostics include the current session
+generation, accepted heartbeat count, and a fixed error code, never a token or
+raw socket error. The browser retains only the status and allowlisted error code
+and explains that mail is not yet available.
+
 [`protocol/schema/status.schema.json`](../../protocol/schema/status.schema.json)
-defines the connector diagnostics that the status response will adopt, as the
-[status contract decision](../decisions/20261026-protocol-contracts.md#status-api)
-records.
+is the response contract, including the 503 body that reports `unavailable` when
+the application database does not respond. The server's HTTP tests validate real
+responses against it, and the page validates every response with a generated
+validator.
+When the database is unavailable, the page still shows the connector state. See
+the [status contract decision](../decisions/20261026-protocol-contracts.md#status-api).
 
 `version` is the declared product version. `commit` is `RAICHO_COMMIT` when the
 image was built with that argument, and `unknown` otherwise. The diagnostics
@@ -73,6 +87,13 @@ page shows the version alone when the commit is unknown. See
 `RAICHO_DATA_DIR` to `/var/lib/raicho`, and `RAICHO_WEB_DIR` to
 `/usr/share/raicho/web`. Compose publishes Raicho on host loopback using
 `RAICHO_PORT`, default 8080. The browser page is diagnostics only and has no login.
+
+`RAICHO_CONNECTOR_BIND` defaults to `0.0.0.0:8082` and serves only the internal
+WebSocket route `/connector/v1`. Compose never publishes it, and no Compose
+service connects to it. The
+[connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
+adds the gateway that does. Authentication and transport bounds are defined in the
+[connector contract](connector-contract.md).
 
 `RAICHO_ADMIN_ENABLED=true` starts remote desktop support. Only
 `compose.admin.yaml` enables it and publishes loopback port `RAICHO_ADMIN_PORT`,
@@ -104,7 +125,8 @@ foreign keys, and five-second busy/acquire timeouts. These waits do not establis
 a general SQL execution deadline. Never hold a connection while awaiting a mail
 backend. The instance lock stays held for the process lifetime.
 
-Only SQLx migration metadata exists initially. Add versioned SQL files under
+The connector migration records backend configuration and credential state.
+No mail data is stored. Add versioned SQL files under
 `server/migrations/` with the feature that uses them, following the
 [sequential filename convention](../coding/coding-standards.md#source-filenames).
 Name their tables, columns, indexes, views, and triggers in

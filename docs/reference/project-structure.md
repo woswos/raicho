@@ -119,15 +119,19 @@ regressions belong in `automation/repository/tests/`, beside the other PR policy
 tests. Shared guard fixtures and the `docker` command mock live in `automation/testing/`.
 
 `server/tests/` and `web/tests/` own their respective application and
-integration tests.
+integration tests. Rust test support lives under
+`server/tests/support/`.
 
 `protocol/rust/tests/` and `protocol/typescript/tests/` run the shared protocol
 fixtures against their respective implementations. TypeScript protocol tests
 compile independently. See the
 [contract commands](build-test-generate.md#connector-contract).
 Generator regressions live in `protocol/generator/tests/`.
+`protocol/fixtures/configuration/connector.json` lists valid and invalid connector
+tokens and endpoints, and the server's `Credential::parse` tests against it.
 
-`deploy/thunderbird/tests/` tests the production `thunderbird`
+Token-file recovery, file-safety, and live-check tests live with the Rust
+implementation in `server/tests/`. `deploy/thunderbird/tests/` tests the production `thunderbird`
 package beside it.
 
 Python modules are packages imported from the repository root, including those

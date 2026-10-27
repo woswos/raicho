@@ -1,10 +1,11 @@
 # Thunderbird-first foundation
 
-Status: stage 1 is complete. Stage 2 is in progress: its connector contract is
-implemented, and its remaining pieces land in [#7](https://github.com/woswos/raicho/pull/7),
-[#8](https://github.com/woswos/raicho/pull/8), and [#9](https://github.com/woswos/raicho/pull/9).
-The stage 2 debrief records the combined implementation in
-[#4](https://github.com/woswos/raicho/pull/4) that those pull requests split up.
+Status: stage 1 is complete. Stage 2 is in progress: its connector contract and the
+server's listener, credential storage, and diagnostics are implemented, and its
+remaining pieces land in [#8](https://github.com/woswos/raicho/pull/8) and
+[#9](https://github.com/woswos/raicho/pull/9). The stage 2 debrief records the
+combined implementation in [#4](https://github.com/woswos/raicho/pull/4) that those
+pull requests split up.
 Later foundation stages require their own authorization.
 
 The accepted constraints are recorded in the

@@ -1,11 +1,13 @@
 # Foundation Stage 2: Thunderbird connector
 
 Status: approved design [PR #2](https://github.com/woswos/raicho/pull/2) merged on
-2026-10-18. Stage 3, the connector contract, is implemented. The other stages land
-in [#7](https://github.com/woswos/raicho/pull/7), [#8](https://github.com/woswos/raicho/pull/8),
-and [#9](https://github.com/woswos/raicho/pull/9). Their debriefs record the combined
-implementation in [#4](https://github.com/woswos/raicho/pull/4) that those pull
-requests split up, so they describe work that is not in this revision.
+2026-10-18. Stage 3, the connector contract, is implemented, and so is the server
+side of stages 4 and 5: credential storage, offline credential commands, and the
+connector listener with its diagnostics. The other pieces land in
+[#8](https://github.com/woswos/raicho/pull/8) and [#9](https://github.com/woswos/raicho/pull/9).
+The debriefs of stages that are not complete record the combined implementation in
+[#4](https://github.com/woswos/raicho/pull/4) that those pull requests split up, so
+they also describe work that is not in this revision.
 
 ## Goal
 

@@ -22,7 +22,8 @@ machine and open your mail in a browser wherever you work.
 
 > **In development.** The containerized foundation runs a Rust/SQLite diagnostics
 > server, a TypeScript status page, and our own Thunderbird image. The browser
-> mail client, login, and Thunderbird extension are not implemented yet.
+> mail client, login, and Thunderbird extension are not implemented yet. The
+> server accepts the authenticated connector protocol and reports its status.
 
 ## Why Raicho
 

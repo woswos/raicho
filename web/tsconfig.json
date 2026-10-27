@@ -9,7 +9,8 @@
     "verbatimModuleSyntax": true,
     "noEmitOnError": true,
     "rootDir": "src",
-    "outDir": "dist"
+    "outDir": "dist",
+    "allowJs": true
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "src/status_validator_generated.js"]
 }

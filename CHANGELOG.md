@@ -5,3 +5,8 @@ Notable changes to Raicho. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Added
+
+- Show Thunderbird connection status and failure reasons on the diagnostics page
+  and in `/api/status`.

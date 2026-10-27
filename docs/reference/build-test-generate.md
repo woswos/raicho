@@ -197,6 +197,18 @@ CI runs `test-protocol` alongside `test-app`, which covers the application
 suites. See the [contract reference](connector-contract.md)
 for sources, parsing rules, and integration responsibilities.
 
+## Credential persistence
+
+```bash
+docker compose -f automation/tooling/compose.yaml run --rm check \
+  make test-server lint-repo lint-sql format-check-sql
+```
+
+The source checks cover credential state transitions, token-file recovery and
+safety, and the live connection check in `server/tests/`. The
+`raicho-server connector` subcommands provision, rotate, revoke, and reactivate
+the credential offline.
+
 ## Releases
 
 Product versions are cut from the changelog. The commands and the bump rules

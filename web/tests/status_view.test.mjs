@@ -74,7 +74,7 @@ test('success makes the refresh control available again', (context) => {
   view.onStatus({
     status: 'ready',
     database: { status: 'ready', engine: 'sqlite', version: '3.51.3' },
-    backend: { status: 'unconfigured', kind: 'thunderbird' },
+    backend: { status: 'unconfigured', kind: 'thunderbird', last_error: null },
     version: '0.1.0',
     commit: 'unknown',
   });
@@ -85,7 +85,7 @@ test('success makes the refresh control available again', (context) => {
   view.onStatus({
     status: 'ready',
     database: { status: 'ready', engine: 'sqlite', version: '3.51.3' },
-    backend: { status: 'unconfigured', kind: 'thunderbird' },
+    backend: { status: 'unconfigured', kind: 'thunderbird', last_error: null },
     version: '0.1.0',
     commit: '0123456789abcdef0123456789abcdef01234567',
   });
@@ -105,4 +105,102 @@ test('failure makes the refresh control available for retry', (context) => {
   assert.equal(view.refreshButton.disabled, false);
   assert.equal(view.refreshButton.getAttribute('aria-disabled'), 'false');
   assert.equal(view.refreshButton.textContent, 'Refresh status');
+});
+
+test('reports connector transitions independently of application readiness', (context) => {
+  const view = viewFixture(context);
+  const { document } = globalThis;
+  const ready = {
+    status: 'ready',
+    database: { status: 'ready', engine: 'sqlite', version: '3.51.3' },
+    version: '0.1.0',
+    commit: '0123456789abcdef0123456789abcdef01234567',
+  };
+  for (const [status, label] of [
+    ['connected', 'Connected'],
+    ['disconnected', 'Disconnected'],
+    ['revoked', 'Access revoked'],
+    ['unavailable', 'Unavailable'],
+    ['unconfigured', 'Not configured'],
+  ]) {
+    view.onStatus({
+      ...ready,
+      backend: { kind: 'thunderbird', status, last_error: null },
+    });
+    assert.equal(document.getElementById('backend-status').textContent, label);
+    assert.equal(document.getElementById('server-status').textContent, 'Ready');
+    assert.equal(
+      document.getElementById('application-version').textContent,
+      '0.1.0 (0123456789abcdef0123456789abcdef01234567)',
+    );
+    assert.match(
+      document.getElementById('announcement').textContent,
+      /Thunderbird/,
+    );
+    assert.ok(
+      document.getElementById('announcement').textContent.includes(label),
+    );
+  }
+});
+
+test('connected diagnostics do not claim mailbox availability', (context) => {
+  const view = viewFixture(context);
+  const { document } = globalThis;
+  view.onStatus({
+    status: 'ready',
+    database: { status: 'ready', engine: 'sqlite', version: '3.51.3' },
+    backend: { kind: 'thunderbird', status: 'connected', last_error: null },
+    version: '0.1.0',
+    commit: 'unknown',
+  });
+  assert.match(
+    document.getElementById('backend-description').textContent,
+    /Mail is not available/,
+  );
+  assert.equal(
+    document.getElementById('backend-status').dataset.state,
+    'ready',
+  );
+  view.onError('Raicho could not be reached.');
+  assert.equal(
+    document.getElementById('backend-status').textContent,
+    'Not checked',
+  );
+  assert.notEqual(
+    document.getElementById('backend-status').dataset.state,
+    'ready',
+  );
+});
+
+test('a database outage keeps the connector state visible', (context) => {
+  const view = viewFixture(context);
+  const { document } = globalThis;
+  view.onStatus({
+    status: 'unavailable',
+    database: { status: 'unavailable', engine: 'sqlite', version: '3.51.3' },
+    backend: {
+      kind: 'thunderbird',
+      status: 'unavailable',
+      last_error: 'storage_unavailable',
+    },
+    version: '0.1.0',
+    commit: 'unknown',
+  });
+  assert.equal(document.getElementById('summary').dataset.state, 'error');
+  assert.equal(
+    document.getElementById('server-status').textContent,
+    'Not ready',
+  );
+  assert.equal(
+    document.getElementById('database-status').textContent,
+    'Unavailable',
+  );
+  assert.equal(
+    document.getElementById('backend-status').textContent,
+    'Unavailable',
+  );
+  assert.match(
+    document.getElementById('announcement').textContent,
+    /cannot use its database/,
+  );
 });

@@ -48,7 +48,9 @@ fixtures still verify discovery and failure behavior independently. Missing
 project configuration fails rather than silently skipping application checks.
 Automated checks do not claim visual verification of the administrative desktop.
 The Rust workspace tests exercise the shared
-[connector contract fixtures](connector-contract.md). Python
+[connector contract fixtures](connector-contract.md). Source tests also exercise
+authentication, session replacement, heartbeat timeouts, and diagnostics.
+Rust credential persistence and CLI tests run in `application-test`. Python
 automation suites, Thunderbird process supervision tests, and protocol generation
 regressions run through `test-python`, from component-local `tests/` directories.
 
