@@ -1,5 +1,5 @@
 use raicho_protocol::authentication::{
-    authentication_message, from_hex, server_signature, to_hex, verify_client_proof,
+    KEY_BYTES, authentication_message, from_hex, server_signature, to_hex, verify_client_proof,
 };
 use raicho_protocol::channel::{Channel, Peer, session_key};
 use raicho_protocol::contract_generated::{ConnectorMessage, Generation, Nonce, Signature};
@@ -43,13 +43,15 @@ pub(super) async fn authenticate(
     let keys = timeout_at(deadline, connector.database.active_connector_keys())
         .await
         .map_err(|_| Failure::new(BackendError::StorageUnavailable))?
-        .map_err(|_| Failure::new(BackendError::StorageUnavailable))?
-        .ok_or(Failure::new(BackendError::AuthenticationFailed))?;
+        .map_err(|_| Failure::new(BackendError::StorageUnavailable))?;
     let transcript = authentication_message(&server_nonce, &authentication);
     let proof = from_hex(&authentication.client_proof).ok_or(Failure::new(BackendError::InvalidMessage))?;
-    if !verify_client_proof(&keys.stored_key, &transcript, &proof) {
+    // Checking a proof without a credential keeps the timing from revealing whether one exists.
+    let stored_key = keys.as_ref().map_or([0; KEY_BYTES], |keys| keys.stored_key);
+    let verified = verify_client_proof(&stored_key, &transcript, &proof);
+    let Some(keys) = keys.filter(|_| verified) else {
         return Err(Failure::new(BackendError::AuthenticationFailed));
-    }
+    };
     let server_signature = to_hex(&server_signature(&keys.server_key, &transcript))
         .parse()
         .map_err(|_| Failure::new(BackendError::ServerBusy))?;
