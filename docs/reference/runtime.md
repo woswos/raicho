@@ -29,8 +29,26 @@ installs them as the `/opt/raicho/thunderbird/` package and runs
 operational credential wrapper lives in `deploy/credentials/`, with its tests
 under `tests/`. Its token-file and live-check services run the
 `raicho-server connector files` and `connector wait` subcommands from the server
-image. The
-[credential runbook](../operations/connector-credentials.md) documents their use.
+image. The [credential runbook](../operations/connector-credentials.md) documents
+their use.
+
+`raicho-server connector` takes one of these subcommands:
+
+| Subcommand | Effect |
+| --- | --- |
+| `init --token-file PATH` | Enrolls the token in `PATH` as the first credential |
+| `rotate --token-file NEW --current-token-file OLD` | Replaces the active credential `OLD` with `NEW` |
+| `verify --token-file PATH` | Succeeds only when `PATH` holds the active credential |
+| `reactivate --token-file PATH` | Enrolls a new token after revocation |
+| `revoke` | Revokes the credential |
+| `status` | Prints `unconfigured`, `active`, or `revoked` |
+| `wait` | Waits up to 90 seconds for an authenticated connection with a heartbeat |
+| `files init\|rotate\|reactivate DIRECTORY` | Prepares a pending token and prints `pending`, or prints `current` when no new token is needed |
+| `files publish DIRECTORY` | Makes the pending token current and keeps any old one as previous |
+| `files finish DIRECTORY` | Removes the previous token after a rotation |
+| `files check DIRECTORY` | Succeeds only when the directory holds a current token alone |
+
+The database subcommands read `RAICHO_DATA_DIR`, and `wait` polls `raicho:8080`.
 
 Base images use digests, support packages use the 20261018 Debian snapshot, and
 downloaded application assets use checksums. Installed OS packages are recorded
