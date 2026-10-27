@@ -2,6 +2,7 @@
 !package.json
 !package-lock.json
 !.npmrc
+!extension/archive.mjs
 !extension/build.mjs
 !extension/src/
 !extension/background.html

@@ -117,6 +117,7 @@ export function startConnectorTransport(
       let processing = Promise.resolve();
       current.onmessage = (event) => {
         processing = processing.then(() => (active() ? handle(event.data) : undefined));
+        // WebSocket ignores the result, but tests await it to see each message handled.
         return processing;
       };
       current.onclose = () => {
