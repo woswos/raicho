@@ -1,3 +1,6 @@
+import os
+import stat
+import struct
 import subprocess
 import tempfile
 import unittest
@@ -6,6 +9,25 @@ from pathlib import Path
 from automation.testing.docker_mock import DockerMock
 
 WRAPPER = Path(__file__).resolve().parents[1] / 'connector.bash'
+
+ACL_USER_OWNER = 0x01
+ACL_NAMED_USER = 0x02
+ACL_GROUP_OWNER = 0x04
+ACL_MASK = 0x10
+ACL_OTHER = 0x20
+ACL_UNDEFINED_ID = 0xFFFFFFFF
+
+
+def default_acl(uid):
+    entries = [
+        (ACL_USER_OWNER, 7, ACL_UNDEFINED_ID),
+        (ACL_NAMED_USER, 7, uid),
+        (ACL_GROUP_OWNER, 7, ACL_UNDEFINED_ID),
+        (ACL_MASK, 7, ACL_UNDEFINED_ID),
+        (ACL_OTHER, 5, ACL_UNDEFINED_ID),
+    ]
+    acl = b''.join(struct.pack('<HHI', *entry) for entry in entries)
+    return struct.pack('<I', 2) + acl
 
 
 class ConnectorWrapperTests(unittest.TestCase):
@@ -56,3 +78,13 @@ class ConnectorWrapperTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertNotEqual(self.docker.commands(), [])
         self.assertEqual(lock.read_text(), 'existing lock content\n')
+
+    def test_lock_stays_private_under_a_default_acl(self):
+        acl = default_acl(os.getuid())
+        try:
+            os.setxattr(self.state, 'system.posix_acl_default', acl)
+        except OSError:
+            self.skipTest('The test filesystem has no POSIX ACL support.')
+        self.run_wrapper()
+        lock = self.state / 'operation.lock'
+        self.assertEqual(stat.S_IMODE(lock.stat().st_mode), 0o600)

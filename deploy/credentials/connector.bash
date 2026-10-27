@@ -34,6 +34,8 @@ if [[ -L ${LOCK_PATH} ]] || { [[ -e ${LOCK_PATH} ]] &&
     exit 1
 fi
 exec {LOCK_DESCRIPTOR}>>"${LOCK_PATH}"
+# A default ACL overrides the umask, so set the lock mode explicitly.
+chmod 600 -- "${LOCK_PATH}"
 if ! flock --exclusive --nonblock "${LOCK_DESCRIPTOR}"; then
     echo 'FAIL: another credential operation is running' >&2
     exit 1
