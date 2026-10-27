@@ -1,4 +1,5 @@
 from mailprobe.tests.probe.scenario_helpers import (
+    ATTACHMENT,
     message_parts,
     save_native_target,
     saved_message,
@@ -37,13 +38,7 @@ def run(client):
             'subject': 'Raicho probe HTML draft',
             'body': '<p>Raicho <strong>HTML fixture</strong>.</p>',
             'deliveryFormat': 'html',
-            'attachments': [
-                {
-                    'name': 'probe.txt',
-                    'content': 'Raicho fixture attachment\n',
-                    'type': 'text/plain',
-                }
-            ],
+            'attachments': [ATTACHMENT],
         },
     )
     html_content = client.call('get_message', {'message_id': html['id']})
@@ -53,7 +48,7 @@ def run(client):
         for part in message_parts(html_content['full'])
     ), html_content
     assert any(
-        attachment['name'] == 'probe.txt' and attachment['content'] == 'Raicho fixture attachment\n'
+        attachment['name'] == ATTACHMENT['name'] and attachment['content'] == ATTACHMENT['content']
         for attachment in html_content['attachments']
     ), html_content
 

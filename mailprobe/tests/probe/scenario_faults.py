@@ -3,6 +3,14 @@ from mailprobe.tests.probe.scenario_delivery import (
     received_once,
     send_message,
 )
+from mailprobe.tests.probe.scenario_helpers import (
+    LOST_ACKNOWLEDGMENT_SUBJECT,
+    LOST_RESULT_SUBJECT,
+    MISSING_IDENTITY_SUBJECT,
+    MISSING_RECIPIENT_SUBJECT,
+    REJECTED_SUBJECT,
+    SENT_COPY_FAILURE_SUBJECT,
+)
 
 
 def verify_fault_events(before, after, *, accepted, required=()):
@@ -15,59 +23,34 @@ def verify_fault_events(before, after, *, accepted, required=()):
 
 
 def run(client):
-    invalid_extension = client.command(
-        'send',
-        {
-            'details': {'subject': 123},
-            'mode': 'sendNow',
-        },
-        timeout=15,
-    )
-    assert not invalid_extension['ok'], invalid_extension
-    invalid_api = client.command(
-        'send',
-        {
-            'details': {'subject': 'Raicho probe missing recipient'},
-            'mode': 'sendNow',
-        },
-        timeout=15,
-    )
-    assert not invalid_api['ok'], invalid_api
-    invalid_identity = client.command(
-        'send',
-        {
-            'details': {
-                **message_details('Raicho probe missing identity'),
-                'identityId': 'missing',
-            },
-            'mode': 'sendNow',
-        },
-        timeout=15,
-    )
-    assert not invalid_identity['ok'], invalid_identity
+    invalid = {}
+    for name, details in (
+        ('invalid_extension_input', {'subject': 123}),
+        ('invalid_api_input', {'subject': MISSING_RECIPIENT_SUBJECT}),
+        ('invalid_identity', {**message_details(MISSING_IDENTITY_SUBJECT), 'identityId': 'missing'}),
+    ):
+        response = client.command('send', {'details': details, 'mode': 'sendNow'}, timeout=15)
+        assert not response['ok'], response
+        invalid[name] = response
     try:
         before = client.events()
         client.faults(smtp='reject')
-        rejected_subject = 'Raicho probe SMTP rejection'
-        rejected = send_message(client, rejected_subject)
+        rejected = send_message(client, REJECTED_SUBJECT)
         assert not rejected['ok'], rejected
-        assert not client.messages(rejected_subject)
+        assert not client.messages(REJECTED_SUBJECT)
         rejected_events = verify_fault_events(before, client.events(), accepted=0, required=['smtp_rejected'])
     finally:
         client.faults()
-    lost_subject = 'Raicho probe lost controller result'
     before = client.events()
-    lost_result = send_message(client, lost_subject, drop_result=True)
+    lost_result = send_message(client, LOST_RESULT_SUBJECT, drop_result=True)
     assert lost_result.get('outcome') == 'unknown', lost_result
     client.wait_connected()
-    lost_messages = received_once(client, lost_subject)
+    lost_messages = received_once(client, LOST_RESULT_SUBJECT)
     lost_events = verify_fault_events(before, client.events(), accepted=1)
     client.record(
         'faults',
         {
-            'invalid_extension_input': invalid_extension,
-            'invalid_api_input': invalid_api,
-            'invalid_identity': invalid_identity,
+            **invalid,
             'smtp_rejected': rejected,
             'smtp_rejection_events': rejected_events,
             'lost_controller_result': lost_result,
@@ -78,9 +61,8 @@ def run(client):
     try:
         before = client.events()
         client.faults(smtp='drop_ack')
-        subject = 'Raicho probe lost SMTP acknowledgment'
-        outcome = send_message(client, subject)
-        received = received_once(client, subject)
+        outcome = send_message(client, LOST_ACKNOWLEDGMENT_SUBJECT)
+        received = received_once(client, LOST_ACKNOWLEDGMENT_SUBJECT)
         events = verify_fault_events(before, client.events(), accepted=1, required=['smtp_ack_dropped'])
         client.record(
             'smtp_lost_acknowledgment',
@@ -96,10 +78,9 @@ def run(client):
     try:
         before = client.events()
         client.faults(imap='reject_sent_append')
-        subject = 'Raicho probe Sent copy failure'
-        outcome = send_message(client, subject)
-        received = received_once(client, subject)
-        sent_copies = client.messages(subject, folder='Sent', username='sender')
+        outcome = send_message(client, SENT_COPY_FAILURE_SUBJECT)
+        received = received_once(client, SENT_COPY_FAILURE_SUBJECT)
+        sent_copies = client.messages(SENT_COPY_FAILURE_SUBJECT, folder='Sent', username='sender')
         assert not sent_copies, sent_copies
         events = verify_fault_events(before, client.events(), accepted=1, required=['sent_append_rejected'])
         client.record(

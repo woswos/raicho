@@ -1,4 +1,4 @@
-import hashlib
+from mailprobe.tests.probe.scenario_helpers import ATTACHMENT, ATTACHMENT_SHA256
 
 SUBJECT = 'Raicho probe native edited'
 BODY = 'Edited through the native Thunderbird interface.'
@@ -34,21 +34,22 @@ def verify(client):
     assert current['details']['type'] == 'draft', current
     assert current['details']['identityId'] == client.read_record('drafts')['identity']['id'], current
     messages = client.wait_messages(SUBJECT, 1, folder='Drafts', username='sender')
-    assert not client.messages(baseline['subject'], folder='Drafts', username='sender')
+    originals = client.messages(baseline['subject'], folder='Drafts', username='sender')
+    assert not originals, originals
     message = messages[0]
     assert 'alias@raicho.test' in message['from'], message
     assert BODY in message['plain'] or BODY in message['html'], message
-    expected_digest = hashlib.sha256(b'Raicho fixture attachment\n').hexdigest()
     assert any(
-        part['filename'] == 'probe.txt' and part['sha256'] == expected_digest for part in message['attachments']
+        part['filename'] == ATTACHMENT['name'] and part['sha256'] == ATTACHMENT_SHA256
+        for part in message['attachments']
     ), message
     client.record(
         'native_interoperability',
         {
             'compose': current,
             'stored': message,
-            'original_subject_count': 0,
-            'replacement_count': 1,
+            'original_subject_count': len(originals),
+            'replacement_count': len(messages),
             'method': 'Native UI Edit action, edit Subject/body, Ctrl+S. API inspection only.',
         },
     )

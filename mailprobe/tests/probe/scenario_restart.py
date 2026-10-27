@@ -6,16 +6,7 @@ from mailprobe.tests.probe.client import wait_until
 def request_before_deadline(client, action, arguments, deadline):
     remaining = deadline - time.monotonic()
     assert remaining > 0, 'Restarted fixture message did not become queryable.'
-    response = client.request(
-        'command',
-        {
-            'action': action,
-            'arguments': arguments,
-            'timeout': min(10, remaining),
-            'drop_result': False,
-        },
-        timeout=remaining,
-    )
+    response = client.command(action, arguments, timeout=min(10, remaining), request_timeout=remaining)
     assert response['ok'], response
     return response['result']
 

@@ -40,7 +40,7 @@ class ProbeClient:
 
         return wait_until(metadata, 90, 'Mail probe did not connect.')
 
-    def command(self, action, arguments=None, timeout=120, drop_result=False):
+    def command(self, action, arguments=None, timeout=120, drop_result=False, request_timeout=190):
         return self.request(
             'command',
             {
@@ -49,6 +49,7 @@ class ProbeClient:
                 'timeout': timeout,
                 'drop_result': drop_result,
             },
+            timeout=request_timeout,
         )
 
     def call(self, action, arguments=None):
