@@ -1,122 +1,16 @@
 import argparse
-import shlex
 import subprocess
 import sys
 from pathlib import Path
 
-from automation.output import quiet
 from automation.paths import REPOSITORY_ROOT
-from automation.quality.files import (
-    CONFIGURATION_SUFFIXES,
-    JAVASCRIPT_SUFFIXES,
-    TYPESCRIPT_SUFFIXES,
-    bash_files,
-    require_tools,
-    run,
-    source_files,
-)
-from automation.quality.projects import (
-    rust,
-    typecheck,
-    typescript_projects,
-)
+from automation.quality.files import require_tools, source_files
+from automation.quality.javascript import javascript
+from automation.quality.projects import rust, typecheck
+from automation.quality.python import python
+from automation.quality.shell import shell
 from automation.quality.spelling import spelling
 from automation.quality.sql import sql
-
-
-def shfmt_options():
-    configuration = REPOSITORY_ROOT / '.shfmt'
-    if not configuration.is_file() or configuration.is_symlink():
-        raise ValueError(f'shfmt configuration is missing or not a regular file: {configuration}')
-    return shlex.split(configuration.read_text(), comments=True)
-
-
-def shell(root, files, action):
-    require_tools('bash', 'shellcheck', 'shfmt')
-    sources = bash_files(root, files)
-    if not sources:
-        return
-    if action == 'lint':
-        for source in sources:
-            run(['bash', '-n', source], root)
-        run(
-            ['shellcheck', '--rcfile', REPOSITORY_ROOT / '.shellcheckrc', *sources],
-            root,
-        )
-    else:
-        mode = '--write' if action == 'format' else '--diff'
-        run(['shfmt', '--list', mode, *shfmt_options(), *sources], root)
-
-
-def python(root, files, action):
-    require_tools('ruff')
-    sources = [path for path in files if path.suffix in {'.py', '.pyi'}]
-    if not sources:
-        return
-    configuration = ['--config', REPOSITORY_ROOT / 'pyproject.toml']
-    if action == 'lint':
-        run(['ruff', 'check', *quiet('--quiet'), *configuration, *sources], root)
-    elif action == 'format':
-        run(
-            [
-                'ruff',
-                'check',
-                *quiet('--quiet'),
-                '--select',
-                'I',
-                '--fix',
-                *configuration,
-                *sources,
-            ],
-            root,
-        )
-        run(['ruff', 'format', *quiet('--quiet'), *configuration, *sources], root)
-    else:
-        run(['ruff', 'format', '--check', *quiet('--quiet'), *configuration, *sources], root)
-
-
-def javascript(root, files, action, typed=False):
-    require_tools('eslint', 'prettier', 'tsc')
-    suffixes = TYPESCRIPT_SUFFIXES if typed else JAVASCRIPT_SUFFIXES
-    sources = [path for path in files if path.suffix in suffixes]
-    if action == 'lint':
-        if typed:
-            typescript_projects(root, files)
-        if sources:
-            run(
-                [
-                    'eslint',
-                    '--config',
-                    '/opt/quality/eslint.config.mjs',
-                    '--max-warnings',
-                    '0',
-                    '--no-warn-ignored',
-                    *sources,
-                ],
-                root,
-            )
-    else:
-        sources = [
-            path
-            for path in files
-            if path.suffix in JAVASCRIPT_SUFFIXES | TYPESCRIPT_SUFFIXES or path.suffix in CONFIGURATION_SUFFIXES
-        ]
-        if sources:
-            mode = '--write' if action == 'format' else '--check'
-            run(
-                [
-                    'prettier',
-                    mode,
-                    *quiet('--log-level', 'warn'),
-                    '--config',
-                    REPOSITORY_ROOT / '.prettierrc.json',
-                    '--ignore-path',
-                    REPOSITORY_ROOT / '.prettierignore',
-                    *sources,
-                ],
-                root,
-            )
-
 
 LANGUAGES = ('bash', 'python', 'javascript', 'rust', 'sql')
 TARGETS = (

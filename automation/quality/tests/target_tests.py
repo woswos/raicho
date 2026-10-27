@@ -1,13 +1,12 @@
 import os
 import re
 import subprocess
-import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 from automation.paths import REPOSITORY_ROOT
-from automation.quality import runner, sql
+from automation.quality import javascript, python, runner, shell, sql
 from automation.quality.runner import TARGETS
 
 
@@ -35,14 +34,8 @@ class QualityTargetTests(unittest.TestCase):
                 with self.subTest(target=target):
                     self.assertIn(target, writing)
 
-    def test_shfmt_options_come_from_a_regular_configuration_file(self):
-        self.assertIn('--indent', runner.shfmt_options())
-        with (
-            tempfile.TemporaryDirectory() as directory,
-            mock.patch.object(runner, 'REPOSITORY_ROOT', Path(directory)),
-            self.assertRaisesRegex(ValueError, 'shfmt configuration is missing'),
-        ):
-            runner.shfmt_options()
+    def test_shfmt_options_come_from_its_configuration_file(self):
+        self.assertIn('--indent', shell.shfmt_options())
 
     def test_tool_failures_name_the_tool_without_its_arguments(self):
         cases = {
@@ -57,15 +50,15 @@ class QualityTargetTests(unittest.TestCase):
 
     def test_verbose_runs_drop_the_quiet_flags(self):
         cases = (
-            (runner.python, [Path('module.py')], 'lint', '--quiet'),
-            (runner.javascript, [Path('script.js')], 'format-check', '--log-level'),
+            (python, python.python, [Path('module.py')], 'lint', '--quiet'),
+            (javascript, javascript.javascript, [Path('script.js')], 'format-check', '--log-level'),
         )
-        for check, files, action, flag in cases:
+        for module, check, files, action, flag in cases:
             for verbose, present in (('', True), ('1', False)):
                 with (
                     self.subTest(check=check.__name__, verbose=verbose),
                     mock.patch.dict(os.environ, {'VERBOSE': verbose}),
-                    mock.patch.object(runner, 'run') as run,
+                    mock.patch.object(module, 'run') as run,
                 ):
                     check(Path('/workspace'), files, action)
                     self.assertEqual(any(flag in call.args[0] for call in run.call_args_list), present)

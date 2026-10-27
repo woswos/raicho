@@ -21,13 +21,14 @@ SOURCE_SUFFIXES = (
 )
 
 
-def run(arguments, root, capture=False):
+def run(arguments, root, capture=False, stdin=None):
     return subprocess.run(
         [str(root / argument) if isinstance(argument, Path) else argument for argument in arguments],
         cwd=root,
         check=True,
         text=True,
         stdout=subprocess.PIPE if capture else None,
+        input=stdin,
     )
 
 
@@ -35,6 +36,12 @@ def require_tools(*names):
     for name in names:
         if shutil.which(name) is None:
             raise ValueError(f'{name} is unavailable. Run this target in the tooling container.')
+
+
+def regular_file(path, description):
+    if not path.is_file() or path.is_symlink():
+        raise ValueError(f'{description} is missing or not a regular file: {path}')
+    return path
 
 
 def source_files(root):
