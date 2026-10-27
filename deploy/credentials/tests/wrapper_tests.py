@@ -21,13 +21,13 @@ class ConnectorWrapperTests(unittest.TestCase):
         self.state.mkdir(mode=0o700)
         self.docker = DockerMock(self.directory / 'commands', status=1)
 
-    def run_wrapper(self, operation='status'):
+    def run_wrapper(self, operation='status', project='raicho-wrapper-test', compose_test='0'):
         return subprocess.run(
             ['bash', str(WRAPPER), operation],
             env=self.docker.environment(
-                RAICHO_PROJECT='raicho-wrapper-test',
+                RAICHO_PROJECT=project,
                 RAICHO_STATE_DIRECTORY=str(self.state),
-                RAICHO_COMPOSE_TEST='0',
+                RAICHO_COMPOSE_TEST=compose_test,
                 TMPDIR=str(self.directory),
             ),
             capture_output=True,
@@ -138,3 +138,9 @@ class ConnectorWrapperTests(unittest.TestCase):
         self.assertIn('raicho gateway thunderbird', commands[start])
         self.assertLess(start, verify)
         self.assertLess(verify, finish)
+
+    def test_any_test_flag_adds_the_test_overlay(self):
+        self.run_wrapper(project='raicho-credentials-overlay', compose_test='2')
+        commands = [' '.join(command) for command in self.docker.commands()]
+        self.assertTrue(commands)
+        self.assertTrue(all('automation/acceptance/runtime/compose.test.yaml' in command for command in commands))
