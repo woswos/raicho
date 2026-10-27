@@ -1,10 +1,10 @@
 import argparse
-import json
 import socket
-import sys
 import urllib.error
 import urllib.request
 
+from automation.acceptance.connector.deployment import deployment
+from automation.acceptance.connector.endpoints import GATEWAY_ADDRESS, RAICHO_URL, upgrade_request
 from automation.acceptance.connector.idle import observe_idle
 from automation.acceptance.connector.status import (
     snapshot,
@@ -13,13 +13,8 @@ from automation.acceptance.connector.status import (
 
 
 def raw_request(request_line):
-    with socket.create_connection(('gateway', 8081), timeout=5) as connection:
-        connection.sendall(
-            f'{request_line}\r\nHost: attacker.invalid\r\n'
-            'Upgrade: websocket\r\nConnection: Upgrade\r\n'
-            'Sec-WebSocket-Version: 13\r\n'
-            'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n\r\n'.encode()
-        )
+    with socket.create_connection(GATEWAY_ADDRESS, timeout=5) as connection:
+        connection.sendall(upgrade_request(request_line, 'attacker.invalid', 'dGhlIHNhbXBsZSBub25jZQ=='))
         response = connection.recv(1024).split(b'\r\n', 1)[0]
     return int(response.split()[1])
 
@@ -41,41 +36,12 @@ def gateway_routes():
 
 def browser_route():
     try:
-        urllib.request.urlopen('http://raicho:8080/connector/v1', timeout=5)
+        urllib.request.urlopen(f'{RAICHO_URL}/connector/v1', timeout=5)
     except urllib.error.HTTPError as error:
         assert error.code == 404
     else:
         raise AssertionError('Connector route is exposed on the browser listener')
     print('Browser listener does not expose the connector')
-
-
-EXPECTED_NETWORKS = {
-    'raicho': {'application', 'connector-application'},
-    'gateway': {'connector-application', 'connector-thunderbird'},
-    'thunderbird': {'thunderbird', 'connector-thunderbird'},
-}
-
-
-def networks(container):
-    project = container['Config']['Labels']['com.docker.compose.project']
-    return {name.removeprefix(f'{project}_') for name in container['NetworkSettings']['Networks']}
-
-
-def deployment():
-    containers = {
-        container['Config']['Labels']['com.docker.compose.service']: container for container in json.load(sys.stdin)
-    }
-    gateway = containers['gateway']
-    assert gateway['Config']['User'] == '10001:10001'
-    assert gateway['HostConfig']['ReadonlyRootfs']
-    assert gateway['HostConfig']['CapDrop'] == ['ALL']
-    assert not gateway['HostConfig'].get('CapAdd')
-    assert not gateway['HostConfig']['PortBindings']
-    assert all(mount['Type'] == 'tmpfs' for mount in gateway['Mounts'])
-    for service, expected in EXPECTED_NETWORKS.items():
-        assert networks(containers[service]) == expected, service
-    assert not networks(containers['raicho']) & networks(containers['thunderbird'])
-    print('Only the gateway bridges Raicho and Thunderbird, and it has no ports, secrets or data mounts')
 
 
 def main():

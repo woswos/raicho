@@ -67,13 +67,8 @@ SERVER="$("${COMPOSE[@]}" ps -q raicho)"
 THUNDERBIRD="$("${COMPOSE[@]}" ps -q thunderbird)"
 GATEWAY="$("${COMPOSE[@]}" ps -q gateway)"
 docker inspect --format '{{.Name}} {{.Image}}' "${SERVER}" "${THUNDERBIRD}" "${GATEWAY}"
-docker inspect "${SERVER}" "${THUNDERBIRD}" "${GATEWAY}" | check deployment
-for NETWORK in connector-application connector-thunderbird; do
-    if [[ $(docker network inspect --format '{{.Internal}}' "${RAICHO_PROJECT}_${NETWORK}") != true ]]; then
-        echo "FAIL: ${NETWORK} must deny external routing and DNS forwarding" >&2
-        exit 1
-    fi
-done
+docker inspect "${SERVER}" "${THUNDERBIRD}" "${GATEWAY}" \
+    "${RAICHO_PROJECT}_connector-application" "${RAICHO_PROJECT}_connector-thunderbird" | check deployment
 docker inspect "${SERVER}" "${THUNDERBIRD}" | fixture mounts
 fixture database --revision 1
 "${COMPOSE[@]}" exec -T thunderbird python3 -B - <"${REPOSITORY_ROOT}/automation/acceptance/connector/inspect_xpi.py"

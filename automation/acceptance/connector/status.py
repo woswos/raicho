@@ -4,6 +4,7 @@ import time
 import urllib.error
 import urllib.request
 
+from automation.acceptance.connector.endpoints import STATUS_URL
 from automation.paths import REPOSITORY_ROOT
 
 
@@ -12,7 +13,7 @@ def contract():
 
 
 def status():
-    with urllib.request.urlopen('http://raicho:8080/api/status', timeout=5) as response:
+    with urllib.request.urlopen(STATUS_URL, timeout=5) as response:
         assert response.headers.get('Cache-Control') == 'no-store'
         payload = json.load(response)
     schema = contract()
