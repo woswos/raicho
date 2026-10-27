@@ -119,6 +119,14 @@ class DeployCleanTests(CleanupFixture):
         self.assertNotIn('rm', {command[1] for command in commands if len(command) > 1 and command[0] == 'volume'})
         self.assertIn('run make deploy-clean again', result.stderr)
 
+    def test_a_failed_docker_listing_stops_before_reporting_or_cleaning(self):
+        commands, result = self.deploy_clean(
+            Response(('container', '--format', '{{.Names}}', f'{PROJECT_FILTER}raicho'), status=1), status=1
+        )
+        self.assertIn("FAIL: could not list the deployment's containers", result.stderr)
+        self.assertNotIn('nothing to remove', result.stdout)
+        self.assertNotIn(CACHE_REMOVAL, commands)
+
     def test_nothing_to_remove_needs_no_confirmation_and_still_cleans(self):
         commands, result = self.deploy_clean()
         self.assertEqual(compose(commands), [])

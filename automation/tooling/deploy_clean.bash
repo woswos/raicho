@@ -25,10 +25,18 @@ if [[ -L ${LOCK_PATH} ]] || { [[ -e ${LOCK_PATH} ]] && [[ ! -f ${LOCK_PATH} ]]; 
     fail "${LOCK_PATH} must be a regular file"
 fi
 
-FILTER="label=${PROJECT_LABEL}=${PROJECT}"
-mapfile -t CONTAINERS < <(list container --format '{{.Names}}' --filter "${FILTER}")
-mapfile -t NETWORKS < <(list network --format '{{.Name}}' --filter "${FILTER}")
-mapfile -t VOLUMES < <(list volume --format '{{.Name}}' --filter "${FILTER}")
+listing() {
+    list "${1}" --format "${2}" --filter "label=${PROJECT_LABEL}=${PROJECT}" \
+        || fail "could not list the deployment's ${1}s"
+}
+
+# Command substitution keeps a failed listing from reading as an empty deployment.
+CONTAINER_NAMES="$(listing container '{{.Names}}')"
+NETWORK_NAMES="$(listing network '{{.Name}}')"
+VOLUME_NAMES="$(listing volume '{{.Name}}')"
+mapfile -t CONTAINERS < <(printf '%s' "${CONTAINER_NAMES}")
+mapfile -t NETWORKS < <(printf '%s' "${NETWORK_NAMES}")
+mapfile -t VOLUMES < <(printf '%s' "${VOLUME_NAMES}")
 if ((${#CONTAINERS[@]} + ${#NETWORKS[@]} + ${#VOLUMES[@]} == 0)) && [[ ! -e ${STATE_DIRECTORY} ]]; then
     echo "Deployment ${PROJECT} has nothing to remove"
     clean
