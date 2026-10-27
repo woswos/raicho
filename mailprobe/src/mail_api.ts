@@ -29,7 +29,6 @@ export interface MailApi {
     saveMessage: (details: Details, options: { mode: 'draft' }) => Promise<unknown>;
     sendMessage: (details: Details, options: { mode: 'sendNow' | 'sendLater' }) => Promise<unknown>;
     query: (query: Record<string, unknown>) => Promise<MessageList>;
-    list: (folderIdentifier: string) => Promise<MessageList>;
     continueList: (identifier: string) => Promise<MessageList>;
     get: (identifier: number) => Promise<MessageHeader>;
     getFull: (identifier: number) => Promise<unknown>;

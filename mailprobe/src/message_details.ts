@@ -1,9 +1,8 @@
 import { objectValue, stringValue } from './validation.js';
 
-const stringFields = new Set(['subject', 'identityId', 'from', 'body', 'plainTextBody', 'deliveryFormat']);
-const recipientFields = new Set(['to', 'cc', 'bcc', 'replyTo']);
+const stringFields = new Set(['subject', 'identityId', 'body', 'plainTextBody', 'deliveryFormat']);
 
-export interface Attachment {
+interface Attachment {
   file: File;
   name: string;
 }
@@ -19,12 +18,12 @@ export function messageDetails(value: unknown, requireSubject = true): Details {
   for (const [name, item] of Object.entries(source)) {
     if (stringFields.has(name)) {
       details[name] = stringValue(item);
-    } else if (recipientFields.has(name)) {
+    } else if (name === 'to') {
       if (Array.isArray(item)) {
         if (item.length > 20) throw new Error('Too many fixture recipients.');
         details[name] = item.map(stringValue);
       } else details[name] = stringValue(item);
-    } else if (name === 'isPlainText' || name === 'isModified') {
+    } else if (name === 'isPlainText') {
       if (typeof item !== 'boolean') throw new Error('Expected a boolean.');
       details[name] = item;
     } else if (name === 'attachments') {
@@ -32,8 +31,6 @@ export function messageDetails(value: unknown, requireSubject = true): Details {
         throw new Error('Expected at most three fixture attachments.');
       }
       details.attachments = item.map(attachmentValue);
-    } else if (name === 'overrideDefaultFccFolder' || name === 'additionalFccFolder') {
-      details[name] = item === '' ? '' : objectValue(item);
     } else throw new Error('Unsupported fixture message field.');
   }
   return details;

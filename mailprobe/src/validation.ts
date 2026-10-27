@@ -5,7 +5,6 @@ const actions = new Set([
   'save',
   'send',
   'query',
-  'list',
   'get_message',
   'begin_new',
   'update_compose',

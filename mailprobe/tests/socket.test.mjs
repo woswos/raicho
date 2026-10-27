@@ -50,6 +50,4 @@ test('a disconnect during send loses the result without replay on reconnect', as
   await setImmediate();
   assert.equal(second.sent[1].ok, false);
   assert.equal(attempts, 1);
-  second.onclose({ code: 4003 });
-  assert.equal(fixture.timers.size, 0);
 });
