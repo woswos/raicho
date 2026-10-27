@@ -128,11 +128,9 @@ def main():
             run(['cargo', 'build', *arguments])
         else:
             cargo_test(arguments)
-    elif target.endswith('extension') or target == 'test-mailprobe':
-        if target == 'test-mailprobe':
-            extension(REPOSITORY_ROOT / 'mailprobe', testing=True)
-        else:
-            extension(REPOSITORY_ROOT / 'extension', testing=target.startswith('test-'))
+    elif target.endswith(('extension', 'mailprobe')):
+        component = 'mailprobe' if target == 'test-mailprobe' else 'extension'
+        extension(REPOSITORY_ROOT / component, testing=target.startswith('test-'))
     else:
         web(testing=target == 'test-web')
 
