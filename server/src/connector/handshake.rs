@@ -58,7 +58,7 @@ fn check(request: &Request, connector: &Connector) -> Result<OwnedSemaphorePermi
     {
         return Err(StatusCode::FORBIDDEN);
     }
-    if connector.state.lock().expect("Connector state lock poisoned").stopping {
+    if *connector.shutdown.borrow() {
         return Err(StatusCode::SERVICE_UNAVAILABLE);
     }
     Arc::clone(&connector.pending)

@@ -65,8 +65,8 @@ impl Connector {
 
     pub async fn shutdown(&self) {
         {
-            let mut state = self.state.lock().expect("Connector state lock poisoned");
-            state.stopping = true;
+            // Registrations check shutdown under this lock, so none can start after it.
+            let _state = self.state.lock().expect("Connector state lock poisoned");
             self.shutdown.send_replace(true);
         }
         let _all_sockets = Arc::clone(&self.sockets)

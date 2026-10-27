@@ -19,7 +19,6 @@ pub(super) struct ConnectionState {
     pub active: Option<ActiveConnection>,
     pub last_error: Option<BackendError>,
     pub heartbeat_count: u64,
-    pub stopping: bool,
 }
 
 pub(super) struct ActiveConnection {
@@ -30,7 +29,7 @@ pub(super) struct ActiveConnection {
 impl Connector {
     pub(super) fn register(&self, generation: Generation) -> Option<watch::Receiver<bool>> {
         let mut state = self.state.lock().expect("Connector state lock poisoned");
-        if state.stopping {
+        if *self.shutdown.borrow() {
             return None;
         }
         let (replacement, receiver) = watch::channel(false);
@@ -47,7 +46,7 @@ impl Connector {
 
     pub(super) fn reject(&self, reason: BackendError) {
         let mut state = self.state.lock().expect("Connector state lock poisoned");
-        if state.active.is_none() && !state.stopping {
+        if state.active.is_none() && !*self.shutdown.borrow() {
             state.last_error = Some(reason);
         }
     }

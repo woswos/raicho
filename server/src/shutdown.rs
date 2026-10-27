@@ -48,7 +48,5 @@ pub async fn serve(
 }
 
 async fn stop(mut receiver: watch::Receiver<bool>) {
-    if !*receiver.borrow() {
-        let _ = receiver.changed().await;
-    }
+    let _ = receiver.wait_for(|stopping| *stopping).await;
 }
