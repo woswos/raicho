@@ -7,7 +7,6 @@ x-runtime: &runtime
   tmpfs: [/tmp:mode=1777]
   cap_drop: [ALL]
   security_opt: [no-new-privileges:true]
-  restart: 'no'
 
 x-fixture: &fixture
   <<: *runtime
@@ -81,7 +80,6 @@ services:
     <<: *fixture
     profiles: [test]
     entrypoint: [python3, -B, -m, mailprobe.tests.probe.driver]
-    healthcheck: { disable: true }
 
   extension:
     <<: *runtime
@@ -92,7 +90,6 @@ services:
     volumes:
       - ..:/workspace:ro
       - artifacts:/artifact
-    healthcheck: { disable: true }
 
 networks:
   mail-test:
