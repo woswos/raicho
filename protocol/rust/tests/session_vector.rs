@@ -6,8 +6,7 @@ use raicho_protocol::{ContractError, Phase};
 use serde_json::{Value, json};
 
 fn vector() -> Value {
-    let path =
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../fixtures/authentication/session.json");
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../fixtures/authentication/session.json");
     serde_json::from_slice(&fs::read(path).unwrap()).unwrap()
 }
 
@@ -49,10 +48,7 @@ fn channels_accept_each_frame_once_in_order_from_the_other_peer() {
     let mut client = Channel::new(key, Peer::Client);
     assert!(client.open(&ping, Phase::ServerControl, generation).is_ok());
     assert_eq!(
-        client
-            .open(&ping, Phase::ServerControl, generation)
-            .err()
-            .unwrap(),
+        client.open(&ping, Phase::ServerControl, generation).err().unwrap(),
         ContractError::AuthenticationFailed
     );
     let mut server = Channel::new(key, Peer::Server);
@@ -61,11 +57,7 @@ fn channels_accept_each_frame_once_in_order_from_the_other_peer() {
     let mut reflected = Channel::new(key, Peer::Server);
     assert_eq!(
         reflected
-            .open(
-                &ping.replace("ping", "pong"),
-                Phase::ClientControl,
-                generation
-            )
+            .open(&ping.replace("ping", "pong"), Phase::ClientControl, generation)
             .err()
             .unwrap(),
         ContractError::AuthenticationFailed
@@ -86,12 +78,8 @@ fn a_failed_frame_closes_the_channel() {
     let flipped = if mac.starts_with('0') { "1" } else { "0" };
     tampered["mac"] = Value::String(format!("{flipped}{}", &mac[1..]));
     let mut client = Channel::new(key, Peer::Client);
-    let mut open =
-        |frame: &Value| client.open(&frame.to_string(), Phase::ServerControl, generation);
-    assert_eq!(
-        open(&tampered).err(),
-        Some(ContractError::AuthenticationFailed)
-    );
+    let mut open = |frame: &Value| client.open(&frame.to_string(), Phase::ServerControl, generation);
+    assert_eq!(open(&tampered).err(), Some(ContractError::AuthenticationFailed));
     assert_eq!(open(&ping).err(), Some(ContractError::AuthenticationFailed));
 }
 
@@ -99,8 +87,7 @@ fn a_failed_frame_closes_the_channel() {
 fn a_frame_without_a_mac_is_invalid() {
     let vector = vector();
     let key = from_hex(vector["session_key"].as_str().unwrap()).unwrap();
-    let challenge =
-        json!({"type": "challenge", "protocol_version": 1, "server_nonce": "f".repeat(64)});
+    let challenge = json!({"type": "challenge", "protocol_version": 1, "server_nonce": "f".repeat(64)});
     let mut client = Channel::new(key, Peer::Client);
     assert_eq!(
         client

@@ -37,13 +37,8 @@ async fn write_contention_times_out_without_losing_existing_state() {
     let directory = tempdir().unwrap();
     let database = Database::open(directory.path()).await.unwrap();
     let options = SqliteConnectOptions::new().filename(directory.path().join("raicho.sqlite3"));
-    let mut competing = sqlx::SqliteConnection::connect_with(&options)
-        .await
-        .unwrap();
-    let transaction = competing
-        .begin_with("BEGIN IMMEDIATE".into_sql_str())
-        .await
-        .unwrap();
+    let mut competing = sqlx::SqliteConnection::connect_with(&options).await.unwrap();
+    let transaction = competing.begin_with("BEGIN IMMEDIATE".into_sql_str()).await.unwrap();
     let started = Instant::now();
     let error = sqlx::query("CREATE TABLE contention (value TEXT)")
         .execute(database.pool())

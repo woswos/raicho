@@ -8,9 +8,7 @@ from automation.paths import REPOSITORY_ROOT
 
 
 def contract():
-    return json.loads(
-        (REPOSITORY_ROOT / 'protocol/schema/status.schema.json').read_text()
-    )
+    return json.loads((REPOSITORY_ROOT / 'protocol/schema/status.schema.json').read_text())
 
 
 def status():

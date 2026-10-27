@@ -12,9 +12,7 @@ class MailInspectTests(unittest.TestCase):
         message['Subject'] = 'Fixture'
         message.set_content('Plain fixture')
         message.add_alternative('<p>HTML fixture</p>', subtype='html')
-        message.add_attachment(
-            b'attachment', maintype='text', subtype='plain', filename='fixture.txt'
-        )
+        message.add_attachment(b'attachment', maintype='text', subtype='plain', filename='fixture.txt')
         description = describe_message(b'42', message.as_bytes())
         self.assertEqual(description['uid'], '42')
         self.assertEqual(description['message_id'], '<fixture@raicho.test>')
@@ -25,9 +23,7 @@ class MailInspectTests(unittest.TestCase):
         self.assertNotIn('attachment', description['plain'])
 
     def test_missing_message_id_remains_empty(self):
-        self.assertEqual(
-            describe_message(b'1', b'Subject: fixture\r\n\r\nbody')['message_id'], ''
-        )
+        self.assertEqual(describe_message(b'1', b'Subject: fixture\r\n\r\nbody')['message_id'], '')
 
 
 if __name__ == '__main__':

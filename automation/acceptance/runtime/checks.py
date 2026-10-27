@@ -68,9 +68,7 @@ def seed():
 
 def check_persistence():
     with sqlite3.connect(f'file:{DATABASE}?mode=ro', uri=True) as connection:
-        assert connection.execute('SELECT value FROM raicho_fixture').fetchall() == [
-            (FIXTURE_VALUE,)
-        ]
+        assert connection.execute('SELECT value FROM raicho_fixture').fetchall() == [(FIXTURE_VALUE,)]
         assert connection.execute('PRAGMA integrity_check').fetchone() == ('ok',)
     assert FIXTURE_VALUE in (PROFILE / 'prefs.js').read_text()
     print('SQLite contents and actual Thunderbird preferences survived recreation')

@@ -46,11 +46,7 @@ def typescript_projects(root, files):
     if not sources:
         print('SKIP: TypeScript is not applicable (no TypeScript sources).')
         return []
-    configurations = [
-        path
-        for path in files
-        if path.name.startswith('tsconfig') and path.suffix == '.json'
-    ]
+    configurations = [path for path in files if path.name.startswith('tsconfig') and path.suffix == '.json']
     if not configurations:
         raise ValueError('TypeScript sources require a tsconfig.json project.')
     covered = set()
@@ -89,10 +85,7 @@ def rust(root, files, action, tooling_root):
     for manifest in rust_projects(root, files):
         if action == 'lint':
             workspace_key = hashlib.sha256(str(manifest).encode()).hexdigest()
-            target = (
-                Path(os.environ.get('CARGO_TARGET_DIR', '/tmp/raicho-target'))
-                / workspace_key
-            )
+            target = Path(os.environ.get('CARGO_TARGET_DIR', '/tmp/raicho-target')) / workspace_key
             run(
                 [
                     'cargo',

@@ -30,9 +30,7 @@ class TestImageTests(unittest.TestCase):
                     self.assertEqual(service['user'], '10001:10001')
                     self.assertTrue(service['read_only'])
                     self.assertEqual(service['cap_drop'], ['ALL'])
-                    self.assertEqual(
-                        service['security_opt'], ['no-new-privileges:true']
-                    )
+                    self.assertEqual(service['security_opt'], ['no-new-privileges:true'])
                     self.assertNotIn('ports', service)
                     self.assertNotIn('cap_add', service)
                     if name == 'extension':
@@ -47,8 +45,7 @@ class TestImageTests(unittest.TestCase):
         extension = next(
             mount
             for mount in thunderbird['volumes']
-            if isinstance(mount, dict)
-            and mount.get('target') == '/opt/raicho/extension'
+            if isinstance(mount, dict) and mount.get('target') == '/opt/raicho/extension'
         )
         self.assertTrue(extension['read_only'])
         self.assertTrue(extension['volume']['nocopy'])
@@ -69,9 +66,7 @@ class TestImageTests(unittest.TestCase):
                 'mailprobe.tests.profile.start',
             ],
         )
-        self.assertEqual(
-            thunderbird['environment']['LD_LIBRARY_PATH'], '/opt/thunderbird'
-        )
+        self.assertEqual(thunderbird['environment']['LD_LIBRARY_PATH'], '/opt/thunderbird')
 
 
 if __name__ == '__main__':

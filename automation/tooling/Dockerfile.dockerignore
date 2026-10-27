@@ -3,6 +3,7 @@
 !automation/tooling/entrypoint.bash
 !package.json
 !package-lock.json
+!.npmrc
 !eslint.config.mjs
 !mailprobe/tests/probe/
 !mailprobe/tests/profile/

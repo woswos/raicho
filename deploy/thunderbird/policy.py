@@ -34,10 +34,7 @@ def validate_endpoint(endpoint):
         parsed = urlsplit(endpoint)
         if (
             len(endpoint) > 2048
-            or any(
-                character.isspace() or ord(character) < 32 or ord(character) == 127
-                for character in endpoint
-            )
+            or any(character.isspace() or ord(character) < 32 or ord(character) == 127 for character in endpoint)
             or parsed.scheme not in ('ws', 'wss')
             or not parsed.hostname
             or parsed.username is not None
@@ -48,9 +45,7 @@ def validate_endpoint(endpoint):
         ):
             raise ValueError
     except ValueError:
-        raise ValueError(
-            'Connector endpoint must be a ws/wss URL without credentials, query, or fragment.'
-        ) from None
+        raise ValueError('Connector endpoint must be a ws/wss URL without credentials, query, or fragment.') from None
 
 
 def read_token(token_path):
@@ -63,9 +58,7 @@ def read_token(token_path):
     except OSError:
         raise ValueError('Connector token file could not be read.') from None
     if not re.fullmatch(rb'[0-9a-f]{64}\n?', token_bytes):
-        raise ValueError(
-            'Connector token must contain 64 lowercase hexadecimal characters.'
-        )
+        raise ValueError('Connector token must contain 64 lowercase hexadecimal characters.')
     return token_bytes.rstrip(b'\n').decode('ascii')
 
 
@@ -75,9 +68,7 @@ def managed_settings(environment):
     if not endpoint and not token_path:
         return None
     if not endpoint or not token_path:
-        raise ValueError(
-            'Connector endpoint and token file must be configured together.'
-        )
+        raise ValueError('Connector endpoint and token file must be configured together.')
     validate_endpoint(endpoint)
     return {'endpoint': endpoint, 'token': read_token(token_path)}
 
@@ -103,9 +94,7 @@ def write_policies(runtime_directory, extension_directory, environment):
         raise ValueError('Runtime directory must be owned by the current user.')
     runtime_directory.chmod(0o700)
     destination = runtime_directory / 'policies.json'
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix='.policies-', dir=runtime_directory
-    )
+    descriptor, temporary_name = tempfile.mkstemp(prefix='.policies-', dir=runtime_directory)
     temporary = Path(temporary_name)
     try:
         with os.fdopen(descriptor, 'w') as policy_file:

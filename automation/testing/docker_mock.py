@@ -50,9 +50,7 @@ class DockerMock:
         executable.chmod(0o700)
 
     def environment(self, **variables):
-        return (
-            os.environ | {'PATH': f'{self.directory}:{os.environ["PATH"]}'} | variables
-        )
+        return os.environ | {'PATH': f'{self.directory}:{os.environ["PATH"]}'} | variables
 
     def commands(self):
         trace = self.directory / 'trace'

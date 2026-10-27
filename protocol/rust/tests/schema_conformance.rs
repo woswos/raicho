@@ -18,10 +18,7 @@ fn fixtures() -> Vec<Fixture> {
     let mut paths: Vec<_> = fs::read_dir(directory)
         .unwrap()
         .map(|entry| entry.unwrap().path())
-        .filter(|path| {
-            path.extension()
-                .is_some_and(|extension| extension == "json")
-        })
+        .filter(|path| path.extension().is_some_and(|extension| extension == "json"))
         .collect();
     paths.sort();
     paths
@@ -34,8 +31,7 @@ fn fixtures() -> Vec<Fixture> {
 // so no frame that the schema rejects may decode.
 #[test]
 fn the_decoder_accepts_only_frames_the_schema_accepts() {
-    let schema: Value =
-        serde_json::from_str(include_str!("../../schema/connector.schema.json")).unwrap();
+    let schema: Value = serde_json::from_str(include_str!("../../schema/connector.schema.json")).unwrap();
     let validator = jsonschema::options()
         .with_draft(jsonschema::Draft::Draft7)
         .offline()
@@ -46,18 +42,10 @@ fn the_decoder_accepts_only_frames_the_schema_accepts() {
         let raw = fixture
             .raw
             .unwrap_or_else(|| serde_json::to_string(&fixture.message.unwrap()).unwrap());
-        let conforms =
-            serde_json::from_str::<Value>(&raw).is_ok_and(|value| validator.is_valid(&value));
+        let conforms = serde_json::from_str::<Value>(&raw).is_ok_and(|value| validator.is_valid(&value));
         let decodes = decode_frame(&raw, fixture.phase, fixture.generation.as_deref()).is_ok();
-        assert!(
-            conforms || !decodes,
-            "{} decodes but violates the schema",
-            fixture.name
-        );
+        assert!(conforms || !decodes, "{} decodes but violates the schema", fixture.name);
         rejected += usize::from(!conforms);
     }
-    assert!(
-        rejected > 10,
-        "The corpus must include frames that violate the schema."
-    );
+    assert!(rejected > 10, "The corpus must include frames that violate the schema.");
 }

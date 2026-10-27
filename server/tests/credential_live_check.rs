@@ -53,9 +53,7 @@ async fn waits_for_an_authenticated_heartbeat_not_only_http_readiness() {
         status("connected", 1, "ready"),
     ])
     .await;
-    wait_for_connector(&address, Duration::from_secs(10))
-        .await
-        .unwrap();
+    wait_for_connector(&address, Duration::from_secs(10)).await.unwrap();
     assert_eq!(requests.load(Ordering::SeqCst), 3);
 }
 

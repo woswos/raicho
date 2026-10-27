@@ -23,10 +23,7 @@ fn shared_contract_fixtures_agree_with_generated_bindings() {
     let mut paths: Vec<_> = fs::read_dir(directory)
         .unwrap()
         .map(|entry| entry.unwrap().path())
-        .filter(|path| {
-            path.extension()
-                .is_some_and(|extension| extension == "json")
-        })
+        .filter(|path| path.extension().is_some_and(|extension| extension == "json"))
         .collect();
     paths.sort();
     assert!(!paths.is_empty());
@@ -38,10 +35,7 @@ fn shared_contract_fixtures_agree_with_generated_bindings() {
             verify_fixture(fixture);
         }
     }
-    assert!(
-        count > 20,
-        "The shared corpus must cover multiple boundaries."
-    );
+    assert!(count > 20, "The shared corpus must cover multiple boundaries.");
 }
 
 fn verify_fixture(fixture: Fixture) {
@@ -61,12 +55,7 @@ fn verify_fixture(fixture: Fixture) {
         }
         Err(error) => {
             assert!(!fixture.valid, "{} failed: {error}", fixture.name);
-            assert_eq!(
-                Some(error.code()),
-                fixture.error.as_deref(),
-                "{}",
-                fixture.name
-            );
+            assert_eq!(Some(error.code()), fixture.error.as_deref(), "{}", fixture.name);
         }
     }
 }

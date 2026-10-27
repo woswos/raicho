@@ -25,11 +25,7 @@ impl Fixture {
     }
 
     fn operate(&self, operation: &str) -> raicho_server::error::Result<TokenState> {
-        operate_token_directory(
-            operation.parse().unwrap(),
-            self.directory.path(),
-            self.owner,
-        )
+        operate_token_directory(operation.parse().unwrap(), self.directory.path(), self.owner)
     }
 
     fn state(&self, operation: &str) -> TokenState {

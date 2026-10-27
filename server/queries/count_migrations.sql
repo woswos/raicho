@@ -1,1 +1,1 @@
-SELECT COUNT(*) FROM _sqlx_migrations;
+SELECT count(*) FROM _sqlx_migrations;

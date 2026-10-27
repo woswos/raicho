@@ -14,8 +14,7 @@ export type Label = string;
  * This interface was referenced by `ApplicationStatus`'s JSON-Schema
  * via the `definition` "BackendState".
  */
-export type BackendState =
-  'unconfigured' | 'disconnected' | 'connected' | 'revoked' | 'unavailable';
+export type BackendState = 'unconfigured' | 'disconnected' | 'connected' | 'revoked' | 'unavailable';
 /**
  * This interface was referenced by `ApplicationStatus`'s JSON-Schema
  * via the `definition` "Generation".

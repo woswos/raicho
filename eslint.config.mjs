@@ -34,10 +34,7 @@ export default defineConfig(
   },
   {
     files: ['**/*.{ts,tsx,mts,cts}'],
-    extends: [
-      javascript.configs.recommended,
-      typescriptEslint.configs.recommendedTypeChecked,
-    ],
+    extends: [javascript.configs.recommended, typescriptEslint.configs.recommendedTypeChecked],
     languageOptions: {
       parserOptions: {
         projectService: true,

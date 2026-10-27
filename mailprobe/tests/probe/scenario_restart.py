@@ -29,14 +29,10 @@ def wait_for_identity(client, baseline):
     attempts = []
 
     def found():
-        matches = request_before_deadline(
-            client, 'query', {'query': identity}, deadline
-        )['messages']
+        matches = request_before_deadline(client, 'query', {'query': identity}, deadline)['messages']
         assert len(matches) <= 1, {'identity': identity, 'matches': matches}
         if not attempts and not matches:
-            request_before_deadline(
-                client, 'select_folder', {'folder_id': identity['folderId']}, deadline
-            )
+            request_before_deadline(client, 'select_folder', {'folder_id': identity['folderId']}, deadline)
         attempts.append(matches)
         if not matches:
             return None
@@ -45,9 +41,7 @@ def wait_for_identity(client, baseline):
             'folder_selection_required': not attempts[0],
         }
 
-    return wait_until(
-        found, 30, f'Restarted fixture message did not become queryable: {identity}'
-    )
+    return wait_until(found, 30, f'Restarted fixture message did not become queryable: {identity}')
 
 
 def run(client):

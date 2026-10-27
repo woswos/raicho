@@ -4,12 +4,7 @@ import { LIMITS } from './limits_generated.js';
 import { isUnambiguousJson } from './raw_json.js';
 import validate from './validator_generated.js';
 
-export type Phase =
-  | 'authentication'
-  | 'challenge'
-  | 'handshake'
-  | 'client_control'
-  | 'server_control';
+export type Phase = 'authentication' | 'challenge' | 'handshake' | 'client_control' | 'server_control';
 
 export type { ContractErrorCode };
 
@@ -60,11 +55,7 @@ function hasUnsupportedVersion(value: unknown): boolean {
   );
 }
 
-function checkPhase(
-  message: ConnectorMessage,
-  phase: Phase,
-  generation: string | undefined,
-): void {
+function checkPhase(message: ConnectorMessage, phase: Phase, generation: string | undefined): void {
   const accepted = {
     authentication: ['authenticate'],
     challenge: ['challenge', 'error'],
@@ -75,19 +66,12 @@ function checkPhase(
   if (!accepted[phase].includes(message.type)) {
     throw new ContractError('unexpected_message');
   }
-  if (
-    (phase === 'challenge' || phase === 'handshake') &&
-    message.type === 'error'
-  ) {
+  if ((phase === 'challenge' || phase === 'handshake') && message.type === 'error') {
     if (message.generation !== undefined || message.mac !== undefined) {
       throw new ContractError('unexpected_message');
     }
   } else if (phase === 'client_control' || phase === 'server_control') {
-    if (
-      generation === undefined ||
-      !('generation' in message) ||
-      message.generation !== generation
-    ) {
+    if (generation === undefined || !('generation' in message) || message.generation !== generation) {
       throw new ContractError('stale_generation');
     }
     if (!('mac' in message) || message.mac === undefined) {
@@ -96,26 +80,13 @@ function checkPhase(
   }
 }
 
-export function decodeFrame(
-  raw: string,
-  phase: Phase,
-  generation?: string,
-): ConnectorMessage {
-  const maximumBytes =
-    phase === 'authentication'
-      ? LIMITS.maximum_authentication_bytes
-      : LIMITS.maximum_control_bytes;
-  if (
-    raw.length > maximumBytes ||
-    new TextEncoder().encode(raw).byteLength > maximumBytes
-  ) {
+export function decodeFrame(raw: string, phase: Phase, generation?: string): ConnectorMessage {
+  const maximumBytes = phase === 'authentication' ? LIMITS.maximum_authentication_bytes : LIMITS.maximum_control_bytes;
+  if (raw.length > maximumBytes || new TextEncoder().encode(raw).byteLength > maximumBytes) {
     throw new ContractError('message_too_large');
   }
   const message = decodeJson(raw);
-  if (
-    !isUnambiguousJson(raw, LIMITS.maximum_json_depth) ||
-    !hasValidWireValues(message)
-  ) {
+  if (!isUnambiguousJson(raw, LIMITS.maximum_json_depth) || !hasValidWireValues(message)) {
     throw new ContractError('invalid_message');
   }
   if (hasUnsupportedVersion(message)) {

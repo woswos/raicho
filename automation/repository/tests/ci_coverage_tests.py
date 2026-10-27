@@ -1,3 +1,4 @@
+import re
 import subprocess
 import unittest
 
@@ -7,7 +8,18 @@ from automation.paths import REPOSITORY_ROOT
 
 WORKFLOW = REPOSITORY_ROOT / '.github/workflows/repository-checks.yml'
 PULL_REQUEST_EVENT = "${{ github.event_name == 'pull_request' }}"
-ACCEPTANCE_JOBS = ('connector-test', 'compatibility-test')
+HOST_MAKEFILE = REPOSITORY_ROOT / 'automation/tooling/host.mk'
+CONTAINER_MAKEFILE = REPOSITORY_ROOT / 'automation/tooling/container.mk'
+SOURCE_SUITES = (
+    'test-python',
+    'test-tooling',
+    'test-server',
+    'test-web',
+    'test-extension',
+    'test-mailprobe',
+    'test-protocol',
+)
+ACCEPTANCE_JOBS = ('runtime-test', 'connector-test', 'compatibility-test')
 
 
 class WorkflowCoverageTests(unittest.TestCase):
@@ -16,9 +28,7 @@ class WorkflowCoverageTests(unittest.TestCase):
         self.jobs = yaml.load(self.text, Loader=yaml.BaseLoader)['jobs']
 
     def script(self, *names):
-        return '\n'.join(
-            step.get('run', '') for name in names for step in self.jobs[name]['steps']
-        )
+        return '\n'.join(step.get('run', '') for name in names for step in self.jobs[name]['steps'])
 
     def test_every_acceptance_runner_runs_unattended_in_an_independent_job(self):
         runners = sorted(
@@ -28,11 +38,22 @@ class WorkflowCoverageTests(unittest.TestCase):
             if path.name != 'check_admin_isolation.bash'
         )
         self.assertTrue(runners)
+        recipes = (
+            HOST_MAKEFILE.read_text()
+            .replace('$(ACCEPTANCE)', 'bash $(REPOSITORY_ROOT)')
+            .replace('$(REPOSITORY_ROOT)', '')
+        )
+        targets = {
+            target
+            for target, recipe in re.findall(r'^(acceptance-[a-z]+):\n\t@(.*)$', recipes, re.MULTILINE)
+            if any(recipe == f'bash {runner}' for runner in runners)
+        }
+        self.assertEqual(len(targets), len(runners))
         script = self.script(*ACCEPTANCE_JOBS)
-        for runner in runners:
-            with self.subTest(runner=runner):
-                self.assertIn(f'bash {runner}', script)
-        self.assertNotIn('--native', script)
+        for target in sorted(targets):
+            with self.subTest(target=target):
+                self.assertIn(f'make {target}', script)
+        self.assertNotIn('--native', script + recipes)
         for name in ACCEPTANCE_JOBS:
             with self.subTest(job=name):
                 job = self.jobs[name]
@@ -43,9 +64,7 @@ class WorkflowCoverageTests(unittest.TestCase):
         for step in self.jobs['connector-test']['steps']:
             if 'name' in step:
                 with self.subTest(step=step['name']):
-                    self.assertEqual(
-                        step.get('env', {}).get('TMPDIR'), '${{ runner.temp }}'
-                    )
+                    self.assertEqual(step.get('env', {}).get('TMPDIR'), '${{ runner.temp }}')
 
     def test_every_compose_file_is_exercised(self):
         paths = subprocess.run(
@@ -56,15 +75,17 @@ class WorkflowCoverageTests(unittest.TestCase):
             text=True,
         ).stdout.split()
         self.assertTrue(paths)
+        commands = self.text + HOST_MAKEFILE.read_text().replace('$(REPOSITORY_ROOT)', '')
         for path in paths:
             with self.subTest(file=path):
-                self.assertIn(f'-f {path}', self.text)
+                self.assertIn(f'-f {path}', commands)
 
     def test_application_job_runs_every_source_suite(self):
-        words = set(self.script('application-test').split())
-        for target in ('build-app', 'test-app', 'test-mailprobe', 'test-protocol'):
+        self.assertIn('make test', self.script('application-test'))
+        aggregate = next(line for line in CONTAINER_MAKEFILE.read_text().splitlines() if line.startswith('test:'))
+        for target in SOURCE_SUITES:
             with self.subTest(target=target):
-                self.assertIn(target, words)
+                self.assertIn(target, aggregate.split())
 
     def test_newer_pull_request_runs_cancel_older_ones(self):
         for path in sorted(WORKFLOW.parent.glob('*.yml')):
@@ -79,3 +100,12 @@ class WorkflowCoverageTests(unittest.TestCase):
 
     def test_lint_job_runs_every_python_suite(self):
         self.assertIn('test-python', self.script('lint').split())
+
+    def test_coverage_job_gates_pull_requests_on_changed_lines(self):
+        job = self.jobs['coverage']
+        self.assertIn("github.event_name == 'pull_request'", job['if'])
+        for label in ('design', 'skip-test', 'skip-coverage-check'):
+            with self.subTest(label=label):
+                self.assertIn(f"'{label}'", job['if'])
+        self.assertEqual(job['steps'][0]['with']['fetch-depth'], '0')
+        self.assertIn('make check-patch-coverage', self.script('coverage'))

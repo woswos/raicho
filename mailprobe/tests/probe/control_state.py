@@ -109,10 +109,7 @@ class ControlState:
         with self.condition:
             if self.session != session:
                 raise ValueError('Result came from an inactive probe.')
-            if (
-                self.pending is None
-                or message.get('id') != self.pending['command']['id']
-            ):
+            if self.pending is None or message.get('id') != self.pending['command']['id']:
                 return True
             if self.pending['drop_result']:
                 self.disconnect(session)

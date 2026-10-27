@@ -101,9 +101,7 @@ class GuardTestCase(unittest.TestCase):
 
     def run_guard_cli(self, repo, script, extra, directory, arguments=()):
         command = ['python3', '-B', '-m', module_name(script), *arguments]
-        return self.run_command(
-            command, directory, {**extra, 'PYTHONPATH': str(repo.root)}
-        )
+        return self.run_command(command, directory, {**extra, 'PYTHONPATH': str(repo.root)})
 
     def pull_request(self, changes, base_files=None):
         repo = self.repo()

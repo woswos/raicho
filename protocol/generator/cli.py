@@ -10,6 +10,7 @@ from pathlib import Path
 from protocol.generator.validation import validate_sources, validate_status
 
 ROOT = Path(__file__).resolve().parents[2]
+NODE_REPORTER = f'--test-reporter={ROOT / "automation/build/node_reporter.mjs"}'
 OUTPUTS = {
     'rust': (
         Path('protocol/rust/src'),
@@ -40,16 +41,22 @@ def changed_outputs(generated, committed, filenames):
     return [
         name
         for name in filenames
-        if not (committed / name).is_file()
-        or (generated / name).read_bytes() != (committed / name).read_bytes()
+        if not (committed / name).is_file() or (generated / name).read_bytes() != (committed / name).read_bytes()
     ]
 
 
-def test_typescript():
+def test_typescript(compiler_arguments=(), test_arguments=(NODE_REPORTER,)):
     source = ROOT / 'protocol/typescript'
     with tempfile.TemporaryDirectory(prefix='raicho-protocol-typescript-') as directory:
         subprocess.run(
-            ['tsc', '--project', str(source / 'tsconfig.json'), '--outDir', directory],
+            [
+                'tsc',
+                '--project',
+                str(source / 'tsconfig.json'),
+                '--outDir',
+                directory,
+                *compiler_arguments,
+            ],
             cwd=ROOT,
             check=True,
         )
@@ -58,7 +65,7 @@ def test_typescript():
         if not tests:
             raise ValueError('No TypeScript protocol tests were found.')
         subprocess.run(
-            ['node', '--test', *tests],
+            ['node', '--test', *test_arguments, *tests],
             cwd=ROOT,
             env=os.environ | {'RAICHO_PROTOCOL_BUILD_DIR': directory},
             check=True,
@@ -105,9 +112,7 @@ def generate(action):
             if action == 'generate':
                 (ROOT / destination).mkdir(parents=True, exist_ok=True)
                 for name in changed:
-                    shutil.copyfile(
-                        staging / language / name, ROOT / destination / name
-                    )
+                    shutil.copyfile(staging / language / name, ROOT / destination / name)
         if action == 'check' and changes:
             raise ValueError(
                 'Generated protocol outputs drifted: '

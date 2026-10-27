@@ -15,8 +15,8 @@ workflows always finish.
 - `pr-guards`: PR context checks on PR events only, including the changelog
   entry required for user-visible changes.
 - `application-build`: runtime and fixture Compose validation and all runtime images.
-- `application-test`: Rust, browser, extension, and shared protocol builds/tests,
-  plus separate mail probe TypeScript tests.
+- `application-test`: `make test`, which builds and tests the Rust, browser,
+  extension, mail probe, and shared protocol sources and reruns the Python suites.
 - `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
   administrative network isolation and listener closure, and application readiness
   while Thunderbird is stopped, in a disposable project.
@@ -25,8 +25,12 @@ workflows always finish.
   isolation, same-profile upgrade, privacy canaries, and credential
   rotation/revocation recovery.
 - `compatibility-test`: unattended GreenMail draft/restart experiment.
+- `coverage`: on PRs only, `make check-patch-coverage` against the PR base. It
+  fails when fewer than 90 percent of changed, measured lines are covered.
 
-There are no coverage, image publication, or deployment jobs. Changelog
+The acceptance jobs run `make acceptance-runtime`, `make acceptance-connector` and
+`make acceptance-credentials`, and `make acceptance-mail`. There are no image
+publication or deployment jobs. Changelog
 releases are separate workflows described below. Runtime tests
 use no accounts and remove only their job-specific containers and volumes.
 
@@ -101,9 +105,9 @@ fails the job.
 
 `make lint-pr` reads PR metadata from GitHub's event JSON as data. It uses explicit
 base/head commit hashes, not the synthetic merge commit at `GITHUB_SHA`.
-A full checkout supplies those objects, including fork history. The
-`automation/tooling/compose.ci.yaml` override mounts the event JSON read-only at
-`/tmp/github-event.json`. Body, labels, and commit IDs are parsed as data and
+A full checkout supplies those objects, including fork history. Make adds the
+`automation/tooling/compose.ci.yaml` override, which mounts the event JSON
+read-only at `/tmp/github-event.json`. Body, labels, and commit IDs are parsed as data and
 never interpolated into shell commands. The changed-path
 comparison uses `base...head`, disables rename detection to inspect both sides
 of moves, and includes deletions. Missing or invalid context fails closed.
@@ -137,10 +141,11 @@ that check and says so.
 | `design` | Validates planning-only changes and exempts the reference check. |
 | `skip-design-check` | Bypasses the design-link requirement. Does not bypass planning-only enforcement on a `design` PR. |
 | `skip-build` | Skips the dedicated application image build job. |
-| `skip-test` | Skips application, runtime, connector, and compatibility test jobs. |
+| `skip-test` | Skips application, runtime, connector, compatibility, and coverage jobs. |
+| `skip-coverage-check` | Skips only the coverage job. |
 | `skip-changelog` | Skips the changelog entry check. Does not skip design, build, or test checks. |
 
-The `design` label also skips all five application jobs. Jobs are independent,
+The `design` label also skips all five application jobs and the coverage job. Jobs are independent,
 so a skipped build does not leave invalid test dependencies. Test jobs still
 compile/build their test prerequisites when `skip-build` is present. The labels
 do not bypass language linting, guard regression tests, or runner fixtures.
@@ -151,7 +156,7 @@ checks, or enforce review approval. These are repository settings to configure
 when publication is authorized. PRs can change their own workflow files, so this
 is a contributor workflow check rather than a tamper-proof governance boundary.
 
-Future coverage and image-publication checks belong to the
+Future image-publication checks belong to the
 [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md#future-ci-jobs)
 and are not part of the current workflow.
 

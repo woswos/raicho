@@ -1,4 +1,5 @@
 import argparse
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -21,6 +22,13 @@ from automation.quality.projects import (
 from automation.quality.sql import sql
 
 
+def shfmt_options():
+    configuration = REPOSITORY_ROOT / '.shfmt'
+    if not configuration.is_file() or configuration.is_symlink():
+        raise ValueError(f'shfmt configuration is missing or not a regular file: {configuration}')
+    return shlex.split(configuration.read_text(), comments=True)
+
+
 def shell(root, files, action):
     require_tools('bash', 'shellcheck', 'shfmt')
     sources = bash_files(root, files)
@@ -34,8 +42,8 @@ def shell(root, files, action):
             root,
         )
     else:
-        mode = '-w' if action == 'format' else '-d'
-        run(['shfmt', '-ln', 'bash', '-i', '4', '-ci', mode, *sources], root)
+        mode = '--write' if action == 'format' else '--diff'
+        run(['shfmt', '--list', mode, *shfmt_options(), *sources], root)
 
 
 def python(root, files, action):
@@ -45,12 +53,24 @@ def python(root, files, action):
         return
     configuration = ['--config', REPOSITORY_ROOT / 'pyproject.toml']
     if action == 'lint':
-        run(['ruff', 'check', *configuration, *sources], root)
+        run(['ruff', 'check', '--quiet', *configuration, *sources], root)
     elif action == 'format':
-        run(['ruff', 'check', '--select', 'I', '--fix', *configuration, *sources], root)
-        run(['ruff', 'format', *configuration, *sources], root)
+        run(
+            [
+                'ruff',
+                'check',
+                '--quiet',
+                '--select',
+                'I',
+                '--fix',
+                *configuration,
+                *sources,
+            ],
+            root,
+        )
+        run(['ruff', 'format', '--quiet', *configuration, *sources], root)
     else:
-        run(['ruff', 'format', '--check', *configuration, *sources], root)
+        run(['ruff', 'format', '--check', '--quiet', *configuration, *sources], root)
 
 
 def javascript(root, files, action, typed=False):
@@ -77,8 +97,7 @@ def javascript(root, files, action, typed=False):
         sources = [
             path
             for path in files
-            if path.suffix in JAVASCRIPT_SUFFIXES | TYPESCRIPT_SUFFIXES
-            or path.suffix in CONFIGURATION_SUFFIXES
+            if path.suffix in JAVASCRIPT_SUFFIXES | TYPESCRIPT_SUFFIXES or path.suffix in CONFIGURATION_SUFFIXES
         ]
         if sources:
             mode = '--write' if action == 'format' else '--check'
@@ -86,6 +105,8 @@ def javascript(root, files, action, typed=False):
                 [
                     'prettier',
                     mode,
+                    '--log-level',
+                    'warn',
                     '--config',
                     REPOSITORY_ROOT / '.prettierrc.json',
                     '--ignore-path',
@@ -96,27 +117,40 @@ def javascript(root, files, action, typed=False):
             )
 
 
+LANGUAGES = ('bash', 'python', 'javascript', 'rust', 'sql')
+TARGETS = (
+    'lint-bash',
+    'lint-python',
+    'lint-javascript',
+    'lint-typescript',
+    'lint-rust',
+    'lint-sql',
+    'format',
+    'format-check',
+    *(f'format-{language}' for language in LANGUAGES),
+    *(f'format-check-{language}' for language in LANGUAGES),
+    'typecheck',
+)
+
+
+def check_language(language, root, files, action, typed=False):
+    if language == 'bash':
+        shell(root, files, action)
+    elif language == 'python':
+        python(root, files, action)
+    elif language == 'javascript':
+        javascript(root, files, action, typed=typed)
+    elif language == 'rust':
+        require_tools('cargo', 'rustfmt', 'cargo-clippy')
+        rust(root, files, action, REPOSITORY_ROOT)
+    else:
+        sql(root, files, action, REPOSITORY_ROOT)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', type=Path, required=True)
-    parser.add_argument(
-        'target',
-        choices=(
-            'lint-bash',
-            'lint-python',
-            'lint-javascript',
-            'lint-typescript',
-            'lint-rust',
-            'lint-sql',
-            'format',
-            'format-sql',
-            'format-check',
-            'format-check-rust',
-            'format-check-javascript',
-            'format-check-sql',
-            'typecheck',
-        ),
-    )
+    parser.add_argument('target', choices=TARGETS)
     arguments = parser.parse_args()
     root = arguments.root.resolve()
     require_tools('git')
@@ -126,34 +160,14 @@ def main():
         require_tools('tsc')
         typecheck(root, files)
         return
-    action = (
-        'lint'
-        if target.startswith('lint-')
-        else ('format-check' if target.startswith('format-check') else 'format')
-    )
-    if target in {'format', 'format-check', 'lint-bash'}:
-        shell(root, files, action)
-    if target in {'format', 'format-check', 'lint-python'}:
-        python(root, files, action)
-    if target in {
-        'format',
-        'format-check',
-        'format-check-javascript',
-        'lint-javascript',
-        'lint-typescript',
-    }:
-        javascript(root, files, action, typed=target == 'lint-typescript')
-    if target in {'format', 'format-check', 'format-check-rust', 'lint-rust'}:
-        require_tools('cargo', 'rustfmt', 'cargo-clippy')
-        rust(root, files, action, REPOSITORY_ROOT)
-    if target in {
-        'format',
-        'format-sql',
-        'format-check',
-        'format-check-sql',
-        'lint-sql',
-    }:
-        sql(root, files, action, REPOSITORY_ROOT)
+    if target in {'format', 'format-check'}:
+        action, languages, typed = target, LANGUAGES, False
+    else:
+        action, _, language = target.rpartition('-')
+        typed = language == 'typescript'
+        languages = ('javascript',) if typed else (language,)
+    for language in languages:
+        check_language(language, root, files, action, typed)
 
 
 if __name__ == '__main__':

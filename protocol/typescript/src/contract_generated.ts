@@ -1,7 +1,6 @@
 // Generated from protocol/schema/connector.schema.json.
 
-export type ConnectorMessage =
-  Challenge | Authenticate | Welcome | Ping | Pong | ProtocolError;
+export type ConnectorMessage = Challenge | Authenticate | Welcome | Ping | Pong | ProtocolError;
 export type Nonce = string;
 /**
  * @maxItems 0

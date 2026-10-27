@@ -6,12 +6,7 @@ import { setImmediate } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
 
 const { startManagedConnector } = await import(
-  pathToFileURL(
-    resolve(
-      process.env.RAICHO_EXTENSION_BUILD_DIR,
-      'extension/src/managed_connector.js',
-    ),
-  ).href
+  pathToFileURL(resolve(process.env.RAICHO_EXTENSION_BUILD_DIR, 'extension/src/managed_connector.js')).href
 );
 const token = 'a'.repeat(64);
 const endpoint = 'ws://connector-proxy:8081/connector/v1';

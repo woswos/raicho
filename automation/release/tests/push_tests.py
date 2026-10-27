@@ -33,11 +33,7 @@ class ReleasePushTests(GuardTestCase):
 
     def run_push_step(self, workflow_name, repo):
         workflow = yaml.safe_load((WORKFLOWS / workflow_name).read_text())
-        step = next(
-            step
-            for step in workflow['jobs']['cut']['steps']
-            if step.get('name') == 'Commit and tag'
-        )
+        step = next(step for step in workflow['jobs']['cut']['steps'] if step.get('name') == 'Commit and tag')
         script = step['run'].replace('${{ steps.cut.outputs.tag }}', 'v0.1.1')
         return subprocess.run(
             ['bash', '--noprofile', '--norc', '-e', '-o', 'pipefail', '-c', script],
@@ -61,9 +57,7 @@ class ReleasePushTests(GuardTestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn('hook declined to update refs/tags/v0.1.1', result.stderr)
                 self.assertEqual(self.remote_commit(remote, 'main'), base)
-                tags = subprocess.check_output(
-                    ['git', '--git-dir', str(remote), 'tag', '--list'], text=True
-                )
+                tags = subprocess.check_output(['git', '--git-dir', str(remote), 'tag', '--list'], text=True)
                 self.assertEqual(tags, '')
 
     def test_success_publishes_main_and_tag_at_same_commit(self):

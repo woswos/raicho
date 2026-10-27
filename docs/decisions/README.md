@@ -10,7 +10,9 @@ defines why these are the durable project record.
   [documentation organisation](../contributing/documentation-organisation.md#naming).
 - Copy [template.md](template.md) to start a record.
 - Accepted records are immutable except for their status. To change a decision,
-  write a new ADR and mark the old one `superseded by YYYYMMDD-slug`.
+  write a new ADR and mark the old one `superseded by YYYYMMDD-slug`. When the
+  new ADR replaces only part of the old one, mark the old one
+  `accepted, amended by YYYYMMDD-slug` instead.
 - Keep context, decision, and consequences short and factual. Name the actual
   deciders and distinguish proposals from accepted decisions.
 

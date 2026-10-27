@@ -10,10 +10,7 @@ use tokio_tungstenite::tungstenite::{Message, Utf8Bytes};
 use super::failure::Failure;
 use super::handshake::Socket;
 
-pub(super) async fn send(
-    socket: &mut (impl Sink<Message> + Unpin),
-    value: &impl Serialize,
-) -> Result<(), Failure> {
+pub(super) async fn send(socket: &mut (impl Sink<Message> + Unpin), value: &impl Serialize) -> Result<(), Failure> {
     send_text(
         socket,
         serde_json::to_string(value).expect("Connector envelope is serializable"),
@@ -21,10 +18,7 @@ pub(super) async fn send(
     .await
 }
 
-pub(super) async fn send_text(
-    socket: &mut (impl Sink<Message> + Unpin),
-    text: String,
-) -> Result<(), Failure> {
+pub(super) async fn send_text(socket: &mut (impl Sink<Message> + Unpin), text: String) -> Result<(), Failure> {
     tokio::time::timeout(
         Duration::from_millis(AUTHENTICATION_DEADLINE_MS as u64),
         socket.send(Message::Text(text.into())),
@@ -55,9 +49,7 @@ fn diagnostic(error: Error) -> BackendError {
         Error::Io(_)
         | Error::ConnectionClosed
         | Error::AlreadyClosed
-        | Error::Protocol(ProtocolError::ResetWithoutClosingHandshake) => {
-            BackendError::Disconnected
-        }
+        | Error::Protocol(ProtocolError::ResetWithoutClosingHandshake) => BackendError::Disconnected,
         Error::Capacity(_) => BackendError::MessageTooLarge,
         _ => BackendError::InvalidMessage,
     }

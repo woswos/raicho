@@ -3,9 +3,7 @@ import time
 from automation.acceptance.connector.status import status
 
 
-def observe_idle(
-    seconds=600, sample=status, clock=time.monotonic, pause=time.sleep, report=print
-):
+def observe_idle(seconds=600, sample=status, clock=time.monotonic, pause=time.sleep, report=print):
     started = clock()
     baseline = sample()
     generation = baseline['generation']
@@ -21,9 +19,7 @@ def observe_idle(
         pause(min(15, seconds - elapsed))
         backend = sample()
         assert backend['status'] == 'connected', 'Connector disconnected during idle'
-        assert backend['generation'] == generation, (
-            'Connector session changed during idle'
-        )
+        assert backend['generation'] == generation, 'Connector session changed during idle'
         count = backend['heartbeat_count']
         assert type(count) is int and count >= previous, 'Heartbeat counter reset'
         now = clock()

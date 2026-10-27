@@ -76,9 +76,7 @@ def main():
         write_policies(runtime_directory, Path('/opt/raicho/extension'), os.environ)
         supervisor.state_path.unlink(missing_ok=True)
         (runtime_directory / 'bus').unlink(missing_ok=True)
-        selected = commands(
-            admin_enabled(os.environ.get('RAICHO_ADMIN_ENABLED', 'false'))
-        )
+        selected = commands(admin_enabled(os.environ.get('RAICHO_ADMIN_ENABLED', 'false')))
         Path('/config/profile').mkdir(mode=0o700, parents=True, exist_ok=True)
         for name, arguments in selected.items():
             supervisor.start(name, arguments)

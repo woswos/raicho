@@ -2,9 +2,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
-use raicho_protocol::authentication::{
-    ConnectorKeys, authentication_message, client_proof, to_hex,
-};
+use raicho_protocol::authentication::{ConnectorKeys, authentication_message, client_proof, to_hex};
 use raicho_protocol::channel::{Channel, Peer, session_key};
 use raicho_protocol::contract_generated::Authenticate;
 use raicho_server::connector::Connector;
@@ -13,9 +11,7 @@ use raicho_server::persistence::{CredentialStore, Database};
 use serde_json::{Value, json};
 use tempfile::TempDir;
 use tokio::net::{TcpListener, TcpStream};
-use tokio_tungstenite::tungstenite::{
-    Message, client::IntoClientRequest, handshake::client::Request,
-};
+use tokio_tungstenite::tungstenite::{Message, client::IntoClientRequest, handshake::client::Request};
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
 
 pub type Socket = WebSocketStream<MaybeTlsStream<TcpStream>>;
@@ -52,9 +48,7 @@ impl Fixture {
 
     pub fn request(&self) -> Request {
         let mut request = self.address.clone().into_client_request().unwrap();
-        request
-            .headers_mut()
-            .insert("Origin", ORIGIN.parse().unwrap());
+        request.headers_mut().insert("Origin", ORIGIN.parse().unwrap());
         request
     }
 
@@ -74,10 +68,7 @@ impl Fixture {
     pub async fn session(&self) -> (Socket, Value, Channel) {
         let (mut socket, server_nonce) = self.connect().await;
         let message = authentication("a", &server_nonce);
-        socket
-            .send(Message::Text(message.to_string().into()))
-            .await
-            .unwrap();
+        socket.send(Message::Text(message.to_string().into())).await.unwrap();
         let welcome = receive(&mut socket).await;
         assert_eq!(welcome["type"], "welcome");
         let fields: Authenticate = serde_json::from_value(message).unwrap();

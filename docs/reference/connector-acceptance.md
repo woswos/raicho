@@ -27,15 +27,11 @@ volumes, networks, temporary credentials, and fixture image tags.
 The workflow invokes the same commands used locally:
 
 ```bash
-docker compose -f automation/tooling/compose.yaml build
-docker compose -f automation/tooling/compose.yaml run --rm check \
-  make lint format-check typecheck test-python test-tooling build-app test-app test-mailprobe test-protocol
-bash automation/acceptance/connector/check_connector.bash
-bash automation/acceptance/credentials/check_credentials.bash
-bash mailprobe/tests/check_mail_compatibility.bash
+make lint test acceptance
 ```
 
-The `runtime-test` job also checks unconfigured startup, persistence,
+`make acceptance` also runs the runtime suite, which CI's `runtime-test` job runs
+as `make acceptance-runtime`. It checks unconfigured startup, persistence,
 administrative isolation, and independent readiness. Source regression tests
 check CI runner coverage and label policy. Local command success does not
 establish a hosted GitHub Actions result.

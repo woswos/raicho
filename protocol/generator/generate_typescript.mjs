@@ -11,10 +11,8 @@ const { compile } = require('json-schema-to-typescript');
 const { build } = require('esbuild');
 const { format } = require('prettier');
 const typescript = require('typescript');
-const repositoryRoot = resolve(
-  dirname(fileURLToPath(import.meta.url)),
-  '../..',
-);
+const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+const formatting = JSON.parse(await readFile(resolve(repositoryRoot, '.prettierrc.json'), 'utf8'));
 const [outputDirectory, webDirectory] = process.argv.slice(2);
 if (
   !outputDirectory ||
@@ -26,24 +24,10 @@ if (
   throw new Error('Supply absolute protocol and web output directories.');
 }
 
-const schema = JSON.parse(
-  await readFile(
-    resolve(repositoryRoot, 'protocol/schema/connector.schema.json'),
-    'utf8',
-  ),
-);
-const statusSchema = JSON.parse(
-  await readFile(
-    resolve(repositoryRoot, 'protocol/schema/status.schema.json'),
-    'utf8',
-  ),
-);
-const limits = JSON.parse(
-  await readFile(resolve(repositoryRoot, 'protocol/limits.json'), 'utf8'),
-);
-const diagnostics = JSON.parse(
-  await readFile(resolve(repositoryRoot, 'protocol/diagnostics.json'), 'utf8'),
-);
+const schema = JSON.parse(await readFile(resolve(repositoryRoot, 'protocol/schema/connector.schema.json'), 'utf8'));
+const statusSchema = JSON.parse(await readFile(resolve(repositoryRoot, 'protocol/schema/status.schema.json'), 'utf8'));
+const limits = JSON.parse(await readFile(resolve(repositoryRoot, 'protocol/limits.json'), 'utf8'));
+const diagnostics = JSON.parse(await readFile(resolve(repositoryRoot, 'protocol/diagnostics.json'), 'utf8'));
 
 async function standaloneValidator(source, filename) {
   const validator = new Ajv({
@@ -69,9 +53,7 @@ async function standaloneValidator(source, filename) {
   });
   const validatorSource = generated.outputFiles[0]?.text;
   if (!validatorSource) {
-    throw new Error(
-      'The generated validator must be self-contained and CSP safe.',
-    );
+    throw new Error('The generated validator must be self-contained and CSP safe.');
   }
   const syntaxTree = typescript.createSourceFile(
     filename,
@@ -84,30 +66,19 @@ async function standaloneValidator(source, filename) {
     if (
       typescript.isImportDeclaration(node) ||
       (typescript.isExportDeclaration(node) && node.moduleSpecifier) ||
-      ((typescript.isCallExpression(node) ||
-        typescript.isNewExpression(node)) &&
+      ((typescript.isCallExpression(node) || typescript.isNewExpression(node)) &&
         (node.expression.kind === typescript.SyntaxKind.ImportKeyword ||
-          /^(?:require|eval|Function|globalThis\.(?:eval|Function))$/u.test(
-            node.expression.getText(syntaxTree),
-          )))
+          /^(?:require|eval|Function|globalThis\.(?:eval|Function))$/u.test(node.expression.getText(syntaxTree))))
     ) {
-      throw new Error(
-        'The generated validator must be self-contained and CSP safe.',
-      );
+      throw new Error('The generated validator must be self-contained and CSP safe.');
     }
     typescript.forEachChild(node, checkStandalone);
   }
   checkStandalone(syntaxTree);
   return validatorSource;
 }
-const validatorSource = await standaloneValidator(
-  schema,
-  'validator_generated.js',
-);
-const statusValidatorSource = await standaloneValidator(
-  statusSchema,
-  'status_validator_generated.js',
-);
+const validatorSource = await standaloneValidator(schema, 'validator_generated.js');
+const statusValidatorSource = await standaloneValidator(statusSchema, 'status_validator_generated.js');
 
 const files = {
   'contract_generated.ts': await compile(schema, 'ConnectorMessage', {
@@ -121,11 +92,8 @@ const files = {
     `export const CONTRACT_ERRORS = ${JSON.stringify(diagnostics.contract_errors)} as const;\n` +
     'export type ContractErrorCode = (typeof CONTRACT_ERRORS)[number];\n',
   'limits_generated.ts':
-    '// Generated from protocol/limits.json.\n' +
-    `export const LIMITS = ${JSON.stringify(limits)} as const;\n`,
-  'validator_generated.js':
-    '// Generated from protocol/schema/connector.schema.json.\n' +
-    validatorSource,
+    '// Generated from protocol/limits.json.\n' + `export const LIMITS = ${JSON.stringify(limits)} as const;\n`,
+  'validator_generated.js': '// Generated from protocol/schema/connector.schema.json.\n' + validatorSource,
   'validator_generated.d.ts':
     '// Generated from protocol/schema/connector.schema.json.\n' +
     "import type { ConnectorMessage } from './contract_generated.js';\n" +
@@ -138,9 +106,7 @@ const webFiles = {
     unreachableDefinitions: true,
     style: { singleQuote: true },
   }),
-  'status_validator_generated.js':
-    '// Generated from protocol/schema/status.schema.json.\n' +
-    statusValidatorSource,
+  'status_validator_generated.js': '// Generated from protocol/schema/status.schema.json.\n' + statusValidatorSource,
   'status_validator_generated.d.ts':
     '// Generated from protocol/schema/status.schema.json.\n' +
     "import type { ApplicationStatus } from './status_generated.js';\n" +
@@ -155,8 +121,8 @@ for (const [directory, outputs] of [
     await writeFile(
       resolve(directory, filename),
       await format(content, {
+        ...formatting,
         parser: filename.endsWith('.js') ? 'babel' : 'typescript',
-        singleQuote: true,
       }),
     );
   }

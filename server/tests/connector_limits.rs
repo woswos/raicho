@@ -39,10 +39,7 @@ async fn unsolicited_and_stale_pongs_cannot_satisfy_heartbeat() {
         let pong = json!({"type":"pong","protocol_version":1,
             "generation": generation.unwrap_or_else(|| welcome["generation"].as_str().unwrap().into()),
             "sequence":1});
-        socket
-            .send(Message::Text(channel.seal(&pong).into()))
-            .await
-            .unwrap();
+        socket.send(Message::Text(channel.seal(&pong).into())).await.unwrap();
         assert_eq!(receive(&mut socket).await["code"], expected);
     }
     fixture.finish().await;
@@ -60,10 +57,7 @@ async fn heartbeat_accepts_only_its_sequence_and_silent_peers_expire() {
         .unwrap();
     let pong = json!({"type":"pong","protocol_version":1,
         "generation":generation,"sequence":ping["sequence"]});
-    socket
-        .send(Message::Text(channel.seal(&pong).into()))
-        .await
-        .unwrap();
+    socket.send(Message::Text(channel.seal(&pong).into())).await.unwrap();
     tokio::time::sleep(Duration::from_millis(20)).await;
     assert_eq!(fixture.connector.snapshot().await.heartbeat_count, 1);
     elapse(HEARTBEAT_INTERVAL_MS).await;
@@ -89,10 +83,7 @@ async fn forged_and_replayed_pongs_end_the_session_with_a_sealed_error() {
         let pong = channel.seal(&json!({"type":"pong","protocol_version":1,
             "generation":generation,"sequence":ping["sequence"]}));
         let rejected = if replay {
-            socket
-                .send(Message::Text(pong.clone().into()))
-                .await
-                .unwrap();
+            socket.send(Message::Text(pong.clone().into())).await.unwrap();
             tokio::time::sleep(Duration::from_millis(20)).await;
             elapse(HEARTBEAT_INTERVAL_MS).await;
             let next = receive(&mut socket).await;
@@ -125,9 +116,6 @@ async fn shutdown_cancels_idle_sessions_and_releases_database_users() {
     tokio::time::timeout(Duration::from_secs(2), fixture.connector.shutdown())
         .await
         .unwrap();
-    assert_eq!(
-        fixture.connector.snapshot().await.status,
-        BackendState::Disconnected
-    );
+    assert_eq!(fixture.connector.snapshot().await.status, BackendState::Disconnected);
     fixture.finish().await;
 }

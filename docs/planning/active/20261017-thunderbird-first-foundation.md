@@ -172,19 +172,22 @@ Each stage includes focused behavioral tests where applicable and ends with a re
 ## Future CI jobs
 
 Stage 1 implements application build and test jobs with the label behavior
-below. Coverage and image publication remain future work. Changelog releases
+below. The connector stage adds the patch-coverage gate. Image publication
+remains future work. Changelog releases
 are specified in the [versioning reference](../../reference/versioning.md).
 Use the same commands locally and in CI, and do not add empty jobs.
 
 - `design` pull requests skip future application build, test, coverage, and release jobs. Repository integrity checks still run.
 - `skip-build` skips the application build job when the diff cannot affect it.
 - `skip-test` skips test jobs and jobs that depend on them.
-- `skip-coverage-check` skips only a future patch-coverage gate.
+- `skip-coverage-check` skips only the patch-coverage gate.
 - Expose patch coverage through `make check-patch-coverage`. Require 90% of changed executable lines, excluding tests, generated files, and vendored code.
 
 Repository integrity checks never skip because of a label.
 
 ## Notes
+
+- 2026-10-26 coverage: `make coverage` measures Rust, TypeScript, and Python in the tooling image, and `make check-patch-coverage` enforces the 90% gate above in a PR-only CI job. The [patch coverage decision](../../decisions/20261026-repository-layout.md#patch-coverage) records the tools and exclusions. Against `main`, the connector pull request covered 90% of its changed, measured lines.
 
 - 2026-10-26 architecture review, guidance for stage 3: route mail commands over the authenticated session channel through a request channel attached to the active connection, so HTTP handlers can send a request and await its reply without owning the socket. Add a Thunderbird adapter layer in the extension that keeps Thunderbird objects behind the backend contract. Design the command messages in `protocol/schema/` and the browser mail API next to the [status contract](../../decisions/20261026-protocol-contracts.md#status-api). Treat the mail probe's dispatcher and command session as evidence about Thunderbird's APIs, not as code to promote, because they use an unauthenticated test protocol. None of this is built before stage 3, because nothing would use it yet.
 

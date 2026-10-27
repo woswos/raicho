@@ -20,9 +20,7 @@ class SkillNamingTests(GuardTestCase):
             self.skill(repo, name)
         failures = check_skills(repo.root)
         self.assertEqual(len(failures), 5)
-        self.assertTrue(
-            all('invalid skill directory name' in failure for failure in failures)
-        )
+        self.assertTrue(all('invalid skill directory name' in failure for failure in failures))
 
     def test_scaffolding_name_requires_examples(self):
         repo = self.repo()
@@ -39,11 +37,6 @@ class SkillNamingTests(GuardTestCase):
             '---\nname: add-endpoint\ndescription: Example.\nexamples:\n'
             '  - server/endpoint.py\n---\nSee `server/endpoint.py`.\n',
         )
-        self.assertTrue(
-            any(
-                'not an existing repository file' in failure
-                for failure in check_skills(repo.root)
-            )
-        )
+        self.assertTrue(any('not an existing repository file' in failure for failure in check_skills(repo.root)))
         repo.write('server/endpoint.py', '')
         self.assertEqual(check_skills(repo.root), [])

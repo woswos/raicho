@@ -1,56 +1,23 @@
-.PHONY: lint lint-repo lint-pr test-python lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql format format-sql format-check format-check-rust format-check-javascript format-check-sql typecheck test-tooling
+REPOSITORY_ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+QUALITY_TARGETS := lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql \
+    format format-bash format-python format-javascript format-rust format-sql \
+    format-check format-check-bash format-check-python format-check-javascript format-check-rust \
+    format-check-sql typecheck
+APPLICATION_TARGETS := build-server build-web build-extension test-server test-web test-extension test-mailprobe
+PROTOCOL_TARGETS := generate-protocol check-protocol test-protocol
+CONTAINER_TARGETS := build test lint generate lint-repo lint-pr test-python test-tooling coverage \
+    check-patch-coverage $(QUALITY_TARGETS) $(APPLICATION_TARGETS) $(PROTOCOL_TARGETS)
+WRITING_TARGETS := format format-bash format-python format-javascript format-rust format-sql \
+    generate generate-protocol
+HOST_TARGETS := images acceptance acceptance-runtime acceptance-connector acceptance-credentials \
+    acceptance-mail clean
+
 .DEFAULT_GOAL := lint
+.PHONY: $(CONTAINER_TARGETS) $(HOST_TARGETS)
 
-TOOLING_ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-QUALITY_ROOT ?= $(CURDIR)
-export PYTHONPATH := $(TOOLING_ROOT)$(if $(PYTHONPATH),:$(PYTHONPATH))
-QUALITY = python3 -B -m automation.quality.runner --root "$(QUALITY_ROOT)"
-
-.PHONY: tooling
-tooling:
-	@test -f /opt/quality/package-lock.json || { echo 'Run Make through docker compose -f automation/tooling/compose.yaml run --rm check' >&2; exit 1; }
-
-lint lint-repo lint-pr test-python lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql format format-sql format-check format-check-rust format-check-javascript format-check-sql typecheck test-tooling: | tooling
-
-lint: lint-repo lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql check-protocol
-
-lint-repo:
-	@python3 -B -m automation.repository.check_agent_config
-	@python3 -B -m automation.repository.check_doc_naming
-	@python3 -B -m automation.repository.check_source_naming
-	@python3 -B -m automation.repository.check_directory_naming
-	@python3 -B -m automation.repository.check_schema_naming
-	@python3 -B -m automation.repository.check_skills
-	@python3 -B -m automation.release.version
-
-lint-pr:
-	@python3 -B -m automation.repository.check_pr
-
-test-python:
-	@python3 -B -m unittest discover -s . -t . -p '*_tests.py'
-
-lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql:
-	@$(QUALITY) $@
-
-format format-sql format-check format-check-rust format-check-javascript format-check-sql typecheck:
-	@$(QUALITY) $@
-
-test-tooling:
-	@python3 -B -m unittest discover -s automation/quality/tests -t . -p '*tooling_checks.py'
-
-.PHONY: build-app build-server build-web build-extension test-app test-server test-web test-extension test-mailprobe
-build-app: build-server build-web build-extension
-test-app: test-server test-web test-extension
-build-server build-web build-extension test-server test-web test-extension test-mailprobe: | tooling
-
-build-server build-web build-extension test-server test-web test-extension test-mailprobe:
-	@python3 -B -m automation.build.application $@
-
-.PHONY: generate-protocol check-protocol test-protocol
-generate-protocol check-protocol test-protocol: | tooling
-generate-protocol:
-	@python3 -B -m protocol.generator.cli generate
-check-protocol:
-	@python3 -B -m protocol.generator.cli check
-test-protocol:
-	@python3 -B -m protocol.generator.cli test
+ifdef RAICHO_TOOLING_CONTAINER
+include $(REPOSITORY_ROOT)automation/tooling/container.mk
+else
+include $(REPOSITORY_ROOT)automation/tooling/host.mk
+endif

@@ -34,28 +34,16 @@ class ConnectorVerificationTests(unittest.TestCase):
             result, commands = self.run_verification(Path(temporary), 1)
         self.assertNotEqual(result.returncode, 0)
         self.assertTrue(any('credential-check' in command for command in commands))
-        self.assertFalse(
-            any('credential-files finish' in command for command in commands)
-        )
+        self.assertFalse(any('credential-files finish' in command for command in commands))
         self.assertNotIn('Services recreated.', result.stdout)
 
     def test_cleanup_follows_gateway_start_and_live_verification(self):
         with tempfile.TemporaryDirectory(prefix='raicho-verification-') as temporary:
             result, commands = self.run_verification(Path(temporary), 0)
         self.assertEqual(result.returncode, 0, result.stderr)
-        start = next(
-            index for index, command in enumerate(commands) if ' up ' in command
-        )
-        verify = next(
-            index
-            for index, command in enumerate(commands)
-            if 'credential-check' in command
-        )
-        finish = next(
-            index
-            for index, command in enumerate(commands)
-            if 'credential-files finish' in command
-        )
+        start = next(index for index, command in enumerate(commands) if ' up ' in command)
+        verify = next(index for index, command in enumerate(commands) if 'credential-check' in command)
+        finish = next(index for index, command in enumerate(commands) if 'credential-files finish' in command)
         self.assertIn('raicho gateway thunderbird', commands[start])
         self.assertLess(start, verify)
         self.assertLess(verify, finish)

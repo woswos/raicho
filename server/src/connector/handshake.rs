@@ -8,9 +8,7 @@ use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 use tokio::net::TcpStream;
 use tokio::sync::OwnedSemaphorePermit;
 use tokio_tungstenite::WebSocketStream;
-use tokio_tungstenite::tungstenite::handshake::server::{
-    Callback, ErrorResponse, Request, Response,
-};
+use tokio_tungstenite::tungstenite::handshake::server::{Callback, ErrorResponse, Request, Response};
 use tokio_tungstenite::tungstenite::http::{HeaderMap, StatusCode};
 use tokio_tungstenite::tungstenite::protocol::WebSocketConfig;
 
@@ -60,12 +58,7 @@ fn check(request: &Request, connector: &Connector) -> Result<OwnedSemaphorePermi
     {
         return Err(StatusCode::FORBIDDEN);
     }
-    if connector
-        .state
-        .lock()
-        .expect("Connector state lock poisoned")
-        .stopping
-    {
+    if connector.state.lock().expect("Connector state lock poisoned").stopping {
         return Err(StatusCode::SERVICE_UNAVAILABLE);
     }
     Arc::clone(&connector.pending)
@@ -113,11 +106,7 @@ impl HandshakeLimit {
 }
 
 impl AsyncRead for HandshakeLimit {
-    fn poll_read(
-        self: Pin<&mut Self>,
-        context: &mut Context<'_>,
-        buffer: &mut ReadBuf<'_>,
-    ) -> Poll<io::Result<()>> {
+    fn poll_read(self: Pin<&mut Self>, context: &mut Context<'_>, buffer: &mut ReadBuf<'_>) -> Poll<io::Result<()>> {
         let limited = self.get_mut();
         let previous = buffer.filled().len();
         let result = Pin::new(&mut limited.stream).poll_read(context, buffer);
@@ -136,11 +125,7 @@ impl AsyncRead for HandshakeLimit {
 }
 
 impl AsyncWrite for HandshakeLimit {
-    fn poll_write(
-        self: Pin<&mut Self>,
-        context: &mut Context<'_>,
-        bytes: &[u8],
-    ) -> Poll<io::Result<usize>> {
+    fn poll_write(self: Pin<&mut Self>, context: &mut Context<'_>, bytes: &[u8]) -> Poll<io::Result<usize>> {
         Pin::new(&mut self.get_mut().stream).poll_write(context, bytes)
     }
 

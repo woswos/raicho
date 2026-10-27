@@ -29,8 +29,7 @@ export function createStatusView() {
     summaryText.textContent = message;
     refreshButton.setAttribute('aria-disabled', 'false');
     refreshButton.textContent = 'Refresh status';
-    if (announcement.textContent !== announced)
-      announcement.textContent = announced;
+    if (announcement.textContent !== announced) announcement.textContent = announced;
   }
 
   function onLoading() {
@@ -41,23 +40,14 @@ export function createStatusView() {
   function onStatus(status: ApplicationStatus) {
     const backend = describeBackend(status.backend);
     const ready = status.status === 'ready';
-    const summary = ready
-      ? 'Raicho is ready'
-      : 'Raicho is running but cannot use its database';
-    finish(
-      ready ? 'ready' : 'error',
-      summary,
-      `${summary}. Thunderbird: ${backend.label}.`,
-    );
+    const summary = ready ? 'Raicho is ready' : 'Raicho is running but cannot use its database';
+    finish(ready ? 'ready' : 'error', summary, `${summary}. Thunderbird: ${backend.label}.`);
     serverStatus.textContent = ready ? 'Ready' : 'Not ready';
     serverStatus.dataset['state'] = ready ? 'ready' : 'error';
-    databaseStatus.textContent =
-      status.database.status === 'ready' ? 'Ready' : 'Unavailable';
+    databaseStatus.textContent = status.database.status === 'ready' ? 'Ready' : 'Unavailable';
     databaseVersion.textContent = `SQLite ${status.database.version}`;
     applicationVersion.textContent =
-      status.commit === 'unknown'
-        ? status.version
-        : `${status.version} (${status.commit})`;
+      status.commit === 'unknown' ? status.version : `${status.version} (${status.commit})`;
     backendStatus.textContent = backend.label;
     backendStatus.dataset['state'] = backend.state;
     backendDescription.textContent = backend.description;
@@ -73,8 +63,7 @@ export function createStatusView() {
     applicationVersion.textContent = 'Not available';
     backendStatus.textContent = 'Not checked';
     backendStatus.dataset['state'] = 'waiting';
-    backendDescription.textContent =
-      'Connection details are unavailable until Raicho responds.';
+    backendDescription.textContent = 'Connection details are unavailable until Raicho responds.';
     lastChecked.textContent = 'The latest status check did not succeed.';
   }
 

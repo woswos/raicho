@@ -66,9 +66,7 @@ class VersionLockTests(GuardTestCase):
         )
         expected = expected.replace('"raicho-helper 0.1.0",', '"raicho-helper 0.2.0",')
         self.assertEqual((repo.root / 'Cargo.lock').read_text(), expected)
-        self.assertEqual(
-            (repo.root / 'Cargo.toml').read_text(), CARGO.replace('0.1.0', '0.2.0')
-        )
+        self.assertEqual((repo.root / 'Cargo.toml').read_text(), CARGO.replace('0.1.0', '0.2.0'))
         self.assertEqual(
             (repo.root / 'extension/manifest.json').read_text(),
             MANIFEST.replace('0.1.0', '0.2.0'),
@@ -92,9 +90,7 @@ class VersionLockTests(GuardTestCase):
                     write_product_version(repo.root, '0.2.0')
                 self.assertEqual((repo.root / 'Cargo.toml').read_text(), CARGO)
                 self.assertEqual((repo.root / 'Cargo.lock').read_text(), lockfile)
-                self.assertEqual(
-                    (repo.root / 'extension/manifest.json').read_text(), MANIFEST
-                )
+                self.assertEqual((repo.root / 'extension/manifest.json').read_text(), MANIFEST)
 
     def test_missing_lockfile_leaves_manifest_unchanged(self):
         repo = self.prepare_workspace()

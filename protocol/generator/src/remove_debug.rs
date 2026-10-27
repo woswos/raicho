@@ -16,11 +16,7 @@ impl VisitMut for RemoveDebug {
                 .expect("Typify emits valid derive attributes.");
             derives = derives
                 .into_iter()
-                .filter(|path| {
-                    path.segments
-                        .last()
-                        .is_none_or(|segment| segment.ident != "Debug")
-                })
+                .filter(|path| path.segments.last().is_none_or(|segment| segment.ident != "Debug"))
                 .collect();
             *attribute = syn::parse_quote!(#[derive(#derives)]);
         }

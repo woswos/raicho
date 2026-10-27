@@ -1,14 +1,16 @@
 [sqlfluff]
 dialect = sqlite
 templater = raw
-rules = layout,capitalisation,AM04,CV05
-max_line_length = 88
+encoding = utf-8
+sql_file_exts = .sql
+max_line_length = 120
 large_file_skip_byte_limit = 0
 processes = 1
 
 [sqlfluff:indentation]
 indent_unit = space
 tab_space_size = 4
+implicit_indents = allow
 
 [sqlfluff:rules:capitalisation.keywords]
 capitalisation_policy = upper
@@ -17,10 +19,16 @@ capitalisation_policy = upper
 extended_capitalisation_policy = lower
 
 [sqlfluff:rules:capitalisation.functions]
-extended_capitalisation_policy = upper
+extended_capitalisation_policy = lower
 
 [sqlfluff:rules:capitalisation.literals]
-capitalisation_policy = upper
+capitalisation_policy = lower
 
 [sqlfluff:rules:capitalisation.types]
-extended_capitalisation_policy = upper
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:convention.quoted_literals]
+preferred_quoted_literal_style = single_quotes
+
+[sqlfluff:rules:convention.casting_style]
+preferred_type_casting_style = cast

@@ -23,7 +23,5 @@ def write_credentials(profile):
             'timesUsed': 0,
         }
     destination = profile / 'logins.json'
-    destination.write_text(
-        json.dumps({'nextId': 2, 'logins': [login], 'version': 3}) + '\n'
-    )
+    destination.write_text(json.dumps({'nextId': 2, 'logins': [login], 'version': 3}) + '\n')
     destination.chmod(0o600)

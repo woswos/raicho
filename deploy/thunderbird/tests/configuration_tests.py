@@ -7,9 +7,7 @@ from pathlib import Path
 from automation.paths import REPOSITORY_ROOT
 from deploy.thunderbird.policy import read_token, validate_endpoint
 
-RULES = json.loads(
-    (REPOSITORY_ROOT / 'protocol/fixtures/configuration/connector.json').read_text()
-)
+RULES = json.loads((REPOSITORY_ROOT / 'protocol/fixtures/configuration/connector.json').read_text())
 
 
 class ConnectorConfigurationTests(unittest.TestCase):

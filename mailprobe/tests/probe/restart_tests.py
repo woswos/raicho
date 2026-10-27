@@ -8,13 +8,9 @@ class RestartTests(unittest.TestCase):
     def fixture(self, with_delivery):
         client = Mock()
         baseline = {'id': 1, 'headerMessageId': 'draft', 'folder': {'id': 'drafts'}}
-        client.read_record.return_value = dict.fromkeys(
-            ['plain', 'html', 'native_target'], baseline
-        )
+        client.read_record.return_value = dict.fromkeys(['plain', 'html', 'native_target'], baseline)
         client.evidence.return_value = (
-            {'delivery': {'queued_message': baseline, 'queued_subject': 'Queued'}}
-            if with_delivery
-            else {}
+            {'delivery': {'queued_message': baseline, 'queued_subject': 'Queued'}} if with_delivery else {}
         )
         client.call.side_effect = lambda action, _arguments: (
             {'messages': [baseline]} if action == 'query' else {'subject': 'Draft'}
@@ -30,12 +26,7 @@ class RestartTests(unittest.TestCase):
         self.assertEqual(len(client.record.call_args.args[1]['drafts']), 3)
         for recovered in client.record.call_args.args[1]['drafts'].values():
             self.assertFalse(recovered['folder_selection_required'])
-        self.assertTrue(
-            all(
-                request.args[1]['action'] == 'query'
-                for request in client.request.call_args_list
-            )
-        )
+        self.assertTrue(all(request.args[1]['action'] == 'query' for request in client.request.call_args_list))
         client.messages.assert_not_called()
 
     def test_full_restart_also_verifies_queued_message(self):
@@ -72,17 +63,9 @@ class RestartTests(unittest.TestCase):
         self.assertEqual(selections, [{'folder_id': 'drafts'}])
         for command in client.call.call_args_list:
             self.assertEqual(command.args, ('get_message', {'message_id': 42}))
-        self.assertEqual(
-            client.record.call_args.args[1]['drafts']['plain']['after']['id'], 42
-        )
-        self.assertEqual(
-            client.record.call_args.args[1]['drafts']['plain']['initial_matches'], []
-        )
-        self.assertTrue(
-            client.record.call_args.args[1]['drafts']['plain'][
-                'folder_selection_required'
-            ]
-        )
+        self.assertEqual(client.record.call_args.args[1]['drafts']['plain']['after']['id'], 42)
+        self.assertEqual(client.record.call_args.args[1]['drafts']['plain']['initial_matches'], [])
+        self.assertTrue(client.record.call_args.args[1]['drafts']['plain']['folder_selection_required'])
 
     def test_restart_stops_polling_after_deadline_without_mutation(self):
         client = self.fixture(with_delivery=False)
@@ -98,18 +81,13 @@ class RestartTests(unittest.TestCase):
                 'mailprobe.tests.probe.scenario_restart.time.monotonic',
                 side_effect=lambda: clock.elapsed,
             ),
-            patch(
-                'mailprobe.tests.probe.scenario_restart.time.sleep', side_effect=sleep
-            ),
+            patch('mailprobe.tests.probe.scenario_restart.time.sleep', side_effect=sleep),
         ):
             with self.assertRaisesRegex(AssertionError, 'did not become queryable'):
                 run(client)
         self.assertEqual(clock.elapsed, 30)
         self.assertEqual(
-            sum(
-                request.args[1]['action'] == 'select_folder'
-                for request in client.request.call_args_list
-            ),
+            sum(request.args[1]['action'] == 'select_folder' for request in client.request.call_args_list),
             1,
         )
         client.call.assert_not_called()

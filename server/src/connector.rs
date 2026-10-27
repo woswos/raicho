@@ -11,9 +11,7 @@ mod wire;
 use std::sync::{Arc, Mutex};
 
 use raicho_protocol::diagnostics_generated::{BackendError, BackendState};
-use raicho_protocol::limits_generated::{
-    MAXIMUM_ACTIVE_CONNECTIONS, MAXIMUM_PENDING_AUTHENTICATIONS,
-};
+use raicho_protocol::limits_generated::{MAXIMUM_ACTIVE_CONNECTIONS, MAXIMUM_PENDING_AUTHENTICATIONS};
 use tokio::sync::{Semaphore, watch};
 
 use crate::persistence::{CredentialStatus, CredentialStore, Database};
@@ -55,10 +53,7 @@ impl Connector {
         BackendStatus {
             kind: "thunderbird",
             status,
-            generation: state
-                .active
-                .as_ref()
-                .map(|active| active.generation.to_string()),
+            generation: state.active.as_ref().map(|active| active.generation.to_string()),
             last_error: if status == BackendState::Unavailable {
                 Some(BackendError::StorageUnavailable)
             } else {

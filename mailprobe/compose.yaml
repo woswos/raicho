@@ -36,36 +36,16 @@ services:
     <<: *fixture
     entrypoint: [python3, -B, -m, mailprobe.tests.probe.control_server]
     healthcheck:
-      test:
-        [
-          CMD,
-          python3,
-          -c,
-          "from pathlib import Path; assert Path('/config/control_ready').is_file()",
-        ]
+      test: [CMD, python3, -c, "from pathlib import Path; assert Path('/config/control_ready').is_file()"]
       interval: 1s
       timeout: 3s
       retries: 30
 
   mail-proxy:
     <<: *fixture
-    entrypoint:
-      [
-        python3,
-        -B,
-        -m,
-        mailprobe.tests.proxy.fault_server,
-        --directory,
-        /config,
-      ]
+    entrypoint: [python3, -B, -m, mailprobe.tests.proxy.fault_server, --directory, /config]
     healthcheck:
-      test:
-        [
-          CMD,
-          python3,
-          -c,
-          "from pathlib import Path; assert Path('/config/mail_proxy_ready').is_file()",
-        ]
+      test: [CMD, python3, -c, "from pathlib import Path; assert Path('/config/mail_proxy_ready').is_file()"]
       interval: 1s
       timeout: 3s
       retries: 30
@@ -73,8 +53,7 @@ services:
   thunderbird:
     <<: *runtime
     image: ${RAICHO_MAIL_TEST_IMAGE:?Set the disposable Thunderbird image}
-    entrypoint:
-      [/usr/bin/tini, --, python3, -B, -m, mailprobe.tests.profile.start]
+    entrypoint: [/usr/bin/tini, --, python3, -B, -m, mailprobe.tests.profile.start]
     depends_on:
       probe: { condition: service_healthy }
       mail-proxy: { condition: service_healthy }
@@ -109,15 +88,7 @@ services:
     image: ${RAICHO_TEST_TOOLING_IMAGE:?Set the disposable tooling image}
     profiles: [test]
     network_mode: none
-    command:
-      [
-        node,
-        /workspace/extension/build.mjs,
-        --source-root,
-        /workspace/mailprobe,
-        --output-directory,
-        /artifact,
-      ]
+    command: [node, /workspace/extension/build.mjs, --source-root, /workspace/mailprobe, --output-directory, /artifact]
     volumes:
       - ..:/workspace:ro
       - artifacts:/artifact

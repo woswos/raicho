@@ -6,9 +6,7 @@ from mailprobe.tests.probe.scenario_faults import verify_fault_events
 class FaultEvidenceTests(unittest.TestCase):
     def test_missing_injected_failure_cannot_pass(self):
         with self.assertRaises(AssertionError):
-            verify_fault_events(
-                {}, {'smtp_accepted': 1}, accepted=1, required=['smtp_ack_dropped']
-            )
+            verify_fault_events({}, {'smtp_accepted': 1}, accepted=1, required=['smtp_ack_dropped'])
 
     def test_duplicate_submission_cannot_pass(self):
         with self.assertRaises(AssertionError):

@@ -28,8 +28,8 @@ if [[ $(stat -c '%u:%a' -- "${STATE_DIRECTORY}") != "$(id -u):700" ]]; then
     exit 1
 fi
 LOCK_PATH="${STATE_DIRECTORY}/operation.lock"
-if [[ -L ${LOCK_PATH} ]] || { [[ -e ${LOCK_PATH} ]] &&
-    { [[ ! -f ${LOCK_PATH} ]] || [[ $(stat -c '%u:%a' -- "${LOCK_PATH}") != "$(id -u):600" ]]; }; }; then
+if [[ -L ${LOCK_PATH} ]] || { [[ -e ${LOCK_PATH} ]] \
+    && { [[ ! -f ${LOCK_PATH} ]] || [[ $(stat -c '%u:%a' -- "${LOCK_PATH}") != "$(id -u):600" ]]; }; }; then
     echo 'FAIL: operation lock must be a private regular file owned by the caller' >&2
     exit 1
 fi

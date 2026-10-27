@@ -5,9 +5,7 @@ import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
 
 const outputDirectory = process.env.RAICHO_WEB_BUILD_DIR ?? 'web/dist';
-const { parseStatus, StatusResponseError } = await import(
-  pathToFileURL(resolve(outputDirectory, 'status.js')).href
-);
+const { parseStatus, StatusResponseError } = await import(pathToFileURL(resolve(outputDirectory, 'status.js')).href);
 
 function readyStatus() {
   return {

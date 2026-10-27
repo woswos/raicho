@@ -9,14 +9,8 @@ from mailprobe.tests.probe.scenario_helpers import (
 def run(client):
     inventory = client.call('inventory')
     assert inventory['api']['saveMessage'] == 'function', inventory
-    identities = [
-        identity
-        for account in inventory['accounts']
-        for identity in account.get('identities', [])
-    ]
-    secondary = next(
-        identity for identity in identities if identity['email'] == 'alias@raicho.test'
-    )
+    identities = [identity for account in inventory['accounts'] for identity in account.get('identities', [])]
+    secondary = next(identity for identity in identities if identity['email'] == 'alias@raicho.test')
     client.record('inventory', inventory)
     details = {
         'identityId': secondary['id'],
@@ -28,10 +22,9 @@ def run(client):
     plain = saved_message(client, details)
     plain_content = client.call('get_message', {'message_id': plain['id']})
     assert secondary['email'] in plain_content['header']['author'], plain_content
-    assert any(
-        'Raicho plain fixture body.' in part.get('body', '')
-        for part in message_parts(plain_content['full'])
-    ), plain_content
+    assert any('Raicho plain fixture body.' in part.get('body', '') for part in message_parts(plain_content['full'])), (
+        plain_content
+    )
     repeated = saved_message(client, details)
     repeated_messages = wait_query(client, details['subject'], 2)
     assert repeated['id'] != plain['id'], repeated_messages
@@ -56,13 +49,11 @@ def run(client):
     html_content = client.call('get_message', {'message_id': html['id']})
     assert secondary['email'] in html_content['header']['author'], html_content
     assert any(
-        part.get('contentType') == 'text/html'
-        and '<strong>HTML fixture</strong>' in part.get('body', '')
+        part.get('contentType') == 'text/html' and '<strong>HTML fixture</strong>' in part.get('body', '')
         for part in message_parts(html_content['full'])
     ), html_content
     assert any(
-        attachment['name'] == 'probe.txt'
-        and attachment['content'] == 'Raicho fixture attachment\n'
+        attachment['name'] == 'probe.txt' and attachment['content'] == 'Raicho fixture attachment\n'
         for attachment in html_content['attachments']
     ), html_content
 
@@ -82,9 +73,7 @@ def run(client):
     )
     first_save = client.call('save_compose', {'tab_id': tab_identifier})
     wait_query(client, details['subject'], 2)
-    first_saved_messages = wait_query(
-        client, edited_subject, 1, body='First edited fixture body.'
-    )
+    first_saved_messages = wait_query(client, edited_subject, 1, body='First edited fixture body.')
     client.call(
         'update_compose',
         {
@@ -95,9 +84,7 @@ def run(client):
         },
     )
     second_save = client.call('save_compose', {'tab_id': tab_identifier})
-    saved_edit = wait_query(
-        client, edited_subject, 1, body='Second edited fixture body.'
-    )
+    saved_edit = wait_query(client, edited_subject, 1, body='Second edited fixture body.')
     stale_lookup = client.command(
         'get_message',
         {

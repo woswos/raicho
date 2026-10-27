@@ -16,18 +16,13 @@ async fn native_ping_and_pong_are_transport_controls_before_and_after_authentica
     socket.send(Message::Pong(vec![1].into())).await.unwrap();
     native_ping(&mut socket).await;
     socket
-        .send(Message::Text(
-            authentication("a", &server_nonce).to_string().into(),
-        ))
+        .send(Message::Text(authentication("a", &server_nonce).to_string().into()))
         .await
         .unwrap();
     assert_eq!(receive(&mut socket).await["type"], "welcome");
     native_ping(&mut socket).await;
     socket.send(Message::Pong(vec![2].into())).await.unwrap();
-    assert_eq!(
-        fixture.connector.snapshot().await.status,
-        BackendState::Connected
-    );
+    assert_eq!(fixture.connector.snapshot().await.status, BackendState::Connected);
     assert_eq!(fixture.connector.snapshot().await.heartbeat_count, 0);
     fixture.finish().await;
 }
@@ -69,10 +64,7 @@ async fn native_control_flood_never_satisfies_or_delays_the_application_heartbea
 }
 
 async fn native_ping(socket: &mut Socket) {
-    socket
-        .send(Message::Ping(vec![7, 8, 9].into()))
-        .await
-        .unwrap();
+    socket.send(Message::Ping(vec![7, 8, 9].into())).await.unwrap();
     let frame = tokio::time::timeout(Duration::from_secs(2), socket.next())
         .await
         .unwrap()

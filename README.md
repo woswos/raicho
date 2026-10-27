@@ -66,16 +66,15 @@ to establish its authenticated connection. The
 [local runtime guide](docs/operations/local-runtime.md) covers optional browser
 administration, disposable profiles, persistence checks, and stopping services.
 
-Build the tooling image and run development checks separately:
+Run development checks and tests with GNU Make:
 
 ```bash
-docker compose -f automation/tooling/compose.yaml build
-docker compose -f automation/tooling/compose.yaml run --rm check make lint format-check typecheck test-python
+make lint test
 ```
 
-The tooling image provides the language tools and Python test fixtures, so host
-language toolchains are not required. The `check` service does not start runtime
-services.
+Make builds the tooling image and runs each target inside it. The image provides
+the language tools and Python test fixtures, so host language toolchains are not
+required, and it does not start runtime services.
 
 See [build, test, and generate](docs/reference/build-test-generate.md) for
 formatting, additional checks, and Git worktree setup.

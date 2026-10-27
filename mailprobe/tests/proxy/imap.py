@@ -45,9 +45,7 @@ class ImapHandler(socketserver.StreamRequestHandler):
             with reply_lock:
                 write(self.wfile, content)
 
-        with socket.create_connection(
-            (self.server.upstream, 3143), timeout=120
-        ) as remote:
+        with socket.create_connection((self.server.upstream, 3143), timeout=120) as remote:
 
             def relay_responses():
                 try:

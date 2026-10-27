@@ -3,8 +3,8 @@ use std::time::Duration;
 use futures_util::SinkExt;
 use raicho_protocol::channel::Channel;
 use raicho_protocol::contract_generated::{
-    Capabilities, Challenge, ChallengeType, Generation, Nonce, Ping, PingType, ProtocolError,
-    ProtocolErrorType, Signature, Welcome, WelcomeType,
+    Capabilities, Challenge, ChallengeType, Generation, Nonce, Ping, PingType, ProtocolError, ProtocolErrorType,
+    Signature, Welcome, WelcomeType,
 };
 use raicho_protocol::limits_generated::{AUTHENTICATION_DEADLINE_MS, PROTOCOL_VERSION};
 use tokio_tungstenite::tungstenite::Message;
@@ -15,9 +15,7 @@ use super::handshake::Socket;
 use super::transport::{send, send_text};
 
 fn protocol_version<Version: TryFrom<i64, Error: std::fmt::Debug>>() -> Version {
-    (PROTOCOL_VERSION as i64)
-        .try_into()
-        .expect("Shared protocol version")
+    (PROTOCOL_VERSION as i64).try_into().expect("Shared protocol version")
 }
 
 pub(super) async fn challenge(socket: &mut Socket, server_nonce: &Nonce) -> Result<(), Failure> {
@@ -66,11 +64,7 @@ pub(super) async fn ping(
     send_text(socket, channel.seal(&ping)).await
 }
 
-pub(super) async fn terminate(
-    socket: &mut Socket,
-    session: Option<(&Generation, &mut Channel)>,
-    failure: Failure,
-) {
+pub(super) async fn terminate(socket: &mut Socket, session: Option<(&Generation, &mut Channel)>, failure: Failure) {
     let mut frame = ProtocolError {
         code: failure.code,
         generation: None,
@@ -85,18 +79,15 @@ pub(super) async fn terminate(
         }
         None => serde_json::to_string(&frame).expect("Connector envelope is serializable"),
     };
-    let _ = tokio::time::timeout(
-        Duration::from_millis(AUTHENTICATION_DEADLINE_MS as u64),
-        async {
-            if send_text(socket, text).await.is_ok() {
-                let _ = socket
-                    .send(Message::Close(Some(CloseFrame {
-                        code: CloseCode::from(failure.close_code()),
-                        reason: failure.code.to_string().into(),
-                    })))
-                    .await;
-            }
-        },
-    )
+    let _ = tokio::time::timeout(Duration::from_millis(AUTHENTICATION_DEADLINE_MS as u64), async {
+        if send_text(socket, text).await.is_ok() {
+            let _ = socket
+                .send(Message::Close(Some(CloseFrame {
+                    code: CloseCode::from(failure.close_code()),
+                    reason: failure.code.to_string().into(),
+                })))
+                .await;
+        }
+    })
     .await;
 }

@@ -55,7 +55,7 @@ acceptance drivers under `automation/acceptance/credentials/`. See the
 The [runtime reference](runtime.md) describes endpoints, storage, migrations,
 image packaging, and configuration. The existing showcase in `assets/brand/`
 remains a separate static concept with fictional in-memory messages. Shared
-Docker tooling runs language, application, and repository checks, and packages
+Docker tooling runs language, application, coverage, and repository checks, and packages
 the Python mocks and drivers used by disposable tests. Component-specific builders
 and acceptance drivers live with their sources. Cross-component build dispatch,
 connector/runtime acceptance, and shared development commands live in

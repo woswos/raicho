@@ -25,9 +25,7 @@ impl Fixture {
             directory,
         };
         for operation in ["init", "publish", "finish"] {
-            fixture
-                .operate(fixture.directory.path(), operation)
-                .unwrap();
+            fixture.operate(fixture.directory.path(), operation).unwrap();
         }
         fixture
     }
@@ -61,10 +59,7 @@ fn insecure_files_directories_and_owners_fail_closed() {
         uid: fixture.owner.uid + 1,
         gid: fixture.owner.gid,
     };
-    assert!(
-        operate_token_directory("check".parse().unwrap(), fixture.directory.path(), stranger)
-            .is_err()
-    );
+    assert!(operate_token_directory("check".parse().unwrap(), fixture.directory.path(), stranger).is_err());
     assert_eq!(fs::read(fixture.path("token")).unwrap(), original);
     assert!(!fixture.path("pending").exists());
 }
@@ -92,13 +87,7 @@ fn links_nonregular_files_and_malformed_tokens_are_rejected() {
     fs::remove_file(fixture.path("token")).unwrap();
     let mut repeated = original.clone();
     repeated.push(b'\n');
-    for contents in [
-        Vec::new(),
-        b"A".repeat(64),
-        b"a".repeat(63),
-        b"a".repeat(65),
-        repeated,
-    ] {
+    for contents in [Vec::new(), b"A".repeat(64), b"a".repeat(63), b"a".repeat(65), repeated] {
         fs::write(fixture.path("token"), &contents).unwrap();
         fs::set_permissions(fixture.path("token"), fs::Permissions::from_mode(0o600)).unwrap();
         assert!(fixture.rejects("check"), "{contents:?}");

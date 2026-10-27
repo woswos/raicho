@@ -4,16 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    types:
-      [
-        opened,
-        synchronize,
-        reopened,
-        edited,
-        labeled,
-        unlabeled,
-        ready_for_review,
-      ]
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled, ready_for_review]
 
 permissions:
   contents: read
@@ -30,10 +21,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Build tooling image
-        run: docker compose -f automation/tooling/compose.yaml build
       - name: Check repository and languages
-        run: docker compose -f automation/tooling/compose.yaml run --rm check make lint format-check typecheck test-python test-tooling
+        run: make lint test-python test-tooling
 
   pr-guards:
     if: github.event_name == 'pull_request'
@@ -44,10 +33,8 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Build tooling image
-        run: docker compose -f automation/tooling/compose.yaml build
       - name: Check pull request policy
-        run: docker compose -f automation/tooling/compose.yaml -f automation/tooling/compose.ci.yaml run --rm check make lint-pr
+        run: make lint-pr
 
   application-build:
     if: >-
@@ -77,7 +64,7 @@ jobs:
           docker compose -f mailprobe/compose.yaml --profile test config --quiet
           docker compose -f mailprobe/compose.yaml -f mailprobe/compose.admin.yaml --profile test config --quiet
       - name: Build application images
-        run: docker compose -f compose.yaml build
+        run: make images
 
   application-test:
     if: >-
@@ -89,10 +76,24 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Build tooling image
-        run: docker compose -f automation/tooling/compose.yaml build
       - name: Build and test application sources
-        run: docker compose -f automation/tooling/compose.yaml run --rm check make build-app test-app test-mailprobe test-protocol
+        run: make test
+
+  coverage:
+    if: >-
+      github.event_name == 'pull_request' &&
+      !contains(github.event.pull_request.labels.*.name, 'design') &&
+      !contains(github.event.pull_request.labels.*.name, 'skip-test') &&
+      !contains(github.event.pull_request.labels.*.name, 'skip-coverage-check')
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check patch coverage
+        run: make check-patch-coverage
 
   runtime-test:
     if: >-
@@ -102,37 +103,13 @@ jobs:
     timeout-minutes: 45
     env:
       COMPOSE_PROJECT_NAME: raicho-ci-${{ github.run_id }}-${{ github.run_attempt }}
-      COMPOSE_FILE: compose.yaml:automation/acceptance/runtime/compose.test.yaml
       RAICHO_COMMIT: ${{ github.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Build disposable runtime and test driver
-        run: docker compose --profile test build
-      - name: Verify unattended startup
-        run: |
-          docker compose up -d --wait --wait-timeout 120 raicho thunderbird
-          docker compose run --rm smoke http
-      - name: Verify persistence across recreation
-        run: |
-          docker compose stop raicho thunderbird
-          docker compose run --rm smoke seed
-          docker compose up -d --force-recreate --wait --wait-timeout 120 raicho thunderbird
-          docker compose run --rm smoke http
-          docker compose run --rm smoke persistence
-      - name: Verify administrative network isolation
-        run: bash automation/acceptance/runtime/check_admin_isolation.bash
-      - name: Verify independent application readiness
-        run: |
-          docker compose stop thunderbird
-          docker compose run --rm smoke http
-      - name: Show runtime diagnostics on failure
-        if: failure()
-        run: docker compose logs --no-color
-      - name: Remove this job's disposable resources
-        if: always()
-        run: docker compose down --volumes --remove-orphans
+      - name: Verify startup, persistence, isolation, and independent readiness
+        run: make acceptance-runtime
 
   connector-test:
     if: >-
@@ -147,11 +124,11 @@ jobs:
       - name: Verify production connector and ten-minute idle acceptance
         env:
           TMPDIR: ${{ runner.temp }}
-        run: bash automation/acceptance/connector/check_connector.bash
+        run: make acceptance-connector
       - name: Verify credential rotation, recovery, and revocation
         env:
           TMPDIR: ${{ runner.temp }}
-        run: bash automation/acceptance/credentials/check_credentials.bash
+        run: make acceptance-credentials
 
   compatibility-test:
     if: >-
@@ -164,4 +141,4 @@ jobs:
         with:
           persist-credentials: false
       - name: Verify unattended mail API compatibility
-        run: bash mailprobe/tests/check_mail_compatibility.bash
+        run: make acceptance-mail

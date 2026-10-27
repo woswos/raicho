@@ -45,7 +45,9 @@ Each deployed service owns one directory under `deploy/`: `raicho/`, `gateway/`,
 the image recipe, its `Dockerfile.dockerignore`, the service's runtime code and
 configuration such as `deploy/gateway/nginx.conf`, and their tests. Build filters
 list explicit files or source directories from the owning components. A bare
-parent such as `!extension/` would re-include that whole tree. The
+parent such as `!extension/` would re-include that whole tree. `credentials/` is
+the exception: it builds no image and runs no service of its own. Its host
+wrapper drives one-off containers from the Raicho server image. The
 [repository layout decision](../decisions/20261026-repository-layout.md) records
 this organization.
 
@@ -70,17 +72,19 @@ tests belong in `extension/tests/`. The
 records this placement.
 
 Group shared development automation by responsibility, including its import-only
-support modules. Use Make as the main developer command interface. It invokes Python
-modules directly from the repository root with `python3 -B -m`, and Bash or
-JavaScript entry points by path. Keep Bash for substantive host/Docker orchestration.
+support modules. Use Make as the main developer command interface. On the host it
+runs each target through the tooling image, and inside the image it invokes Python
+modules from the repository root with `python3 -B -m`, and Bash or JavaScript
+entry points by path. `automation/tooling/host.mk` and
+`automation/tooling/container.mk` hold the two modes. Keep Bash for substantive host/Docker orchestration.
 Do not add thin compatibility wrappers or restore a flat helper directory.
 
 | Responsibility | Package |
 | --- | --- |
 | Agent, naming, changelog, and pull request guards | `automation/repository/` |
 | Language linting, formatting, and type checking | `automation/quality/` |
-| Development tooling image, entrypoint, and Compose files | `automation/tooling/` |
-| Cross-component application build/test dispatch | `automation/build/` |
+| Development tooling image, entrypoint, Compose files, Make modes, and cleanup | `automation/tooling/` |
+| Cross-component application build/test dispatch and coverage | `automation/build/` |
 | Versioning, changelogs, and release preparation | `automation/release/` |
 | Cross-service disposable deployment checks | `automation/acceptance/` |
 | Fixtures shared by automation tests | `automation/testing/` |
@@ -116,7 +120,8 @@ adds the isolated runtime fixture driver, and
 production XPI for the connector acceptance upgrade check. Compose resolves every
 overlay's paths from the first file, so these overlays use repository-relative
 paths. `automation/tooling/compose.yaml` provides checks and formatting, with
-`automation/tooling/compose.ci.yaml` adding the GitHub event mount.
+`automation/tooling/compose.ci.yaml` adding the GitHub event mount when Make sees
+`GITHUB_EVENT_PATH`.
 `mailprobe/compose.yaml` runs the separate fictional mail experiment, with
 `mailprobe/compose.admin.yaml` enabling its native UI checks.
 The [runtime guide](../operations/local-runtime.md) and

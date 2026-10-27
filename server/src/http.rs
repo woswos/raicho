@@ -44,18 +44,13 @@ pub fn router(database: Arc<Database>, web_dir: &Path, connector: Arc<Connector>
         .route("/live", get(live))
         .route("/ready", get(ready))
         .fallback(not_found);
-    let api = Router::new()
-        .route("/status", get(status))
-        .fallback(not_found);
+    let api = Router::new().route("/status", get(status)).fallback(not_found);
     Router::new()
         .nest("/health", health)
         .nest("/api", api)
         .nest("/connector", Router::new().fallback(not_found))
         .fallback_service(ServeDir::new(web_dir))
-        .with_state(ApplicationState {
-            database,
-            connector,
-        })
+        .with_state(ApplicationState { database, connector })
         .layer(SetResponseHeaderLayer::overriding(
             CACHE_CONTROL,
             HeaderValue::from_static("no-store"),

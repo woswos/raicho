@@ -3,14 +3,7 @@ var __getOwnPropNames = Object.getOwnPropertyNames;
 var __commonJS = (cb, mod) =>
   function __require() {
     try {
-      return (
-        mod ||
-          (0, cb[__getOwnPropNames(cb)[0]])(
-            (mod = { exports: {} }).exports,
-            mod,
-          ),
-        mod.exports
-      );
+      return (mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports);
     } catch (e) {
       throw ((mod = 0), e);
     }
@@ -58,22 +51,16 @@ var schema13 = {
   },
 };
 var pattern0 = new RegExp('^[!-~]+$', 'u');
-function validate11(
-  data,
-  { instancePath = '', parentData, parentDataProperty, rootData = data } = {},
-) {
+function validate11(data, { instancePath = '', parentData, parentDataProperty, rootData = data } = {}) {
   let vErrors = null;
   let errors = 0;
   if (errors === 0) {
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       let missing0;
       if (
-        ((data.status === void 0 || !func0.call(data, 'status')) &&
-          (missing0 = 'status')) ||
-        ((data.engine === void 0 || !func0.call(data, 'engine')) &&
-          (missing0 = 'engine')) ||
-        ((data.version === void 0 || !func0.call(data, 'version')) &&
-          (missing0 = 'version'))
+        ((data.status === void 0 || !func0.call(data, 'status')) && (missing0 = 'status')) ||
+        ((data.engine === void 0 || !func0.call(data, 'engine')) && (missing0 = 'engine')) ||
+        ((data.version === void 0 || !func0.call(data, 'version')) && (missing0 = 'version'))
       ) {
         validate11.errors = [
           {
@@ -234,13 +221,7 @@ function validate11(
       }
     } else {
       validate11.errors = [
-        {
-          instancePath,
-          schemaPath: '#/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        },
+        { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' },
       ];
       return false;
     }
@@ -255,25 +236,12 @@ var schema16 = {
   properties: {
     kind: { type: 'string', enum: ['thunderbird'] },
     status: { $ref: '#/definitions/BackendState' },
-    generation: {
-      oneOf: [
-        { $ref: '#/definitions/Generation' },
-        { $ref: '#/definitions/Nothing' },
-      ],
-    },
-    last_error: {
-      oneOf: [
-        { $ref: '#/definitions/BackendError' },
-        { $ref: '#/definitions/Nothing' },
-      ],
-    },
+    generation: { oneOf: [{ $ref: '#/definitions/Generation' }, { $ref: '#/definitions/Nothing' }] },
+    last_error: { oneOf: [{ $ref: '#/definitions/BackendError' }, { $ref: '#/definitions/Nothing' }] },
     heartbeat_count: { type: 'integer', minimum: 0, maximum: 9007199254740991 },
   },
 };
-var schema17 = {
-  type: 'string',
-  enum: ['unconfigured', 'disconnected', 'connected', 'revoked', 'unavailable'],
-};
+var schema17 = { type: 'string', enum: ['unconfigured', 'disconnected', 'connected', 'revoked', 'unavailable'] };
 var schema20 = {
   type: 'string',
   enum: [
@@ -292,27 +260,18 @@ var schema20 = {
   ],
 };
 var pattern1 = new RegExp('^[a-f0-9]{32}$', 'u');
-function validate13(
-  data,
-  { instancePath = '', parentData, parentDataProperty, rootData = data } = {},
-) {
+function validate13(data, { instancePath = '', parentData, parentDataProperty, rootData = data } = {}) {
   let vErrors = null;
   let errors = 0;
   if (errors === 0) {
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       let missing0;
       if (
-        ((data.kind === void 0 || !func0.call(data, 'kind')) &&
-          (missing0 = 'kind')) ||
-        ((data.status === void 0 || !func0.call(data, 'status')) &&
-          (missing0 = 'status')) ||
-        ((data.generation === void 0 || !func0.call(data, 'generation')) &&
-          (missing0 = 'generation')) ||
-        ((data.last_error === void 0 || !func0.call(data, 'last_error')) &&
-          (missing0 = 'last_error')) ||
-        ((data.heartbeat_count === void 0 ||
-          !func0.call(data, 'heartbeat_count')) &&
-          (missing0 = 'heartbeat_count'))
+        ((data.kind === void 0 || !func0.call(data, 'kind')) && (missing0 = 'kind')) ||
+        ((data.status === void 0 || !func0.call(data, 'status')) && (missing0 = 'status')) ||
+        ((data.generation === void 0 || !func0.call(data, 'generation')) && (missing0 = 'generation')) ||
+        ((data.last_error === void 0 || !func0.call(data, 'last_error')) && (missing0 = 'last_error')) ||
+        ((data.heartbeat_count === void 0 || !func0.call(data, 'heartbeat_count')) && (missing0 = 'heartbeat_count'))
       ) {
         validate13.errors = [
           {
@@ -418,10 +377,7 @@ function validate13(
               var valid0 = true;
             }
             if (valid0) {
-              if (
-                data.generation !== void 0 &&
-                func0.call(data, 'generation')
-              ) {
+              if (data.generation !== void 0 && func0.call(data, 'generation')) {
                 let data2 = data.generation;
                 const _errs7 = errors;
                 const _errs8 = errors;
@@ -556,10 +512,7 @@ function validate13(
                 var valid0 = true;
               }
               if (valid0) {
-                if (
-                  data.last_error !== void 0 &&
-                  func0.call(data, 'last_error')
-                ) {
+                if (data.last_error !== void 0 && func0.call(data, 'last_error')) {
                   let data3 = data.last_error;
                   const _errs15 = errors;
                   const _errs16 = errors;
@@ -671,18 +624,10 @@ function validate13(
                   var valid0 = true;
                 }
                 if (valid0) {
-                  if (
-                    data.heartbeat_count !== void 0 &&
-                    func0.call(data, 'heartbeat_count')
-                  ) {
+                  if (data.heartbeat_count !== void 0 && func0.call(data, 'heartbeat_count')) {
                     let data4 = data.heartbeat_count;
                     const _errs23 = errors;
-                    if (!(
-                      typeof data4 == 'number' &&
-                      !(data4 % 1) &&
-                      !isNaN(data4) &&
-                      isFinite(data4)
-                    )) {
+                    if (!(typeof data4 == 'number' && !(data4 % 1) && !isNaN(data4) && isFinite(data4))) {
                       validate13.errors = [
                         {
                           instancePath: instancePath + '/heartbeat_count',
@@ -700,13 +645,9 @@ function validate13(
                           validate13.errors = [
                             {
                               instancePath: instancePath + '/heartbeat_count',
-                              schemaPath:
-                                '#/properties/heartbeat_count/maximum',
+                              schemaPath: '#/properties/heartbeat_count/maximum',
                               keyword: 'maximum',
-                              params: {
-                                comparison: '<=',
-                                limit: 9007199254740991,
-                              },
+                              params: { comparison: '<=', limit: 9007199254740991 },
                               message: 'must be <= 9007199254740991',
                             },
                           ];
@@ -716,8 +657,7 @@ function validate13(
                             validate13.errors = [
                               {
                                 instancePath: instancePath + '/heartbeat_count',
-                                schemaPath:
-                                  '#/properties/heartbeat_count/minimum',
+                                schemaPath: '#/properties/heartbeat_count/minimum',
                                 keyword: 'minimum',
                                 params: { comparison: '>=', limit: 0 },
                                 message: 'must be >= 0',
@@ -740,13 +680,7 @@ function validate13(
       }
     } else {
       validate13.errors = [
-        {
-          instancePath,
-          schemaPath: '#/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        },
+        { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' },
       ];
       return false;
     }
@@ -754,26 +688,18 @@ function validate13(
   validate13.errors = vErrors;
   return errors === 0;
 }
-function validate10(
-  data,
-  { instancePath = '', parentData, parentDataProperty, rootData = data } = {},
-) {
+function validate10(data, { instancePath = '', parentData, parentDataProperty, rootData = data } = {}) {
   let vErrors = null;
   let errors = 0;
   if (errors === 0) {
     if (data && typeof data == 'object' && !Array.isArray(data)) {
       let missing0;
       if (
-        ((data.status === void 0 || !func0.call(data, 'status')) &&
-          (missing0 = 'status')) ||
-        ((data.database === void 0 || !func0.call(data, 'database')) &&
-          (missing0 = 'database')) ||
-        ((data.backend === void 0 || !func0.call(data, 'backend')) &&
-          (missing0 = 'backend')) ||
-        ((data.version === void 0 || !func0.call(data, 'version')) &&
-          (missing0 = 'version')) ||
-        ((data.commit === void 0 || !func0.call(data, 'commit')) &&
-          (missing0 = 'commit'))
+        ((data.status === void 0 || !func0.call(data, 'status')) && (missing0 = 'status')) ||
+        ((data.database === void 0 || !func0.call(data, 'database')) && (missing0 = 'database')) ||
+        ((data.backend === void 0 || !func0.call(data, 'backend')) && (missing0 = 'backend')) ||
+        ((data.version === void 0 || !func0.call(data, 'version')) && (missing0 = 'version')) ||
+        ((data.commit === void 0 || !func0.call(data, 'commit')) && (missing0 = 'commit'))
       ) {
         validate10.errors = [
           {
@@ -851,10 +777,7 @@ function validate10(
                   rootData,
                 })
               ) {
-                vErrors =
-                  vErrors === null
-                    ? validate11.errors
-                    : vErrors.concat(validate11.errors);
+                vErrors = vErrors === null ? validate11.errors : vErrors.concat(validate11.errors);
                 errors = vErrors.length;
               }
               var valid0 = _errs5 === errors;
@@ -872,10 +795,7 @@ function validate10(
                     rootData,
                   })
                 ) {
-                  vErrors =
-                    vErrors === null
-                      ? validate13.errors
-                      : vErrors.concat(validate13.errors);
+                  vErrors = vErrors === null ? validate13.errors : vErrors.concat(validate13.errors);
                   errors = vErrors.length;
                 }
                 var valid0 = _errs6 === errors;
@@ -970,8 +890,7 @@ function validate10(
                                 schemaPath: '#/definitions/Label/minLength',
                                 keyword: 'minLength',
                                 params: { limit: 1 },
-                                message:
-                                  'must NOT have fewer than 1 characters',
+                                message: 'must NOT have fewer than 1 characters',
                               },
                             ];
                             return false;
@@ -1015,13 +934,7 @@ function validate10(
       }
     } else {
       validate10.errors = [
-        {
-          instancePath,
-          schemaPath: '#/type',
-          keyword: 'type',
-          params: { type: 'object' },
-          message: 'must be object',
-        },
+        { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' },
       ];
       return false;
     }
