@@ -1403,7 +1403,6 @@ dependencies = [
  "futures-util",
  "getrandom 0.4.3",
  "jsonschema",
- "libc",
  "libsqlite3-sys",
  "raicho-protocol",
  "rustix",
