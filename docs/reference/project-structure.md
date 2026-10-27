@@ -190,6 +190,10 @@ import path.
 setup under `profile/`, and SMTP/IMAP fault infrastructure under `proxy/`, with
 their unit tests alongside the fixture code. The host acceptance runner and the
 probe packaging, fixture-image, and runner-cleanup tests sit directly in `tests/`.
+The probe's transport tests reuse the extension's WebSocket fixture,
+`extension/tests/probe_fixture.mjs`. `proxy/mail_fixture_integration.py` needs the
+live GreenMail deployment, so the runner runs it inside the proxy container and
+its name stays outside the `*_tests.py` pattern.
 See the [fixture commands](build-test-generate.md#mail-api-compatibility)
 for the mail test extension and profile mounts.
 

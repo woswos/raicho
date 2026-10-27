@@ -25,7 +25,9 @@ optional [administration override](../../mailprobe/compose.admin.yaml) enables
 the desktop listener only inside that fixture network.
 
 The separate [probe extension](../../mailprobe/manifest.json) calls
-standard Thunderbird APIs. A [test controller](../../mailprobe/tests/probe/control_server.py)
+standard Thunderbird APIs. It takes the production extension ID, so the unchanged
+Thunderbird image installs it through the same managed policy and configuration.
+A [test controller](../../mailprobe/tests/probe/control_server.py)
 issues correlated commands without replaying them after disconnects. The
 [mail proxy](../../mailprobe/tests/proxy/fault_server.py) forwards SMTP and IMAP
 to GreenMail and injects bounded failures. Direct
@@ -104,13 +106,8 @@ This is bounded experimental evidence, not a universal delivery guarantee.
 ## Running the experiment
 
 The [host runner](../../mailprobe/tests/check_mail_compatibility.bash) orchestrates
-Docker builds, uniquely named disposable services, and cleanup. The fixture unit
-suites run separately under `make test-python`:
-
-```bash
-make acceptance-mail
-bash mailprobe/tests/check_mail_compatibility.bash --native
-```
+Docker builds, uniquely named disposable services, and cleanup. Its commands are in
+[build, test, and generate](build-test-generate.md#mail-api-compatibility).
 
 The default run covers unattended draft checks. The native run adds the desktop
 permission checkpoint, sending scenarios, and native draft interoperability.

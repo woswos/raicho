@@ -453,8 +453,8 @@ fault proxy submission, rejection, lost acknowledgment, and Sent-copy rejection
 against GreenMail from inside the proxy container. `--native` also requires a
 browser on the Linux Docker host for the sending permission and native draft
 checkpoints. The probe modules compile with the shared production configuration
-parser, so the mail probe XPI keeps their `mailprobe/src/` paths.
-Sending and native checks are explicitly skipped in unattended mode. CI's
+parser, so the mail probe XPI keeps their `mailprobe/src/` paths. CI's
 `application-test` job tests the probe TypeScript sources, `lint` runs its Python
 suites, and `compatibility-test` runs the unattended experiment. The
-[compatibility matrix](mail-api-compatibility.md) records limits and results.
+[compatibility matrix](mail-api-compatibility.md#running-the-experiment) records
+limits, results, and the checks that unattended runs skip.

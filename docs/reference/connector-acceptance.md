@@ -41,10 +41,9 @@ establish a hosted GitHub Actions result.
 - Production carries authentication and heartbeat only. Browser login, mail
   reads, mutations, and compose are planned in the
   [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md).
-- The [mail compatibility matrix](mail-api-compatibility.md) records the manual
-  send-consent, native draft-editing, and fault evidence. CI repeats only the
-  unattended draft and restart experiment and source tests. It does not automate
-  native consent or claim native checks pass in CI.
+- The [mail compatibility matrix](mail-api-compatibility.md#running-the-experiment)
+  records the manual send-consent, native draft-editing, and fault evidence, and
+  what CI repeats.
 - Standard programmatic draft replacement remains unproven. Native editing works,
   background saves can create duplicates, and restart discovery can require native
   folder selection. Resolve these gates before dependent mail workflows.
