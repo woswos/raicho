@@ -7,16 +7,23 @@ REPOSITORY_ROOT="$(cd "${SCRIPT_DIRECTORY}/../../.." && pwd)"
 cd "${REPOSITORY_ROOT}"
 # shellcheck source=automation/acceptance/credential_deployment.bash
 source automation/acceptance/credential_deployment.bash
+# shellcheck source=automation/acceptance/connector/network.bash
+source automation/acceptance/connector/network.bash
 prepare_credential_deployment connector
 HOLDER="${RAICHO_PROJECT}-address-holder"
-PROBE=(docker run --rm -i --read-only --user 10001:10001 --cap-drop ALL
-    --security-opt no-new-privileges:true
-    --workdir / --mount "type=bind,source=${REPOSITORY_ROOT}/automation,target=/automation,readonly"
+PROBE=("${HARDENED_RUN[@]}" --user 10001:10001
+    --mount "type=bind,source=${REPOSITORY_ROOT}/automation,target=/automation,readonly"
     --mount "type=bind,source=${REPOSITORY_ROOT}/protocol,target=/protocol,readonly")
 
+probe() {
+    local NETWORK="${1}" MODULE="${2}"
+    shift 2
+    "${PROBE[@]}" --network "${RAICHO_PROJECT}_${NETWORK}" --entrypoint python3 \
+        raicho-tools:local -B -m "automation.acceptance.connector.${MODULE}" "${@}"
+}
+
 check() {
-    "${PROBE[@]}" --network "${RAICHO_PROJECT}_application" --entrypoint python3 \
-        raicho-tools:local -B -m automation.acceptance.connector.checks "${@}"
+    probe application checks "${@}"
 }
 
 privacy() {
@@ -28,35 +35,18 @@ privacy() {
         --entrypoint python3 raicho-tools:local -B -m automation.acceptance.connector.privacy "${1}"
 }
 
-prepare_network() {
-    local NETWORK="${RAICHO_PROJECT}_connector-application"
-    local SUBNET
-    local OPTIONS=(--internal --label "com.docker.compose.project=${RAICHO_PROJECT}"
-        --label com.docker.compose.network=connector-application)
-    docker network create "${OPTIONS[@]}" "${NETWORK}" >/dev/null
-    SUBNET="$(docker network inspect --format '{{(index .IPAM.Config 0).Subnet}}' "${NETWORK}")"
-    docker network rm "${NETWORK}" >/dev/null
-    docker network create --subnet "${SUBNET}" "${OPTIONS[@]}" "${NETWORK}" >/dev/null
-}
-
 address() {
     docker inspect --format "{{(index .NetworkSettings.Networks \"${RAICHO_PROJECT}_${2}\").IPAddress}}" "${1}"
 }
 
-cleanup() {
-    local RESULT="${?}"
-    trap - EXIT
-    if ((RESULT != 0)); then
-        "${COMPOSE[@]}" ps --all || true
-        check snapshot || true
-    fi
-    docker rm -f "${HOLDER}" >/dev/null 2>&1 || true
-    remove_credential_deployment || RESULT=1
-    exit "${RESULT}"
+on_failure() {
+    check snapshot
 }
-trap cleanup EXIT
-trap 'exit 130' INT
-trap 'exit 143' TERM
+
+on_cleanup() {
+    docker rm -f "${HOLDER}" >/dev/null 2>&1
+}
+install_cleanup
 
 connected() {
     GENERATION="$(check wait --previous-generation "${GENERATION:-}")"
@@ -90,10 +80,8 @@ fixture database --revision 1
 thunderbird_check seed
 check idle
 check browser
-"${PROBE[@]}" --network "${RAICHO_PROJECT}_connector-thunderbird" --entrypoint python3 \
-    raicho-tools:local -B -m automation.acceptance.connector.checks routes
-"${PROBE[@]}" --network "${RAICHO_PROJECT}_connector-thunderbird" --entrypoint python3 \
-    raicho-tools:local -B -m automation.acceptance.connector.rejection
+probe connector-thunderbird checks routes
+probe connector-thunderbird rejection
 SAME_GENERATION="$(check wait --minimum-heartbeats 1)"
 if [[ ${SAME_GENERATION} != "${GENERATION}" ]]; then
     echo 'FAIL: invalid authentication displaced the active connector' >&2
