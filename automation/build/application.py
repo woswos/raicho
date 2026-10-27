@@ -49,14 +49,18 @@ def main():
             'test-server',
             'test-web',
             'test-extension',
+            'test-mailprobe',
         ),
     )
     target = parser.parse_args().target
     if target.endswith('server'):
         action = 'build' if target == 'build-server' else 'test'
         run(['cargo', action, '--workspace', '--all-targets', '--locked'])
-    elif target.endswith('extension'):
-        extension(REPOSITORY_ROOT / 'extension', testing=target.startswith('test-'))
+    elif target.endswith('extension') or target == 'test-mailprobe':
+        if target == 'test-mailprobe':
+            extension(REPOSITORY_ROOT / 'mailprobe', testing=True)
+        else:
+            extension(REPOSITORY_ROOT / 'extension', testing=target.startswith('test-'))
     else:
         with tempfile.TemporaryDirectory(prefix='raicho-web-') as directory:
             run(

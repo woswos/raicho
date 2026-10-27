@@ -1,17 +1,14 @@
 # Foundation Stage 2: Thunderbird connector
 
 Status: approved design [PR #2](https://github.com/woswos/raicho/pull/2) merged on
-2026-10-18. Stages 1, 3, 4, and 5 are implemented: packaging and lifecycle, the
-connector contract, credential provisioning, and the production connection with its
-diagnostics. The mail API experiment and CI integration land in
-[#9](https://github.com/woswos/raicho/pull/9). The debriefs of stages 2 and 6 record
-the combined implementation in [#4](https://github.com/woswos/raicho/pull/4), so they
-also describe work that is not in this revision. See
+2026-10-18. All six implementation slices and local Docker acceptance are complete.
+CI runs the same unattended commands. Hosted results are tracked on the implementation PR.
+Mail compatibility limitations remain gates before dependent compose work. See
 [acceptance evidence](../../reference/connector-acceptance.md).
 
 ## Goal
 
-Complete Stage 2 of the [foundation plan](20261017-thunderbird-first-foundation.md)
+Complete Stage 2 of the [foundation plan](../active/20261017-thunderbird-first-foundation.md)
 with an unattended, authenticated connection between the packaged Thunderbird
 extension and Raicho. Demonstrate installation, upgrades, bounded recovery,
 credential management, and diagnostic status against the pinned Thunderbird
@@ -166,7 +163,7 @@ native consent on the pinned runtime. Keep unattended draft checks separate
 from the interactive sending checks. Record native-tab selection when needed
 to make IMAP drafts queryable after restart. Neither behavior establishes a
 production permission or folder-initialization strategy. See the
-compatibility matrix (`docs/reference/mail-api-compatibility.md`).
+[compatibility matrix](../../reference/mail-api-compatibility.md).
 
 Draft creation does not establish draft replacement. `compose.beginNew(id)`
 documents editing as a new message. Test reopening and resaving explicitly for
@@ -189,7 +186,7 @@ These experiment gates have the following bounded outcomes:
   design gate before dependent compose work, not an implemented capability.
 - SMTP submission and Sent-copy success are separate. The API returned success
   despite an injected copy failure. Lost results retain `unknown` and are never
-  automatically replayed. See the compatibility matrix (`docs/reference/mail-api-compatibility.md`).
+  automatically replayed. See the [compatibility matrix](../../reference/mail-api-compatibility.md).
 
 Future dependent work must resolve the recorded API limitations. Stop and revise
 its design if it requires a mail replica, privileged Experiment, host daemon,
@@ -216,7 +213,7 @@ with their corresponding slice, and run through Docker locally and in CI.
   preserving the profile. Recorded the test listener's text-frame adapter and
   observed Origin in [lifecycle evidence](#lifecycle-fixture-evidence).
   Production transport, mail APIs, and the ten-minute acceptance remain later slices.
-- [ ] Stage 2: Run the mail API compatibility experiment.
+- [x] Stage 2: Run the mail API compatibility experiment.
   Add the isolated GreenMail deployment and separate probe artifact. Test plain
   text, HTML, selected identity, a small attachment, and draft rediscovery after
   Thunderbird restart. Check reopen/edit/resave and duplicate behavior, including
@@ -294,7 +291,7 @@ with their corresponding slice, and run through Docker locally and in CI.
   was reproduced in source tests and corrected, but those earlier failures lacked
   enough evidence to establish their cause. Neither recurred in the final suites.
   Managed policy reload requires Thunderbird restart. CI acceptance remains Stage 6.
-- [ ] Stage 6: Integrate CI and record acceptance evidence.
+- [x] Stage 6: Integrate CI and record acceptance evidence.
   Extend the existing Docker source and runtime jobs using the same local commands.
   Include a ten-minute idle test, production-XPI inspection, and checks that logs,
   diagnostics, and SQLite contain neither mail content nor raw credentials.
@@ -324,9 +321,10 @@ The existing implementation checks are:
 ```bash
 docker compose -f automation/tooling/compose.yaml build
 docker compose -f automation/tooling/compose.yaml run --rm check \
-  make lint format-check typecheck test-python test-tooling build-app test-app test-protocol
+  make lint format-check typecheck test-python test-tooling build-app test-app test-mailprobe test-protocol
 bash automation/acceptance/connector/check_connector.bash
 bash automation/acceptance/credentials/check_credentials.bash
+bash mailprobe/tests/check_mail_compatibility.bash
 ```
 
 The extension is included in `build-app` and `test-app`, while protocol drift runs
@@ -337,8 +335,6 @@ projects, never use personal profiles or provider credentials, and clean up
 only their own resources. The existing CI labels and independent readiness
 are preserved. The [acceptance record](../../reference/connector-acceptance.md)
 separates local results, configured CI coverage, and earlier manual evidence.
-The mail probe and its compatibility check arrive with stage 2 in
-[#9](https://github.com/woswos/raicho/pull/9).
 
 The original design PR needed documentation and PR-policy checks only. The
 implementation slices additionally ran the source and runtime checks above.

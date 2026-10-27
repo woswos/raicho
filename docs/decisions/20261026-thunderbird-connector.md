@@ -8,7 +8,7 @@
 
 The foundation needs unattended Thunderbird connectivity without exposing its
 administrative desktop or copying mail into Raicho. The approved
-[connector design](../planning/active/20261018-foundation-stage-two-connector.md)
+[connector design](../planning/done/20261018-foundation-stage-two-connector.md)
 defines the experiment and implementation boundaries. Thunderbird keeps internet
 egress for its mail providers, and Docker's embedded DNS forwards names it cannot
 resolve to the host's resolvers. The network path and name resolution therefore

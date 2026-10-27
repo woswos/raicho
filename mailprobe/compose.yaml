@@ -1,0 +1,133 @@
+name: raicho-mail-test
+
+x-runtime: &runtime
+  platform: linux/amd64
+  user: '10001:10001'
+  read_only: true
+  tmpfs: [/tmp:mode=1777]
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  restart: 'no'
+
+x-fixture: &fixture
+  <<: *runtime
+  image: ${RAICHO_TEST_TOOLING_IMAGE:?Set the disposable tooling image}
+  environment:
+    PYTHONPATH: /opt/raicho
+  volumes: [fixture:/config]
+  networks: [mail-test]
+
+services:
+  greenmail:
+    image: greenmail/standalone:2.1.14@sha256:2bcd0470f569af3c8b98509421b23f1ad11ebb2d58c3648f4233bf450f3b5e2b
+    platform: linux/amd64
+    read_only: true
+    tmpfs: [/tmp:mode=1777]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      GREENMAIL_OPTS: >-
+        -Dgreenmail.setup.test.smtp -Dgreenmail.setup.test.imap
+        -Dgreenmail.hostname=0.0.0.0
+        -Dgreenmail.users=sender:fixture@raicho.test,recipient:fixture@raicho.test
+    networks: [mail-test]
+
+  probe:
+    <<: *fixture
+    entrypoint: [python3, -B, -m, mailprobe.tests.probe.control_server]
+    healthcheck:
+      test:
+        [
+          CMD,
+          python3,
+          -c,
+          "from pathlib import Path; assert Path('/config/control_ready').is_file()",
+        ]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  mail-proxy:
+    <<: *fixture
+    entrypoint:
+      [
+        python3,
+        -B,
+        -m,
+        mailprobe.tests.proxy.fault_server,
+        --directory,
+        /config,
+      ]
+    healthcheck:
+      test:
+        [
+          CMD,
+          python3,
+          -c,
+          "from pathlib import Path; assert Path('/config/mail_proxy_ready').is_file()",
+        ]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  thunderbird:
+    <<: *runtime
+    image: ${RAICHO_MAIL_TEST_IMAGE:?Set the disposable Thunderbird image}
+    entrypoint:
+      [/usr/bin/tini, --, python3, -B, -m, mailprobe.tests.profile.start]
+    depends_on:
+      probe: { condition: service_healthy }
+      mail-proxy: { condition: service_healthy }
+    environment:
+      RAICHO_ADMIN_ENABLED: 'false'
+      RAICHO_CONNECTOR_ENDPOINT: ws://probe:8765/connector/v1
+      RAICHO_CONNECTOR_TOKEN_FILE: /fixture/token
+      LD_LIBRARY_PATH: /opt/thunderbird
+      PYTHONPATH: /opt/fixture:/opt/raicho
+    volumes:
+      - profile:/config
+      - fixture:/fixture:ro
+      - ./tests/profile:/opt/fixture/mailprobe/tests/profile:ro
+      - type: volume
+        source: artifacts
+        target: /opt/raicho/extension
+        read_only: true
+        volume:
+          nocopy: true
+    networks: [mail-test]
+    shm_size: 1gb
+    stop_grace_period: 30s
+
+  driver:
+    <<: *fixture
+    profiles: [test]
+    entrypoint: [python3, -B, -m, mailprobe.tests.probe.driver]
+    healthcheck: { disable: true }
+
+  extension:
+    <<: *runtime
+    image: ${RAICHO_TEST_TOOLING_IMAGE:?Set the disposable tooling image}
+    profiles: [test]
+    network_mode: none
+    command:
+      [
+        node,
+        /workspace/extension/build.mjs,
+        --source-root,
+        /workspace/mailprobe,
+        --output-directory,
+        /artifact,
+      ]
+    volumes:
+      - ..:/workspace:ro
+      - artifacts:/artifact
+    healthcheck: { disable: true }
+
+networks:
+  mail-test:
+    internal: true
+
+volumes:
+  fixture:
+  profile:
+  artifacts:

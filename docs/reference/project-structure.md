@@ -14,6 +14,7 @@ deploy/            Per-service image recipes, runtime code, configuration, and t
 server/            Rust diagnostics, SQLite queries, migrations, and tests
 web/               TypeScript diagnostics, public files, and behavioral tests
 extension/         Production connector, its packager, and its tests
+mailprobe/         Mail API compatibility probe, fixtures, Compose files, and runner
 protocol/          Connector and status schemas, limits, fixtures, generators, implementations
 automation/        Development commands and support packages grouped by responsibility
 docs/contributing/ Contribution workflow, working agreements, and project invariants
@@ -33,6 +34,7 @@ Use these locations when adding files or moving existing code:
 | Base Compose deployment and operator overlays | Repository root |
 | Test-only Compose overlays | Beside the acceptance driver that uses them |
 | Application sources | Their owning `server/`, `web/`, or `extension/` component |
+| Mail API compatibility probe, its fixtures, and its runner | `mailprobe/` |
 | Shared connector and status schemas, limits, fixtures, and implementations | `protocol/` |
 | Protocol generation scripts and support modules | `protocol/generator/` |
 | Component-specific build scripts and packaging | The owning component's root |
@@ -115,6 +117,8 @@ production XPI for the connector acceptance upgrade check. Compose resolves ever
 overlay's paths from the first file, so these overlays use repository-relative
 paths. `automation/tooling/compose.yaml` provides checks and formatting, with
 `automation/tooling/compose.ci.yaml` adding the GitHub event mount.
+`mailprobe/compose.yaml` runs the separate fictional mail experiment, with
+`mailprobe/compose.admin.yaml` enabling its native UI checks.
 The [runtime guide](../operations/local-runtime.md) and
 [tooling commands](build-test-generate.md) show their combinations.
 
@@ -163,16 +167,26 @@ that run inside containers. `make test-python` discovers every `*_tests.py` in
 them, so a new Python test directory needs only the `__init__.py` files on its
 import path.
 
+`mailprobe/` is a test artifact, separate from the production extension. Its
+`tests/` groups the controller and scenarios under `probe/`, fictional profile
+setup under `profile/`, and SMTP/IMAP fault infrastructure under `proxy/`, with
+their unit tests alongside the fixture code. The host acceptance runner and the
+probe packaging, fixture-image, and runner-cleanup tests sit directly in `tests/`.
+See the [fixture commands](build-test-generate.md#mail-api-compatibility)
+for the mail test extension and profile mounts.
+
 ## Tooling and image boundaries
 
-Use the shared tooling image for linters, formatters, test runners, and fixture
-drivers locally and in CI. Independent fixture processes can use separate
-containers from that image. Thunderbird retains its runtime image. The
+Use the shared tooling image for linters, formatters, test runners, Python mocks,
+and fixture drivers locally and in CI. Independent fixture processes can use
+separate containers from that image. Thunderbird and upstream fixture services
+such as GreenMail retain their runtime images. The
 [shared tooling decision](../decisions/20261026-repository-layout.md#tooling-image)
 records the image boundary.
 
-The tooling image's build-context filter includes only tooling dependencies,
-excluding host Docker orchestration. Keep fixture code
+The tooling image packages fixture sources at their component-relative paths
+under `/opt/raicho/`. Its build-context filter includes those fixture directories
+and tooling dependencies, excluding host Docker orchestration. Keep fixture code
 out of production runtime images and production XPIs. The Thunderbird recipe copies its explicit runtime modules,
 and its filter excludes test directories. Rebuild and execution commands live in
 [build, test, and generate](build-test-generate.md#tooling-image).

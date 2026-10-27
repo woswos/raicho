@@ -26,11 +26,21 @@ internal networks, one shared with each service, so it is the only path between
 them and has no egress. The browser displays authenticated connection status.
 Browser login and mail operations remain planned.
 
+A separate test-only extension and disposable GreenMail deployment exercise
+mail API compatibility. A fixed SMTP/IMAP fault proxy and test controller run
+on an internal network with a fresh fictional profile. These Python helpers
+share the development tooling image. Thunderbird uses its
+normal runtime image with read-only mounts for the mail test extension and
+profile setup code. The production XPI has no mail permissions or probe commands. See the
+[versioned compatibility matrix](mail-api-compatibility.md) for observed behavior
+and the native consent and draft-editing gates.
+
 The [connector contract](connector-contract.md) provides a shared control
 schema, generated Rust/TypeScript bindings, and bounded decoders under
 `protocol/rust/` and `protocol/typescript/`, used by the
 server and production extension. It carries authentication and heartbeat only,
 and every frame after the handshake carries a MAC under a per-session key.
+The separate mail probe remains a test artifact.
 
 Offline credential commands acquire the database's exclusive instance lock.
 A one-off `raicho-server connector files` container owns host token generation
@@ -45,8 +55,8 @@ acceptance drivers under `automation/acceptance/credentials/`. See the
 The [runtime reference](runtime.md) describes endpoints, storage, migrations,
 image packaging, and configuration. The existing showcase in `assets/brand/`
 remains a separate static concept with fictional in-memory messages. Shared
-Docker tooling runs language, application, and repository checks, and the
-drivers used by disposable tests. Component-specific builders
+Docker tooling runs language, application, and repository checks, and packages
+the Python mocks and drivers used by disposable tests. Component-specific builders
 and acceptance drivers live with their sources. Cross-component build dispatch,
 connector/runtime acceptance, and shared development commands live in
 responsibility-based `automation/` packages, while protocol generation belongs
@@ -90,7 +100,8 @@ contract. Thunderbird-specific objects stay in the extension adapter. The curren
 gateway and control transport provide the connection boundary for those future operations.
 
 The foundation plan holds the target component diagram, storage rules, backup
-requirements, and stage gates.
+requirements, and stage gates. The
+[mail API compatibility matrix](mail-api-compatibility.md) records mail API limitations.
 Runtime diagnostics derive connector status from authenticated sessions and
 heartbeats, never from a profile file or desktop listener.
 
@@ -106,9 +117,10 @@ built Thunderbird image. The
 [direct connector listener decision](../decisions/20261026-thunderbird-connector.md#listener)
 keeps Axum for the public listener and accepts connector WebSockets with
 tokio-tungstenite. The
-[connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
+[connector plan](../planning/done/20261018-foundation-stage-two-connector.md)
 selects MV2 packaging, managed configuration, a fixed internal gateway, and a
-versioned authenticated protocol.
+versioned authenticated protocol. The mail compatibility
+fixture and control contract have separate implementations.
 Credential persistence, offline provisioning, production control transport, gateway,
 and connection diagnostics are implemented. Dedicated CI jobs run the source and
 unattended acceptance commands described in the
