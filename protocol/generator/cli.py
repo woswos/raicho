@@ -15,29 +15,10 @@ NODE_REPORTER = f'--test-reporter={ROOT / "automation/build/node_reporter.mjs"}'
 # generator, because consumers may not compile until they receive the new bindings.
 CHECK_BUILD = ['cargo', 'build', '--workspace', '--all-targets', '--locked']
 GENERATE_BUILD = ['cargo', 'build', '--locked', '--package', 'raicho-protocol-generator']
-OUTPUTS = {
-    'rust': (
-        Path('protocol/rust/src'),
-        ['contract_generated.rs', 'limits_generated.rs', 'diagnostics_generated.rs'],
-    ),
-    'typescript': (
-        Path('protocol/typescript/src'),
-        [
-            'contract_generated.ts',
-            'diagnostics_generated.ts',
-            'validator_generated.js',
-            'validator_generated.d.ts',
-            'limits_generated.ts',
-        ],
-    ),
-    'web': (
-        Path('web/src'),
-        [
-            'status_generated.ts',
-            'status_validator_generated.js',
-            'status_validator_generated.d.ts',
-        ],
-    ),
+DESTINATIONS = {
+    'rust': Path('protocol/rust/src'),
+    'typescript': Path('protocol/typescript/src'),
+    'web': Path('web/src'),
 }
 
 
@@ -109,7 +90,8 @@ def generate(action):
         for command in commands:
             subprocess.run(command, cwd=ROOT, check=True)
         changes = []
-        for language, (destination, filenames) in OUTPUTS.items():
+        for language, destination in DESTINATIONS.items():
+            filenames = sorted(path.name for path in (staging / language).iterdir())
             changed = changed_outputs(staging / language, ROOT / destination, filenames)
             changes.extend(str(destination / name) for name in changed)
             if action == 'generate':
