@@ -89,7 +89,7 @@ def rust(root, files, action, tooling_root):
             # with the same package names would reuse the root workspace's lint results.
             if manifest != root / 'Cargo.toml':
                 workspace_key = hashlib.sha256(str(manifest).encode()).hexdigest()
-                target = Path(os.environ.get('CARGO_TARGET_DIR', '/tmp/raicho-target')) / workspace_key
+                target = Path(os.environ['CARGO_TARGET_DIR']) / workspace_key
                 arguments.extend(['--target-dir', target])
             run(arguments, root)
         else:

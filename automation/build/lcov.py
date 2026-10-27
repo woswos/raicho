@@ -3,6 +3,10 @@ from pathlib import Path
 from automation.paths import REPOSITORY_ROOT
 
 
+def keep_highest(lines, number, hits):
+    lines[number] = max(lines.get(number, 0), hits)
+
+
 def read_lcov(path):
     files = {}
     current = None
@@ -13,8 +17,8 @@ def read_lcov(path):
                 source = REPOSITORY_ROOT / source
             current = files.setdefault(source.resolve(), {})
         elif line.startswith('DA:') and current is not None:
-            number, hits = line[3:].split(',')[:2]
-            current[int(number)] = max(current.get(int(number), 0), int(hits))
+            number, hits = map(int, line[3:].split(',')[:2])
+            keep_highest(current, number, hits)
     return files
 
 
@@ -24,7 +28,7 @@ def merge(reports):
         for source, lines in read_lcov(report).items():
             target = merged.setdefault(source, {})
             for number, hits in lines.items():
-                target[number] = max(target.get(number, 0), hits)
+                keep_highest(target, number, hits)
     return merged
 
 

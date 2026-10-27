@@ -1,4 +1,5 @@
 import shutil
+import tomllib
 from pathlib import Path
 
 from automation.build.application import extension, node_reporter, run, web
@@ -8,7 +9,8 @@ from automation.build.rust_coverage import rust
 from automation.paths import REPOSITORY_ROOT
 from protocol.generator.cli import run_typescript_tests
 
-OUTPUT = Path('/tmp/raicho-coverage')
+COVERAGE = tomllib.loads((REPOSITORY_ROOT / 'pyproject.toml').read_text())['tool']['coverage']
+OUTPUT = Path(COVERAGE['run']['data_file']).parents[1]
 TYPESCRIPT_IGNORED = ('**/tests/**', '**/node_modules/**', '**/*_generated.*')
 
 

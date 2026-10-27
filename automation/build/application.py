@@ -10,6 +10,7 @@ from automation.paths import REPOSITORY_ROOT
 from protocol.generator.cli import node_reporter
 
 BENCHMARK = ['cargo', 'bench', '--workspace', '--bench', '*', '--locked']
+CARGO_WORKSPACE = ['--workspace', '--all-targets', '--locked']
 
 
 def run(arguments, **options):
@@ -123,11 +124,10 @@ def main():
     if target == 'benchmark':
         cargo_bench()
     elif target.endswith('server'):
-        arguments = ['--workspace', '--all-targets', '--locked']
         if target == 'build-server':
-            run(['cargo', 'build', *arguments])
+            run(['cargo', 'build', *CARGO_WORKSPACE])
         else:
-            cargo_test(arguments)
+            cargo_test(CARGO_WORKSPACE)
     elif target.endswith(('extension', 'mailprobe')):
         component = 'mailprobe' if target == 'test-mailprobe' else 'extension'
         extension(REPOSITORY_ROOT / component, testing=target.startswith('test-'))
