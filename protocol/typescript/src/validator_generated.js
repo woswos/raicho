@@ -63,13 +63,7 @@ function validate11(data, { instancePath = '', parentData, parentDataProperty, r
         ((data.server_nonce === void 0 || !func0.call(data, 'server_nonce')) && (missing0 = 'server_nonce'))
       ) {
         validate11.errors = [
-          {
-            instancePath,
-            schemaPath: '#/required',
-            keyword: 'required',
-            params: { missingProperty: missing0 },
-            message: "must have required property '" + missing0 + "'",
-          },
+          { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: missing0 } },
         ];
         return false;
       } else {
@@ -82,7 +76,6 @@ function validate11(data, { instancePath = '', parentData, parentDataProperty, r
                 schemaPath: '#/additionalProperties',
                 keyword: 'additionalProperties',
                 params: { additionalProperty: key0 },
-                message: 'must NOT have additional properties',
               },
             ];
             return false;
@@ -100,7 +93,6 @@ function validate11(data, { instancePath = '', parentData, parentDataProperty, r
                   schemaPath: '#/properties/type/type',
                   keyword: 'type',
                   params: { type: 'string' },
-                  message: 'must be string',
                 },
               ];
               return false;
@@ -112,7 +104,6 @@ function validate11(data, { instancePath = '', parentData, parentDataProperty, r
                   schemaPath: '#/properties/type/enum',
                   keyword: 'enum',
                   params: { allowedValues: schema12.properties.type.enum },
-                  message: 'must be equal to one of the allowed values',
                 },
               ];
               return false;
@@ -132,7 +123,6 @@ function validate11(data, { instancePath = '', parentData, parentDataProperty, r
                     schemaPath: '#/properties/protocol_version/type',
                     keyword: 'type',
                     params: { type: 'integer' },
-                    message: 'must be integer',
                   },
                 ];
                 return false;
@@ -144,7 +134,6 @@ function validate11(data, { instancePath = '', parentData, parentDataProperty, r
                     schemaPath: '#/properties/protocol_version/enum',
                     keyword: 'enum',
                     params: { allowedValues: schema12.properties.protocol_version.enum },
-                    message: 'must be equal to one of the allowed values',
                   },
                 ];
                 return false;
@@ -167,7 +156,6 @@ function validate11(data, { instancePath = '', parentData, parentDataProperty, r
                           schemaPath: '#/definitions/Nonce/maxLength',
                           keyword: 'maxLength',
                           params: { limit: 64 },
-                          message: 'must NOT have more than 64 characters',
                         },
                       ];
                       return false;
@@ -179,7 +167,6 @@ function validate11(data, { instancePath = '', parentData, parentDataProperty, r
                             schemaPath: '#/definitions/Nonce/minLength',
                             keyword: 'minLength',
                             params: { limit: 64 },
-                            message: 'must NOT have fewer than 64 characters',
                           },
                         ];
                         return false;
@@ -191,7 +178,6 @@ function validate11(data, { instancePath = '', parentData, parentDataProperty, r
                               schemaPath: '#/definitions/Nonce/pattern',
                               keyword: 'pattern',
                               params: { pattern: '^[a-f0-9]{64}$' },
-                              message: 'must match pattern "^[a-f0-9]{64}$"',
                             },
                           ];
                           return false;
@@ -205,7 +191,6 @@ function validate11(data, { instancePath = '', parentData, parentDataProperty, r
                         schemaPath: '#/definitions/Nonce/type',
                         keyword: 'type',
                         params: { type: 'string' },
-                        message: 'must be string',
                       },
                     ];
                     return false;
@@ -220,9 +205,7 @@ function validate11(data, { instancePath = '', parentData, parentDataProperty, r
         }
       }
     } else {
-      validate11.errors = [
-        { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' },
-      ];
+      validate11.errors = [{ instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' } }];
       return false;
     }
   }
@@ -274,13 +257,7 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
         ((data.client_proof === void 0 || !func0.call(data, 'client_proof')) && (missing0 = 'client_proof'))
       ) {
         validate13.errors = [
-          {
-            instancePath,
-            schemaPath: '#/required',
-            keyword: 'required',
-            params: { missingProperty: missing0 },
-            message: "must have required property '" + missing0 + "'",
-          },
+          { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: missing0 } },
         ];
         return false;
       } else {
@@ -302,7 +279,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                 schemaPath: '#/additionalProperties',
                 keyword: 'additionalProperties',
                 params: { additionalProperty: key0 },
-                message: 'must NOT have additional properties',
               },
             ];
             return false;
@@ -320,7 +296,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                   schemaPath: '#/properties/type/type',
                   keyword: 'type',
                   params: { type: 'string' },
-                  message: 'must be string',
                 },
               ];
               return false;
@@ -332,7 +307,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                   schemaPath: '#/properties/type/enum',
                   keyword: 'enum',
                   params: { allowedValues: schema14.properties.type.enum },
-                  message: 'must be equal to one of the allowed values',
                 },
               ];
               return false;
@@ -352,7 +326,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                     schemaPath: '#/properties/protocol_version/type',
                     keyword: 'type',
                     params: { type: 'integer' },
-                    message: 'must be integer',
                   },
                 ];
                 return false;
@@ -364,7 +337,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                     schemaPath: '#/properties/protocol_version/enum',
                     keyword: 'enum',
                     params: { allowedValues: schema14.properties.protocol_version.enum },
-                    message: 'must be equal to one of the allowed values',
                   },
                 ];
                 return false;
@@ -386,7 +358,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                           schemaPath: '#/properties/backend_kind/maxLength',
                           keyword: 'maxLength',
                           params: { limit: 32 },
-                          message: 'must NOT have more than 32 characters',
                         },
                       ];
                       return false;
@@ -398,7 +369,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                             schemaPath: '#/properties/backend_kind/minLength',
                             keyword: 'minLength',
                             params: { limit: 1 },
-                            message: 'must NOT have fewer than 1 characters',
                           },
                         ];
                         return false;
@@ -410,7 +380,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                               schemaPath: '#/properties/backend_kind/pattern',
                               keyword: 'pattern',
                               params: { pattern: '^[a-z][a-z0-9_]*$' },
-                              message: 'must match pattern "^[a-z][a-z0-9_]*$"',
                             },
                           ];
                           return false;
@@ -424,7 +393,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                         schemaPath: '#/properties/backend_kind/type',
                         keyword: 'type',
                         params: { type: 'string' },
-                        message: 'must be string',
                       },
                     ];
                     return false;
@@ -447,7 +415,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                             schemaPath: '#/properties/backend_version/maxLength',
                             keyword: 'maxLength',
                             params: { limit: 64 },
-                            message: 'must NOT have more than 64 characters',
                           },
                         ];
                         return false;
@@ -459,7 +426,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                               schemaPath: '#/properties/backend_version/minLength',
                               keyword: 'minLength',
                               params: { limit: 1 },
-                              message: 'must NOT have fewer than 1 characters',
                             },
                           ];
                           return false;
@@ -471,7 +437,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                                 schemaPath: '#/properties/backend_version/pattern',
                                 keyword: 'pattern',
                                 params: { pattern: '^[ -~]+$' },
-                                message: 'must match pattern "^[ -~]+$"',
                               },
                             ];
                             return false;
@@ -485,7 +450,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                           schemaPath: '#/properties/backend_version/type',
                           keyword: 'type',
                           params: { type: 'string' },
-                          message: 'must be string',
                         },
                       ];
                       return false;
@@ -508,7 +472,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                               schemaPath: '#/properties/connector_version/maxLength',
                               keyword: 'maxLength',
                               params: { limit: 64 },
-                              message: 'must NOT have more than 64 characters',
                             },
                           ];
                           return false;
@@ -520,7 +483,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                                 schemaPath: '#/properties/connector_version/minLength',
                                 keyword: 'minLength',
                                 params: { limit: 1 },
-                                message: 'must NOT have fewer than 1 characters',
                               },
                             ];
                             return false;
@@ -532,7 +494,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                                   schemaPath: '#/properties/connector_version/pattern',
                                   keyword: 'pattern',
                                   params: { pattern: '^[ -~]+$' },
-                                  message: 'must match pattern "^[ -~]+$"',
                                 },
                               ];
                               return false;
@@ -546,7 +507,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                             schemaPath: '#/properties/connector_version/type',
                             keyword: 'type',
                             params: { type: 'string' },
-                            message: 'must be string',
                           },
                         ];
                         return false;
@@ -570,7 +530,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                                 schemaPath: '#/definitions/Capabilities/maxItems',
                                 keyword: 'maxItems',
                                 params: { limit: 0 },
-                                message: 'must NOT have more than 0 items',
                               },
                             ];
                             return false;
@@ -586,7 +545,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                                     schemaPath: '#/definitions/Capabilities/items/type',
                                     keyword: 'type',
                                     params: { type: 'string' },
-                                    message: 'must be string',
                                   },
                                 ];
                                 return false;
@@ -614,12 +572,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                                         schemaPath: '#/definitions/Capabilities/uniqueItems',
                                         keyword: 'uniqueItems',
                                         params: { i: i1, j: j0 },
-                                        message:
-                                          'must NOT have duplicate items (items ## ' +
-                                          j0 +
-                                          ' and ' +
-                                          i1 +
-                                          ' are identical)',
                                       },
                                     ];
                                     return false;
@@ -637,7 +589,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                               schemaPath: '#/definitions/Capabilities/type',
                               keyword: 'type',
                               params: { type: 'array' },
-                              message: 'must be array',
                             },
                           ];
                           return false;
@@ -661,7 +612,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                                   schemaPath: '#/definitions/Nonce/maxLength',
                                   keyword: 'maxLength',
                                   params: { limit: 64 },
-                                  message: 'must NOT have more than 64 characters',
                                 },
                               ];
                               return false;
@@ -673,7 +623,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                                     schemaPath: '#/definitions/Nonce/minLength',
                                     keyword: 'minLength',
                                     params: { limit: 64 },
-                                    message: 'must NOT have fewer than 64 characters',
                                   },
                                 ];
                                 return false;
@@ -685,7 +634,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                                       schemaPath: '#/definitions/Nonce/pattern',
                                       keyword: 'pattern',
                                       params: { pattern: '^[a-f0-9]{64}$' },
-                                      message: 'must match pattern "^[a-f0-9]{64}$"',
                                     },
                                   ];
                                   return false;
@@ -699,7 +647,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                                 schemaPath: '#/definitions/Nonce/type',
                                 keyword: 'type',
                                 params: { type: 'string' },
-                                message: 'must be string',
                               },
                             ];
                             return false;
@@ -723,7 +670,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                                     schemaPath: '#/definitions/Signature/maxLength',
                                     keyword: 'maxLength',
                                     params: { limit: 64 },
-                                    message: 'must NOT have more than 64 characters',
                                   },
                                 ];
                                 return false;
@@ -735,7 +681,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                                       schemaPath: '#/definitions/Signature/minLength',
                                       keyword: 'minLength',
                                       params: { limit: 64 },
-                                      message: 'must NOT have fewer than 64 characters',
                                     },
                                   ];
                                   return false;
@@ -747,7 +692,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                                         schemaPath: '#/definitions/Signature/pattern',
                                         keyword: 'pattern',
                                         params: { pattern: '^[a-f0-9]{64}$' },
-                                        message: 'must match pattern "^[a-f0-9]{64}$"',
                                       },
                                     ];
                                     return false;
@@ -761,7 +705,6 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
                                   schemaPath: '#/definitions/Signature/type',
                                   keyword: 'type',
                                   params: { type: 'string' },
-                                  message: 'must be string',
                                 },
                               ];
                               return false;
@@ -781,9 +724,7 @@ function validate13(data, { instancePath = '', parentData, parentDataProperty, r
         }
       }
     } else {
-      validate13.errors = [
-        { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' },
-      ];
+      validate13.errors = [{ instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' } }];
       return false;
     }
   }
@@ -818,13 +759,7 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
         ((data.server_signature === void 0 || !func0.call(data, 'server_signature')) && (missing0 = 'server_signature'))
       ) {
         validate15.errors = [
-          {
-            instancePath,
-            schemaPath: '#/required',
-            keyword: 'required',
-            params: { missingProperty: missing0 },
-            message: "must have required property '" + missing0 + "'",
-          },
+          { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: missing0 } },
         ];
         return false;
       } else {
@@ -843,7 +778,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                 schemaPath: '#/additionalProperties',
                 keyword: 'additionalProperties',
                 params: { additionalProperty: key0 },
-                message: 'must NOT have additional properties',
               },
             ];
             return false;
@@ -861,7 +795,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                   schemaPath: '#/properties/type/type',
                   keyword: 'type',
                   params: { type: 'string' },
-                  message: 'must be string',
                 },
               ];
               return false;
@@ -873,7 +806,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                   schemaPath: '#/properties/type/enum',
                   keyword: 'enum',
                   params: { allowedValues: schema18.properties.type.enum },
-                  message: 'must be equal to one of the allowed values',
                 },
               ];
               return false;
@@ -893,7 +825,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                     schemaPath: '#/properties/protocol_version/type',
                     keyword: 'type',
                     params: { type: 'integer' },
-                    message: 'must be integer',
                   },
                 ];
                 return false;
@@ -905,7 +836,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                     schemaPath: '#/properties/protocol_version/enum',
                     keyword: 'enum',
                     params: { allowedValues: schema18.properties.protocol_version.enum },
-                    message: 'must be equal to one of the allowed values',
                   },
                 ];
                 return false;
@@ -928,7 +858,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                           schemaPath: '#/definitions/Generation/maxLength',
                           keyword: 'maxLength',
                           params: { limit: 32 },
-                          message: 'must NOT have more than 32 characters',
                         },
                       ];
                       return false;
@@ -940,7 +869,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                             schemaPath: '#/definitions/Generation/minLength',
                             keyword: 'minLength',
                             params: { limit: 32 },
-                            message: 'must NOT have fewer than 32 characters',
                           },
                         ];
                         return false;
@@ -952,7 +880,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                               schemaPath: '#/definitions/Generation/pattern',
                               keyword: 'pattern',
                               params: { pattern: '^[a-f0-9]{32}$' },
-                              message: 'must match pattern "^[a-f0-9]{32}$"',
                             },
                           ];
                           return false;
@@ -966,7 +893,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                         schemaPath: '#/definitions/Generation/type',
                         keyword: 'type',
                         params: { type: 'string' },
-                        message: 'must be string',
                       },
                     ];
                     return false;
@@ -990,7 +916,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                             schemaPath: '#/definitions/Capabilities/maxItems',
                             keyword: 'maxItems',
                             params: { limit: 0 },
-                            message: 'must NOT have more than 0 items',
                           },
                         ];
                         return false;
@@ -1006,7 +931,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                                 schemaPath: '#/definitions/Capabilities/items/type',
                                 keyword: 'type',
                                 params: { type: 'string' },
-                                message: 'must be string',
                               },
                             ];
                             return false;
@@ -1034,12 +958,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                                     schemaPath: '#/definitions/Capabilities/uniqueItems',
                                     keyword: 'uniqueItems',
                                     params: { i: i1, j: j0 },
-                                    message:
-                                      'must NOT have duplicate items (items ## ' +
-                                      j0 +
-                                      ' and ' +
-                                      i1 +
-                                      ' are identical)',
                                   },
                                 ];
                                 return false;
@@ -1057,7 +975,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                           schemaPath: '#/definitions/Capabilities/type',
                           keyword: 'type',
                           params: { type: 'array' },
-                          message: 'must be array',
                         },
                       ];
                       return false;
@@ -1081,7 +998,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                               schemaPath: '#/definitions/Signature/maxLength',
                               keyword: 'maxLength',
                               params: { limit: 64 },
-                              message: 'must NOT have more than 64 characters',
                             },
                           ];
                           return false;
@@ -1093,7 +1009,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                                 schemaPath: '#/definitions/Signature/minLength',
                                 keyword: 'minLength',
                                 params: { limit: 64 },
-                                message: 'must NOT have fewer than 64 characters',
                               },
                             ];
                             return false;
@@ -1105,7 +1020,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                                   schemaPath: '#/definitions/Signature/pattern',
                                   keyword: 'pattern',
                                   params: { pattern: '^[a-f0-9]{64}$' },
-                                  message: 'must match pattern "^[a-f0-9]{64}$"',
                                 },
                               ];
                               return false;
@@ -1119,7 +1033,6 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
                             schemaPath: '#/definitions/Signature/type',
                             keyword: 'type',
                             params: { type: 'string' },
-                            message: 'must be string',
                           },
                         ];
                         return false;
@@ -1136,9 +1049,7 @@ function validate15(data, { instancePath = '', parentData, parentDataProperty, r
         }
       }
     } else {
-      validate15.errors = [
-        { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' },
-      ];
+      validate15.errors = [{ instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' } }];
       return false;
     }
   }
@@ -1172,13 +1083,7 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
         ((data.mac === void 0 || !func0.call(data, 'mac')) && (missing0 = 'mac'))
       ) {
         validate17.errors = [
-          {
-            instancePath,
-            schemaPath: '#/required',
-            keyword: 'required',
-            params: { missingProperty: missing0 },
-            message: "must have required property '" + missing0 + "'",
-          },
+          { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: missing0 } },
         ];
         return false;
       } else {
@@ -1197,7 +1102,6 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
                 schemaPath: '#/additionalProperties',
                 keyword: 'additionalProperties',
                 params: { additionalProperty: key0 },
-                message: 'must NOT have additional properties',
               },
             ];
             return false;
@@ -1215,7 +1119,6 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
                   schemaPath: '#/properties/type/type',
                   keyword: 'type',
                   params: { type: 'string' },
-                  message: 'must be string',
                 },
               ];
               return false;
@@ -1227,7 +1130,6 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
                   schemaPath: '#/properties/type/enum',
                   keyword: 'enum',
                   params: { allowedValues: schema22.properties.type.enum },
-                  message: 'must be equal to one of the allowed values',
                 },
               ];
               return false;
@@ -1247,7 +1149,6 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
                     schemaPath: '#/properties/protocol_version/type',
                     keyword: 'type',
                     params: { type: 'integer' },
-                    message: 'must be integer',
                   },
                 ];
                 return false;
@@ -1259,7 +1160,6 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
                     schemaPath: '#/properties/protocol_version/enum',
                     keyword: 'enum',
                     params: { allowedValues: schema22.properties.protocol_version.enum },
-                    message: 'must be equal to one of the allowed values',
                   },
                 ];
                 return false;
@@ -1282,7 +1182,6 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
                           schemaPath: '#/definitions/Generation/maxLength',
                           keyword: 'maxLength',
                           params: { limit: 32 },
-                          message: 'must NOT have more than 32 characters',
                         },
                       ];
                       return false;
@@ -1294,7 +1193,6 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
                             schemaPath: '#/definitions/Generation/minLength',
                             keyword: 'minLength',
                             params: { limit: 32 },
-                            message: 'must NOT have fewer than 32 characters',
                           },
                         ];
                         return false;
@@ -1306,7 +1204,6 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
                               schemaPath: '#/definitions/Generation/pattern',
                               keyword: 'pattern',
                               params: { pattern: '^[a-f0-9]{32}$' },
-                              message: 'must match pattern "^[a-f0-9]{32}$"',
                             },
                           ];
                           return false;
@@ -1320,7 +1217,6 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
                         schemaPath: '#/definitions/Generation/type',
                         keyword: 'type',
                         params: { type: 'string' },
-                        message: 'must be string',
                       },
                     ];
                     return false;
@@ -1341,7 +1237,6 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
                         schemaPath: '#/properties/sequence/type',
                         keyword: 'type',
                         params: { type: 'integer' },
-                        message: 'must be integer',
                       },
                     ];
                     return false;
@@ -1355,7 +1250,6 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
                             schemaPath: '#/properties/sequence/maximum',
                             keyword: 'maximum',
                             params: { comparison: '<=', limit: 2147483647 },
-                            message: 'must be <= 2147483647',
                           },
                         ];
                         return false;
@@ -1367,7 +1261,6 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
                               schemaPath: '#/properties/sequence/minimum',
                               keyword: 'minimum',
                               params: { comparison: '>=', limit: 1 },
-                              message: 'must be >= 1',
                             },
                           ];
                           return false;
@@ -1393,7 +1286,6 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
                               schemaPath: '#/definitions/Signature/maxLength',
                               keyword: 'maxLength',
                               params: { limit: 64 },
-                              message: 'must NOT have more than 64 characters',
                             },
                           ];
                           return false;
@@ -1405,7 +1297,6 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
                                 schemaPath: '#/definitions/Signature/minLength',
                                 keyword: 'minLength',
                                 params: { limit: 64 },
-                                message: 'must NOT have fewer than 64 characters',
                               },
                             ];
                             return false;
@@ -1417,7 +1308,6 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
                                   schemaPath: '#/definitions/Signature/pattern',
                                   keyword: 'pattern',
                                   params: { pattern: '^[a-f0-9]{64}$' },
-                                  message: 'must match pattern "^[a-f0-9]{64}$"',
                                 },
                               ];
                               return false;
@@ -1431,7 +1321,6 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
                             schemaPath: '#/definitions/Signature/type',
                             keyword: 'type',
                             params: { type: 'string' },
-                            message: 'must be string',
                           },
                         ];
                         return false;
@@ -1448,9 +1337,7 @@ function validate17(data, { instancePath = '', parentData, parentDataProperty, r
         }
       }
     } else {
-      validate17.errors = [
-        { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' },
-      ];
+      validate17.errors = [{ instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' } }];
       return false;
     }
   }
@@ -1484,13 +1371,7 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
         ((data.mac === void 0 || !func0.call(data, 'mac')) && (missing0 = 'mac'))
       ) {
         validate19.errors = [
-          {
-            instancePath,
-            schemaPath: '#/required',
-            keyword: 'required',
-            params: { missingProperty: missing0 },
-            message: "must have required property '" + missing0 + "'",
-          },
+          { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: missing0 } },
         ];
         return false;
       } else {
@@ -1509,7 +1390,6 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
                 schemaPath: '#/additionalProperties',
                 keyword: 'additionalProperties',
                 params: { additionalProperty: key0 },
-                message: 'must NOT have additional properties',
               },
             ];
             return false;
@@ -1527,7 +1407,6 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
                   schemaPath: '#/properties/type/type',
                   keyword: 'type',
                   params: { type: 'string' },
-                  message: 'must be string',
                 },
               ];
               return false;
@@ -1539,7 +1418,6 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
                   schemaPath: '#/properties/type/enum',
                   keyword: 'enum',
                   params: { allowedValues: schema25.properties.type.enum },
-                  message: 'must be equal to one of the allowed values',
                 },
               ];
               return false;
@@ -1559,7 +1437,6 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
                     schemaPath: '#/properties/protocol_version/type',
                     keyword: 'type',
                     params: { type: 'integer' },
-                    message: 'must be integer',
                   },
                 ];
                 return false;
@@ -1571,7 +1448,6 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
                     schemaPath: '#/properties/protocol_version/enum',
                     keyword: 'enum',
                     params: { allowedValues: schema25.properties.protocol_version.enum },
-                    message: 'must be equal to one of the allowed values',
                   },
                 ];
                 return false;
@@ -1594,7 +1470,6 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
                           schemaPath: '#/definitions/Generation/maxLength',
                           keyword: 'maxLength',
                           params: { limit: 32 },
-                          message: 'must NOT have more than 32 characters',
                         },
                       ];
                       return false;
@@ -1606,7 +1481,6 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
                             schemaPath: '#/definitions/Generation/minLength',
                             keyword: 'minLength',
                             params: { limit: 32 },
-                            message: 'must NOT have fewer than 32 characters',
                           },
                         ];
                         return false;
@@ -1618,7 +1492,6 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
                               schemaPath: '#/definitions/Generation/pattern',
                               keyword: 'pattern',
                               params: { pattern: '^[a-f0-9]{32}$' },
-                              message: 'must match pattern "^[a-f0-9]{32}$"',
                             },
                           ];
                           return false;
@@ -1632,7 +1505,6 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
                         schemaPath: '#/definitions/Generation/type',
                         keyword: 'type',
                         params: { type: 'string' },
-                        message: 'must be string',
                       },
                     ];
                     return false;
@@ -1653,7 +1525,6 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
                         schemaPath: '#/properties/sequence/type',
                         keyword: 'type',
                         params: { type: 'integer' },
-                        message: 'must be integer',
                       },
                     ];
                     return false;
@@ -1667,7 +1538,6 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
                             schemaPath: '#/properties/sequence/maximum',
                             keyword: 'maximum',
                             params: { comparison: '<=', limit: 2147483647 },
-                            message: 'must be <= 2147483647',
                           },
                         ];
                         return false;
@@ -1679,7 +1549,6 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
                               schemaPath: '#/properties/sequence/minimum',
                               keyword: 'minimum',
                               params: { comparison: '>=', limit: 1 },
-                              message: 'must be >= 1',
                             },
                           ];
                           return false;
@@ -1705,7 +1574,6 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
                               schemaPath: '#/definitions/Signature/maxLength',
                               keyword: 'maxLength',
                               params: { limit: 64 },
-                              message: 'must NOT have more than 64 characters',
                             },
                           ];
                           return false;
@@ -1717,7 +1585,6 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
                                 schemaPath: '#/definitions/Signature/minLength',
                                 keyword: 'minLength',
                                 params: { limit: 64 },
-                                message: 'must NOT have fewer than 64 characters',
                               },
                             ];
                             return false;
@@ -1729,7 +1596,6 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
                                   schemaPath: '#/definitions/Signature/pattern',
                                   keyword: 'pattern',
                                   params: { pattern: '^[a-f0-9]{64}$' },
-                                  message: 'must match pattern "^[a-f0-9]{64}$"',
                                 },
                               ];
                               return false;
@@ -1743,7 +1609,6 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
                             schemaPath: '#/definitions/Signature/type',
                             keyword: 'type',
                             params: { type: 'string' },
-                            message: 'must be string',
                           },
                         ];
                         return false;
@@ -1760,9 +1625,7 @@ function validate19(data, { instancePath = '', parentData, parentDataProperty, r
         }
       }
     } else {
-      validate19.errors = [
-        { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' },
-      ];
+      validate19.errors = [{ instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' } }];
       return false;
     }
   }
@@ -1807,13 +1670,7 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
         ((data.code === void 0 || !func0.call(data, 'code')) && (missing0 = 'code'))
       ) {
         validate21.errors = [
-          {
-            instancePath,
-            schemaPath: '#/required',
-            keyword: 'required',
-            params: { missingProperty: missing0 },
-            message: "must have required property '" + missing0 + "'",
-          },
+          { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: missing0 } },
         ];
         return false;
       } else {
@@ -1832,7 +1689,6 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
                 schemaPath: '#/additionalProperties',
                 keyword: 'additionalProperties',
                 params: { additionalProperty: key0 },
-                message: 'must NOT have additional properties',
               },
             ];
             return false;
@@ -1850,7 +1706,6 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
                   schemaPath: '#/properties/type/type',
                   keyword: 'type',
                   params: { type: 'string' },
-                  message: 'must be string',
                 },
               ];
               return false;
@@ -1862,7 +1717,6 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
                   schemaPath: '#/properties/type/enum',
                   keyword: 'enum',
                   params: { allowedValues: schema28.properties.type.enum },
-                  message: 'must be equal to one of the allowed values',
                 },
               ];
               return false;
@@ -1882,7 +1736,6 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
                     schemaPath: '#/properties/protocol_version/type',
                     keyword: 'type',
                     params: { type: 'integer' },
-                    message: 'must be integer',
                   },
                 ];
                 return false;
@@ -1894,7 +1747,6 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
                     schemaPath: '#/properties/protocol_version/enum',
                     keyword: 'enum',
                     params: { allowedValues: schema28.properties.protocol_version.enum },
-                    message: 'must be equal to one of the allowed values',
                   },
                 ];
                 return false;
@@ -1917,7 +1769,6 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
                           schemaPath: '#/definitions/Generation/maxLength',
                           keyword: 'maxLength',
                           params: { limit: 32 },
-                          message: 'must NOT have more than 32 characters',
                         },
                       ];
                       return false;
@@ -1929,7 +1780,6 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
                             schemaPath: '#/definitions/Generation/minLength',
                             keyword: 'minLength',
                             params: { limit: 32 },
-                            message: 'must NOT have fewer than 32 characters',
                           },
                         ];
                         return false;
@@ -1941,7 +1791,6 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
                               schemaPath: '#/definitions/Generation/pattern',
                               keyword: 'pattern',
                               params: { pattern: '^[a-f0-9]{32}$' },
-                              message: 'must match pattern "^[a-f0-9]{32}$"',
                             },
                           ];
                           return false;
@@ -1955,7 +1804,6 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
                         schemaPath: '#/definitions/Generation/type',
                         keyword: 'type',
                         params: { type: 'string' },
-                        message: 'must be string',
                       },
                     ];
                     return false;
@@ -1976,7 +1824,6 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
                         schemaPath: '#/properties/code/type',
                         keyword: 'type',
                         params: { type: 'string' },
-                        message: 'must be string',
                       },
                     ];
                     return false;
@@ -1998,7 +1845,6 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
                         schemaPath: '#/properties/code/enum',
                         keyword: 'enum',
                         params: { allowedValues: schema28.properties.code.enum },
-                        message: 'must be equal to one of the allowed values',
                       },
                     ];
                     return false;
@@ -2021,7 +1867,6 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
                               schemaPath: '#/definitions/Signature/maxLength',
                               keyword: 'maxLength',
                               params: { limit: 64 },
-                              message: 'must NOT have more than 64 characters',
                             },
                           ];
                           return false;
@@ -2033,7 +1878,6 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
                                 schemaPath: '#/definitions/Signature/minLength',
                                 keyword: 'minLength',
                                 params: { limit: 64 },
-                                message: 'must NOT have fewer than 64 characters',
                               },
                             ];
                             return false;
@@ -2045,7 +1889,6 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
                                   schemaPath: '#/definitions/Signature/pattern',
                                   keyword: 'pattern',
                                   params: { pattern: '^[a-f0-9]{64}$' },
-                                  message: 'must match pattern "^[a-f0-9]{64}$"',
                                 },
                               ];
                               return false;
@@ -2059,7 +1902,6 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
                             schemaPath: '#/definitions/Signature/type',
                             keyword: 'type',
                             params: { type: 'string' },
-                            message: 'must be string',
                           },
                         ];
                         return false;
@@ -2076,9 +1918,7 @@ function validate21(data, { instancePath = '', parentData, parentDataProperty, r
         }
       }
     } else {
-      validate21.errors = [
-        { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' },
-      ];
+      validate21.errors = [{ instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' } }];
       return false;
     }
   }
@@ -2177,13 +2017,7 @@ function validate10(data, { instancePath = '', parentData, parentDataProperty, r
     }
   }
   if (!valid0) {
-    const err0 = {
-      instancePath,
-      schemaPath: '#/oneOf',
-      keyword: 'oneOf',
-      params: { passingSchemas: passing0 },
-      message: 'must match exactly one schema in oneOf',
-    };
+    const err0 = { instancePath, schemaPath: '#/oneOf', keyword: 'oneOf', params: { passingSchemas: passing0 } };
     if (vErrors === null) {
       vErrors = [err0];
     } else {

@@ -6,8 +6,6 @@ import validate from './validator_generated.js';
 
 export type Phase = 'authentication' | 'challenge' | 'handshake' | 'client_control' | 'server_control';
 
-export type { ContractErrorCode };
-
 export class ContractError extends Error {
   constructor(readonly code: ContractErrorCode) {
     super(`Connector message rejected: ${code}.`);
