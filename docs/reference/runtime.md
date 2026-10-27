@@ -2,7 +2,8 @@
 
 Raicho provides diagnostics, persistent application initialization, and an
 authenticated control connection to the packaged Thunderbird extension.
-The connector carries no mail operations yet.
+The connector carries no mail operations. Mail operations are planned in the
+[foundation plan](../planning/active/20261017-thunderbird-first-foundation.md).
 
 See [architecture](architecture.md) for ownership,
 [runtime decision](../decisions/20261018-foundation-runtime-stack.md) for choices,
