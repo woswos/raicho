@@ -92,7 +92,10 @@ export function startConnectorTransport(
         try {
           received = await session.receive(data);
         } catch {
-          if (active()) retry();
+          if (active()) {
+            console.warn('Raicho connector rejected a message from the server and will reconnect.');
+            retry();
+          }
           return;
         }
         if (!active()) return;
@@ -111,6 +114,7 @@ export function startConnectorTransport(
             received.action === 'authenticate' ? LIMITS.authentication_deadline_ms : LIMITS.heartbeat_timeout_ms,
           );
         } catch {
+          console.warn('Raicho connector could not reply to the server and will reconnect.');
           retry();
         }
       };
@@ -128,6 +132,7 @@ export function startConnectorTransport(
       };
       deadline(LIMITS.authentication_deadline_ms);
     } catch {
+      console.warn('Raicho connector could not open a connection and will retry.');
       retry();
     }
   }
