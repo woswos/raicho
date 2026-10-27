@@ -78,13 +78,8 @@ def reject(mail=False):
             'capabilities': [],
         }
         if mail:
-            payload |= dict(
-                zip(
-                    ('subject', 'body', 'sender'),
-                    (value.decode() for value in MAIL_CANARIES),
-                    strict=True,
-                )
-            )
+            subject, body, sender = (value.decode() for value in MAIL_CANARIES)
+            payload |= {'subject': subject, 'body': body, 'sender': sender}
         send(
             connection,
             1,

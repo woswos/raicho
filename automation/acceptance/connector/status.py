@@ -27,6 +27,7 @@ def status():
 
 def wait_for_status(arguments):
     deadline = time.monotonic() + arguments.timeout
+    failure = None
     while time.monotonic() < deadline:
         try:
             backend = status()
@@ -44,10 +45,10 @@ def wait_for_status(arguments):
                     assert generation is None
                 print(generation or arguments.status)
                 return
-        except (OSError, ValueError, urllib.error.URLError):
-            pass
+        except (OSError, ValueError, urllib.error.URLError) as error:
+            failure = error
         time.sleep(1)
-    raise AssertionError(f'Connector did not become {arguments.status} in time')
+    raise AssertionError(f'Connector did not become {arguments.status} in time') from failure
 
 
 def snapshot():
