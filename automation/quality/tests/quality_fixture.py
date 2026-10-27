@@ -14,6 +14,7 @@ class QualityFixture(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory(prefix='raicho-tooling-')
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
+        subprocess.run(['git', 'init', '--quiet'], cwd=self.root, check=True)
 
     def write(self, relative, content):
         path = self.root / relative

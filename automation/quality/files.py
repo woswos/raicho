@@ -1,4 +1,3 @@
-import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -7,18 +6,6 @@ EXCLUDED = {'.git', 'node_modules', 'target', 'dist', 'vendor', '__pycache__'}
 CONFIGURATION_SUFFIXES = {'.json', '.yaml', '.yml'}
 JAVASCRIPT_SUFFIXES = {'.js', '.mjs', '.cjs'}
 TYPESCRIPT_SUFFIXES = {'.ts', '.tsx', '.mts', '.cts'}
-SOURCE_SUFFIXES = (
-    JAVASCRIPT_SUFFIXES
-    | TYPESCRIPT_SUFFIXES
-    | {
-        '.py',
-        '.pyi',
-        '.rs',
-        '.sh',
-        '.bash',
-        '.sql',
-    }
-)
 
 
 def run(arguments, root, capture=False, stdin=None):
@@ -52,16 +39,10 @@ def source_files(root):
         capture_output=True,
         check=False,
     )
-    if (root / '.git').exists() and repository.returncode:
-        raise ValueError('Git metadata is unavailable. Mount linked-worktree Git directories read-only.')
-    if repository.returncode == 0 and Path(repository.stdout.strip()) == root:
-        output = run(['git', 'ls-files', '-cz', '--others', '--exclude-standard'], root, True)
-        paths = {Path(name) for name in output.stdout.split('\0') if name}
-    else:
-        paths = set()
-        for directory, directories, filenames in os.walk(root):
-            directories[:] = [name for name in directories if name not in EXCLUDED]
-            paths.update((Path(directory) / name).relative_to(root) for name in filenames)
+    if repository.returncode or Path(repository.stdout.strip()) != root:
+        raise ValueError(f'Git metadata is unavailable for {root}. Mount linked-worktree Git directories read-only.')
+    output = run(['git', 'ls-files', '-cz', '--others', '--exclude-standard'], root, True)
+    paths = {Path(name) for name in output.stdout.split('\0') if name}
     selected = sorted(
         path
         for path in paths
@@ -70,14 +51,8 @@ def source_files(root):
         and ((root / path).is_file() or (root / path).is_symlink())
     )
     for path in selected:
-        if (root / path).is_symlink() and (
-            path.suffix in SOURCE_SUFFIXES
-            or not path.suffix
-            or path.name == 'Cargo.toml'
-            or (path.name.startswith('tsconfig') and path.suffix == '.json')
-            or path.suffix in CONFIGURATION_SUFFIXES
-        ):
-            raise ValueError(f'Quality tools require regular source files, not symlinks: {path}')
+        if (root / path).is_symlink():
+            raise ValueError(f'Quality tools require regular files, not symlinks: {path}')
     return selected
 
 

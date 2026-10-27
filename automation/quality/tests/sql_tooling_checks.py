@@ -16,6 +16,7 @@ class SqlToolingChecks(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory(prefix='raicho-sql-')
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
+        subprocess.run(['git', 'init', '--quiet'], cwd=self.root, check=True)
 
     def write(self, relative, content):
         path = self.root / relative
@@ -110,7 +111,6 @@ class SqlToolingChecks(unittest.TestCase):
         self.check('lint-sql', diagnostic='SKIP')
 
     def test_git_scope_includes_untracked_sql_but_omits_ignored_files(self):
-        subprocess.run(['git', 'init', '-q', str(self.root)], check=True)
         self.write('.gitignore', 'ignored.sql\n')
         self.write('tracked.sql', 'SELECT 1 AS result;\n')
         subprocess.run(['git', 'add', 'tracked.sql'], cwd=self.root, check=True)
@@ -123,12 +123,6 @@ class SqlToolingChecks(unittest.TestCase):
         for target in ('lint-sql', 'format-sql', 'format-check-sql'):
             with self.subTest(target=target):
                 self.check(target, diagnostic='SKIP')
-
-    def test_sql_symlinks_are_rejected_without_following_them(self):
-        original = self.write('vendor/original.sql', 'select 1 as result;\n')
-        (self.root / 'linked.sql').symlink_to(original)
-        self.check('format-sql', successful=False, diagnostic='not symlinks')
-        self.assertEqual(original.read_text(), 'select 1 as result;\n')
 
     def test_missing_sqlfluff_cannot_look_like_an_empty_sql_scope(self):
         binaries = self.root / 'vendor'

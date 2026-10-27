@@ -16,6 +16,7 @@ class QualityDiscoveryTests(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory(prefix='raicho-discovery-')
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
+        subprocess.run(['git', 'init', '--quiet'], cwd=self.root, check=True)
 
     def check_failure(self, target, diagnostic, environment=None):
         result = subprocess.run(

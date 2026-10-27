@@ -77,8 +77,8 @@ describe the guard here, and record a decision.
 SQLFluff's capitalization rules ignore.
 
 Check and format commands discover tracked and non-ignored untracked source
-through Git. Disposable fixture directories use filesystem discovery. Scope
-includes Bash (`.bash`, `.sh`, and shell shebangs), Python (`.py`, `.pyi`),
+through Git, so their test fixtures initialize a repository. They reject every
+symlink among those files without following it. Scope includes Bash (`.bash`, `.sh`, and shell shebangs), Python (`.py`, `.pyi`),
 JavaScript (`.js`, `.mjs`, `.cjs`), TypeScript (`.ts`, `.tsx`, `.mts`, `.cts`),
 Rust (`.rs` and Cargo projects), and SQL (`.sql`).
 
