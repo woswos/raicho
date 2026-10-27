@@ -44,9 +44,8 @@ class WorkflowCoverageTests(unittest.TestCase):
     def test_every_acceptance_runner_runs_unattended_in_an_independent_job(self):
         runners = sorted(
             path.relative_to(REPOSITORY_ROOT).as_posix()
-            for directory in ('automation/acceptance', 'mailprobe')
-            for path in (REPOSITORY_ROOT / directory).rglob('check_*.bash')
-            if path.name != 'check_admin_isolation.bash'
+            for directory, pattern in (('automation/acceptance', 'run.bash'), ('mailprobe', 'check_*.bash'))
+            for path in (REPOSITORY_ROOT / directory).rglob(pattern)
         )
         self.assertTrue(runners)
         recipes = HOST_MAKEFILE.read_text().replace('$(ACCEPTANCE) $@ ', '').replace('$(REPOSITORY_ROOT)', '')

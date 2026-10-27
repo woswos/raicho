@@ -40,13 +40,13 @@ ACCEPTANCE := $(QUIET_DOCKER) $(STEP)
 acceptance: acceptance-runtime acceptance-connector acceptance-credentials acceptance-mail
 
 acceptance-runtime:
-	@$(ACCEPTANCE) $@ bash $(REPOSITORY_ROOT)automation/acceptance/runtime/check_runtime.bash
+	@$(ACCEPTANCE) $@ bash $(REPOSITORY_ROOT)automation/acceptance/runtime/run.bash
 
 acceptance-connector:
-	@$(ACCEPTANCE) $@ bash $(REPOSITORY_ROOT)automation/acceptance/connector/check_connector.bash
+	@$(ACCEPTANCE) $@ bash $(REPOSITORY_ROOT)automation/acceptance/connector/run.bash
 
 acceptance-credentials:
-	@$(ACCEPTANCE) $@ bash $(REPOSITORY_ROOT)automation/acceptance/credentials/check_credentials.bash
+	@$(ACCEPTANCE) $@ bash $(REPOSITORY_ROOT)automation/acceptance/credentials/run.bash
 
 acceptance-mail:
 	@$(ACCEPTANCE) $@ bash $(REPOSITORY_ROOT)mailprobe/tests/check_mail_compatibility.bash

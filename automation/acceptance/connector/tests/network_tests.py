@@ -6,7 +6,7 @@ from pathlib import Path
 
 from automation.testing.docker_mock import DockerMock, Response
 
-RUNNER = Path(__file__).resolve().parents[1] / 'check_connector.bash'
+RUNNER = Path(__file__).resolve().parents[1] / 'run.bash'
 
 
 class ConnectorNetworkTests(unittest.TestCase):

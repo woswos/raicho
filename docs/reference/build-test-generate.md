@@ -247,7 +247,7 @@ make acceptance
 ```
 
 `acceptance` needs Docker on the host and runs each disposable deployment suite in
-turn. `acceptance-runtime` runs `automation/acceptance/runtime/check_runtime.bash`,
+turn. `acceptance-runtime` runs `automation/acceptance/runtime/run.bash`,
 which builds a `raicho-runtime-...` project with the test overlay, checks startup,
 persistence across recreation, administrative isolation, and readiness while
 Thunderbird is stopped, then removes the project. It uses `COMPOSE_PROJECT_NAME`
