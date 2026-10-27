@@ -2,7 +2,7 @@ import io
 import unittest
 
 from mailprobe.tests.proxy.imap import relay_commands
-from mailprobe.tests.proxy.smtp_tests import MockState
+from mailprobe.tests.proxy.mock_state import MockState
 
 
 class ImapProxyTests(unittest.TestCase):

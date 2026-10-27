@@ -1,6 +1,4 @@
-import argparse
 import json
-from pathlib import Path
 
 from mailprobe.tests.profile.credentials import write_credentials
 from mailprobe.tests.profile.settings import preferences
@@ -33,15 +31,3 @@ def seed_profile(profile):
     marker.write_text(MARKER_CONTENT)
     marker.chmod(0o600)
     return True
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--profile', type=Path, default=Path('/config/profile'))
-    arguments = parser.parse_args()
-    seeded = seed_profile(arguments.profile)
-    print('Disposable profile seeded.' if seeded else 'Disposable profile preserved.')
-
-
-if __name__ == '__main__':
-    main()

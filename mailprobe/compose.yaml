@@ -43,7 +43,7 @@ services:
 
   mail-proxy:
     <<: *fixture
-    entrypoint: [python3, -B, -m, mailprobe.tests.proxy.fault_server, --directory, /config]
+    entrypoint: [python3, -B, -m, mailprobe.tests.proxy.fault_server]
     healthcheck:
       test: [CMD, python3, -c, "from pathlib import Path; assert Path('/config/mail_proxy_ready').is_file()"]
       interval: 1s

@@ -39,29 +39,29 @@ def filter_capabilities(reply: bytes) -> bytes:
     return b''.join(b'250' + (b' ' if index == len(lines) - 1 else b'-') + line for index, line in enumerate(lines))
 
 
-def relay_smtp(client, upstream, state) -> None:
-    write(client, read_reply(upstream))
-    while line := read_line(client):
+def relay_smtp(client_reader, client_writer, upstream, state) -> None:
+    write(client_writer, read_reply(upstream))
+    while line := read_line(client_reader):
         command = line.split(maxsplit=1)[0].upper()
         if command == b'RCPT' and state.setting('smtp') == 'reject':
             state.record('smtp_rejected')
-            write(client, b'550 5.1.1 Fixture rejects recipient\r\n')
+            write(client_writer, b'550 5.1.1 Fixture rejects recipient\r\n')
             continue
         if command in {b'STARTTLS', b'BDAT'}:
-            write(client, b'502 Fixture supports plaintext DATA only\r\n')
+            write(client_writer, b'502 Fixture supports plaintext DATA only\r\n')
             continue
         write(upstream, line)
         reply = read_reply(upstream)
         if command == b'EHLO' and reply.startswith(b'250'):
             reply = filter_capabilities(reply)
-        write(client, reply)
+        write(client_writer, reply)
         if command == b'QUIT':
             return
         if command != b'DATA' or not reply.startswith(b'354'):
             continue
         total_size = 0
         while True:
-            content = read_line(client)
+            content = read_line(client_reader)
             total_size += len(content)
             if not content or total_size > MESSAGE_LIMIT:
                 raise ValueError('Incomplete or oversized fixture SMTP message')
@@ -74,7 +74,7 @@ def relay_smtp(client, upstream, state) -> None:
             if state.setting('smtp') == 'drop_ack':
                 state.record('smtp_ack_dropped')
                 return
-        write(client, reply)
+        write(client_writer, reply)
 
 
 class SmtpHandler(socketserver.StreamRequestHandler):
@@ -83,13 +83,4 @@ class SmtpHandler(socketserver.StreamRequestHandler):
     def handle(self):
         with socket.create_connection((self.server.upstream, 3025), timeout=30) as remote:
             with remote.makefile('rwb') as upstream:
-                relay_smtp(self, upstream, self.server.state)
-
-    def readline(self, limit):
-        return self.rfile.readline(limit)
-
-    def write(self, content):
-        return self.wfile.write(content)
-
-    def flush(self):
-        return self.wfile.flush()
+                relay_smtp(self.rfile, self.wfile, upstream, self.server.state)

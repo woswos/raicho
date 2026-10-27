@@ -10,6 +10,8 @@ from websockify.websocketserver import WebSocketRequestHandler, WebSocketServer
 from mailprobe.tests.probe.control_socket import ControlSocket, readable
 from mailprobe.tests.probe.control_state import ControlState
 
+MESSAGE_LIMIT = 65536
+
 
 class ControlHandler(WebSocketRequestHandler):
     protocol_version = 'HTTP/1.1'
@@ -46,7 +48,7 @@ class ControlHandler(WebSocketRequestHandler):
             return
         try:
             length = int(self.headers.get('Content-Length', '0'))
-            if not 0 < length <= 65536:
+            if not 0 < length <= MESSAGE_LIMIT:
                 raise ValueError('Invalid command size.')
             request = json.loads(self.rfile.read(length))
             response = self.server.state.submit(
@@ -106,7 +108,7 @@ class ControlHandler(WebSocketRequestHandler):
                 if payload is None:
                     return None
                 self.request.socket.received = 0
-                if len(payload) > 65536:
+                if len(payload) > MESSAGE_LIMIT:
                     raise ValueError('Probe result too large.')
                 message = json.loads(payload.decode('utf-8'))
                 if not isinstance(message, dict):
