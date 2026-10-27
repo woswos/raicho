@@ -52,7 +52,7 @@ def validate_schema(schema, definitions):
         if (
             not isinstance(reference, str)
             or not reference.startswith(prefix)
-            or reference[len(prefix) :] not in definitions
+            or reference.removeprefix(prefix) not in definitions
         ):
             raise ValueError('Protocol references must resolve to local definitions.')
     for name in ['properties', 'definitions']:

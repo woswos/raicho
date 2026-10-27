@@ -5,7 +5,7 @@ from automation.build.application import extension, node_reporter, run, web
 from automation.build.lcov import merge, summary
 from automation.build.rust_coverage import rust
 from automation.paths import REPOSITORY_ROOT
-from protocol.generator.cli import test_typescript
+from protocol.generator.cli import run_typescript_tests
 
 OUTPUT = Path('/tmp/raicho-coverage')
 TYPESCRIPT_IGNORED = ('**/tests/**', '**/node_modules/**', '**/*_generated.*')
@@ -24,7 +24,7 @@ def node_coverage(name):
 
 
 def typescript():
-    test_typescript(['--sourceMap'], node_coverage('protocol'))
+    run_typescript_tests(['--sourceMap'], node_coverage('protocol'))
     web(True, ['--source-map'], node_coverage('web'))
     extension(
         REPOSITORY_ROOT / 'extension',

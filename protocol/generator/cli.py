@@ -34,7 +34,7 @@ def node_reporter():
     return '--test-reporter=spec' if os.environ.get('VERBOSE') else NODE_REPORTER
 
 
-def test_typescript(compiler_arguments=(), test_arguments=None):
+def run_typescript_tests(compiler_arguments=(), test_arguments=None):
     source = ROOT / 'protocol/typescript'
     with tempfile.TemporaryDirectory(prefix='raicho-protocol-typescript-') as directory:
         subprocess.run(
@@ -113,7 +113,7 @@ def main():
     action = parser.parse_args().action
     try:
         if action == 'test':
-            test_typescript()
+            run_typescript_tests()
         else:
             generate(action)
     except (OSError, ValueError, subprocess.CalledProcessError) as error:
