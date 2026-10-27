@@ -63,13 +63,14 @@ xterm terminal.
 | `mrproper` | `clean`, plus every Raicho container, network, and image, keeping deployment data, on the host |
 | `lint-pr` | PR metadata, design/decision policy, and changelog guard |
 
-Component targets run one piece of those: `build-server`, `build-web`,
-`build-extension`, `test-server`, `test-web`, `test-extension`, `test-mailprobe`,
-`test-protocol`, `test-python`, and `test-tooling`; `lint-repo`, `lint-bash`,
-`lint-python`, `lint-javascript`, `lint-typescript`, `lint-rust`, `lint-sql`, and
-`lint-spelling`; `format` and `format-check`, each with `-bash`, `-python`,
-`-javascript`, `-rust`, and `-sql` variants, `format-spelling`, and `typecheck`;
-and `generate-protocol` and `check-protocol`.
+Component targets run one piece of those. The build and test pieces are
+`build-server`, `build-web`, `build-extension`, `test-server`, `test-web`,
+`test-extension`, `test-mailprobe`, `test-protocol`, `test-python`, and
+`test-tooling`. The lint pieces are `lint-repo`, `lint-bash`, `lint-python`,
+`lint-javascript`, `lint-typescript`, `lint-rust`, `lint-sql`, and `lint-spelling`.
+`format` and `format-check` each have `-bash`, `-python`, `-javascript`, `-rust`,
+and `-sql` variants, alongside `format-spelling` and `typecheck`. Protocol
+bindings use `generate-protocol` and `check-protocol`.
 The `-javascript` formatting variants also cover TypeScript, JSON, and YAML. The acceptance
 suites run one at a time as `acceptance-runtime`, `acceptance-connector`,
 `acceptance-credentials`, and `acceptance-mail`.
