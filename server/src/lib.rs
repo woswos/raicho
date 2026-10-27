@@ -6,5 +6,6 @@ pub mod persistence;
 pub mod version;
 
 mod http;
+mod random;
 
 pub use http::router;

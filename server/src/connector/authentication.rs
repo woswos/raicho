@@ -8,6 +8,8 @@ use raicho_protocol::{Phase, decode_frame};
 use tokio::sync::watch;
 use tokio::time::{Instant, timeout_at};
 
+use crate::random::random_hex;
+
 use super::handshake::Socket;
 use super::{BACKEND_KIND, Connector, failure::Failure, transport, wire};
 
@@ -24,7 +26,7 @@ pub(super) async fn authenticate(
     deadline: Instant,
 ) -> Result<Authenticated, Failure> {
     let timed_out = |_| Failure::new(BackendError::AuthenticationTimeout);
-    let server_nonce: Nonce = random_hex::<32, _>()?;
+    let server_nonce: Nonce = random_value::<32, _>()?;
     timeout_at(deadline, wire::challenge(socket, &server_nonce))
         .await
         .map_err(timed_out)??;
@@ -51,7 +53,7 @@ pub(super) async fn authenticate(
     let server_signature = to_hex(&server_signature(&keys.server_key, &transcript))
         .parse()
         .map_err(|_| Failure::new(BackendError::ServerBusy))?;
-    let generation: Generation = random_hex::<16, _>()?;
+    let generation: Generation = random_value::<16, _>()?;
     let channel = Channel::new(session_key(&keys.server_key, &transcript, &generation), Peer::Server);
     let replaced = connector
         .register(generation.clone())
@@ -64,13 +66,9 @@ pub(super) async fn authenticate(
     })
 }
 
-fn random_hex<const BYTES: usize, Value: std::str::FromStr>() -> Result<Value, Failure> {
-    let mut bytes = [0u8; BYTES];
-    getrandom::fill(&mut bytes).map_err(|_| Failure::new(BackendError::ServerBusy))?;
-    bytes
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect::<String>()
-        .parse()
-        .map_err(|_| Failure::new(BackendError::ServerBusy))
+fn random_value<const BYTES: usize, Value: std::str::FromStr>() -> Result<Value, Failure> {
+    random_hex::<BYTES>()
+        .ok()
+        .and_then(|text| text.parse().ok())
+        .ok_or(Failure::new(BackendError::ServerBusy))
 }
