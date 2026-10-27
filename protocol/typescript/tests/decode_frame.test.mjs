@@ -16,20 +16,18 @@ for (const filename of fixtureFiles.sort()) {
 }
 assert.ok(fixtures.length > 20, 'The shared fixture corpus must not be empty.');
 
-{
-  for (const fixture of fixtures) {
-    test(`shared connector fixture: ${fixture.name}`, () => {
-      const raw = (fixture.raw ?? JSON.stringify(fixture.message)) + ' '.repeat(fixture.padding ?? 0);
-      if (fixture.valid) {
-        assert.deepEqual(decodeFrame(raw, fixture.phase, fixture.generation), JSON.parse(raw));
-      } else {
-        assert.throws(
-          () => decodeFrame(raw, fixture.phase, fixture.generation),
-          (error) => error instanceof ContractError && error.code === fixture.error,
-        );
-      }
-    });
-  }
+for (const fixture of fixtures) {
+  test(`shared connector fixture: ${fixture.name}`, () => {
+    const raw = (fixture.raw ?? JSON.stringify(fixture.message)) + ' '.repeat(fixture.padding ?? 0);
+    if (fixture.valid) {
+      assert.deepEqual(decodeFrame(raw, fixture.phase, fixture.generation), JSON.parse(raw));
+    } else {
+      assert.throws(
+        () => decodeFrame(raw, fixture.phase, fixture.generation),
+        (error) => error instanceof ContractError && error.code === fixture.error,
+      );
+    }
+  });
 }
 
 test('contract errors do not disclose rejected input', () => {

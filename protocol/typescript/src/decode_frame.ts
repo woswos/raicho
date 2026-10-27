@@ -4,6 +4,8 @@ import { LIMITS } from './limits_generated.js';
 import { isUnambiguousJson } from './raw_json.js';
 import validate from './validator_generated.js';
 
+const encoder = new TextEncoder();
+
 export type Phase = 'authentication' | 'challenge' | 'handshake' | 'client_control' | 'server_control';
 
 export class ContractError extends Error {
@@ -80,7 +82,8 @@ function checkPhase(message: ConnectorMessage, phase: Phase, generation: string 
 
 export function decodeFrame(raw: string, phase: Phase, generation?: string): ConnectorMessage {
   const maximumBytes = phase === 'authentication' ? LIMITS.maximum_authentication_bytes : LIMITS.maximum_control_bytes;
-  if (raw.length > maximumBytes || new TextEncoder().encode(raw).byteLength > maximumBytes) {
+  // UTF-8 is never shorter than UTF-16, so oversized input fails before it is encoded.
+  if (raw.length > maximumBytes || encoder.encode(raw).byteLength > maximumBytes) {
     throw new ContractError('message_too_large');
   }
   const message = decodeJson(raw);

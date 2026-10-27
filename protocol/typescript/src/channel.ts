@@ -43,7 +43,8 @@ export function createChannel(key: Bytes, local: Peer) {
   return {
     async seal(message: object): Promise<string> {
       if (failed) throw new ContractError('authentication_failed');
-      const mac = await frameMac(key, local, sent++, message);
+      const counter = sent++;
+      const mac = await frameMac(key, local, counter, message);
       return JSON.stringify({ ...message, mac });
     },
     async open(raw: string, phase: Phase, generation: string): Promise<ConnectorMessage> {
