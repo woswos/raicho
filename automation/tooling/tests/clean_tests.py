@@ -34,7 +34,7 @@ class CleanTests(CleanupFixture):
                 self.assertTrue(path.exists())
 
     def test_removes_only_disposable_acceptance_projects(self):
-        commands, _ = self.clean(
+        commands, result = self.clean(
             Response(
                 ('container', 'ls', '--format', PROJECT_FORMAT),
                 output='raicho\nraicho-runtime-20261026120000-123\n\n',
@@ -73,14 +73,13 @@ class CleanTests(CleanupFixture):
         self.assertIn(['container', 'rm', 'runtime-container'], commands)
         self.assertIn(['volume', 'rm', 'connector-volume'], commands)
         self.assertIn(['network', 'rm', 'ci-network'], commands)
-        filters = {word for command in commands for word in command if PROJECT_FILTER in word}
         self.assertEqual(
-            {name.removeprefix(PROJECT_FILTER) for name in filters},
-            {
-                'raicho-runtime-20261026120000-123',
-                'raicho-connector-20261026120000-4',
-                'raicho-ci-123-1',
-            },
+            sorted(line for line in result.stdout.splitlines() if line.startswith('Removed the ')),
+            [
+                'Removed the containers of raicho-runtime-20261026120000-123',
+                'Removed the networks of raicho-ci-123-1',
+                'Removed the volumes of raicho-connector-20261026120000-4',
+            ],
         )
 
     def test_a_failed_docker_listing_fails_the_clean(self):
