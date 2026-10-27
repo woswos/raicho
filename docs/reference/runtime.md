@@ -1,8 +1,10 @@
 # Foundation runtime
 
 Raicho provides diagnostics, persistent application initialization, and a
-listener for the authenticated Thunderbird connector. No connector is deployed
-yet, and the connector carries no mail operations.
+listener for the authenticated Thunderbird connector. No Compose service runs a
+connector, and the control protocol carries no mail operations. The
+[connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
+adds the extension and its deployment.
 
 See [architecture](architecture.md) for ownership,
 [runtime decision](../decisions/20261018-foundation-runtime-stack.md) for choices,
@@ -88,8 +90,10 @@ page shows the version alone when the commit is unknown. See
 
 `RAICHO_CONNECTOR_BIND` defaults to `0.0.0.0:8082` and serves only the internal
 WebSocket route `/connector/v1`. Compose never publishes it, and no Compose
-service reaches it yet. Authentication and
-transport bounds are defined in the [connector contract](connector-contract.md).
+service connects to it. The
+[connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
+adds the gateway that does. Authentication and transport bounds are defined in the
+[connector contract](connector-contract.md).
 
 `RAICHO_ADMIN_ENABLED=true` starts remote desktop support. Only
 `compose.admin.yaml` enables it and publishes loopback port `RAICHO_ADMIN_PORT`,
