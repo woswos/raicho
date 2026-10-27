@@ -5,6 +5,7 @@ export const LIMITS = {
   maximum_authentication_bytes: 4096,
   maximum_control_bytes: 65536,
   maximum_json_depth: 64,
+  maximum_wire_integer: 2147483647,
   heartbeat_interval_ms: 15000,
   heartbeat_timeout_ms: 45000,
   maximum_active_connections: 1,

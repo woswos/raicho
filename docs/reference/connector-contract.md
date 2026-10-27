@@ -35,8 +35,8 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
 - [Schema](../../protocol/schema/connector.schema.json): Draft 7, closed tagged
   objects and local definitions only. The generation guard restricts its vocabulary.
 - [Limits](../../protocol/limits.json): shared constants, including frame sizes,
-  authentication deadline, heartbeat timing, nesting, connection budgets, and
-  the WebSocket close codes the server sends.
+  authentication deadline, heartbeat timing, nesting, the largest wire integer,
+  connection budgets, and the WebSocket close codes the server sends.
 - [Diagnostics](../../protocol/diagnostics.json): the backend states and error
   codes that the status API reports, and the decoder error codes. They generate
   Rust enums, including `ContractError`, and the TypeScript `ContractErrorCode`.
@@ -208,15 +208,17 @@ Binary application frames are rejected.
 Reject duplicate object members, including keys spelled with equivalent JSON
 escapes. Reject nesting deeper than the shared limit, measured with the root at
 depth zero. Reject non-finite numbers and invalid JSON. These checks happen before
-version classification. An unsupported positive integer version within the
-32-bit signed range produces `incompatible_version`. Malformed versions produce
-`invalid_message`. Schema validation precedes phase and generation checks.
+version classification. An unsupported positive integer version up to the
+`maximum_wire_integer` limit, the largest signed 32-bit integer, produces
+`incompatible_version`. Malformed versions produce `invalid_message`. Schema
+validation precedes phase and generation checks.
 
 Equivalent integral numeric spellings such as `1`, `1.0`, and `1e0` are accepted.
 Rust normalizes validated integral values before generated-type deserialization.
-Sequences remain within the shared schema's 32-bit signed range, avoiding loss of
-precision in JavaScript. Boundary, decimal-rounding, duplicate, surrogate, and
-nesting regressions exercise agreement between the two decoders.
+Sequences stay at or below `maximum_wire_integer`, which the generator checks
+against the schema, avoiding loss of precision in JavaScript. Boundary,
+decimal-rounding, duplicate, surrogate, and nesting regressions exercise agreement
+between the two decoders.
 
 ## Generation and verification
 

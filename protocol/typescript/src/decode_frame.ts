@@ -50,7 +50,7 @@ function hasUnsupportedVersion(value: unknown): boolean {
     typeof version === 'number' &&
     Number.isInteger(version) &&
     version > 0 &&
-    version <= 2147483647 &&
+    version <= LIMITS.maximum_wire_integer &&
     version !== LIMITS.protocol_version
   );
 }

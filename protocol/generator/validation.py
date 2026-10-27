@@ -26,6 +26,7 @@ LIMIT_NAMES = {
     'maximum_authentication_bytes',
     'maximum_control_bytes',
     'maximum_json_depth',
+    'maximum_wire_integer',
     'heartbeat_interval_ms',
     'heartbeat_timeout_ms',
     'maximum_active_connections',
@@ -38,6 +39,8 @@ DIAGNOSTIC_LISTS = {'backend_states', 'backend_errors', 'contract_errors'}
 DIAGNOSTIC_CODE = re.compile(r'[a-z]+(?:_[a-z]+)*')
 DRAFT_7 = 'http://json-schema.org/draft-07/schema#'
 MAXIMUM_JSON_DEPTH = 100
+# The contract keeps wire integers in the signed 32-bit range.
+MAXIMUM_WIRE_INTEGER = 2**31 - 1
 
 
 def validate_schema(schema, definitions):
@@ -101,10 +104,12 @@ def validate_status(status, diagnostics):
 def validate_sources(schema, limits, diagnostics):
     validate_document(schema)
     definitions = schema.get('definitions', {})
-    if set(limits) != LIMIT_NAMES or any(
-        type(value) is not int or not 0 < value <= 2147483647 for value in limits.values()
-    ):
+    if set(limits) != LIMIT_NAMES or any(type(value) is not int or value <= 0 for value in limits.values()):
         raise ValueError('Protocol limits must contain the expected positive integers.')
+    if limits['maximum_wire_integer'] > MAXIMUM_WIRE_INTEGER:
+        raise ValueError(f'maximum_wire_integer must not exceed {MAXIMUM_WIRE_INTEGER}.')
+    if any(value > limits['maximum_wire_integer'] for value in limits.values()):
+        raise ValueError('Protocol limits must not exceed maximum_wire_integer.')
     # serde_json stops parsing at depth 128, so a deeper limit would make the decoders disagree.
     if limits['maximum_json_depth'] > MAXIMUM_JSON_DEPTH:
         raise ValueError(f'maximum_json_depth must not exceed {MAXIMUM_JSON_DEPTH}.')
@@ -114,6 +119,8 @@ def validate_sources(schema, limits, diagnostics):
             limits['protocol_version']
         ]:
             raise ValueError('Protocol schema disagrees with limit protocol_version.')
+        if 'sequence' in properties and properties['sequence'].get('maximum') != limits['maximum_wire_integer']:
+            raise ValueError('Protocol schema disagrees with limit maximum_wire_integer.')
     if limits['maximum_authentication_bytes'] > limits['maximum_control_bytes']:
         raise ValueError('Authentication frames cannot exceed the control limit.')
     if limits['heartbeat_interval_ms'] >= limits['heartbeat_timeout_ms']:
