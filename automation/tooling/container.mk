@@ -20,10 +20,10 @@ lint-pr:
 	@$(STEP) $@ $(PYTHON) -m automation.repository.check_pr
 
 test-python:
-	@$(STEP) $@ $(PYTHON) -m automation.build.python_tests . '*_tests.py'
+	@$(STEP) $@ $(PYTHON) -m automation.build.python_suite python
 
 test-tooling:
-	@$(STEP) $@ $(PYTHON) -m automation.build.python_tests automation/quality/tests '*tooling_checks.py'
+	@$(STEP) $@ $(PYTHON) -m automation.build.python_suite tooling
 
 $(QUALITY_TARGETS):
 	@$(STEP) $@ $(QUALITY) $@
