@@ -1,7 +1,8 @@
 use std::{fs, path::PathBuf};
 
 use raicho_protocol::authentication::{from_hex, to_hex};
-use raicho_protocol::channel::{Channel, Peer, canonical_json, frame_mac, session_key};
+use raicho_protocol::canonical_json::canonical_json;
+use raicho_protocol::channel::{Channel, Peer, frame_mac, session_key};
 use raicho_protocol::{ContractError, Phase};
 use serde_json::{Value, json};
 

@@ -1,4 +1,5 @@
 pub mod authentication;
+pub mod canonical_json;
 pub mod channel;
 pub mod contract_generated;
 pub mod diagnostics_generated;
