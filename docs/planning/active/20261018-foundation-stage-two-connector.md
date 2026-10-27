@@ -2,8 +2,10 @@
 
 Status: approved design [PR #2](https://github.com/woswos/raicho/pull/2) merged on
 2026-10-18. Stage 3, the connector contract, is implemented. The other stages land
-with their own implementation pull requests, and their debriefs below record the
-results of the full implementation.
+in [#7](https://github.com/woswos/raicho/pull/7), [#8](https://github.com/woswos/raicho/pull/8),
+and [#9](https://github.com/woswos/raicho/pull/9). Their debriefs record the combined
+implementation in [#4](https://github.com/woswos/raicho/pull/4) that those pull
+requests split up, so they describe work that is not in this revision.
 
 ## Goal
 
@@ -320,23 +322,16 @@ The existing implementation checks are:
 ```bash
 docker compose -f automation/tooling/compose.yaml build
 docker compose -f automation/tooling/compose.yaml run --rm check \
-  make lint format-check typecheck test-python test-tooling build-app test-app test-mailprobe test-protocol
-bash automation/acceptance/connector/check_connector.bash
-bash automation/acceptance/credentials/check_credentials.bash
-bash mailprobe/tests/check_mail_compatibility.bash
+  make lint format-check typecheck test-python test-tooling build-app test-app test-protocol
 ```
 
-The extension is included in `build-app` and `test-app`, while protocol drift runs
-under `lint`. `test-protocol` also runs the independently compiled TypeScript
-protocol suite. Host runners orchestrate Docker outside the read-only tooling
-container, which has no Docker socket. They own uniquely named disposable
-projects, never use personal profiles or provider credentials, and clean up
-only their own resources. The existing CI labels and independent readiness
-are preserved. The acceptance record (`docs/reference/connector-acceptance.md`)
-separates local results, configured CI coverage, and earlier manual evidence.
+Protocol drift runs under `lint`, and `test-protocol` also runs the independently
+compiled TypeScript protocol suite. The extension, the mail probe, and their
+acceptance commands arrive with stages 1, 2, 5, and 6 in
+[#8](https://github.com/woswos/raicho/pull/8) and [#9](https://github.com/woswos/raicho/pull/9).
 
 The original design PR needed documentation and PR-policy checks only. The
-implementation slices additionally ran the source and runtime checks above.
+implementation slices additionally ran the source checks above.
 
 ## Lifecycle fixture evidence
 
