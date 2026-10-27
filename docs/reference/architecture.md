@@ -21,9 +21,9 @@ Raicho from reaching Thunderbird's administrative listener. Both retain provider
 internet access. The image includes a TypeScript extension with a persistent
 background page and generated enterprise policy. It is inactive without managed
 configuration. With provisioned credentials it connects outbound through a fixed
-Nginx gateway to a separate Rust WebSocket listener. The gateway joins only two
-internal networks, one shared with each service, so it is the only path between
-them and has no egress. The browser displays authenticated connection status.
+Nginx gateway to a separate Rust WebSocket listener. The gateway is the only path
+between the two services; [network isolation](runtime.md#network-isolation)
+describes its networks. The browser displays authenticated connection status.
 Browser login and mail operations remain planned.
 
 A separate test-only extension and disposable GreenMail deployment exercise
@@ -42,15 +42,12 @@ server and production extension. It carries authentication and heartbeat only,
 and every frame after the handshake carries a MAC under a per-session key.
 The separate mail probe remains a test artifact.
 
-Offline credential commands acquire the database's exclusive instance lock.
-A one-off `raicho-server connector files` container owns host token generation
-and file rotation, with one operation lock spanning database and file updates. Only the one-off
-provisioner and Thunderbird receive read-only raw tokens. Ordinary server
-startup never imports tokens. The operational wrapper lives under
-`deploy/credentials/`, and its file and live-check steps are server
-subcommands, separate from disposable
-acceptance drivers under `automation/acceptance/credentials/`. See the
-[credential procedure](../operations/connector-credentials.md) for recovery.
+Offline credential commands run through the operational wrapper in
+`deploy/credentials/`, whose steps are server subcommands. Only the one-off
+provisioner and Thunderbird receive read-only raw tokens, and ordinary server
+startup never imports them. The
+[credential procedure](../operations/connector-credentials.md) covers locking,
+token files, and recovery.
 
 The [runtime reference](runtime.md) describes endpoints, storage, migrations,
 image packaging, and configuration. The existing showcase in `assets/brand/`
