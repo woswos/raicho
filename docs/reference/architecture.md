@@ -18,22 +18,29 @@ the [product version](versioning.md) and the build commit. Thunderbird owns a
 separate profile volume. Its internal display starts without a viewer, and a
 local override enables browser administration. Separate Compose networks prevent
 Raicho from reaching Thunderbird's administrative listener. Both retain provider
-internet access. The server also runs a separate Rust WebSocket listener for the
-connector, and the browser displays the connection status it reports. The
-Thunderbird extension and the network path to that listener are not deployed yet,
-so the status stays unconfigured or disconnected. Browser login and mail
-operations remain planned.
+internet access. The image includes a TypeScript extension with a persistent
+background page and generated enterprise policy. It is inactive without managed
+configuration. With provisioned credentials it connects outbound through a fixed
+Nginx gateway to a separate Rust WebSocket listener. The gateway joins only two
+internal networks, one shared with each service, so it is the only path between
+them and has no egress. The browser displays authenticated connection status.
+Browser login and mail operations remain planned.
 
 The [connector contract](connector-contract.md) provides a shared control
 schema, generated Rust/TypeScript bindings, and bounded decoders under
-`protocol/rust/` and `protocol/typescript/`. The server uses the Rust bindings.
-It carries authentication and heartbeat only,
+`protocol/rust/` and `protocol/typescript/`, used by the
+server and production extension. It carries authentication and heartbeat only,
 and every frame after the handshake carries a MAC under a per-session key.
 
-Offline `raicho-server connector` commands acquire the database's exclusive
-instance lock to provision, rotate, revoke, and reactivate the credential. The
-`connector files` subcommand owns host token generation and file rotation.
-Ordinary server startup never imports tokens.
+Offline credential commands acquire the database's exclusive instance lock.
+A one-off `raicho-server connector files` container owns host token generation
+and file rotation, with one operation lock spanning database and file updates. Only the one-off
+provisioner and Thunderbird receive read-only raw tokens. Ordinary server
+startup never imports tokens. The operational wrapper lives under
+`deploy/credentials/`, and its file and live-check steps are server
+subcommands, separate from disposable
+acceptance drivers under `automation/acceptance/credentials/`. See the
+[credential procedure](../operations/connector-credentials.md) for recovery.
 
 The [runtime reference](runtime.md) describes endpoints, storage, migrations,
 image packaging, and configuration. The existing showcase in `assets/brand/`
@@ -41,7 +48,7 @@ remains a separate static concept with fictional in-memory messages. Shared
 Docker tooling runs language, application, and repository checks, and the
 drivers used by disposable tests. Component-specific builders
 and acceptance drivers live with their sources. Cross-component build dispatch,
-runtime acceptance, and shared development commands live in
+connector/runtime acceptance, and shared development commands live in
 responsibility-based `automation/` packages, while protocol generation belongs
 to `protocol/generator/`. The
 [shared test image decision](../decisions/20261026-repository-layout.md#tooling-image)
@@ -57,10 +64,14 @@ flowchart LR
     Server --> State[(SQLite metadata)]
     Provisioner[Offline credential command] --> State
     Token[Private host token] --> Provisioner
+    Token --> Thunderbird
     Admin[Optional local browser desktop] -.-> Display[Internal display]
     Display --> Thunderbird[Thunderbird]
     Thunderbird --> Profile[(Thunderbird profile)]
-    Listener[Rust connector listener] --> State
+    Thunderbird --> Extension[Packaged extension]
+    Extension -->|WebSocket| Gateway[Fixed internal gateway]
+    Gateway --> Listener[Rust connector listener]
+    Listener --> State
     Listener -->|Connection diagnostics| Server
 ```
 
@@ -76,7 +87,7 @@ Thunderbird owns messages, accounts, provider credentials, drafts, and filters.
 Raicho keeps login, preferences, and connector credentials in SQLite, and does
 not persist mail or run a second filter engine. The browser talks to a Raicho mail
 contract. Thunderbird-specific objects stay in the extension adapter. The current
-control transport provides the connection boundary for those future operations.
+gateway and control transport provide the connection boundary for those future operations.
 
 The foundation plan holds the target component diagram, storage rules, backup
 requirements, and stage gates.
@@ -98,10 +109,10 @@ tokio-tungstenite. The
 [connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
 selects MV2 packaging, managed configuration, a fixed internal gateway, and a
 versioned authenticated protocol.
-Credential persistence, offline provisioning commands, the server's control
-transport, and connection diagnostics are implemented. The extension, gateway,
-and operator credential procedure are not. The static showcase remains a design
-reference.
+Credential persistence, offline provisioning, production control transport, gateway,
+and connection diagnostics are implemented. Dedicated CI jobs run the source and
+unattended acceptance commands described in the
+[acceptance record](connector-acceptance.md). The static showcase remains a design reference.
 
 Current tooling commands and planned application commands are distinguished in
 [build, test, and generate](build-test-generate.md).

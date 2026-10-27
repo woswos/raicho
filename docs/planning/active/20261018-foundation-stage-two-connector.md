@@ -1,13 +1,13 @@
 # Foundation Stage 2: Thunderbird connector
 
 Status: approved design [PR #2](https://github.com/woswos/raicho/pull/2) merged on
-2026-10-18. Stage 3, the connector contract, is implemented, and so is the server
-side of stages 4 and 5: credential storage, offline credential commands, and the
-connector listener with its diagnostics. The other pieces land in
-[#8](https://github.com/woswos/raicho/pull/8) and [#9](https://github.com/woswos/raicho/pull/9).
-The debriefs of stages that are not complete record the combined implementation in
-[#4](https://github.com/woswos/raicho/pull/4) that those pull requests split up, so
-they also describe work that is not in this revision.
+2026-10-18. Stages 1, 3, 4, and 5 are implemented: packaging and lifecycle, the
+connector contract, credential provisioning, and the production connection with its
+diagnostics. The mail API experiment and CI integration land in
+[#9](https://github.com/woswos/raicho/pull/9). The debriefs of stages 2 and 6 record
+the combined implementation in [#4](https://github.com/woswos/raicho/pull/4), so they
+also describe work that is not in this revision. See
+[acceptance evidence](../../reference/connector-acceptance.md).
 
 ## Goal
 
@@ -98,7 +98,7 @@ Draft 7, empty capabilities, strict duplicate-member rejection, bounded JSON
 depth, printable ASCII control fields, and phase/generation validation. Its Ajv
 standalone output is bundled with build-only esbuild so Thunderbird needs no
 runtime imports or dynamic code generation. The production listener and extension
-must call these decoders, with separate credential verification before registration.
+now call these decoders, with separate credential verification before registration.
 
 Define authentication, protocol negotiation, capabilities, heartbeat, connection
 generation, and error messages. Advertise only implemented capabilities. Keep
@@ -135,7 +135,7 @@ An explicit `connector reactivate` recovery operation may enroll a different
 token after revocation. Normal initialization and rotation retries cannot clear
 revocation. Preserve the previous host configuration separately while preparing
 the replacement, and verify the fresh token before recreating services. The
-credential runbook (`docs/operations/connector-credentials.md`) defines the
+[credential runbook](../../operations/connector-credentials.md) defines the
 implemented file states and interruption recovery.
 
 Persist backend configuration and credential digests/revocation state, without
@@ -183,7 +183,7 @@ These experiment gates have the following bounded outcomes:
   and upgrades it on an existing profile. See [lifecycle evidence](#lifecycle-fixture-evidence).
 - Origin is `moz-extension://<profile-specific UUID>`. The persistent MV2
   background passes idle and reconnection checks. See
-  production acceptance (`docs/reference/connector-acceptance.md`).
+  [production acceptance](../../reference/connector-acceptance.md).
 - Native draft reopen/edit/resave works. Standard programmatic replacement
   remains unproven, and background saves can duplicate drafts. This remains a
   design gate before dependent compose work, not an implemented capability.
@@ -202,7 +202,7 @@ tree, and a review checkpoint. Follow the [delivery workflow](../../contributing
 for commit and continuation authorization. Proposed targets below become real
 with their corresponding slice, and run through Docker locally and in CI.
 
-- [ ] Stage 1: Prove packaging and lifecycle.
+- [x] Stage 1: Prove packaging and lifecycle.
   Add the extension TypeScript project, deterministic XPI build, policy generation,
   and a minimal test connection. Keep the initial test listener outside production.
   Test clean installation, managed settings, nonroot/read-only startup, viewer-free
@@ -248,7 +248,7 @@ with their corresponding slice, and run through Docker locally and in CI.
   tests, generation drift, lint/format/type checks, packaging boundaries, and the
   server Docker build stage passed. Runtime credential checks, registration,
   generation fencing, and heartbeat timing remain later integration work.
-- [ ] Stage 4: Implement credential provisioning and persistence.
+- [x] Stage 4: Implement credential provisioning and persistence.
   Add migrations and standalone SQL queries for backend and credential state.
   Provide containerized setup, rotation, revocation, and recovery commands. Test
   first install, existing database, lock contention, missing secrets, UID access,
@@ -267,7 +267,7 @@ with their corresponding slice, and run through Docker locally and in CI.
   missing-secret recovery, UID access, mount isolation, and token exclusion from
   SQLite and service logs. Its containers, volumes, networks, and host state were
   removed. Live authentication remains Stage 5.
-- [ ] Stage 5: Connect production services and diagnostics.
+- [x] Stage 5: Connect production services and diagnostics.
   Add the internal Rust listener, fixed proxy, extension transport, and connection
   status in the existing web diagnostics. Test authentication expiry/rejection,
   malformed and oversized input, slow peers, bounded retries, duplicate sessions,
@@ -325,15 +325,23 @@ The existing implementation checks are:
 docker compose -f automation/tooling/compose.yaml build
 docker compose -f automation/tooling/compose.yaml run --rm check \
   make lint format-check typecheck test-python test-tooling build-app test-app test-protocol
+bash automation/acceptance/connector/check_connector.bash
+bash automation/acceptance/credentials/check_credentials.bash
 ```
 
-Protocol drift runs under `lint`, and `test-protocol` also runs the independently
-compiled TypeScript protocol suite. The extension, the mail probe, and their
-acceptance commands arrive with stages 1, 2, 5, and 6 in
-[#8](https://github.com/woswos/raicho/pull/8) and [#9](https://github.com/woswos/raicho/pull/9).
+The extension is included in `build-app` and `test-app`, while protocol drift runs
+under `lint`. `test-protocol` also runs the independently compiled TypeScript
+protocol suite. Host runners orchestrate Docker outside the read-only tooling
+container, which has no Docker socket. They own uniquely named disposable
+projects, never use personal profiles or provider credentials, and clean up
+only their own resources. The existing CI labels and independent readiness
+are preserved. The [acceptance record](../../reference/connector-acceptance.md)
+separates local results, configured CI coverage, and earlier manual evidence.
+The mail probe and its compatibility check arrive with stage 2 in
+[#9](https://github.com/woswos/raicho/pull/9).
 
 The original design PR needed documentation and PR-policy checks only. The
-implementation slices additionally ran the source checks above.
+implementation slices additionally ran the source and runtime checks above.
 
 ## Lifecycle fixture evidence
 

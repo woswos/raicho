@@ -6,13 +6,14 @@ image, brand assets, and the shared workflow. Mail integration is still planned.
 ```text
 AGENTS.md          Always-loaded instructions and pointers to task-specific docs
 CHANGELOG.md       Product changelog used to cut semantic versions
-compose*.yaml      Base deployment and its administration overlay
+compose*.yaml      Base deployment and its administration and credential overlays
 .agents/skills/    Canonical shared workflow skills
 .github/           Pull request templates and GitHub Actions workflows
 assets/brand/      Production identity masters, fonts, guides, and prototypes
 deploy/            Per-service image recipes, runtime code, configuration, and tests
 server/            Rust diagnostics, SQLite queries, migrations, and tests
 web/               TypeScript diagnostics, public files, and behavioral tests
+extension/         Production connector, its packager, and its tests
 protocol/          Connector and status schemas, limits, fixtures, generators, implementations
 automation/        Development commands and support packages grouped by responsibility
 docs/contributing/ Contribution workflow, working agreements, and project invariants
@@ -31,24 +32,25 @@ Use these locations when adding files or moving existing code:
 | Deployed service recipe, filter, runtime code, configuration, and tests | `deploy/<service>/` |
 | Base Compose deployment and operator overlays | Repository root |
 | Test-only Compose overlays | Beside the acceptance driver that uses them |
-| Application sources | Their owning `server/` or `web/` component |
+| Application sources | Their owning `server/`, `web/`, or `extension/` component |
 | Shared connector and status schemas, limits, fixtures, and implementations | `protocol/` |
 | Protocol generation scripts and support modules | `protocol/generator/` |
 | Component-specific build scripts and packaging | The owning component's root |
 | Shared development commands and their support modules | `automation/<responsibility>/` |
 
-Each deployed service owns one directory under `deploy/`: `raicho/` and
-`thunderbird/`. The directory holds the image recipe, its `Dockerfile.dockerignore`,
-the service's runtime code and configuration such as
-`deploy/thunderbird/policies.json`, and their tests. Build filters list explicit
-files or source directories from the owning components. A bare parent such as
-`!server/` would re-include that whole tree. The
+Each deployed service owns one directory under `deploy/`: `raicho/`, `gateway/`,
+`thunderbird/`, and the operational `credentials/` wrapper. The directory holds
+the image recipe, its `Dockerfile.dockerignore`, the service's runtime code and
+configuration such as `deploy/gateway/nginx.conf`, and their tests. Build filters
+list explicit files or source directories from the owning components. A bare
+parent such as `!extension/` would re-include that whole tree. The
 [repository layout decision](../decisions/20261026-repository-layout.md) records
 this organization.
 
 Shared protocol implementations belong together in `protocol/rust/` and
 `protocol/typescript/`, with their own sources and tests. Keep them independent
-of Thunderbird APIs. See the [protocol placement decision](../decisions/20261026-protocol-contracts.md).
+of Thunderbird APIs. Thunderbird adapters and extension integration tests belong
+in `extension/`. See the [protocol placement decision](../decisions/20261026-protocol-contracts.md).
 Protocol generation belongs to `protocol/generator/`, beside the schema and
 implementations it produces.
 
@@ -59,7 +61,9 @@ conventions within these locations.
 
 ## Automation
 
-Keep component-specific builders with their sources, such as `web/build.mjs`. The
+Keep component-specific builders with their sources: `web/build.mjs`
+and `extension/build.mjs`. Their packaging and artifact-boundary
+tests belong in `extension/tests/`. The
 [component ownership decision](../decisions/20261026-repository-layout.md#tests)
 records this placement.
 
@@ -79,22 +83,35 @@ Do not add thin compatibility wrappers or restore a flat helper directory.
 | Cross-service disposable deployment checks | `automation/acceptance/` |
 | Fixtures shared by automation tests | `automation/testing/` |
 
-Cross-service acceptance drivers use a `runtime/` subpackage.
+Cross-service acceptance drivers use `connector/`, `credentials/`, and `runtime/`
+subpackages. The connector and credential runners source
+`automation/acceptance/credential_deployment.bash` for their disposable
+project, state directory, and fixture container.
 The shared repository-path helper lives at
 `automation/paths.py`.
 
-The
+Operational credential provisioning, rotation, and live verification belong in
+`deploy/credentials/` as a host Bash wrapper around `raicho-server connector`
+subcommands.
+These commands manage a deployment and are separate from acceptance tests that
+create disposable deployments. Their procedure is in the
+[credential runbook](../operations/connector-credentials.md). The
 [automation decision](../decisions/20261026-repository-layout.md#automation) records this
 organization and the replacement of the former `devbin/` tree.
 
 ## Compose deployments
 
 The root `compose.yaml` runs the application and Thunderbird with separate
-volumes and networks, so `docker compose` works from the repository root without
-`-f`. `compose.admin.yaml` adds local desktop administration.
+volumes and the fixed gateway between their networks, so `docker compose` works
+from the repository root without `-f`. `compose.admin.yaml` adds local desktop
+administration. `compose.credentials.yaml` supplies offline provisioning and the
+Thunderbird token mount, endpoint, and live verification through the
+[credential commands](../operations/connector-credentials.md).
 
 Test overlays live with their drivers. `automation/acceptance/runtime/compose.test.yaml`
-adds the isolated runtime fixture driver. Compose resolves every
+adds the isolated runtime fixture driver, and
+`automation/acceptance/connector/compose.upgrade.yaml` mounts a version-bumped
+production XPI for the connector acceptance upgrade check. Compose resolves every
 overlay's paths from the first file, so these overlays use repository-relative
 paths. `automation/tooling/compose.yaml` provides checks and formatting, with
 `automation/tooling/compose.ci.yaml` adding the GitHub event mount.
@@ -118,20 +135,27 @@ Automation tests live in the owning package's `tests/` subtree. Changelog guard
 regressions belong in `automation/repository/tests/`, beside the other PR policy
 tests. Shared guard fixtures and the `docker` command mock live in `automation/testing/`.
 
-`server/tests/` and `web/tests/` own their respective application and
-integration tests. Rust test support lives under
+`server/tests/`, `web/tests/`, and `extension/tests/` own their respective
+application and integration tests. `extension/tests/` also owns Python packaging
+regressions. The production-XPI inspector that connector acceptance runs inside
+Thunderbird lives with that driver as `automation/acceptance/connector/inspect_xpi.py`,
+and the packaging boundary tests reuse it.
+Rust test support lives under
 `server/tests/support/`.
 
 `protocol/rust/tests/` and `protocol/typescript/tests/` run the shared protocol
 fixtures against their respective implementations. TypeScript protocol tests
-compile independently. See the
+compile independently of the extension. See the
 [contract commands](build-test-generate.md#connector-contract).
 Generator regressions live in `protocol/generator/tests/`.
 `protocol/fixtures/configuration/connector.json` lists valid and invalid connector
-tokens and endpoints, and the server's `Credential::parse` tests against it.
+tokens and endpoints. The server's `Credential::parse`, the Thunderbird policy
+writer, and the extension's managed configuration parser each test against it,
+so their separate boundary checks cannot drift.
 
-Token-file recovery, file-safety, and live-check tests live with the Rust
-implementation in `server/tests/`. `deploy/thunderbird/tests/` tests the production `thunderbird`
+`deploy/credentials/tests/` owns the provisioning wrapper tests. Token-file
+recovery, file-safety, and live-check tests live with the Rust implementation in
+`server/tests/`. `deploy/thunderbird/tests/` tests the production `thunderbird`
 package beside it.
 
 Python modules are packages imported from the repository root, including those
@@ -149,7 +173,7 @@ records the image boundary.
 
 The tooling image's build-context filter includes only tooling dependencies,
 excluding host Docker orchestration. Keep fixture code
-out of production runtime images. The Thunderbird recipe copies its explicit runtime modules,
+out of production runtime images and production XPIs. The Thunderbird recipe copies its explicit runtime modules,
 and its filter excludes test directories. Rebuild and execution commands live in
 [build, test, and generate](build-test-generate.md#tooling-image).
 

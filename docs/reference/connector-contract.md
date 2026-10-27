@@ -1,16 +1,17 @@
 # Connector contract
 
-The first connector contract defines connection control only. The Rust listener
-uses its generated bindings and boundary decoders for authentication and
-heartbeat, and the TypeScript project provides the same bindings for the
-connector. The [connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
+The first connector contract defines connection control only. The production
+Rust listener and TypeScript extension use its generated bindings and boundary
+decoders for authentication and heartbeat. The
+[acceptance record](connector-acceptance.md) describes production validation and
+the [connector plan](../planning/active/20261018-foundation-stage-two-connector.md)
 records the approved design.
 
 See [architecture](architecture.md) for component boundaries.
 No fixture command, account identity, message handle, or mail content belongs in
 this contract. The backend kind is an identifier, not a Thunderbird-specific type.
 
-Offline credential provisioning
+Offline [credential provisioning](../operations/connector-credentials.md)
 persists one active credential or a revoked record. The Rust `Credential::parse`
 boundary derives two keys from the canonical 64-character lowercase hexadecimal
 token. The stored key verifies the connector's proof, and the server key signs
@@ -57,7 +58,11 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
   JavaScript generation, with regression tests in its `tests/` directory.
 
 Both implementations live under `protocol/`, with their own tests. The TypeScript
-project is private ES modules and imports no Thunderbird APIs.
+project is private ES modules and imports no Thunderbird APIs. The extension
+imports those sources directly. Its XPI preserves the compiled `extension/src/`
+and `protocol/typescript/src/` paths so browser module imports resolve inside the
+archive. The background page remains at the archive root. Protocol fixtures and
+tests are excluded from production packaging.
 
 Use the boundary decoder on untrusted input. Deserializing a generated type or
 calling the schema validator alone does not enforce frame size, phase, generation,
@@ -227,5 +232,8 @@ fail before generation. Review schema, generated changes, and corpus together.
 
 `make lint` includes generation drift checks. `test-protocol` runs the
 independently compiled TypeScript protocol suite. `test-server` covers the Rust
-protocol crate and generator with the rest of the workspace. The CSP test loads
-the standalone validator with dynamic code generation disabled.
+protocol crate and generator with the rest of the workspace, and `test-extension`
+covers the compiled extension, including shared contract fixtures.
+Packaging tests require the production validator. The CSP test loads the standalone artifact with dynamic code
+generation disabled. The [acceptance record](connector-acceptance.md) describes
+the connector lifecycle checks that CI runs.

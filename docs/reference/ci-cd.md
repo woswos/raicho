@@ -15,10 +15,14 @@ workflows always finish.
 - `pr-guards`: PR context checks on PR events only, including the changelog
   entry required for user-visible changes.
 - `application-build`: runtime and fixture Compose validation and all runtime images.
-- `application-test`: Rust, browser, and shared protocol builds/tests.
+- `application-test`: Rust, browser, extension, and shared protocol builds/tests.
 - `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
   administrative network isolation and listener closure, and application readiness
   while Thunderbird is stopped, in a disposable project.
+- `connector-test`: production XPI inspection, ten minutes of uninterrupted
+  authenticated heartbeat, service/network recovery, DNS refresh, administrative
+  isolation, same-profile upgrade, privacy canaries, and credential
+  rotation/revocation recovery.
 
 There are no coverage, image publication, or deployment jobs. Changelog
 releases are separate workflows described below. Runtime tests
@@ -35,7 +39,9 @@ Buildx, Git, GNU Make, Bash, `flock`, and `timeout`. The release workflows insta
 Python 3.13 with `actions/setup-python` and need the GitHub CLI. Language tools come from the image. Runners
 keep Docker images and volumes between jobs, so prune them occasionally. Run only
 one runner per Docker host, because jobs use fixed image tags, Compose project
-names, and Cargo caches. Exact commands
+names, and Cargo caches. A runner in a container shares only its work directory
+with the Docker host, at the same path, so jobs keep bind-mounted files in the
+runner's temporary directory. Exact commands
 and pins are in [build, test, and generate](build-test-generate.md) and
 [linting and formatting](../coding/linting-and-formatting.md).
 
@@ -47,12 +53,22 @@ Disposable runner
 fixtures still verify discovery and failure behavior independently. Missing
 project configuration fails rather than silently skipping application checks.
 Automated checks do not claim visual verification of the administrative desktop.
-The Rust workspace tests exercise the shared
+Extension packaging and fixture regressions also run in `lint` through `test-python`.
+The Rust workspace and extension application tests exercise the same
 [connector contract fixtures](connector-contract.md). Source tests also exercise
-authentication, session replacement, heartbeat timeouts, and diagnostics.
+authentication, session replacement, heartbeat timeouts, extension retries, and
+diagnostics.
 Rust credential persistence and CLI tests run in `application-test`. Python
-automation suites, Thunderbird process supervision tests, and protocol generation
-regressions run through `test-python`, from component-local `tests/` directories.
+automation suites, extension packaging, XPI inspection, secret-file/wrapper verification, Thunderbird process supervision and
+generated-policy tests, and protocol generation regressions run through
+`test-python`, from component-local `tests/` directories.
+The [credential](build-test-generate.md#credential-persistence) and
+[production connector](build-test-generate.md#production-connector) runners use
+the same commands locally and in their dedicated jobs. Each owns its disposable
+project and traps exit, including failures, to remove its resources.
+The connector job allows 60 minutes for cold
+builds and runtime checks. They have no dependencies on the optional build job.
+See [acceptance evidence](connector-acceptance.md) for scope and limits.
 
 ## Repository integrity
 
@@ -113,10 +129,10 @@ that check and says so.
 | `design` | Validates planning-only changes and exempts the reference check. |
 | `skip-design-check` | Bypasses the design-link requirement. Does not bypass planning-only enforcement on a `design` PR. |
 | `skip-build` | Skips the dedicated application image build job. |
-| `skip-test` | Skips application and runtime test jobs. |
+| `skip-test` | Skips application, runtime, and connector test jobs. |
 | `skip-changelog` | Skips the changelog entry check. Does not skip design, build, or test checks. |
 
-The `design` label also skips all three application jobs. Jobs are independent,
+The `design` label also skips all four application jobs. Jobs are independent,
 so a skipped build does not leave invalid test dependencies. Test jobs still
 compile/build their test prerequisites when `skip-build` is present. The labels
 do not bypass language linting, guard regression tests, or runner fixtures.

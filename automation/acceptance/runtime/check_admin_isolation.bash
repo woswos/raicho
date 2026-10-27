@@ -12,6 +12,9 @@ if [[ -z ${COMPOSE_PROJECT_NAME:-} || ${COMPOSE_PROJECT_NAME} == raicho ]]; then
 fi
 
 BASE_COMPOSE=(docker compose -p "${COMPOSE_PROJECT_NAME}" -f compose.yaml -f automation/acceptance/runtime/compose.test.yaml)
+if [[ -n ${RAICHO_CREDENTIAL_DIRECTORY:-} ]]; then
+    BASE_COMPOSE+=(-f compose.credentials.yaml)
+fi
 ADMIN_COMPOSE=("${BASE_COMPOSE[@]}" -f compose.admin.yaml)
 PROBE=(docker run --rm --pull never --read-only --cap-drop ALL --security-opt no-new-privileges:true --entrypoint curl)
 CURL_OPTIONS=(--noproxy '*' --connect-timeout 3 --max-time 5 --silent --show-error --output /dev/null)
@@ -43,13 +46,18 @@ RAICHO_IMAGE="$(docker inspect --format '{{.Image}}' "${RAICHO_CONTAINER}")"
 trap restore_default EXIT
 "${ADMIN_COMPOSE[@]}" up -d --force-recreate --wait --wait-timeout 120 thunderbird
 THUNDERBIRD_CONTAINER="$("${ADMIN_COMPOSE[@]}" ps -q thunderbird)"
-NETWORK_COUNT="$(docker inspect --format '{{len .NetworkSettings.Networks}}' "${THUNDERBIRD_CONTAINER}")"
-THUNDERBIRD_ADDRESS="$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${THUNDERBIRD_CONTAINER}")"
+mapfile -t THUNDERBIRD_ADDRESSES < <(docker inspect --format '{{range .NetworkSettings.Networks}}{{println .IPAddress}}{{end}}' "${THUNDERBIRD_CONTAINER}" | sed '/^$/d')
 ADMIN_ADDRESS="$("${ADMIN_COMPOSE[@]}" port thunderbird 6080)"
-if [[ ${NETWORK_COUNT} != 1 || ! ${THUNDERBIRD_ADDRESS} =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo 'FAIL: expected one Thunderbird IPv4 network address' >&2
+if ((${#THUNDERBIRD_ADDRESSES[@]} != 2)); then
+    echo 'FAIL: expected Thunderbird on its egress and connector networks' >&2
     exit 1
 fi
+for THUNDERBIRD_ADDRESS in "${THUNDERBIRD_ADDRESSES[@]}"; do
+    if [[ ! ${THUNDERBIRD_ADDRESS} =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo 'FAIL: expected IPv4 Thunderbird network addresses' >&2
+        exit 1
+    fi
+done
 if [[ ! ${ADMIN_ADDRESS} =~ ^127\.0\.0\.1:[0-9]+$ ]]; then
     echo "FAIL: administration must publish on host loopback: ${ADMIN_ADDRESS}" >&2
     exit 1
@@ -57,8 +65,10 @@ fi
 
 "${PROBE[@]}" --network host "${RAICHO_IMAGE}" "${CURL_OPTIONS[@]}" --fail \
     --retry 6 --retry-delay 1 --retry-connrefused "http://${ADMIN_ADDRESS}/vnc.html"
-expect_connection_failure '7 28' "${BASE_COMPOSE[@]}" exec -T raicho curl \
-    "${CURL_OPTIONS[@]}" "http://${THUNDERBIRD_ADDRESS}:6080/vnc.html"
+for THUNDERBIRD_ADDRESS in "${THUNDERBIRD_ADDRESSES[@]}"; do
+    expect_connection_failure '7 28' "${BASE_COMPOSE[@]}" exec -T raicho curl \
+        "${CURL_OPTIONS[@]}" "http://${THUNDERBIRD_ADDRESS}:6080/vnc.html"
+done
 "${PROBE[@]}" --network host "${RAICHO_IMAGE}" "${CURL_OPTIONS[@]}" --fail \
     "http://${ADMIN_ADDRESS}/vnc.html"
 echo 'Administration is reachable on host loopback and isolated from Raicho'

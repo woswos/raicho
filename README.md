@@ -22,8 +22,8 @@ machine and open your mail in a browser wherever you work.
 
 > **In development.** The containerized foundation runs a Rust/SQLite diagnostics
 > server, a TypeScript status page, and our own Thunderbird image. The browser
-> mail client, login, and Thunderbird extension are not implemented yet. The
-> server accepts the authenticated connector protocol and reports its status.
+> mail client and login are not implemented yet. The packaged extension supports
+> an authenticated control connection and connection diagnostics.
 
 ## Why Raicho
 
@@ -60,8 +60,9 @@ docker compose up -d --wait
 ```
 
 Open <http://127.0.0.1:8080> for diagnostics. Thunderbird starts without a viewer,
-with its profile in a separate persistent volume. The connector remains
-unconfigured until the extension stage. The
+with its profile in a separate persistent volume. The connector starts
+unconfigured. Follow the [credential setup](docs/operations/connector-credentials.md)
+to establish its authenticated connection. The
 [local runtime guide](docs/operations/local-runtime.md) covers optional browser
 administration, disposable profiles, persistence checks, and stopping services.
 

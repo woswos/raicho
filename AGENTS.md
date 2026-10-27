@@ -2,9 +2,8 @@
 
 Raicho is a browser interface for Thunderbird. Its containerized foundation
 provides Rust/SQLite diagnostics and a TypeScript page alongside Thunderbird.
-Its server accepts an authenticated connector control protocol and reports
-connection health. The Thunderbird extension, mail commands, and browser mail
-workflows are still planned.
+Its packaged extension connects through an authenticated control protocol and
+reports connection health. Mail commands and browser mail workflows are still planned.
 
 Read the documents below before working in this repository. The `@` lines are
 file references. If your agent does not expand them automatically, open each
