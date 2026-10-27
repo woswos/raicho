@@ -11,6 +11,7 @@ FROM rust:1.99.1-slim-bookworm@sha256:a24e292b4af7bdee351a31d3a6379972a5652f0ea2
 WORKDIR /source
 COPY Cargo.toml Cargo.lock ./
 COPY server/ server/
+COPY protocol/ protocol/
 ARG RAICHO_COMMIT=unknown
 RUN RAICHO_COMMIT="$RAICHO_COMMIT" cargo build --release --locked --package raicho-server
 

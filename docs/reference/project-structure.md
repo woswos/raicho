@@ -13,6 +13,7 @@ assets/brand/      Production identity masters, fonts, guides, and prototypes
 deploy/            Per-service image recipes, runtime code, configuration, and tests
 server/            Rust diagnostics, SQLite queries, migrations, and tests
 web/               TypeScript diagnostics, public files, and behavioral tests
+protocol/          Connector and status schemas, limits, fixtures, generators, implementations
 automation/        Development commands and support packages grouped by responsibility
 docs/contributing/ Contribution workflow, working agreements, and project invariants
 docs/reference/    Current structure, tooling, CI, and architecture
@@ -31,6 +32,8 @@ Use these locations when adding files or moving existing code:
 | Base Compose deployment and operator overlays | Repository root |
 | Test-only Compose overlays | Beside the acceptance driver that uses them |
 | Application sources | Their owning `server/` or `web/` component |
+| Shared connector and status schemas, limits, fixtures, and implementations | `protocol/` |
+| Protocol generation scripts and support modules | `protocol/generator/` |
 | Component-specific build scripts and packaging | The owning component's root |
 | Shared development commands and their support modules | `automation/<responsibility>/` |
 
@@ -42,6 +45,12 @@ files or source directories from the owning components. A bare parent such as
 `!server/` would re-include that whole tree. The
 [repository layout decision](../decisions/20261026-repository-layout.md) records
 this organization.
+
+Shared protocol implementations belong together in `protocol/rust/` and
+`protocol/typescript/`, with their own sources and tests. Keep them independent
+of Thunderbird APIs. See the [protocol placement decision](../decisions/20261026-protocol-contracts.md).
+Protocol generation belongs to `protocol/generator/`, beside the schema and
+implementations it produces.
 
 Apply the [source filename](../coding/coding-standards.md#source-filenames),
 [directory name](../coding/coding-standards.md#directory-names), and
@@ -97,8 +106,9 @@ The [brand guide](../../assets/brand/README.md) describes asset locations and
 See [architecture](architecture.md) for the distinction between the prototype
 and the intended product.
 
-Component responsibilities and persistence are defined in
-[architecture](architecture.md).
+The [connector contract](connector-contract.md) describes the schema, generated
+modules, and their current integration boundary. Component responsibilities and
+persistence are defined in [architecture](architecture.md).
 
 ## Test code
 
@@ -110,6 +120,12 @@ tests. Shared guard fixtures and the `docker` command mock live in `automation/t
 
 `server/tests/` and `web/tests/` own their respective application and
 integration tests.
+
+`protocol/rust/tests/` and `protocol/typescript/tests/` run the shared protocol
+fixtures against their respective implementations. TypeScript protocol tests
+compile independently. See the
+[contract commands](build-test-generate.md#connector-contract).
+Generator regressions live in `protocol/generator/tests/`.
 
 `deploy/thunderbird/tests/` tests the production `thunderbird`
 package beside it.

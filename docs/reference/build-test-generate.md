@@ -53,7 +53,7 @@ docker compose -f automation/tooling/compose.yaml run --rm check make test-tooli
 
 | Target | Behavior |
 | --- | --- |
-| `lint` | Repository integrity and language linters |
+| `lint` | Repository integrity, language linters, and protocol generation drift |
 | `lint-repo` | Repository guards, including file, directory, and database naming |
 | `test-python` | Every Python unit suite, discovered as `*_tests.py` from the repository root |
 | `format-check` | Check selected source and configuration formatting without edits |
@@ -77,7 +77,7 @@ and invocation convention.
 root. Discovery enters only Python packages, so every directory on a test's
 import path needs an `__init__.py`. The suites cover repository policy including
 changelog guards, quality discovery, releases, the Thunderbird
-runtime, and acceptance-driver support.
+runtime, protocol generation, and acceptance-driver support.
 
 Rust compilation is checked by Clippy under `lint`. While Rust or TypeScript
 sources are absent, their runners explicitly report not applicable. Once owned
@@ -149,7 +149,7 @@ docker compose -f automation/tooling/compose.yaml -f automation/tooling/compose.
 Run source builds and behavioral tests through the same tooling container:
 
 ```bash
-docker compose -f automation/tooling/compose.yaml run --rm check make build-app test-app
+docker compose -f automation/tooling/compose.yaml run --rm check make build-app test-app test-protocol
 ```
 
 `build-app` combines `build-server` and `build-web`. `test-app` combines
@@ -176,7 +176,26 @@ startup, administration, persistence checks, and cleanup.
 
 `automation/tooling/compose.yaml` remains a development-only configuration and does
 not start the application. Application state belongs to the runtime volumes, not the
-checkout.
+checkout. Control-contract generation is described below.
+
+## Connector contract
+
+```bash
+LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)" \
+  docker compose -f automation/tooling/compose.yaml run --rm format make generate-protocol
+docker compose -f automation/tooling/compose.yaml run --rm check make check-protocol test-protocol
+```
+
+Use the caller's UID/GID for writable generation as above. `generate-protocol`
+builds both generators into temporary output, then updates committed bindings,
+limits, diagnostics, and the standalone validator. Python orchestration and JavaScript
+generation scripts live in `protocol/generator/`. `check-protocol` compares fresh
+output without editing sources and runs under `lint` in CI. `test-protocol` runs the
+independently compiled TypeScript protocol tests. The Rust contract and generator
+tests run with the workspace under `test-server`.
+CI runs `test-protocol` alongside `test-app`, which covers the application
+suites. See the [contract reference](connector-contract.md)
+for sources, parsing rules, and integration responsibilities.
 
 ## Releases
 

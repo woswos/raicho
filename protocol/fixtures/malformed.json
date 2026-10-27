@@ -1,0 +1,187 @@
+[
+  {
+    "name": "malformed JSON or envelope 1",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": ""
+  },
+  {
+    "name": "malformed JSON or envelope 2",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "{"
+  },
+  {
+    "name": "malformed JSON or envelope 3",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "[]"
+  },
+  {
+    "name": "malformed JSON or envelope 4",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "null"
+  },
+  {
+    "name": "malformed JSON or envelope 5",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "true"
+  },
+  {
+    "name": "malformed JSON or envelope 6",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "42"
+  },
+  {
+    "name": "malformed JSON or envelope 7",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "{\"type\":\"ping\",}"
+  },
+  {
+    "name": "malformed JSON or envelope 8",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "{\"type\":\"ping\"} trailing"
+  },
+  {
+    "name": "fixture command excluded",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "save",
+      "protocol_version": 1,
+      "arguments": {}
+    }
+  },
+  {
+    "name": "non ASCII backend version",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "backend_kind": "thunderbird",
+      "backend_version": "\u96f7\u9ce5",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "newline backend kind",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "backend_kind": "thunderbird\n",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "newline version text",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0\n",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "unpaired surrogate",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"\\ud800\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
+  },
+  {
+    "name": "overflowing numeric value",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "{\"type\":\"ping\",\"protocol_version\":1,\"generation\":\"0123456789abcdef0123456789abcdef\",\"sequence\":1e400}"
+  },
+  {
+    "name": "deep invalid envelope",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "{\"extra\":[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[0]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]}"
+  },
+  {
+    "name": "authentication exact byte limit",
+    "phase": "authentication",
+    "valid": true,
+    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}",
+    "padding": 3785
+  },
+  {
+    "name": "authentication over byte limit",
+    "phase": "authentication",
+    "valid": false,
+    "error": "message_too_large",
+    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}",
+    "padding": 3786
+  },
+  {
+    "name": "control exact byte limit",
+    "phase": "server_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "{\"type\":\"ping\",\"protocol_version\":1,\"generation\":\"0123456789abcdef0123456789abcdef\",\"sequence\":1,\"mac\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+    "padding": 65366
+  },
+  {
+    "name": "control over byte limit",
+    "phase": "server_control",
+    "valid": false,
+    "error": "message_too_large",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "{\"type\":\"ping\",\"protocol_version\":1,\"generation\":\"0123456789abcdef0123456789abcdef\",\"sequence\":1,\"mac\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+    "padding": 65367
+  },
+  {
+    "name": "UTF8 limit measured in bytes",
+    "phase": "authentication",
+    "valid": false,
+    "error": "message_too_large",
+    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\u96f7\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
+  }
+]

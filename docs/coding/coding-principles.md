@@ -25,8 +25,9 @@ projects with an established community.
 ## Consistency
 
 Give each rule one source. Generate vocabularies and limits that several
-languages share, pin shared algorithms with one test vector that every
-implementation runs, and keep a single implementation of each validation rule. Operational commands run from runtime images. The tooling
+languages share from `protocol/`, pin shared algorithms with one test vector
+that every implementation runs, and keep a single implementation of each
+validation rule. Operational commands run from runtime images. The tooling
 image is for development and tests only.
 
 ## Collaboration

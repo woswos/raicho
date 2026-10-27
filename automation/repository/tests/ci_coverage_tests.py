@@ -34,7 +34,7 @@ class WorkflowCoverageTests(unittest.TestCase):
 
     def test_application_job_runs_every_source_suite(self):
         words = set(self.script('application-test').split())
-        for target in ('build-app', 'test-app'):
+        for target in ('build-app', 'test-app', 'test-protocol'):
             with self.subTest(target=target):
                 self.assertIn(target, words)
 

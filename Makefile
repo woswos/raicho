@@ -12,7 +12,7 @@ tooling:
 
 lint lint-repo lint-pr test-python lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql format format-sql format-check format-check-rust format-check-javascript format-check-sql typecheck test-tooling: | tooling
 
-lint: lint-repo lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql
+lint: lint-repo lint-bash lint-python lint-javascript lint-typescript lint-rust lint-sql check-protocol
 
 lint-repo:
 	@python3 -B -m automation.repository.check_agent_config
@@ -45,3 +45,12 @@ build-server build-web test-server test-web: | tooling
 
 build-server build-web test-server test-web:
 	@python3 -B -m automation.build.application $@
+
+.PHONY: generate-protocol check-protocol test-protocol
+generate-protocol check-protocol test-protocol: | tooling
+generate-protocol:
+	@python3 -B -m protocol.generator.cli generate
+check-protocol:
+	@python3 -B -m protocol.generator.cli check
+test-protocol:
+	@python3 -B -m protocol.generator.cli test

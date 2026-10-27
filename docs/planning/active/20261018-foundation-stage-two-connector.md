@@ -1,7 +1,11 @@
 # Foundation Stage 2: Thunderbird connector
 
-Status: the maintainer approved this plan for a design PR on 2026-10-18.
-Implementation has not started. Merge the design before its implementation PR.
+Status: approved design [PR #2](https://github.com/woswos/raicho/pull/2) merged on
+2026-10-18. Stage 3, the connector contract, is implemented. The other stages land
+in [#7](https://github.com/woswos/raicho/pull/7), [#8](https://github.com/woswos/raicho/pull/8),
+and [#9](https://github.com/woswos/raicho/pull/9). Their debriefs record the combined
+implementation in [#4](https://github.com/woswos/raicho/pull/4) that those pull
+requests split up, so they describe work that is not in this revision.
 
 ## Goal
 
@@ -19,10 +23,10 @@ Acceptance requires review of the evidence and unresolved API limitations.
 Keep the accepted single-user Rust/SQLite architecture and Thunderbird ownership
 boundary in the foundation plan. This stage adds `extension/`, `protocol/`,
 connector modules under `server/src/`, application-state migrations and queries,
-and a connector proxy recipe under `containers/`. Extend runtime configuration
-under `compose/`, the diagnostics in `web/`, Docker tooling, and CI as needed.
+and a gateway recipe under `deploy/`. Extend the root Compose files, the
+diagnostics in `web/`, Docker tooling, and CI as needed.
 
-The existing `containers/thunderbird/runtime.py` owns Thunderbird startup and
+The existing `deploy/thunderbird/runtime.py` owns Thunderbird startup and
 will gain policy preparation. The Rust server never mounts or edits its profile.
 Production Stage 2 exposes connection diagnostics only. Mail probes and their permissions
 belong to a separate test artifact. Browser login, mailbox APIs, rendering, and
@@ -46,20 +50,23 @@ mode `0600` in its private runtime tmpfs directory. Preserve existing policies.
 A baked symlink at the normal policy path points to this generated file. Policy
 loading through the symlink and permanent unsigned installation are explicit
 tests against the pinned image. Credentials never enter image layers or XPIs.
+Managed storage does not provide change events in Thunderbird. Reload policy by
+restarting Thunderbird, as the credential procedure does, rather than relying
+on a dynamic configuration notification.
 
 ### Connector route
 
 ```mermaid
 flowchart LR
     Browser[Browser diagnostics] -->|HTTP| Server[Raicho Rust server]
-    Extension[Extension inside Thunderbird] -->|WebSocket| Proxy[Connector proxy]
-    Proxy -->|Dedicated internal listener| Server
+    Extension[Extension inside Thunderbird] -->|WebSocket| Gateway[Gateway]
+    Gateway -->|Dedicated internal listener| Server
     Server --- Database[(Raicho SQLite)]
 ```
 
-Add a fixed Nginx proxy as a third production Compose service. Raicho stays on
-`application`, Thunderbird stays on `thunderbird`, and only the proxy joins both.
-The proxy has no published port, data volume, credentials, or mail logic. It is
+Add a fixed Nginx gateway as a third production Compose service. Raicho stays on
+`application`, Thunderbird stays on `thunderbird`, and only the gateway joins both.
+The gateway has no published port, data volume, credentials, or mail logic. It is
 trusted infrastructure with access to Thunderbird's network. This arrangement
 preserves the existing protection against direct access from Raicho.
 
@@ -84,6 +91,13 @@ in the extension. Use a small schema vocabulary supported by both generators,
 local references only, pinned dependencies, and generated-output drift checks.
 Shared valid and invalid fixtures must exercise both implementations.
 
+The implemented [control contract](../../reference/connector-contract.md) uses
+Draft 7, empty capabilities, strict duplicate-member rejection, bounded JSON
+depth, printable ASCII control fields, and phase/generation validation. Its Ajv
+standalone output is bundled with build-only esbuild so Thunderbird needs no
+runtime imports or dynamic code generation. The production listener and extension
+must call these decoders, with separate credential verification before registration.
+
 Define authentication, protocol negotiation, capabilities, heartbeat, connection
 generation, and error messages. Advertise only implemented capabilities. Keep
 production mail commands outside this stage. Initial defaults to validate are a
@@ -91,8 +105,9 @@ five-second authentication deadline, a 4 KiB authentication message, 64 KiB
 control messages, and bounded connection counts, buffers, and queues. Reject
 invalid versions and messages before registering an active connector.
 
-Authenticate with a random 256-bit per-installation token in the first message,
-never in URLs or subprotocol names. Compare credential digests in constant time.
+Authenticate with a random 256-bit per-installation token through a
+challenge-response proof that never sends the token, and never put it in URLs or
+subprotocol names. Compare credential digests in constant time.
 Origin checks supplement authentication and reject ordinary browser origins.
 Determine the extension's actual Origin behavior in the lifecycle experiment.
 Private same-host Compose traffic uses `ws://`. Remote connectors require a
@@ -113,6 +128,13 @@ and recreates the services before verifying the new credential. File replacement
 and SQLite changes are separate operations. Define fail-closed repair steps for
 interruption or mismatch, preserving the last committed configuration until
 verification. Never silently accept both old and new credentials.
+
+An explicit `connector reactivate` recovery operation may enroll a different
+token after revocation. Normal initialization and rotation retries cannot clear
+revocation. Preserve the previous host configuration separately while preparing
+the replacement, and verify the fresh token before recreating services. The
+credential runbook (`docs/operations/connector-credentials.md`) defines the
+implemented file states and interruption recovery.
 
 Persist backend configuration and credential digests/revocation state, without
 mail data. Keep active connections and generations in memory. Each authenticated
@@ -137,6 +159,13 @@ documented since Thunderbird 153.0. The published ESR API pages currently name
 explicit `sendLater` and `sendNow` modes. Sent means submission to the outgoing
 server, not proof of delivery to a recipient.
 
+The experiment established that `messages.send` is optional-only and needs
+native consent on the pinned runtime. Keep unattended draft checks separate
+from the interactive sending checks. Record native-tab selection when needed
+to make IMAP drafts queryable after restart. Neither behavior establishes a
+production permission or folder-initialization strategy. See the
+compatibility matrix (`docs/reference/mail-api-compatibility.md`).
+
 Draft creation does not establish draft replacement. `compose.beginNew(id)`
 documents editing as a new message. Test reopening and resaving explicitly for
 duplicates and stale identities. A native UI reopen/edit/resave check proves
@@ -146,21 +175,23 @@ dependent compose work. Do not silently substitute save-new/delete-old behavior.
 
 ## Open questions
 
-These are bounded experiment gates, not reopened product choices:
+These experiment gates have the following bounded outcomes:
 
-- Does the exact image load generated policy, permanently activate the XPI
-  without a viewer, and upgrade it on an existing profile?
-- What Origin does the extension send, and does the selected background context
-  remain available through idle periods, process failure, and reconnection?
-- Can standard APIs reopen and update an existing draft without duplicates?
-  Native interoperability and programmatic editing must have separate results.
-- How do sending errors behave after SMTP acceptance, including Sent-copy
-  failure? Where the observer lacks a definitive result, retain `unknown`.
+- The pinned image loads generated policy, activates the XPI without a viewer,
+  and upgrades it on an existing profile. See [lifecycle evidence](#lifecycle-fixture-evidence).
+- Origin is `moz-extension://<profile-specific UUID>`. The persistent MV2
+  background passes idle and reconnection checks. See
+  production acceptance (`docs/reference/connector-acceptance.md`).
+- Native draft reopen/edit/resave works. Standard programmatic replacement
+  remains unproven, and background saves can duplicate drafts. This remains a
+  design gate before dependent compose work, not an implemented capability.
+- SMTP submission and Sent-copy success are separate. The API returned success
+  despite an injected copy failure. Lost results retain `unknown` and are never
+  automatically replayed. See the compatibility matrix (`docs/reference/mail-api-compatibility.md`).
 
-Resolve each gate before its dependent implementation. Stop and revise the design
-if it requires a mail replica, privileged Experiment, host daemon, or a wider
-trust boundary. Do not mark Stage 2 complete until its compatibility matrix and
-limitations have been reviewed.
+Future dependent work must resolve the recorded API limitations. Stop and revise
+its design if it requires a mail replica, privileged Experiment, host daemon,
+or a wider trust boundary.
 
 ## Stages
 
@@ -177,6 +208,12 @@ with their corresponding slice, and run through Docker locally and in CI.
   Quality gate: focused extension and policy tests, TypeScript checks, image build,
   and a disposable lifecycle run. Review the installation/lifecycle evidence
   before building the complete protocol toolchain.
+  Debrief (2026-10-18): added deterministic MV2 packaging, atomic managed policy,
+  and the isolated lifecycle fixture. Docker checks and the real 153.5.0 image
+  passed unattended install, 90-second idle, restart, and 0.1.0-to-0.1.1 upgrade
+  preserving the profile. Recorded the test listener's text-frame adapter and
+  observed Origin in [lifecycle evidence](#lifecycle-fixture-evidence).
+  Production transport, mail APIs, and the ten-minute acceptance remain later slices.
 - [ ] Stage 2: Run the mail API compatibility experiment.
   Add the isolated GreenMail deployment and separate probe artifact. Test plain
   text, HTML, selected identity, a small attachment, and draft rediscovery after
@@ -187,13 +224,28 @@ with their corresponding slice, and run through Docker locally and in CI.
   Investigate SMTP acceptance followed by Sent-copy failure with fault injection.
   Quality gate: containerized probe tests and a versioned compatibility matrix.
   Review supported operations and limitations before dependent compose work.
-- [ ] Stage 3: Define the minimal connector contract.
+  Debrief (2026-10-18): isolated GreenMail, separate probe, source checks, and
+  native draft editing passed. Recorded optional send consent, empty successful
+  save/send results, duplicate background saves, changing numeric IDs, and
+  folder selection needed for unattended restart discovery. Injected rejection,
+  lost acknowledgments, and Sent-copy failure without automatic resend. Native
+  draft replacement works, but a standard programmatic replacement operation
+  remains unproven. Sent-copy failure returned API success, and uncertain sends
+  remain `unknown`. Evidence and limits are in the compatibility matrix.
+- [x] Stage 3: Define the minimal connector contract.
   Add schemas, generated bindings, validators, and Docker generation commands.
   Cover protocol/authentication negotiation, capabilities, generations, heartbeat,
   and errors. Test valid and malformed messages, incompatible versions, limits,
   and agreement between Rust and TypeScript. Keep fixture commands separate.
   Quality gate: generation drift check, shared contract tests, Rust/TypeScript
   checks, and production artifact inspection. Review the minimal wire contract.
+  Debrief (2026-10-18): added the shared schema/limits, generated Rust and
+  TypeScript bindings, offline/standalone validators, Docker generation and
+  drift checks, and 85 shared cases. Red/green regressions covered generation
+  guards and duplicate-key parsing. Rust tests, 97 extension tests, 71 repository
+  tests, generation drift, lint/format/type checks, packaging boundaries, and the
+  server Docker build stage passed. Runtime credential checks, registration,
+  generation fencing, and heartbeat timing remain later integration work.
 - [ ] Stage 4: Implement credential provisioning and persistence.
   Add migrations and standalone SQL queries for backend and credential state.
   Provide containerized setup, rotation, revocation, and recovery commands. Test
@@ -202,6 +254,17 @@ with their corresponding slice, and run through Docker locally and in CI.
   restart. Verify the raw token is absent from SQLite and ordinary server mounts.
   Quality gate: migration/credential tests, SQL lint/format checks, and a disposable
   provisioning/rotation run. Review the operational recovery procedure.
+  Debrief (2026-10-18): added the backend/digest migration, offline credential
+  commands, private host-file setup, serialized rotation/recovery, and the
+  operational runbook. Explicit reactivation uses a fresh token after revocation
+  and preserves the revoked configuration. Red/green regressions covered
+  persistence, reactivation, and lock-file hardening. All 28 server tests,
+  86 repository tests, Clippy, language/SQL lint, formatting, and documentation
+  links passed. The disposable Docker run verified both rotation interruption
+  points, revocation across startup, interrupted-operation reactivation,
+  missing-secret recovery, UID access, mount isolation, and token exclusion from
+  SQLite and service logs. Its containers, volumes, networks, and host state were
+  removed. Live authentication remains Stage 5.
 - [ ] Stage 5: Connect production services and diagnostics.
   Add the internal Rust listener, fixed proxy, extension transport, and connection
   status in the existing web diagnostics. Test authentication expiry/rejection,
@@ -212,6 +275,23 @@ with their corresponding slice, and run through Docker locally and in CI.
   restrictions and absence of the connector on the browser HTTP listener.
   Quality gate: focused server/extension/web tests and disposable recovery and
   isolation runs. Review actual connection evidence and diagnostic behavior.
+  Debrief (2026-10-18): added the bounded internal Rust listener, fixed nonroot
+  Nginx proxy, production extension 0.2.0, and browser connection diagnostics.
+  Provisioning now verifies an authenticated heartbeat before deleting the previous
+  credential file. The lifecycle probe is a separate artifact. Red/green tests
+  covered diagnostics, transport/packaging, authentication, slow peers, and native
+  WebSocket control frames. All 48 server tests, 8 protocol/generator tests,
+  124 extension/lifecycle tests, 17 browser tests, and 93 repository tests passed,
+  along with lint, formatting, type checks, protocol generation drift, and links.
+  The final production Docker run passed all service restart/recreation cases,
+  network interruption, changed server IP without proxy recreation, invalid-token
+  rejection without displacement, real-IP administrative isolation, and secret
+  exclusion. The credential regression and separate lifecycle run also passed.
+  Disposable resources were removed. An earlier run reported an unclassified
+  rejection and another failed network recovery. Valid native Ping/Pong rejection
+  was reproduced in source tests and corrected, but those earlier failures lacked
+  enough evidence to establish their cause. Neither recurred in the final suites.
+  Managed policy reload requires Thunderbird restart. CI acceptance remains Stage 6.
 - [ ] Stage 6: Integrate CI and record acceptance evidence.
   Extend the existing Docker source and runtime jobs using the same local commands.
   Include a ten-minute idle test, production-XPI inspection, and checks that logs,
@@ -222,32 +302,129 @@ with their corresponding slice, and run through Docker locally and in CI.
   the compatibility matrix, and manual native-draft evidence. Review remaining
   limitations before marking foundation Stage 2 complete and moving this plan to
   `done/`. The parent foundation plan remains active for later stages.
+  Debrief (2026-10-18): added dedicated connector and compatibility CI jobs,
+  mail-probe source coverage, and credential Compose validation. The production
+  XPI passed inspection, then one generation remained connected for 600 seconds
+  with heartbeat count advancing from 1 to 41. Service restart/recreation,
+  network interruption, changed-IP DNS refresh, administrative isolation, and
+  token/mail-canary exclusion from logs, diagnostics, and SQLite all passed.
+  The credential, separate lifecycle, unattended mail, and basic runtime suites
+  passed and removed their disposable resources. Full source/build/tooling checks,
+  107 repository tests, 26 supervisor/policy tests, and formatting passed.
+  Reviewed the earlier native consent, draft-editing, and send-fault evidence
+  separately from unattended checks. Recorded the accepted connector decision
+  and remaining compose gates. No hosted CI run or publication is claimed.
 
 ## Validation
 
 The existing implementation checks are:
 
 ```bash
-docker compose -f compose/compose.tools.yaml build
-docker compose -f compose/compose.tools.yaml run --rm check \
-  make lint format-check typecheck test-tooling build-app test-app
+docker compose -f automation/tooling/compose.yaml build
+docker compose -f automation/tooling/compose.yaml run --rm check \
+  make lint format-check typecheck test-python test-tooling build-app test-app test-protocol
 ```
 
-Extend `build-app` and `test-app` to include the extension. Add a Docker-based
-protocol generation/drift check and an integration runner for the scenarios
-above. The runner owns a uniquely named disposable Compose project, refuses
-the normal project name, and cleans up only its own containers and volumes.
-It must not mount personal profiles or use provider credentials. Keep orchestration
-outside the read-only tooling container, which has no Docker socket. Preserve
-the existing CI label policy and independent application readiness when the
-connector is unavailable. Publish the exact new commands with their implementation.
+Protocol drift runs under `lint`, and `test-protocol` also runs the independently
+compiled TypeScript protocol suite. The extension, the mail probe, and their
+acceptance commands arrive with stages 1, 2, 5, and 6 in
+[#8](https://github.com/woswos/raicho/pull/8) and [#9](https://github.com/woswos/raicho/pull/9).
 
-This design-only change needs documentation naming, local-link, whitespace, and
-PR-policy validation. Application builds and runtime experiments belong to the
-implementation slices, not the planning PR.
+The original design PR needed documentation and PR-policy checks only. The
+implementation slices additionally ran the source checks above.
+
+## Lifecycle fixture evidence
+
+Stage 1 used a separate fixture extension with a persistent MV2 background page,
+only the `storage` permission, and a temporary lifecycle protocol carrying
+version, session, and sequence metadata. It ran in the production Thunderbird
+image on an isolated internal network with its own profile and generated token,
+without host ports or a desktop viewer. On 2026-10-18, Linux amd64 with
+Thunderbird 153.5.0 ESR, UID/GID 10001, and a read-only root observed:
+
+| Check | Observed result |
+| --- | --- |
+| Clean permanent installation | Unsigned extension 0.1.0 connected and sent two heartbeats over 20 seconds. |
+| Managed settings and policy symlink | Authentication used the runtime token. Policy path, mode 0600, directory mode 0700, force installation, and disabled automatic updates passed inspection. |
+| Persistent background idle | Nine heartbeats over 90 seconds, with one background session and one connection. |
+| Container restart | A new background session connected with version 0.1.0. The profile marker remained. |
+| Image upgrade on the same profile | Version 0.1.1 connected with a new background session. The profile marker remained. |
+| Origin | `moz-extension://<profile-specific UUID>`, unchanged across restart and upgrade. |
+
+The first real-image run showed that websockify rejects text frames. The fixture
+listener then adapted text frames to its pinned decoder. Production transport
+never used that listener.
+
+## Acceptance evidence
+
+The first local acceptance ran on 2026-10-18. It used Linux amd64, Thunderbird
+153.5.0 ESR, build
+`20261013011825`, source stamp `9d5971ae648b0d17ab57509dcdcb0a06d3fdbe14`,
+and production extension 0.2.0. The image-packaged XPI SHA-256 is
+`a79470ab63de7d277cec9cf9ba655062294f72c7f26a3278ca240678550154b2`.
+The proxy used the digest-pinned Nginx version in its Dockerfile.
+
+Before publication, this stage integrated the product-versioning work from PR #3.
+Default production and probe manifests shared the declared product version,
+then 0.1.0. Versions 0.2.0 and 0.1.2 and the XPI checksum above identify the
+earlier local artifacts. The implementation PR's CI repeated unattended acceptance
+against the product-aligned builds. Explicit lifecycle upgrade versions remained
+test overrides.
+
+| Check | Local result |
+| --- | --- |
+| Source and generated contract | Lint, formatting, type checks, protocol drift, tooling fixtures, application builds, and Rust/browser/production/lifecycle/mail probe tests passed. |
+| Repository and acceptance regressions | 107 tests passed, including idle session changes/stalls, token/mail leakage, archive boundaries, CI coverage/labels, and cleanup on termination. |
+| Thunderbird supervision and policy | 26 tests passed. |
+| Basic runtime | Unconfigured startup, HTTP routing, SQLite/profile persistence across recreation, real-IP administrative isolation, listener closure, and readiness with Thunderbird stopped passed. |
+| Production connector | One generation remained connected for 600 seconds, heartbeat count 1 to 41. Invalid-token/mail-payload rejection preserved the active session. Restart/recreation of every service, network interruption, changed Raicho IP without proxy recreation, browser-route isolation, and real-IP administrative isolation passed. Logs, diagnostics, and SQLite retained neither raw token nor mail canaries. |
+| Credential operations | Provisioning, persistence, rotation interruption at both publication points, revocation/restart rejection, explicit reactivation, file access, and token exclusion passed. |
+| Separate lifecycle fixture | 20 fixture tests and unattended 0.1.0 installation, 90-second same-session idle, restart, and 0.1.1 upgrade preserving the profile passed. |
+| Unattended mail experiment | 51 fixture tests, draft/identity/attachment checks, and rediscovery after restart passed. Native and delivery-dependent phases reported `not_run`. |
+
+Stage 5 had an unclassified rejection and a failed network recovery attempt.
+Native WebSocket Ping/Pong rejection was independently reproduced and fixed,
+but the earlier failures lacked evidence to establish their cause. Preserve
+that uncertainty rather than attributing those failures to the later fix.
+Neither failure recurred in the final Stage 5 or Stage 6 suites.
+
+The full interactive mail experiment ran phase by phase on probe 0.1.1,
+including native consent, native editing, restart, delivery faults, and final
+settlement. The complete default runner then passed on probe 0.1.2 with the
+folder-selection follow-up. Containerized validation also passed 51 fixture
+Python tests, 15 probe TypeScript tests, and 65 repository tests including the
+production/probe packaging boundary. These local results are not a CI run.
+The final acceptance rerun also passed unattended drafts and restart with probe
+0.1.2. All three restart queries found their draft before the folder-selection
+fallback, unlike the earlier run. This does not remove the previously observed
+synchronization dependency or establish a general background discovery strategy.
 
 ## Notes
 
+- Review follow-up: authentication became a challenge-response that keeps the
+  token off the wire and proves the server. See the
+  [handshake decision](../../decisions/20261026-thunderbird-connector.md#handshake).
+- Review follow-up: the gateway moved to two internal networks so its dynamic
+  upstream lookup cannot fall back to outside DNS. See the
+  [network decision](../../decisions/20261026-thunderbird-connector.md#network-isolation).
+- Review follow-up: the lifecycle fixture was removed after production
+  acceptance gained the runtime policy, profile persistence, and same-profile
+  upgrade checks. Its results remain in the section above.
+- Fixture follow-up: the [shared test image decision](../../decisions/20261026-repository-layout.md#tooling-image)
+  replaces the dedicated mail-probe image recipe. Python fixture sources now live
+  under `tests/`, and their helpers use the same tooling image as language checks.
+- Publication integration: merged main's product-versioning work from PR #3.
+  Production and probe defaults now follow the declared product version 0.1.0.
+  Historical experiment versions remain identified in their evidence records.
+  Diagnostics retain both connector state and product/build provenance.
+- CI resource follow-up: a constrained Docker build reproduced linker failure
+  with its 3 GiB temporary filesystem full. Check containers now default to no
+  Rust debug symbols or incremental output, with explicit local overrides.
+- CI network follow-up: the changed-IP fixture precreates its disposable
+  application network with an explicit, Docker-selected subnet. Older Docker
+  engines reject address reservation on automatically configured networks.
+  Compose adopts and removes this project-labeled network. Production network
+  configuration is unchanged.
 - Current [architecture](../../reference/architecture.md), [runtime](../../reference/runtime.md),
   [build commands](../../reference/build-test-generate.md), and [runtime stack ADR](../../decisions/20261018-foundation-runtime-stack.md).
 - [Thunderbird 153.5.0 ESR release](https://www.thunderbird.net/en-US/thunderbird/153.5.0esr/releasenotes/),

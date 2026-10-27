@@ -83,7 +83,7 @@ jobs:
       - name: Build tooling image
         run: docker compose -f automation/tooling/compose.yaml build
       - name: Build and test application sources
-        run: docker compose -f automation/tooling/compose.yaml run --rm check make build-app test-app
+        run: docker compose -f automation/tooling/compose.yaml run --rm check make build-app test-app test-protocol
 
   runtime-test:
     if: >-

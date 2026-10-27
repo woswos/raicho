@@ -1,8 +1,11 @@
 # Thunderbird-first foundation
 
-Status: stage 1 implementation and Docker validation are complete. Publication
-with the Compose/SQL follow-up was authorized on 2026-10-18. Later foundation
-stages require their own authorization.
+Status: stage 1 is complete. Stage 2 is in progress: its connector contract is
+implemented, and its remaining pieces land in [#7](https://github.com/woswos/raicho/pull/7),
+[#8](https://github.com/woswos/raicho/pull/8), and [#9](https://github.com/woswos/raicho/pull/9).
+The stage 2 debrief records the combined implementation in
+[#4](https://github.com/woswos/raicho/pull/4) that those pull requests split up.
+Later foundation stages require their own authorization.
 
 The accepted constraints are recorded in the
 [foundation decision](../../decisions/20261017-thunderbird-first-foundation.md) and
@@ -20,9 +23,9 @@ Build a browser mail client for one person with multiple accounts, using a Rust 
 - Rust powers the application server, with embedded SQLite for Raicho's operational state. Both the browser client and extension use TypeScript. Docker covers runtime, builds, development tooling, and validation from the beginning.
 - Thunderbird is the primary and foreseeable mail backend. It owns its local stores and communication with upstream providers. Raicho does not become an SMTP/IMAP server or connect independently to those same accounts.
 - Thunderbird owns filters and their execution. Raicho does not copy rule definitions, run a second filter engine, or edit Thunderbird's profile files directly.
-- The repository began with branding, a static fictional-mail showcase, documentation, repository guards, and containerized code-quality tooling. Stage 1 adds the diagnostics runtime and independent Thunderbird image. Reuse the approved identity assets without treating showcase behavior as mail functionality.
+- The repository began with branding, a static fictional-mail showcase, documentation, repository guards, and containerized code-quality tooling. Stage 1 provides the diagnostics runtime and independent Thunderbird image. Stage 2 adds authenticated connection control and separate mail experiments. Reuse the approved identity assets without treating showcase behavior as mail functionality.
 
-Shared tooling was brought forward under the [code-quality decision](../../decisions/20261018-containerized-code-quality.md). Its [current commands](../../reference/build-test-generate.md) and [pins](../../coding/linting-and-formatting.md) are implemented independently. This does not complete application stage 1 or any later stage below.
+Shared tooling was brought forward under the [code-quality decision](../../decisions/20261018-containerized-code-quality.md). Its [current commands](../../reference/build-test-generate.md) and [pins](../../coding/linting-and-formatting.md) are maintained alongside the application. Tooling fixtures and runtime acceptance provide separate evidence.
 
 ### Components and extensibility
 
@@ -40,11 +43,11 @@ flowchart LR
     Backend -. future adapters .-> Other[Other backends]
 ```
 
-Use Axum and Tokio for one server process serving browser assets, APIs, and future connector traffic. The extension initiates an outbound connection to the server's Compose service hostname. WebSocket is the first transport candidate, subject to the lifecycle experiment in stage 2. The server remains available when Thunderbird is disconnected and reports backend status separately from its own readiness.
+Use Axum and Tokio for one server process serving browser assets, APIs, and connector traffic. The extension initiates an outbound WebSocket through a fixed internal gateway to a dedicated Rust listener, preserving the separate service networks. The [connector contract](../../reference/connector-contract.md) defines the implemented control transport. On 2026-10-26 the [direct connector listener decision](../../decisions/20261026-thunderbird-connector.md#listener) moved connector upgrades from Axum to tokio-tungstenite. The server remains available when Thunderbird is disconnected and reports backend status separately from its own readiness.
 
 Keep browser APIs independent of Thunderbird. Define a versioned, language-neutral connector schema with runtime validation and generated or mechanically checked Rust/TypeScript types. Implement the Thunderbird adapter and a small mock backend first. Use ordinary Rust modules/traits for bundled adapters and the protocol for external connectors. A dynamic plugin loader, additional production backends, and full JMAP implementation are outside this foundation.
 
-The contract covers accounts and identities, mailbox memberships, message summaries/content, attachments, search, flags, moves, drafts, and sending. Advertise optional capabilities and permissions per account/mailbox, distinguishing unsupported operations from temporary disconnection. Keep provider-specific objects behind the adapter. JMAP is a modeling reference, not a wire-protocol commitment.
+The future mail contract will cover accounts and identities, mailbox memberships, message summaries/content, attachments, search, flags, moves, drafts, and sending. The current control contract carries authentication and heartbeat only. Advertise optional capabilities and permissions per account/mailbox, distinguishing unsupported operations from temporary disconnection. Keep provider-specific objects behind the adapter. JMAP is a modeling reference, not a wire-protocol commitment.
 
 Use opaque backend-scoped handles with an explicit connection generation. Thunderbird message IDs are transient, and folder IDs change after rename/move. Stale handles must fail and trigger re-resolution/refetch after these changes or a restart, never select another object silently. Do not use a Message-ID header as a universal primary key. Scope query cursors to their session. Reconnects reconcile current state rather than assuming events form a replayable journal.
 
@@ -52,10 +55,10 @@ Bound pagination, message/frame sizes, attachment transfers, and queues. Include
 
 ### Ownership and persistence
 
-| Storage | Owner and proposed mount | Allowed contents |
+| Storage | Owner and persistent mount | Allowed contents |
 | --- | --- | --- |
-| `raicho-data` | Rust server, `/var/lib/raicho` | SQLite database and its journal/WAL files: login/session state, application preferences, backend configuration, connection credentials, and schema migration records |
-| `thunderbird-data` | Thunderbird only, `/config` for either candidate image | Profile, mail stores, accounts, provider credentials, filters, drafts, extension state |
+| `raicho-data` | Rust server, `/var/lib/raicho` | SQLite database and its journal/WAL files: login/session state, application preferences, backend configuration, connector credential digests, and schema migration records |
+| `thunderbird-data` | Thunderbird only, `/config` in our image | Profile, mail stores, accounts, provider credentials, filters, drafts, extension state |
 
 Use named volumes by default and document equivalent bind mounts. Only one Thunderbird process owns a profile. Any mail-store paths configured outside its profile must also be explicitly mounted and included in backups. The Rust container never mounts the profile. Container recreation must preserve both volumes, while separate installations must not share them.
 
@@ -73,19 +76,27 @@ Serve sensitive responses with `Cache-Control: no-store`. Do not persist mail in
 
 ### Container operation and access
 
-Compose starts two core services: `raicho` and `thunderbird`. SQLite is embedded in `raicho` and needs no separate database service. Build the browser and XPI in a Node stage and the server in a Rust stage, then ship only required runtime artifacts. Reuse the pinned development toolchains and pin application dependency lockfiles, SQLite dependency/version, base-image digests, and the tested Thunderbird/extension combination. Contributors need Docker and Compose for the documented commands, without host Rust, Node, SQLite, or Thunderbird installations.
+Compose starts `raicho`, `thunderbird`, and the fixed `gateway`. SQLite is embedded in `raicho` and needs no separate database service. Build the browser and XPI in a Node stage and the server in a Rust stage, then ship only required runtime artifacts. Reuse the pinned development toolchains and pin application dependency lockfiles, SQLite dependency/version, base-image digests, and the tested Thunderbird/extension combination. Contributors need Docker and Compose for the documented commands, without host Rust, Node, SQLite, or Thunderbird installations.
 
-Build our own Thunderbird image directly from Debian with the official ESR archive, Xvfb, Openbox, and opt-in noVNC administration. The maintainer chose independent packaging after the image comparison. Pin the base digest, package snapshot, and downloaded archives. Keep the browser desktop for account setup, OAuth prompts, filter editing, and recovery. Publish its port only through an explicit local/admin override. The default user interface is Raicho. Package the extension in this image during stage 2 and verify policy-based installation rather than assuming that copying an XPI activates it.
+Build our own Thunderbird image directly from Debian with the official ESR archive, Xvfb, Openbox, and opt-in noVNC administration. The maintainer chose independent packaging after the image comparison. Pin the base digest, package snapshot, and downloaded archives. Keep the browser desktop for account setup, OAuth prompts, filter editing, and recovery. Publish its port only through an explicit local/admin override. The default user interface is Raicho. Stage 2 packages the extension in this image and verifies policy-based installation and upgrade on a persistent profile.
 
-Stage 1 uses separate Compose bridge networks for Raicho and Thunderbird, both with provider internet access. Review identified that a shared network allowed Raicho to reach Thunderbird's administrative listener despite its loopback host publication. The separation closes that path. Stage 2 must provide an outbound connector route to the server without exposing administration to Raicho. Authenticate connector sessions independently of browser login. Stage 1 exposes only diagnostics on loopback by default. Before mail access, implement a single-user login, protected session cookies, mutation CSRF/origin checks, and connector credential provisioning. Document HTTPS through a reverse proxy for remote use. Internal health checks must not depend on Thunderbird being connected.
+Stage 1 uses separate Compose bridge networks for Raicho and Thunderbird, both with provider internet access. Review identified that a shared network allowed Raicho to reach Thunderbird's administrative listener despite its loopback host publication. The separation closes that path. Stage 2 preserves this boundary through the fixed gateway and authenticates sessions independently of browser login. Only diagnostics are exposed on loopback. Connector credential provisioning is implemented. Before mail access, implement a single-user login, protected session cookies, and mutation CSRF/origin checks. Document HTTPS through a reverse proxy for remote use. Internal health checks must not depend on Thunderbird being connected.
 
 Graceful shutdown, connection backoff, and reconciliation handle ordinary restarts. Persisted profiles need stopped-profile backup/restore procedures, including external mail directories. Test upgrades with disposable profiles before migration. Do not assume rolling back an image also rolls back profile changes. No existing personal profile is imported or mounted during foundation tests.
 
 Back up Raicho's SQLite state separately using a database-supported consistent backup, or stop the Rust server before copying the complete state directory with any journal/WAL files. Copying only a live database file is not a supported backup. Restore with the Rust server stopped and verify the schema and operational state before serving requests. Document backup and recovery before schema upgrades, since rolling back a server image does not undo a migration. Stage 7 verifies restoration of both Raicho state and Thunderbird data.
 
-### Proposed source layout
+### Source layout
 
 Stage 1 introduces `server/` for the Rust application, persistence and migrations, `web/` for TypeScript diagnostics, application recipes under `containers/`, runtime Compose files, and an opt-in administrative override. Stage 2 adds `extension/` for Thunderbird integration and `protocol/` for connector schemas. Keep `assets/brand/` as the identity source. Update reference/coding docs, Make targets, CI, and ADRs with the stages that introduce actual behavior.
+
+Follow the current [placement guide](../../reference/project-structure.md#placement-rules)
+as later stages add code. Shared development commands and their support modules
+are grouped under `automation/`. Component-specific builders and tests remain
+with their sources, each deployed service's recipe, runtime code, and operational
+helpers under `deploy/`, and protocol generation under `protocol/generator/`.
+On 2026-10-26 the [repository layout decision](../../decisions/20261026-repository-layout.md)
+replaced the stage 1 split between `containers/`, `runtime/`, and `compose/`.
 
 ### Approved stage 1 implementation
 
@@ -111,8 +122,8 @@ the stage implementation approval.
 
 ## Open questions
 
-- Stage 1 stack choices are resolved in the runtime decision above. Extension compatibility with the selected Thunderbird release remains a stage 2 gate. ARM64 requires a separately validated packaging route.
-- Before stage 2 acceptance: prove extension installation/upgrade, background lifetime, reconnect behavior, and secure connector credential provisioning. Establish the connector route while retaining administrative network isolation. Choose a supported manifest/lifecycle strategy from the results. WebSocket availability alone does not guarantee an always-running background context.
+- Stage 1 stack choices are resolved in the runtime decision above. ARM64 requires a separately validated packaging route.
+- Stage 2 resolves installation/upgrade, background lifetime, reconnect, credential provisioning, and administrative isolation for the pinned MV2 runtime. The acceptance record (`docs/reference/connector-acceptance.md`) defines the tested scope and remaining mail API limits. It does not establish MV3 behavior or future-version support.
 - Before stage 3: settle browser login/bootstrap, HTTPS deployment details, and the UI framework. Before stage 4: select the safe message-rendering approach. Ground these choices in the diagnostic client and brand assets.
 - Before stages 4 and 6: record supported search, draft, and send semantics for the pinned Thunderbird version, including attachment limits and any native compose interaction. Do not claim the newest background-send API exists in an older container image.
 - These are implementation gates, not reopened product choices. Resolve each before its dependent stage. If a solution requires a mail replica, duplicated filters, a privileged Experiment, or a separate host daemon, stop and propose a revised design.
@@ -127,9 +138,19 @@ Each stage includes focused behavioral tests where applicable and ends with a re
   Quality gate: `docker compose config --quiet`, `docker compose build`, and Rust format/Clippy, TypeScript type/build, repository checks, and focused persistence/migration tests inside tooling containers. Record image/version/platform evidence. Stop for review of the runnable foundation and stage 2 experiment.
   Debrief (2026-10-18): implemented Rust/SQLite diagnostics, the TypeScript page, and our own Debian-based Thunderbird image as explicitly requested. All 88 repository/tooling/application/supervisor tests and quality checks passed in Docker. Disposable recreation preserved SQLite contents and Thunderbird preferences, Raicho remained ready with Thunderbird stopped, and browser inspection confirmed desktop/mobile diagnostics and the native administrative desktop. No extension or mail workflow is claimed. Stage 2 awaits review.
 - [ ] Stage 2: Prove the extension lifecycle and connector.
+  Implementation follows the [connector design](20261018-foundation-stage-two-connector.md), including packaging, lifecycle, production protocol, gateway, credentials, and separate mail experiments.
   Package/install the extension, authenticate its outbound connection, define the minimal versioned handshake/capability schema, and report connection state in diagnostics. Add migrations for Raicho-owned connector configuration and pairing state in SQLite. Keep mail APIs unavailable to the browser. Exercise the selected version's draft/send APIs against local test infrastructure to identify incompatibilities early.
   Verification: extension activation without a viewer, invalid credentials/protocol rejection, idle-background behavior, restart either container, network interruption, bounded backoff, credential persistence/rotation, draft save/reopen/edit/resave, and queued versus sent outcomes. Record limitations and resolve the lifecycle/transport gate.
   Quality gate: containerized Rust/TypeScript checks and focused protocol/recovery tests. No real-provider sends. Stop for review of protocol evidence, pairing design, and compatibility matrix.
+  Debrief (2026-10-18): completed all six connector slices and their local Docker
+  acceptance. Production extension 0.2.0 maintained one authenticated generation
+  for 600 seconds, then passed service/network recovery, changed-IP routing,
+  administrative isolation, and privacy checks. Credential recovery, separate
+  lifecycle upgrades, unattended mail compatibility, and source/tooling checks
+  passed. CI invokes the same unattended commands. Earlier native consent,
+  draft-editing, and sending-fault evidence remains separate. Programmatic draft
+  replacement, synchronization behavior, and uncertain sending remain gates
+  before dependent mail workflows. See acceptance (`docs/reference/connector-acceptance.md`).
 - [ ] Stage 3: Deliver authenticated account and mailbox browsing.
   Implement single-user login, session protection, the backend contract, Thunderbird adapter, mock backend, account identities, mailbox listing, and paginated message summaries in the selected UI framework. Enforce ownership/capabilities and session-scoped handles. Add SQLite migrations for login/session state and application preferences within the ownership boundary above.
   Verification: login/logout, unauthorized browser/connector access, persisted settings and session revocation across restarts, concurrent browser sessions, mailbox pagination, mock-adapter substitution, stale handles after restart/message move/folder rename, disconnect status, and absence of mail data in SQLite/logs/browser persistence.
@@ -167,6 +188,8 @@ Use the same commands locally and in CI, and do not add empty jobs.
 Repository integrity checks never skip because of a label.
 
 ## Notes
+
+- 2026-10-26 architecture review, guidance for stage 3: route mail commands over the authenticated session channel through a request channel attached to the active connection, so HTTP handlers can send a request and await its reply without owning the socket. Add a Thunderbird adapter layer in the extension that keeps Thunderbird objects behind the backend contract. Design the command messages in `protocol/schema/` and the browser mail API next to the [status contract](../../decisions/20261026-protocol-contracts.md#status-api). Treat the mail probe's dispatcher and command session as evidence about Thunderbird's APIs, not as code to promote, because they use an unauthenticated test protocol. None of this is built before stage 3, because nothing would use it yet.
 
 - Repository grounding: [architecture](../../reference/architecture.md), [project structure](../../reference/project-structure.md), [delivery workflow](../../contributing/workflow.md), and [brand guide](../../../assets/brand/README.md).
 - Authoritative API references: [supported Thunderbird APIs](https://developer.thunderbird.net/add-ons/mailextensions/supported-webextension-api), [messages and transient IDs](https://webextension-api.thunderbird.net/en/mv3/messages.html), [folder IDs](https://webextension-api.thunderbird.net/en/mv3/folders.html#mailfolderid), [compose API](https://webextension-api.thunderbird.net/en/mv3/compose.html), [Manifest V3 lifecycle](https://developer.thunderbird.net/add-ons/whats-new/manifest-v3), and [extension deployment policies](https://thunderbird.github.io/policy-templates/policies/esr140/#extensionsettings). Recheck against the selected release.

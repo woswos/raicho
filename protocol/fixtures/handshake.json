@@ -1,0 +1,489 @@
+[
+  {
+    "name": "authenticate",
+    "phase": "authentication",
+    "valid": true,
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "alternate backend remains neutral",
+    "phase": "authentication",
+    "valid": true,
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "backend_kind": "another_backend",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "challenge",
+    "phase": "challenge",
+    "valid": true,
+    "message": {
+      "type": "challenge",
+      "protocol_version": 1,
+      "server_nonce": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    }
+  },
+  {
+    "name": "challenge error server_busy",
+    "phase": "challenge",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "server_busy"
+    }
+  },
+  {
+    "name": "challenge error cannot claim generation",
+    "phase": "challenge",
+    "valid": false,
+    "error": "unexpected_message",
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "server_busy",
+      "generation": "0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "welcome before challenge",
+    "phase": "challenge",
+    "valid": false,
+    "error": "unexpected_message",
+    "message": {
+      "type": "welcome",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "capabilities": [],
+      "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  },
+  {
+    "name": "challenge after authentication",
+    "phase": "handshake",
+    "valid": false,
+    "error": "unexpected_message",
+    "message": {
+      "type": "challenge",
+      "protocol_version": 1,
+      "server_nonce": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    }
+  },
+  {
+    "name": "challenge from connector",
+    "phase": "authentication",
+    "valid": false,
+    "error": "unexpected_message",
+    "message": {
+      "type": "challenge",
+      "protocol_version": 1,
+      "server_nonce": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    }
+  },
+  {
+    "name": "short server nonce",
+    "phase": "challenge",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "challenge",
+      "protocol_version": 1,
+      "server_nonce": "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    }
+  },
+  {
+    "name": "welcome without server signature",
+    "phase": "handshake",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "welcome",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "raw token is not accepted",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": [],
+      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "welcome",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "welcome",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "capabilities": [],
+      "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  },
+  {
+    "name": "handshake error authentication_failed",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "authentication_failed"
+    }
+  },
+  {
+    "name": "handshake error incompatible_version",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "incompatible_version"
+    }
+  },
+  {
+    "name": "handshake error invalid_message",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "invalid_message"
+    }
+  },
+  {
+    "name": "handshake error message_too_large",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "message_too_large"
+    }
+  },
+  {
+    "name": "handshake error unexpected_message",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "unexpected_message"
+    }
+  },
+  {
+    "name": "handshake error stale_generation",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "stale_generation"
+    }
+  },
+  {
+    "name": "handshake error heartbeat_timeout",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "heartbeat_timeout"
+    }
+  },
+  {
+    "name": "handshake error session_replaced",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "session_replaced"
+    }
+  },
+  {
+    "name": "handshake error server_busy",
+    "phase": "handshake",
+    "valid": true,
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "server_busy"
+    }
+  },
+  {
+    "name": "wrong protocol version",
+    "phase": "authentication",
+    "valid": false,
+    "error": "incompatible_version",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 2,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "string protocol version",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": "1",
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "zero protocol version",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 0,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "fractional protocol version",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1.5,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "unbounded protocol version",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1e100,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "client proof missing",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "short client nonce",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "client_nonce": "ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "noncanonical client proof",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "empty backend",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "backend_kind": "",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": []
+    }
+  },
+  {
+    "name": "unknown member",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": [],
+      "mail": "not allowed"
+    }
+  },
+  {
+    "name": "unimplemented capability",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "authenticate",
+      "protocol_version": 1,
+      "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "backend_kind": "thunderbird",
+      "backend_version": "153.5.0",
+      "connector_version": "0.1.0",
+      "capabilities": ["messages.send"]
+    }
+  },
+  {
+    "name": "welcome mail capability",
+    "phase": "handshake",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "welcome",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "capabilities": ["mail"],
+      "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  },
+  {
+    "name": "welcome with a removed heartbeat field",
+    "phase": "handshake",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "welcome",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "capabilities": [],
+      "heartbeat_interval_ms": 15000,
+      "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  },
+  {
+    "name": "error cannot echo text",
+    "phase": "handshake",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "invalid_message",
+      "message": "do not echo inputs"
+    }
+  },
+  {
+    "name": "unknown error code",
+    "phase": "handshake",
+    "valid": false,
+    "error": "invalid_message",
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "arbitrary"
+    }
+  },
+  {
+    "name": "handshake error cannot claim generation",
+    "phase": "handshake",
+    "valid": false,
+    "error": "unexpected_message",
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "invalid_message",
+      "generation": "0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "handshake error cannot carry a mac",
+    "phase": "handshake",
+    "valid": false,
+    "error": "unexpected_message",
+    "message": {
+      "type": "error",
+      "protocol_version": 1,
+      "code": "server_busy",
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+]
