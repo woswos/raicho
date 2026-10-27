@@ -52,8 +52,8 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
 - [Rust crate](../../protocol/rust/src/lib.rs): generated types and limits, and a
   boundary decoder. The decoder relies on the generated types, which enforce the
   schema's types, lengths, patterns, and unknown-field rules, and checks the two
-  bounds they miss itself: empty `capabilities` and the `sequence` maximum. A
-  conformance test runs every shared fixture through offline `jsonschema`
+  bounds they miss itself: empty `capabilities` and the `sequence` maximum. The
+  Rust fixture test also runs every shared fixture through offline `jsonschema`
   validation, which is a test-only dependency, and fails when a frame that the schema
   rejects decodes.
 - [TypeScript project](../../protocol/typescript/src/decode_frame.ts): generated
