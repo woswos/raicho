@@ -60,14 +60,14 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
   types and limits with a bundled Ajv standalone validator. No runtime Ajv,
   network schema retrieval, Node imports, or dynamic code generation is required.
 - [Generation scripts](../../protocol/generator/): Python orchestration and
-  JavaScript generation, with regression tests in its `tests/` directory.
+  JavaScript generation.
 
-Both implementations live under `protocol/`, with their own tests. The TypeScript
-project is private ES modules and imports no Thunderbird APIs. The extension
-imports those sources directly. Its XPI preserves the compiled `extension/src/`
-and `protocol/typescript/src/` paths so browser module imports resolve inside the
-archive. The background page remains at the archive root. Protocol fixtures and
-tests are excluded from production packaging.
+The [test layout](project-structure.md#test-code) says where each part's tests
+live. The TypeScript project is private ES modules and imports no Thunderbird
+APIs. The extension imports those sources directly. Its XPI preserves the compiled
+`extension/src/` and `protocol/typescript/src/` paths so browser module imports
+resolve inside the archive. The background page remains at the archive root.
+Protocol fixtures and tests are excluded from production packaging.
 
 Use the boundary decoder on untrusted input. Deserializing a generated type or
 calling the schema validator alone does not enforce frame size, phase, generation,
