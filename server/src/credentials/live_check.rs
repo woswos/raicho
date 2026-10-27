@@ -27,11 +27,11 @@ pub async fn wait_for_connector(address: &str, timeout: Duration) -> Result<()> 
                 "Thunderbird did not establish an authenticated connection in time",
             ));
         }
-        let status = tokio::time::timeout(remaining.min(ATTEMPT_TIMEOUT), status(address))
+        let status = tokio::time::timeout(remaining.min(ATTEMPT_TIMEOUT), fetch_status(address))
             .await
             .ok()
             .flatten();
-        match status.as_ref().map_or(Backend::Waiting, backend) {
+        match status.as_ref().map_or(Backend::Waiting, classify_backend) {
             Backend::Connected => return Ok(()),
             Backend::Inactive => {
                 return Err(Error::message("Connector credential is not active"));
@@ -43,7 +43,7 @@ pub async fn wait_for_connector(address: &str, timeout: Duration) -> Result<()> 
 }
 
 // HTTP/1.0 keeps the reply unchunked and closes the connection after one response.
-async fn status(address: &str) -> Option<Value> {
+async fn fetch_status(address: &str) -> Option<Value> {
     let mut stream = TcpStream::connect(address).await.ok()?;
     stream
         .write_all(format!("GET /api/status HTTP/1.0\r\nHost: {address}\r\n\r\n").as_bytes())
@@ -64,7 +64,7 @@ async fn status(address: &str) -> Option<Value> {
     serde_json::from_slice(&response[separator + 4..]).ok()
 }
 
-fn backend(payload: &Value) -> Backend {
+fn classify_backend(payload: &Value) -> Backend {
     let backend = &payload["backend"];
     if backend["kind"] != BACKEND_KIND {
         return Backend::Waiting;
