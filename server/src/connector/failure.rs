@@ -5,17 +5,20 @@ use raicho_protocol::limits_generated::{
     AUTHENTICATION_FAILURE_CLOSE_CODE, PROTOCOL_FAILURE_CLOSE_CODE, SESSION_REPLACED_CLOSE_CODE,
 };
 
-const TRY_AGAIN_LATER_CLOSE_CODE: u16 = 1013;
+const TRY_AGAIN_LATER_CLOSE_CODE: usize = 1013;
 
 #[derive(Clone, Copy)]
 pub(super) struct Failure {
     pub diagnostic: BackendError,
-    pub code: ProtocolErrorCode,
 }
 
 impl Failure {
     pub fn new(diagnostic: BackendError) -> Self {
-        let code = match diagnostic {
+        Self { diagnostic }
+    }
+
+    pub fn code(self) -> ProtocolErrorCode {
+        match self.diagnostic {
             BackendError::AuthenticationFailed | BackendError::AuthenticationTimeout => {
                 ProtocolErrorCode::AuthenticationFailed
             }
@@ -29,17 +32,14 @@ impl Failure {
             BackendError::Disconnected | BackendError::StorageUnavailable | BackendError::ServerBusy => {
                 ProtocolErrorCode::ServerBusy
             }
-        };
-        Self { diagnostic, code }
+        }
     }
 
     pub fn close_code(self) -> u16 {
-        let code = match self.code {
+        let code = match self.code() {
             ProtocolErrorCode::AuthenticationFailed => AUTHENTICATION_FAILURE_CLOSE_CODE,
             ProtocolErrorCode::SessionReplaced => SESSION_REPLACED_CLOSE_CODE,
-            ProtocolErrorCode::HeartbeatTimeout | ProtocolErrorCode::ServerBusy => {
-                return TRY_AGAIN_LATER_CLOSE_CODE;
-            }
+            ProtocolErrorCode::HeartbeatTimeout | ProtocolErrorCode::ServerBusy => TRY_AGAIN_LATER_CLOSE_CODE,
             _ => PROTOCOL_FAILURE_CLOSE_CODE,
         };
         code as u16
