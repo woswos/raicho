@@ -105,34 +105,23 @@ def web(testing=False, build_arguments=(), test_arguments=None):
             node_test(test_arguments, tests, environment)
 
 
+# Each entry looks its function up when called, so tests can patch the module.
+TARGETS = {
+    'build-server': lambda: run(['cargo', 'build', *CARGO_WORKSPACE]),
+    'test-server': lambda: cargo_test(CARGO_WORKSPACE),
+    'build-web': lambda: web(testing=False),
+    'test-web': lambda: web(testing=True),
+    'build-extension': lambda: extension(REPOSITORY_ROOT / 'extension', testing=False),
+    'test-extension': lambda: extension(REPOSITORY_ROOT / 'extension', testing=True),
+    'test-mailprobe': lambda: extension(REPOSITORY_ROOT / 'mailprobe', testing=True),
+    'benchmark': lambda: cargo_bench(),
+}
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        'target',
-        choices=(
-            'build-server',
-            'build-web',
-            'build-extension',
-            'test-server',
-            'test-web',
-            'test-extension',
-            'test-mailprobe',
-            'benchmark',
-        ),
-    )
-    target = parser.parse_args().target
-    if target == 'benchmark':
-        cargo_bench()
-    elif target.endswith('server'):
-        if target == 'build-server':
-            run(['cargo', 'build', *CARGO_WORKSPACE])
-        else:
-            cargo_test(CARGO_WORKSPACE)
-    elif target.endswith(('extension', 'mailprobe')):
-        component = 'mailprobe' if target == 'test-mailprobe' else 'extension'
-        extension(REPOSITORY_ROOT / component, testing=target.startswith('test-'))
-    else:
-        web(testing=target == 'test-web')
+    parser.add_argument('target', choices=TARGETS)
+    TARGETS[parser.parse_args().target]()
 
 
 if __name__ == '__main__':
