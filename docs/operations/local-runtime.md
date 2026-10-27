@@ -100,7 +100,7 @@ again:
 
 ```bash
 make deploy-down
-docker volume rm "${COMPOSE_PROJECT_NAME:-raicho}_raicho-data"
+docker volume rm "${RAICHO_PROJECT:-${COMPOSE_PROJECT_NAME:-raicho}}_raicho-data"
 make deploy-up
 make deploy-connector-init
 ```
