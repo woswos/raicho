@@ -39,6 +39,14 @@ class WorkflowCoverageTests(unittest.TestCase):
                 self.assertEqual(job['if'], self.jobs['runtime-test']['if'])
                 self.assertNotIn('needs', job)
 
+    def test_acceptance_state_stays_where_the_docker_host_can_bind_it(self):
+        for step in self.jobs['connector-test']['steps']:
+            if 'name' in step:
+                with self.subTest(step=step['name']):
+                    self.assertEqual(
+                        step.get('env', {}).get('TMPDIR'), '${{ runner.temp }}'
+                    )
+
     def test_every_compose_file_is_exercised(self):
         paths = subprocess.run(
             ['git', 'ls-files', '*compose*.yaml'],

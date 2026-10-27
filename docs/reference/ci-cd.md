@@ -39,7 +39,9 @@ Buildx, Git, GNU Make, Bash, `flock`, and `timeout`. The release workflows insta
 Python 3.13 with `actions/setup-python` and need the GitHub CLI. Language tools come from the image. Runners
 keep Docker images and volumes between jobs, so prune them occasionally. Run only
 one runner per Docker host, because jobs use fixed image tags, Compose project
-names, and Cargo caches. Exact commands
+names, and Cargo caches. A runner in a container shares only its work directory
+with the Docker host, at the same path, so jobs keep bind-mounted files in the
+runner's temporary directory. Exact commands
 and pins are in [build, test, and generate](build-test-generate.md) and
 [linting and formatting](../coding/linting-and-formatting.md).
 
