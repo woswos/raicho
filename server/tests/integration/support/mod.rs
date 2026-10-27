@@ -7,7 +7,7 @@ use raicho_protocol::channel::{Channel, Peer, session_key};
 use raicho_protocol::contract_generated::Authenticate;
 use raicho_server::connector::Connector;
 use raicho_server::credentials::Credential;
-use raicho_server::persistence::{CredentialStore, Database};
+use raicho_server::persistence::Database;
 use serde_json::{Value, json};
 use tempfile::TempDir;
 use tokio::net::{TcpListener, TcpStream};
@@ -29,8 +29,8 @@ impl Fixture {
     pub async fn new() -> Self {
         let directory = tempfile::tempdir().unwrap();
         let database = Arc::new(Database::open(directory.path()).await.unwrap());
-        CredentialStore::new(&database)
-            .initialize(&Credential::parse(&"a".repeat(64)).unwrap())
+        database
+            .initialize_credential(&Credential::parse(&"a".repeat(64)).unwrap())
             .await
             .unwrap();
         let connector = Connector::new(Arc::clone(&database));

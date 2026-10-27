@@ -14,7 +14,7 @@ use raicho_protocol::diagnostics_generated::{BackendError, BackendState};
 use raicho_protocol::limits_generated::{MAXIMUM_ACTIVE_CONNECTIONS, MAXIMUM_PENDING_AUTHENTICATIONS};
 use tokio::sync::{Semaphore, watch};
 
-use crate::persistence::{CredentialStatus, CredentialStore, Database};
+use crate::persistence::{CredentialStatus, Database};
 
 pub use state::BackendStatus;
 
@@ -43,7 +43,7 @@ impl Connector {
     }
 
     pub async fn snapshot(&self) -> BackendStatus {
-        let credential_status = CredentialStore::new(&self.database).status().await;
+        let credential_status = self.database.credential_status().await;
         let state = self.state.lock().expect("Connector state lock poisoned");
         let status = match credential_status {
             Ok(CredentialStatus::Unconfigured) => BackendState::Unconfigured,

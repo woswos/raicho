@@ -11,7 +11,7 @@ use sqlx::{ConnectOptions, SqlitePool, migrate::Migrator};
 
 use crate::error::{Error, Result};
 
-pub use connector_credentials::{CredentialStatus, CredentialStore};
+pub use connector_credentials::CredentialStatus;
 
 pub struct Database {
     pool: SqlitePool,

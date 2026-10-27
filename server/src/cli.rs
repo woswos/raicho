@@ -7,7 +7,7 @@ use raicho_server::credentials::{
     Credential, SERVICE_OWNER, TokenOperation, operate_token_directory, wait_for_connector,
 };
 use raicho_server::error::{Error, Result};
-use raicho_server::persistence::{CredentialStatus, CredentialStore, Database};
+use raicho_server::persistence::{CredentialStatus, Database};
 
 enum Operation {
     Credential(CredentialOperation),
@@ -80,7 +80,7 @@ pub async fn run(arguments: &[OsString]) -> Result<()> {
         }
     };
     let database = Database::open(&Config::data_dir_from_environment()?).await?;
-    let result = execute(operation, &CredentialStore::new(&database)).await;
+    let result = execute(operation, &database).await;
     database.close().await;
     if let Ok(status) = result {
         println!("connector: {status}");
@@ -88,33 +88,33 @@ pub async fn run(arguments: &[OsString]) -> Result<()> {
     result.map(|_| ())
 }
 
-async fn execute(operation: CredentialOperation, store: &CredentialStore<'_>) -> Result<&'static str> {
+async fn execute(operation: CredentialOperation, database: &Database) -> Result<&'static str> {
     match operation {
         CredentialOperation::Initialize(path) => {
-            store.initialize(&Credential::read_file(&path)?).await?;
+            database.initialize_credential(&Credential::read_file(&path)?).await?;
             Ok("initialized")
         }
         CredentialOperation::Rotate { current, replacement } => {
-            store
-                .rotate(&Credential::read_file(&current)?, &Credential::read_file(&replacement)?)
+            database
+                .rotate_credential(&Credential::read_file(&current)?, &Credential::read_file(&replacement)?)
                 .await?;
             Ok("rotated")
         }
         CredentialOperation::Verify(path) => {
-            if !store.verify(&Credential::read_file(&path)?).await? {
+            if !database.verify_credential(&Credential::read_file(&path)?).await? {
                 return Err(Error::message("Connector credential is not active"));
             }
             Ok("verified")
         }
         CredentialOperation::Revoke => {
-            store.revoke().await?;
+            database.revoke_credential().await?;
             Ok("revoked")
         }
         CredentialOperation::Reactivate(path) => {
-            store.reactivate(&Credential::read_file(&path)?).await?;
+            database.reactivate_credential(&Credential::read_file(&path)?).await?;
             Ok("reactivated")
         }
-        CredentialOperation::Status => Ok(match store.status().await? {
+        CredentialOperation::Status => Ok(match database.credential_status().await? {
             CredentialStatus::Unconfigured => "unconfigured",
             CredentialStatus::Active => "active",
             CredentialStatus::Revoked => "revoked",

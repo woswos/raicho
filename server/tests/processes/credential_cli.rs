@@ -3,7 +3,7 @@ use std::os::unix::fs::{MetadataExt, PermissionsExt};
 use std::process::{Command, Output};
 
 use raicho_server::credentials::{Credential, SERVICE_OWNER};
-use raicho_server::persistence::{CredentialStore, Database};
+use raicho_server::persistence::Database;
 use tempfile::tempdir;
 
 fn command(directory: &std::path::Path, arguments: &[&str]) -> Output {
@@ -70,8 +70,8 @@ fn missing_token_and_unknown_arguments_fail_without_echoing_arguments() {
 async fn status_and_revoke_report_the_stored_credential() {
     let directory = tempdir().unwrap();
     let database = Database::open(directory.path()).await.unwrap();
-    CredentialStore::new(&database)
-        .initialize(&Credential::parse(&"a".repeat(64)).unwrap())
+    database
+        .initialize_credential(&Credential::parse(&"a".repeat(64)).unwrap())
         .await
         .unwrap();
     database.close().await;

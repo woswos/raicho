@@ -8,8 +8,6 @@ use raicho_protocol::{Phase, decode_frame};
 use tokio::sync::watch;
 use tokio::time::{Instant, timeout_at};
 
-use crate::persistence::CredentialStore;
-
 use super::handshake::Socket;
 use super::{BACKEND_KIND, Connector, failure::Failure, transport, wire};
 
@@ -40,7 +38,7 @@ pub(super) async fn authenticate(
     if authentication.backend_kind.as_str() != BACKEND_KIND {
         return Err(Failure::new(BackendError::InvalidMessage));
     }
-    let keys = timeout_at(deadline, CredentialStore::new(&connector.database).active_keys())
+    let keys = timeout_at(deadline, connector.database.active_connector_keys())
         .await
         .map_err(|_| Failure::new(BackendError::StorageUnavailable))?
         .map_err(|_| Failure::new(BackendError::StorageUnavailable))?
