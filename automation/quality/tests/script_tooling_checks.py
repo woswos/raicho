@@ -1,13 +1,13 @@
 import unittest
 
-from automation.quality.tests.quality_fixture import QualityFixture
+from automation.quality.tests.project_fixture import ProjectFixture
 
 UNFORMATTED_BASH = '#!/usr/bin/env bash\nif true; then\n  echo ready\nfi\n'
 FORMATTED_BASH = '#!/usr/bin/env bash\nif true; then\n    echo ready\nfi\n'
 UNFORMATTED_PYTHON = 'answer = [1,\n  2]\n'
 
 
-class ScriptToolingChecks(QualityFixture):
+class ScriptToolingChecks(ProjectFixture):
     def test_bash_format_check_reports_and_format_rewrites(self):
         path = self.write('tool.bash', UNFORMATTED_BASH)
         self.check('format-check-bash', successful=False, diagnostic='tool.bash')

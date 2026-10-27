@@ -1,6 +1,6 @@
 import json
 
-from automation.quality.tests.quality_fixture import QualityFixture
+from automation.quality.tests.project_fixture import ProjectFixture
 
 RUST_SOURCE = 'pub fn answer() -> u32 {\n    42\n}\n'
 TYPESCRIPT_SOURCE = 'export const answer = 42;\n'
@@ -8,7 +8,7 @@ CARGO_MANIFEST = '[package]\nname = "quality-fixture"\nversion = "0.1.0"\neditio
 CARGO_LOCK = 'version = 4\n\n[[package]]\nname = "quality-fixture"\nversion = "0.1.0"\n'
 
 
-class ToolingChecks(QualityFixture):
+class ToolingChecks(ProjectFixture):
     def rust_project(self, source=RUST_SOURCE):
         self.write('Cargo.toml', CARGO_MANIFEST)
         self.write('Cargo.lock', CARGO_LOCK)

@@ -22,7 +22,7 @@ class QualityTargetTests(unittest.TestCase):
         self.assertEqual(sorted(make_list(self.makefile, 'QUALITY_TARGETS')), sorted(TARGETS))
 
     def test_every_language_formats_and_checks_alone(self):
-        for language in ('bash', 'python', 'javascript', 'rust', 'sql'):
+        for language in runner.LANGUAGES:
             with self.subTest(language=language):
                 self.assertIn(f'format-{language}', TARGETS)
                 self.assertIn(f'format-check-{language}', TARGETS)
