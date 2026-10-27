@@ -10,31 +10,40 @@ use raicho_server::error::{Error, Result};
 use raicho_server::persistence::{CredentialStatus, CredentialStore, Database};
 
 enum Operation {
+    Credential(CredentialOperation),
+    Files(TokenOperation, PathBuf),
+    Wait,
+}
+
+enum CredentialOperation {
     Initialize(PathBuf),
     Rotate { current: PathBuf, replacement: PathBuf },
     Verify(PathBuf),
     Reactivate(PathBuf),
     Revoke,
     Status,
-    Files(TokenOperation, PathBuf),
-    Wait,
 }
 
 impl Operation {
     fn parse(arguments: &[OsString]) -> Result<Self> {
         match arguments {
-            [command, operation] if command == "connector" && operation == "status" => Ok(Self::Status),
-            [command, operation] if command == "connector" && operation == "revoke" => Ok(Self::Revoke),
+            [command, operation] if command == "connector" && operation == "status" => {
+                Ok(Self::Credential(CredentialOperation::Status))
+            }
+            [command, operation] if command == "connector" && operation == "revoke" => {
+                Ok(Self::Credential(CredentialOperation::Revoke))
+            }
             [command, operation] if command == "connector" && operation == "wait" => Ok(Self::Wait),
             [command, files, operation, directory] if command == "connector" && files == "files" => {
                 let operation = operation.to_str().ok_or_else(usage)?.parse()?;
                 Ok(Self::Files(operation, directory.into()))
             }
             [command, operation, flag, path] if command == "connector" && flag == "--token-file" => {
+                let path = path.into();
                 match operation.to_str() {
-                    Some("init") => Ok(Self::Initialize(path.into())),
-                    Some("verify") => Ok(Self::Verify(path.into())),
-                    Some("reactivate") => Ok(Self::Reactivate(path.into())),
+                    Some("init") => Ok(Self::Credential(CredentialOperation::Initialize(path))),
+                    Some("verify") => Ok(Self::Credential(CredentialOperation::Verify(path))),
+                    Some("reactivate") => Ok(Self::Credential(CredentialOperation::Reactivate(path))),
                     _ => Err(usage()),
                 }
             }
@@ -44,10 +53,10 @@ impl Operation {
                     && replacement_flag == "--token-file"
                     && current_flag == "--current-token-file" =>
             {
-                Ok(Self::Rotate {
+                Ok(Self::Credential(CredentialOperation::Rotate {
                     current: current.into(),
                     replacement: replacement.into(),
-                })
+                }))
             }
             _ => Err(usage()),
         }
@@ -58,8 +67,8 @@ const STATUS_ADDRESS: &str = "raicho:8080";
 const WAIT_TIMEOUT: Duration = Duration::from_secs(90);
 
 pub async fn run(arguments: &[OsString]) -> Result<()> {
-    let operation = Operation::parse(arguments)?;
-    match operation {
+    let operation = match Operation::parse(arguments)? {
+        Operation::Credential(operation) => operation,
         Operation::Files(operation, directory) => {
             println!("{}", operate_token_directory(operation, &directory, SERVICE_OWNER)?);
             return Ok(());
@@ -69,8 +78,7 @@ pub async fn run(arguments: &[OsString]) -> Result<()> {
             println!("Authenticated Thunderbird connection and heartbeat verified");
             return Ok(());
         }
-        _ => {}
-    }
+    };
     let database = Database::open(&Config::data_dir_from_environment()?).await?;
     let result = execute(operation, &CredentialStore::new(&database)).await;
     database.close().await;
@@ -80,38 +88,37 @@ pub async fn run(arguments: &[OsString]) -> Result<()> {
     result.map(|_| ())
 }
 
-async fn execute(operation: Operation, store: &CredentialStore<'_>) -> Result<&'static str> {
+async fn execute(operation: CredentialOperation, store: &CredentialStore<'_>) -> Result<&'static str> {
     match operation {
-        Operation::Initialize(path) => {
+        CredentialOperation::Initialize(path) => {
             store.initialize(&Credential::read_file(&path)?).await?;
             Ok("initialized")
         }
-        Operation::Rotate { current, replacement } => {
+        CredentialOperation::Rotate { current, replacement } => {
             store
                 .rotate(&Credential::read_file(&current)?, &Credential::read_file(&replacement)?)
                 .await?;
             Ok("rotated")
         }
-        Operation::Verify(path) => {
+        CredentialOperation::Verify(path) => {
             if !store.verify(&Credential::read_file(&path)?).await? {
                 return Err(Error::message("Connector credential is not active"));
             }
             Ok("verified")
         }
-        Operation::Revoke => {
+        CredentialOperation::Revoke => {
             store.revoke().await?;
             Ok("revoked")
         }
-        Operation::Reactivate(path) => {
+        CredentialOperation::Reactivate(path) => {
             store.reactivate(&Credential::read_file(&path)?).await?;
             Ok("reactivated")
         }
-        Operation::Status => Ok(match store.status().await? {
+        CredentialOperation::Status => Ok(match store.status().await? {
             CredentialStatus::Unconfigured => "unconfigured",
             CredentialStatus::Active => "active",
             CredentialStatus::Revoked => "revoked",
         }),
-        Operation::Files(..) | Operation::Wait => unreachable!("handled without the database"),
     }
 }
 
