@@ -17,6 +17,7 @@
 !deploy/thunderbird/supervisor.py
 !deploy/thunderbird/health_check.py
 !deploy/thunderbird/policy.py
+!deploy/thunderbird/managed_settings.py
 **/node_modules
 **/dist
 **/__pycache__
