@@ -10,8 +10,7 @@ use crate::{
     raw_json,
 };
 
-#[derive(Clone, Copy, Debug, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Copy, Debug)]
 pub enum Phase {
     Authentication,
     Challenge,

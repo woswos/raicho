@@ -8,7 +8,7 @@ use serde_json::Value;
 #[derive(Deserialize)]
 struct Fixture {
     name: String,
-    phase: Phase,
+    phase: String,
     valid: bool,
     error: Option<String>,
     generation: Option<String>,
@@ -57,14 +57,15 @@ fn verify_fixture(fixture: Fixture, validator: &Validator) -> bool {
         .raw
         .unwrap_or_else(|| serde_json::to_string(&fixture.message.unwrap()).unwrap());
     raw.push_str(&" ".repeat(fixture.padding));
+    let phase = fixture_phase(&fixture.phase);
     let conforms = serde_json::from_str::<Value>(&raw).is_ok_and(|value| validator.is_valid(&value));
-    match decode_frame(&raw, fixture.phase, fixture.generation.as_deref()) {
+    match decode_frame(&raw, phase, fixture.generation.as_deref()) {
         Ok(message) => {
             assert!(fixture.valid, "{} unexpectedly passed", fixture.name);
             assert!(conforms, "{} decodes but violates the schema", fixture.name);
             let serialized = serde_json::to_string(&message).unwrap();
             assert!(
-                decode_frame(&serialized, fixture.phase, fixture.generation.as_deref()).is_ok(),
+                decode_frame(&serialized, phase, fixture.generation.as_deref()).is_ok(),
                 "{} failed after generated type serialization",
                 fixture.name
             );
@@ -75,6 +76,17 @@ fn verify_fixture(fixture: Fixture, validator: &Validator) -> bool {
         }
     }
     conforms
+}
+
+fn fixture_phase(name: &str) -> Phase {
+    match name {
+        "authentication" => Phase::Authentication,
+        "challenge" => Phase::Challenge,
+        "handshake" => Phase::Handshake,
+        "client_control" => Phase::ClientControl,
+        "server_control" => Phase::ServerControl,
+        other => panic!("Unknown fixture phase {other}"),
+    }
 }
 
 #[test]
