@@ -42,6 +42,20 @@
     "raw": "{\"protocol_version\":1,\"protocol_version\":2}"
   },
   {
+    "name": "nested duplicate key in an object",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "raw": "{\"protocol_version\":2,\"extra\":{\"member\":1,\"member\":2}}"
+  },
+  {
+    "name": "nested duplicate key in an array",
+    "phase": "authentication",
+    "valid": false,
+    "error": "invalid_message",
+    "raw": "{\"protocol_version\":2,\"extra\":[{\"member\":1,\"member\":2}]}"
+  },
+  {
     "name": "near integer decimal rounds consistently",
     "phase": "authentication",
     "valid": true,
