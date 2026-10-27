@@ -114,10 +114,21 @@ class DeployCleanTests(CleanupFixture):
         self.addCleanup((state / 'credentials').chmod, 0o700)
         commands, result = self.deploy_clean(*deployment(), answer='raicho\n', status=1)
         removal = next(command for command in commands if command[:1] == ['run'])
-        self.assertIn(f'type=bind,source={state},target=/state', removal)
+        self.assertIn(f'type=bind,source={state / "credentials"},target=/state', removal)
         self.assertIn('raicho-tools:local', removal)
         self.assertNotIn('rm', {command[1] for command in commands if len(command) > 1 and command[0] == 'volume'})
         self.assertIn('run make deploy-clean again', result.stderr)
+
+    def test_the_operation_lock_outlives_the_volumes(self):
+        state = self.state()
+        self.deploy_clean(
+            *deployment(),
+            Response(('volume', '--quiet', f'{PROJECT_FILTER}raicho'), output='raicho_raicho-data\n'),
+            Response(('volume', 'rm', 'raicho_raicho-data'), status=1),
+            answer='raicho\n',
+            status=1,
+        )
+        self.assertEqual([path.name for path in state.iterdir()], ['operation.lock'])
 
     def test_a_failed_docker_listing_stops_before_reporting_or_cleaning(self):
         commands, result = self.deploy_clean(

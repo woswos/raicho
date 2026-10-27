@@ -25,6 +25,21 @@ if [[ -L ${LOCK_PATH} ]] || { [[ -e ${LOCK_PATH} ]] && [[ ! -f ${LOCK_PATH} ]]; 
     fail "${LOCK_PATH} must be a regular file"
 fi
 
+# A subshell keeps the glob options local.
+remove_state_contents() (
+    shopt -s nullglob dotglob
+    for ENTRY in "${STATE_DIRECTORY}"/*; do
+        if [[ ${ENTRY} == "${LOCK_PATH}" ]]; then
+            continue
+        fi
+        if [[ -d ${ENTRY} && ! -L ${ENTRY} ]]; then
+            remove_directory "${ENTRY}" || exit 1
+        else
+            rm -f -- "${ENTRY}" || exit 1
+        fi
+    done
+)
+
 listing() {
     list "${1}" --format "${2}" --filter "label=${PROJECT_LABEL}=${PROJECT}" \
         || fail "could not list the deployment's ${1}s"
@@ -71,10 +86,14 @@ if [[ -d ${STATE_DIRECTORY} ]]; then
     fi
 fi
 docker compose -p "${PROJECT}" -f "${REPOSITORY_ROOT}/compose.yaml" down --remove-orphans
-# Removing the token before the volumes keeps them paired if this step fails.
-if [[ -e ${STATE_DIRECTORY} ]] && ! remove_directory "${STATE_DIRECTORY}"; then
+# Removing the token before the volumes keeps them paired if this step fails. The lock
+# stays until the volumes are gone, so a credential command cannot start on them meanwhile.
+if [[ -e ${STATE_DIRECTORY} ]] && ! remove_state_contents; then
     fail "kept ${STATE_DIRECTORY} and the volumes; fix its file ownership and run make deploy-clean again"
 fi
 remove_project "${PROJECT}"
+if [[ -e ${STATE_DIRECTORY} ]] && ! remove_directory "${STATE_DIRECTORY}"; then
+    fail "removed the volumes but kept ${STATE_DIRECTORY}; remove it and run make deploy-clean again"
+fi
 echo "Removed deployment ${PROJECT}, its volumes, and its state directory"
 clean
