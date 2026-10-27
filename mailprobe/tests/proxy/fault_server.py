@@ -2,6 +2,7 @@ import argparse
 import contextlib
 import socketserver
 import threading
+import traceback
 from pathlib import Path
 
 from mailprobe.tests.proxy.fault_state import FaultState
@@ -21,6 +22,7 @@ class FaultServer(socketserver.ThreadingTCPServer):
     def handle_error(self, _request, _client_address):
         self.state.record('proxy_error')
         print('Fixture mail proxy connection ended unexpectedly', flush=True)
+        traceback.print_exc()
 
 
 def main():
