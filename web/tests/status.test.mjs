@@ -5,9 +5,9 @@ import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
 
 const outputDirectory = process.env.RAICHO_WEB_BUILD_DIR ?? 'web/dist';
-const { parseStatus, StatusResponseError } = await import(pathToFileURL(resolve(outputDirectory, 'status.js')).href);
+const { readStatus } = await import(pathToFileURL(resolve(outputDirectory, 'status.js')).href);
 
-function readyStatus() {
+function readyStatus(backend = {}) {
   return {
     status: 'ready',
     database: { status: 'ready', engine: 'sqlite', version: '3.51.3' },
@@ -17,6 +17,7 @@ function readyStatus() {
       generation: null,
       last_error: null,
       heartbeat_count: 0,
+      ...backend,
     },
     version: '0.1.0',
     commit: 'unknown',
@@ -25,7 +26,7 @@ function readyStatus() {
 
 test('accepts the server contract without claiming a connected backend', () => {
   const response = readyStatus();
-  const parsed = parseStatus(response);
+  const parsed = readStatus(response);
   assert.deepEqual(parsed, {
     ...response,
     backend: { status: 'unconfigured', kind: 'thunderbird', last_error: null },
@@ -33,15 +34,41 @@ test('accepts the server contract without claiming a connected backend', () => {
   assert.notEqual(parsed.database, response.database);
 });
 
-test('rejects response data outside the status contract', () => {
-  assert.throws(
-    () =>
-      parseStatus({
-        ...readyStatus(),
-        extra: { content: 'not diagnostic data' },
-      }),
-    StatusResponseError,
+test('accepts connector states without coupling application readiness', () => {
+  for (const status of ['unconfigured', 'connected', 'disconnected', 'revoked', 'unavailable']) {
+    assert.equal(readStatus(readyStatus({ status })).backend.status, status);
+  }
+});
+
+test('retains fixed diagnostic codes but discards connection internals', () => {
+  const parsed = readStatus(
+    readyStatus({
+      status: 'disconnected',
+      last_error: 'heartbeat_timeout',
+      generation: 'a'.repeat(32),
+      heartbeat_count: 7,
+    }),
   );
+  assert.deepEqual(parsed.backend, {
+    kind: 'thunderbird',
+    status: 'disconnected',
+    last_error: 'heartbeat_timeout',
+  });
+});
+
+test('rejects response data outside the status contract', () => {
+  assert.equal(readStatus({ ...readyStatus(), extra: { content: 'not diagnostic data' } }), undefined);
+});
+
+test('rejects unknown states and arbitrary backend error text safely', () => {
+  for (const backend of [
+    { status: 'unknown' },
+    { status: 'connected', last_error: 'private backend text' },
+    { status: 'disconnected', last_error: 42 },
+    { status: 'revoked', last_error: '<script>private</script>' },
+  ]) {
+    assert.equal(readStatus(readyStatus(backend)), undefined);
+  }
 });
 
 test('rejects absent, malformed, and incompatible status fields', () => {
@@ -63,10 +90,7 @@ test('rejects absent, malformed, and incompatible status fields', () => {
       database: { status: 'ready', engine: 'other', version: '3.51.3' },
     },
     { ...readyStatus(), backend: { status: 'connected', kind: 'thunderbird' } },
-    {
-      ...readyStatus(),
-      backend: { ...readyStatus().backend, kind: 'other' },
-    },
+    readyStatus({ kind: 'other' }),
     { ...readyStatus(), backend: null },
     { ...readyStatus(), version: 1 },
     { ...readyStatus(), version: '' },
@@ -81,19 +105,12 @@ test('rejects absent, malformed, and incompatible status fields', () => {
   invalidResponses.push(missingCommit);
 
   for (const response of invalidResponses) {
-    assert.throws(() => parseStatus(response), StatusResponseError);
+    assert.equal(readStatus(response), undefined);
   }
 });
 
-test('rejects malformed database versions with a safe diagnostic', () => {
+test('rejects malformed database versions', () => {
   for (const version of [undefined, null, 3.51, '', ' ', 'x'.repeat(81)]) {
-    assert.throws(
-      () =>
-        parseStatus({
-          ...readyStatus(),
-          database: { status: 'ready', engine: 'sqlite', version },
-        }),
-      { message: 'Raicho returned an unexpected status response.' },
-    );
+    assert.equal(readStatus({ ...readyStatus(), database: { status: 'ready', engine: 'sqlite', version } }), undefined);
   }
 });

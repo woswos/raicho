@@ -2,9 +2,9 @@ import type { ApplicationStatus } from './status.js';
 import { describeBackend } from './backend_view.js';
 
 function element(id: string): HTMLElement {
-  const result = document.getElementById(id);
-  if (!result) throw new Error(`Missing diagnostic element: ${id}`);
-  return result;
+  const found = document.getElementById(id);
+  if (!found) throw new Error(`Missing diagnostic element: ${id}`);
+  return found;
 }
 
 export function createStatusView() {
@@ -18,11 +18,10 @@ export function createStatusView() {
   const backendDescription = element('backend-description');
   const lastChecked = element('last-checked');
   const announcement = element('announcement');
-  const refreshControl = element('refresh');
-  if (!(refreshControl instanceof HTMLButtonElement)) {
+  const refreshButton = element('refresh');
+  if (!(refreshButton instanceof HTMLButtonElement)) {
     throw new Error('Diagnostic refresh control is not a button.');
   }
-  const refreshButton = refreshControl;
 
   function finish(state: string, message: string, announced = message) {
     summary.dataset['state'] = state;
@@ -40,8 +39,8 @@ export function createStatusView() {
   function onStatus(status: ApplicationStatus) {
     const backend = describeBackend(status.backend);
     const ready = status.status === 'ready';
-    const summary = ready ? 'Raicho is ready' : 'Raicho is running but cannot use its database';
-    finish(ready ? 'ready' : 'error', summary, `${summary}. Thunderbird: ${backend.label}.`);
+    const summaryLabel = ready ? 'Raicho is ready' : 'Raicho is running but cannot use its database';
+    finish(ready ? 'ready' : 'error', summaryLabel, `${summaryLabel}. Thunderbird: ${backend.label}.`);
     serverStatus.textContent = ready ? 'Ready' : 'Not ready';
     serverStatus.dataset['state'] = ready ? 'ready' : 'error';
     databaseStatus.textContent = status.database.status === 'ready' ? 'Ready' : 'Unavailable';
