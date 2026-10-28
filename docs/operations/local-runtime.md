@@ -122,9 +122,9 @@ with an error. After removing the deployment, or finding nothing to remove, it
 runs every `make clean` step. Images stay, so `make deploy-up` starts a fresh,
 unconfigured deployment.
 
-It refuses the `raicho-tools` project, a state directory that is a symlink or is
-not owned by you with mode 0700, and a deployment whose operation lock a
-credential command holds. It stops the services first, then removes the state
+It refuses the `raicho-tools` project, a state directory that is a symlink, is
+not owned by you with mode 0700, or holds another deployment's state, and a
+deployment whose operation lock a credential command holds. It stops the services first, then removes the state
 directory's contents, and only then the volumes. If those contents cannot be
 removed, the volumes stay paired with them. Fix the reported ownership and run
 `make deploy-clean` again. It holds the operation lock and keeps its file until the

@@ -146,6 +146,17 @@ class DeployCleanTests(CleanupFixture):
         self.deploy_clean(*deployment(), Response(('compose', 'down'), status=1), answer='raicho\n', status=1)
         self.assertEqual([path.name for path in state.iterdir()], ['operation.lock'])
 
+    def test_nested_deployment_state_is_refused_before_listing(self):
+        state = self.state()
+        nested = state / 'credentials/nested'
+        nested.mkdir()
+        (nested / 'operation.lock').write_text('')
+        (nested / 'connector.token').write_text('nested secret\n')
+        commands, result = self.deploy_clean(*deployment(), answer='raicho\n', status=1)
+        self.assertIn("holds another deployment's state", result.stderr)
+        self.assertEqual(commands, [])
+        self.assertTrue((nested / 'connector.token').exists())
+
     def test_a_failed_docker_listing_stops_before_reporting_or_cleaning(self):
         commands, result = self.deploy_clean(
             Response(('container', '--format', '{{.Names}}', f'{PROJECT_FILTER}raicho'), status=1), status=1

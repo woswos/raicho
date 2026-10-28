@@ -24,6 +24,12 @@ LOCK_PATH="${STATE_DIRECTORY}/operation.lock"
 if [[ -L ${LOCK_PATH} ]] || { [[ -e ${LOCK_PATH} ]] && [[ ! -f ${LOCK_PATH} ]]; }; then
     fail "${LOCK_PATH} must be a regular file"
 fi
+# Every state directory belongs to its caller, so another deployment's state can only sit where
+# the caller can read, and directories the caller cannot read are safe to skip.
+NESTED_LOCK="$(find "${STATE_DIRECTORY}" -mindepth 2 -name operation.lock -print -quit 2>/dev/null || true)"
+if [[ -n ${NESTED_LOCK} ]]; then
+    fail "${STATE_DIRECTORY} holds another deployment's state in ${NESTED_LOCK%/operation.lock}"
+fi
 
 # A subshell keeps the glob options local.
 remove_state_contents() (
@@ -95,7 +101,8 @@ fi
 if ! remove_project "${PROJECT}"; then
     fail "could not remove every resource of ${PROJECT}; run make deploy-clean again"
 fi
-if [[ -e ${STATE_DIRECTORY} ]] && ! remove_directory "${STATE_DIRECTORY}"; then
+# Only the lock remains, so non-recursive removal cannot reach anything created meanwhile.
+if ! { rm -f -- "${LOCK_PATH}" && rmdir -- "${STATE_DIRECTORY}"; }; then
     fail "removed the volumes but kept ${STATE_DIRECTORY}; remove it and run make deploy-clean again"
 fi
 echo "Removed deployment ${PROJECT}, its volumes, and its state directory"
