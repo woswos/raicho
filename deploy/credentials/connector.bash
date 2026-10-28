@@ -22,7 +22,8 @@ if [[ ${RAICHO_COMPOSE_TEST:-0} != 0 && ${PROJECT} != raicho-credentials-* && ${
     exit 1
 fi
 # make deploy-clean deletes everything inside a deployment's state directory, so state cannot nest.
-PARENT="$(dirname -- "${STATE_DIRECTORY}")"
+# The walk follows the physical path, so a symlinked parent cannot hide another deployment.
+PARENT="$(dirname -- "$(realpath -m -- "${STATE_DIRECTORY}")")"
 while [[ ${PARENT} != / ]]; do
     if [[ -e ${PARENT}/operation.lock ]]; then
         echo "FAIL: ${STATE_DIRECTORY} is inside another deployment's state directory ${PARENT}" >&2

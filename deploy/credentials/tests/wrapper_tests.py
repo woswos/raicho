@@ -80,6 +80,19 @@ class ConnectorWrapperTests(unittest.TestCase):
         self.assertEqual(self.docker.commands(), [])
         self.assertFalse(nested.exists())
 
+    def test_a_symlinked_parent_cannot_hide_another_deployment(self):
+        outer = self.directory / 'outer'
+        (outer / 'sub').mkdir(mode=0o700, parents=True)
+        (outer / 'operation.lock').write_text('')
+        link = self.directory / 'link'
+        link.symlink_to(outer / 'sub')
+        self.state = link / 'nested'
+        result = self.run_wrapper()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("inside another deployment's state", result.stderr)
+        self.assertEqual(self.docker.commands(), [])
+        self.assertFalse((outer / 'sub/nested').exists())
+
     def test_existing_private_lock_content_survives_stop_failure(self):
         lock = self.state / 'operation.lock'
         lock.write_text('existing lock content\n')
