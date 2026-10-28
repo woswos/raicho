@@ -17,27 +17,21 @@ HOST_TARGETS := images acceptance acceptance-runtime acceptance-connector accept
     acceptance-mail clean mrproper $(DEPLOYMENT_TARGETS)
 
 ifneq ($(findstring xterm,${TERM}),)
-    override COLOR_BLACK := $(shell tput -Txterm setaf 0)
     override COLOR_RED := $(shell tput -Txterm setaf 1)
     override COLOR_GREEN := $(shell tput -Txterm setaf 2)
     override COLOR_YELLOW := $(shell tput -Txterm setaf 3)
     override COLOR_BLUE := $(shell tput -Txterm setaf 4)
-    override COLOR_PURPLE := $(shell tput -Txterm setaf 5)
     override COLOR_CYAN := $(shell tput -Txterm setaf 6)
-    override COLOR_WHITE := $(shell tput -Txterm setaf 7)
     override COLOR_RESET := $(shell tput -Txterm sgr0)
 else
-    override COLOR_BLACK :=
     override COLOR_RED :=
     override COLOR_GREEN :=
     override COLOR_YELLOW :=
     override COLOR_BLUE :=
-    override COLOR_PURPLE :=
     override COLOR_CYAN :=
-    override COLOR_WHITE :=
     override COLOR_RESET :=
 endif
-export COLOR_BLACK COLOR_RED COLOR_GREEN COLOR_YELLOW COLOR_BLUE COLOR_PURPLE COLOR_CYAN COLOR_WHITE COLOR_RESET
+export COLOR_RED COLOR_GREEN COLOR_YELLOW COLOR_BLUE COLOR_CYAN COLOR_RESET
 STEP := bash $(REPOSITORY_ROOT)automation/tooling/step.bash
 
 .DEFAULT_GOAL := lint
