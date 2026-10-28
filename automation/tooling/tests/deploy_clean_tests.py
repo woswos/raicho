@@ -164,6 +164,7 @@ class DeployCleanTests(CleanupFixture):
         self.assertEqual(commands, [])
         self.assertTrue((nested / 'connector.token').exists())
 
+    @unittest.skipIf(os.geteuid() == 0, 'root ignores directory permissions')
     def test_an_unreadable_directory_of_the_caller_stops_the_scan(self):
         state = self.state()
         hidden = state / 'hidden'
