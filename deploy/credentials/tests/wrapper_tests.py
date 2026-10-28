@@ -1,3 +1,4 @@
+import fcntl
 import os
 import stat
 import struct
@@ -46,6 +47,7 @@ class ConnectorWrapperTests(unittest.TestCase):
                 RAICHO_PROJECT='raicho-wrapper-test',
                 RAICHO_STATE_DIRECTORY=str(self.state),
                 RAICHO_COMPOSE_TEST='0',
+                TMPDIR=str(self.directory),
             ),
             capture_output=True,
             text=True,
@@ -92,6 +94,17 @@ class ConnectorWrapperTests(unittest.TestCase):
         self.assertIn("inside another deployment's state", result.stderr)
         self.assertEqual(self.docker.commands(), [])
         self.assertFalse((outer / 'sub/nested').exists())
+
+    def test_a_held_state_lock_blocks_the_wrapper(self):
+        layout = self.directory / f'raicho-state-{os.getuid()}'
+        layout.mkdir(mode=0o700)
+        with (layout / 'layout.lock').open('a') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            result = self.run_wrapper()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('another credential or deploy-clean command', result.stderr)
+        self.assertEqual(self.docker.commands(), [])
+        self.assertFalse((self.state / 'operation.lock').exists())
 
     def test_existing_private_lock_content_survives_stop_failure(self):
         lock = self.state / 'operation.lock'

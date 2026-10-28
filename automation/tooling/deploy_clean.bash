@@ -4,6 +4,8 @@ set -euo pipefail
 
 # shellcheck source=automation/tooling/clean.bash
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/clean.bash"
+# shellcheck source=deploy/credentials/state_lock.bash
+source "${REPOSITORY_ROOT}/deploy/credentials/state_lock.bash"
 
 fail() {
     echo "FAIL: ${1}" >&2
@@ -24,17 +26,35 @@ LOCK_PATH="${STATE_DIRECTORY}/operation.lock"
 if [[ -L ${LOCK_PATH} ]] || { [[ -e ${LOCK_PATH} ]] && [[ ! -f ${LOCK_PATH} ]]; }; then
     fail "${LOCK_PATH} must be a regular file"
 fi
+STATE_EXISTED=false
+if [[ -e ${STATE_DIRECTORY} ]]; then
+    STATE_EXISTED=true
+fi
+# The shared lock covers the scan and this deployment's own lock, so a credential command cannot
+# claim state inside it until the removal ends. A missing state directory only holds the lock.
+umask 077
+lock_state_layout
+mkdir -p -- "${STATE_DIRECTORY}"
+exec {LOCK_DESCRIPTOR}>>"${LOCK_PATH}"
+if ! flock --exclusive --nonblock "${LOCK_DESCRIPTOR}"; then
+    fail 'a credential operation is running'
+fi
 # Every state directory belongs to its caller, so the scan skips only what the caller neither owns
 # nor can read, such as the UID-10001 token directory, and fails on anything else it cannot read.
-NESTED_LOCK=''
-if [[ -e ${STATE_DIRECTORY} ]]; then
-    NESTED_LOCK="$(find "${STATE_DIRECTORY}" -mindepth 1 \( ! -user "$(id -u)" ! -readable -prune \) \
-        -o \( -name operation.lock ! -path "${LOCK_PATH}" -print -quit \))" \
-        || fail "could not inspect ${STATE_DIRECTORY} for another deployment's state"
-fi
+NESTED_LOCK="$(find "${STATE_DIRECTORY}" -mindepth 1 \( ! -user "$(id -u)" ! -readable -prune \) \
+    -o \( -name operation.lock ! -path "${LOCK_PATH}" -print -quit \))" \
+    || fail "could not inspect ${STATE_DIRECTORY} for another deployment's state"
 if [[ -n ${NESTED_LOCK} ]]; then
     fail "${STATE_DIRECTORY} holds another deployment's state in ${NESTED_LOCK%/operation.lock}"
 fi
+unlock_state_layout
+
+forget_created_state() {
+    if [[ ${STATE_EXISTED} == false ]]; then
+        rm -f -- "${LOCK_PATH}"
+        rmdir -- "${STATE_DIRECTORY}"
+    fi
+}
 
 # A subshell keeps the glob options local.
 remove_state_contents() (
@@ -63,7 +83,8 @@ VOLUME_NAMES="$(listing volume '{{.Name}}')"
 mapfile -t CONTAINERS < <(printf '%s' "${CONTAINER_NAMES}")
 mapfile -t NETWORKS < <(printf '%s' "${NETWORK_NAMES}")
 mapfile -t VOLUMES < <(printf '%s' "${VOLUME_NAMES}")
-if ((${#CONTAINERS[@]} + ${#NETWORKS[@]} + ${#VOLUMES[@]} == 0)) && [[ ! -e ${STATE_DIRECTORY} ]]; then
+if ((${#CONTAINERS[@]} + ${#NETWORKS[@]} + ${#VOLUMES[@]} == 0)) && [[ ${STATE_EXISTED} == false ]]; then
+    forget_created_state
     echo "Deployment ${PROJECT} has nothing to remove"
     clean
     exit 0
@@ -79,28 +100,21 @@ done
 for VOLUME in "${VOLUMES[@]}"; do
     echo "  volume ${VOLUME}"
 done
-if [[ -e ${STATE_DIRECTORY} ]]; then
+if [[ ${STATE_EXISTED} == true ]]; then
     echo "  state directory ${STATE_DIRECTORY}, including the connector token"
 fi
 ANSWER=''
 read -r -p "Type ${PROJECT} to confirm: " ANSWER || true
 if [[ ${ANSWER} != "${PROJECT}" ]]; then
+    forget_created_state
     echo 'Cancelled. Nothing was removed.' >&2
     exit 1
 fi
 
-# A missing state directory is created only to hold the lock, so a credential command
-# cannot start on the deployment while it is removed.
-umask 077
-mkdir -p -- "${STATE_DIRECTORY}"
-exec {LOCK_DESCRIPTOR}>>"${LOCK_PATH}"
-if ! flock --exclusive --nonblock "${LOCK_DESCRIPTOR}"; then
-    fail 'a credential operation is running'
-fi
 docker compose -p "${PROJECT}" -f "${REPOSITORY_ROOT}/compose.yaml" down --remove-orphans
 # Removing the token before the volumes keeps them paired if this step fails. The lock
 # stays until the volumes are gone, so a credential command cannot start on them meanwhile.
-if [[ -e ${STATE_DIRECTORY} ]] && ! remove_state_contents; then
+if ! remove_state_contents; then
     fail "kept ${STATE_DIRECTORY} and the volumes; fix its file ownership and run make deploy-clean again"
 fi
 if ! remove_project "${PROJECT}"; then

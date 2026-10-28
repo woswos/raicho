@@ -41,6 +41,10 @@ their health checks, and require an authenticated heartbeat within 90 seconds.
 recreation itself has already begun. Fix the reported failure before restarting.
 The helper holds a deployment operation lock for the entire sequence. SQLite's
 instance lock independently rejects provisioning while another process owns it.
+Before taking that lock, the helper and `make deploy-clean` check for overlapping
+state directories under one per-user lock in `${TMPDIR:-/tmp}/raicho-state-<uid>/`,
+so run them with the same `TMPDIR`. A command that finds this lock taken fails and
+can be run again.
 
 `compose.credentials.yaml` adds offline provisioning services and mounts
 the token read-only into Thunderbird. It configures the fixed internal gateway

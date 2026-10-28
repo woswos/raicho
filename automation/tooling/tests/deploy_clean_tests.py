@@ -1,8 +1,10 @@
 import fcntl
 import os
+import subprocess
+import time
 import unittest
 
-from automation.testing.docker_mock import Response
+from automation.testing.docker_mock import DockerMock, Response
 from automation.tooling.tests.cleanup_fixture import PROJECT_FILTER, CleanupFixture
 
 NAMES = '{{.Name}}'
@@ -181,6 +183,52 @@ class DeployCleanTests(CleanupFixture):
         self.assertEqual(compose(commands), [])
         self.assertIn(CACHE_REMOVAL, commands)
         self.assertIn('Deployment raicho has nothing to remove', result.stdout)
+        self.assertFalse((self.root / '.raicho/raicho').exists())
+
+    def test_a_cancel_leaves_no_new_state_directory(self):
+        self.deploy_clean(*deployment(), answer='no\n', status=1)
+        self.assertFalse((self.root / '.raicho/raicho').exists())
+
+    def test_a_held_state_lock_blocks_deploy_clean(self):
+        layout = self.temporary / f'raicho-state-{os.getuid()}'
+        layout.mkdir(mode=0o700)
+        with (layout / 'layout.lock').open('a') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            commands, result = self.deploy_clean(*deployment(), answer='raicho\n', status=1)
+        self.assertEqual(commands, [])
+        self.assertIn('another credential or deploy-clean command', result.stderr)
+
+    def test_a_credential_command_cannot_claim_state_during_the_prompt(self):
+        state = self.root / '.raicho/raicho'
+        docker = DockerMock(self.directory / 'commands', deployment())
+        cleaner = subprocess.Popen(
+            ['bash', str(self.root / 'automation/tooling/deploy_clean.bash')],
+            env=docker.environment(TMPDIR=str(self.temporary)),
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        self.addCleanup(cleaner.kill)
+        deadline = time.monotonic() + 10
+        while not any(command[:2] == ['volume', 'ls'] for command in docker.commands()):
+            self.assertLess(time.monotonic(), deadline, 'deploy-clean never listed the deployment')
+            time.sleep(0.05)
+        wrapper = subprocess.run(
+            ['bash', str(self.root / 'deploy/credentials/connector.bash'), 'status'],
+            env=docker.environment(
+                TMPDIR=str(self.temporary), RAICHO_PROJECT='raicho-child', RAICHO_STATE_DIRECTORY=str(state / 'child')
+            ),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(wrapper.returncode, 0)
+        self.assertIn("inside another deployment's state", wrapper.stderr)
+        self.assertFalse((state / 'child').exists())
+        cleaner.communicate('no\n', timeout=10)
+        self.assertEqual(cleaner.returncode, 1)
+        self.assertFalse(state.exists())
 
 
 if __name__ == '__main__':

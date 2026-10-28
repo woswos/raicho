@@ -5,6 +5,8 @@ set -euo pipefail
 SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPOSITORY_ROOT="$(cd "${SCRIPT_DIRECTORY}/../.." && pwd)"
 cd "${REPOSITORY_ROOT}"
+# shellcheck source=deploy/credentials/state_lock.bash
+source "${SCRIPT_DIRECTORY}/state_lock.bash"
 
 OPERATION="${1:-}"
 if [[ ${#} != 1 || ! ${OPERATION} =~ ^(init|rotate|reactivate|revoke|verify|status)$ ]]; then
@@ -21,6 +23,8 @@ if [[ ${RAICHO_COMPOSE_TEST:-0} != 0 && ${PROJECT} != raicho-credentials-* && ${
     echo 'FAIL: the test override requires a disposable raicho-credentials- or raicho-connector- project' >&2
     exit 1
 fi
+umask 077
+lock_state_layout
 # make deploy-clean deletes everything inside a deployment's state directory, so state cannot nest.
 # The walk follows the physical path, so a symlinked parent cannot hide another deployment.
 PARENT="$(dirname -- "$(realpath -m -- "${STATE_DIRECTORY}")")"
@@ -31,7 +35,6 @@ while [[ ${PARENT} != / ]]; do
     fi
     PARENT="$(dirname -- "${PARENT}")"
 done
-umask 077
 mkdir -p -- "${STATE_DIRECTORY}"
 if [[ $(stat -c '%u:%a' -- "${STATE_DIRECTORY}") != "$(id -u):700" ]]; then
     echo 'FAIL: state directory must belong to the caller and use mode 0700' >&2
@@ -50,6 +53,7 @@ if ! flock --exclusive --nonblock "${LOCK_DESCRIPTOR}"; then
     echo 'FAIL: another credential operation is running' >&2
     exit 1
 fi
+unlock_state_layout
 STATE_DIRECTORY="$(cd "${STATE_DIRECTORY}" && pwd -P)"
 export RAICHO_CREDENTIAL_DIRECTORY="${STATE_DIRECTORY}/credentials"
 if [[ -L ${RAICHO_CREDENTIAL_DIRECTORY} ]]; then

@@ -9,7 +9,13 @@ from automation.testing.docker_mock import DockerMock
 
 PROJECT_FORMAT = '{{.Label "com.docker.compose.project"}}'
 PROJECT_FILTER = 'label=com.docker.compose.project='
-SCRIPTS = ('clean.bash', 'mrproper.bash', 'deploy_clean.bash')
+SCRIPTS = (
+    'automation/tooling/clean.bash',
+    'automation/tooling/mrproper.bash',
+    'automation/tooling/deploy_clean.bash',
+    'deploy/credentials/connector.bash',
+    'deploy/credentials/state_lock.bash',
+)
 
 
 class CleanupFixture(unittest.TestCase):
@@ -18,10 +24,9 @@ class CleanupFixture(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         self.directory = Path(temporary.name)
         self.root = self.directory / 'repository'
-        tooling = self.root / 'automation/tooling'
-        tooling.mkdir(parents=True)
         for script in SCRIPTS:
-            shutil.copyfile(REPOSITORY_ROOT / 'automation/tooling' / script, tooling / script)
+            (self.root / script).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(REPOSITORY_ROOT / script, self.root / script)
         shutil.copyfile(REPOSITORY_ROOT / '.gitignore', self.root / '.gitignore')
         subprocess.run(['git', 'init', '-q'], cwd=self.root, check=True)
         self.temporary = self.directory / 'tmp'

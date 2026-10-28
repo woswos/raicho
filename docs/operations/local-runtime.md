@@ -124,11 +124,14 @@ unconfigured deployment.
 
 It refuses the `raicho-tools` project, a state directory that is a symlink, is
 not owned by you with mode 0700, or holds another deployment's state, and a
-deployment whose operation lock a credential command holds. It stops the services first, then removes the state
-directory's contents, and only then the volumes. If those contents cannot be
-removed, the volumes stay paired with them. Fix the reported ownership and run
-`make deploy-clean` again. It holds the operation lock and keeps its file until the
-volumes are gone, so a credential command started meanwhile cannot claim them.
+deployment whose operation lock a credential command holds. It takes that lock
+before listing anything, creating an empty state directory to hold it when none
+exists, and keeps the lock file until the volumes are gone, so a credential
+command cannot claim the deployment or state inside it meanwhile. Cancelling, or
+finding nothing to remove, deletes a state directory it created. It stops the
+services first, then removes the state directory's contents, and only then the
+volumes. If those contents cannot be removed, the volumes stay paired with them.
+Fix the reported ownership and run `make deploy-clean` again.
 
 ## Disposable automated checks
 
