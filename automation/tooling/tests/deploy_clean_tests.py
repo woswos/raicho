@@ -130,6 +130,17 @@ class DeployCleanTests(CleanupFixture):
         )
         self.assertEqual([path.name for path in state.iterdir()], ['operation.lock'])
 
+    def test_a_failed_removal_listing_keeps_the_lock_and_fails(self):
+        state = self.state()
+        _, result = self.deploy_clean(
+            *deployment(),
+            Response(('volume', '--quiet', f'{PROJECT_FILTER}raicho'), status=1),
+            answer='raicho\n',
+            status=1,
+        )
+        self.assertIn('FAIL:', result.stderr)
+        self.assertEqual([path.name for path in state.iterdir()], ['operation.lock'])
+
     def test_a_failed_docker_listing_stops_before_reporting_or_cleaning(self):
         commands, result = self.deploy_clean(
             Response(('container', '--format', '{{.Names}}', f'{PROJECT_FILTER}raicho'), status=1), status=1

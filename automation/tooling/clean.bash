@@ -37,16 +37,17 @@ list() {
 }
 
 remove_project() {
-    local PROJECT="${1}" KIND IDS
+    local PROJECT="${1}" KIND LISTED IDS
     for KIND in container volume network; do
-        mapfile -t IDS < <(list "${KIND}" --quiet --filter "label=${PROJECT_LABEL}=${PROJECT}")
+        LISTED="$(list "${KIND}" --quiet --filter "label=${PROJECT_LABEL}=${PROJECT}")" || return 1
+        mapfile -t IDS < <(printf '%s' "${LISTED}")
         if ((${#IDS[@]} == 0)); then
             continue
         fi
         if [[ ${KIND} == container ]]; then
-            docker container rm --force "${IDS[@]}" >/dev/null
+            docker container rm --force "${IDS[@]}" >/dev/null || return 1
         else
-            docker "${KIND}" rm "${IDS[@]}" >/dev/null
+            docker "${KIND}" rm "${IDS[@]}" >/dev/null || return 1
         fi
     done
 }

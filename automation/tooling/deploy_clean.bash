@@ -91,7 +91,9 @@ docker compose -p "${PROJECT}" -f "${REPOSITORY_ROOT}/compose.yaml" down --remov
 if [[ -e ${STATE_DIRECTORY} ]] && ! remove_state_contents; then
     fail "kept ${STATE_DIRECTORY} and the volumes; fix its file ownership and run make deploy-clean again"
 fi
-remove_project "${PROJECT}"
+if ! remove_project "${PROJECT}"; then
+    fail "could not remove every resource of ${PROJECT}; run make deploy-clean again"
+fi
 if [[ -e ${STATE_DIRECTORY} ]] && ! remove_directory "${STATE_DIRECTORY}"; then
     fail "removed the volumes but kept ${STATE_DIRECTORY}; remove it and run make deploy-clean again"
 fi
