@@ -19,14 +19,14 @@ docker compose --env-file .env config --quiet
 
 ## Start and inspect
 
-From the repository root:
+From the repository root, `make deploy` prints an overview of the deployment
+targets and the deployment they would act on. To start it:
 
 ```bash
-docker compose config --quiet
-docker compose build
-docker compose up -d --wait
+make deploy-up
 ```
 
+`deploy-up` builds the runtime images, then runs `docker compose up -d --wait`.
 Open <http://127.0.0.1:8080>. Expect a ready application and an unconfigured
 Thunderbird connector. No viewer is needed to start Thunderbird.
 
@@ -37,31 +37,31 @@ restart sequence, then verify an authenticated heartbeat.
 For explicit administration:
 
 ```bash
-docker compose -f compose.yaml -f compose.admin.yaml up -d --wait
+make deploy-admin
 ```
 
 Open <http://127.0.0.1:6080/vnc.html?autoconnect=true&resize=remote>. This is the
 native Thunderbird desktop for setup and recovery. Foundation checks use empty
-profiles and no provider credentials. To disable the administrative listener:
+profiles and no provider credentials. `make deploy-up` disables the
+administrative listener again, because Compose recreates Thunderbird without it.
 
-```bash
-docker compose up -d --force-recreate thunderbird
-```
-
-For an enrolled deployment, include `compose.credentials.yaml` in both
-administration commands and set `RAICHO_CREDENTIAL_DIRECTORY` to that deployment's
-absolute `credentials/` directory. Omitting the credentials override when
-recreating Thunderbird disables its connector configuration.
+Once a deployment has a `credentials/` directory in its state directory, the
+`deploy-` targets add `compose.credentials.yaml` and set
+`RAICHO_CREDENTIAL_DIRECTORY` themselves. When running Compose directly instead,
+include both, because recreating Thunderbird without the credentials override
+disables its connector configuration.
 
 Inspect failures with `docker compose logs` and
 `docker compose ps`. To stop while retaining both volumes:
 
 ```bash
-docker compose down
+make deploy-down
 ```
 
-`make clean` removes development leftovers and rebuildable images without stopping
-this deployment or touching its volumes. See
+`make clean` removes development leftovers without stopping this deployment,
+removing its images, or touching its volumes. `make mrproper` also stops and
+removes this deployment's containers and every project image, but keeps its
+volumes and `.raicho/`. Run `make images` before starting it again. See
 [build commands](../reference/build-test-generate.md#clean).
 
 For another deployment, choose its own project name and host ports. Exporting
@@ -71,7 +71,7 @@ For example, in a separate shell:
 
 ```bash
 export COMPOSE_PROJECT_NAME=raicho-second RAICHO_PORT=8081 RAICHO_ADMIN_PORT=6081
-docker compose up -d --wait
+make deploy-up
 ```
 
 ## Upgrade
@@ -81,12 +81,10 @@ together, because the connector protocol version must match exactly. After
 updating the checkout, rebuild and recreate both from the repository root:
 
 ```bash
-docker compose build
-docker compose up -d --wait
+make deploy-up
 ```
 
-For an enrolled deployment, include `compose.credentials.yaml` and set
-`RAICHO_CREDENTIAL_DIRECTORY` for the `up` command, as for administration. Until
+Until
 both containers run the new images, a connector speaking another protocol version
 fails before authentication with `incompatible_version` and keeps retrying. No
 session state carries across the upgrade. See the
@@ -101,14 +99,39 @@ are never edited. For a development deployment, remove the volume and provision
 again:
 
 ```bash
-docker compose down
-docker volume rm "${COMPOSE_PROJECT_NAME:-raicho}_raicho-data"
-docker compose up -d --wait
-bash deploy/credentials/connector.bash init
+make deploy-down
+docker volume rm "${RAICHO_PROJECT:-${COMPOSE_PROJECT_NAME:-raicho}}_raicho-data"
+make deploy-up
+make deploy-connector-init
 ```
 
 This deletes Raicho's application state, including the connector credential.
 Thunderbird's profile volume is untouched.
+
+## Remove a deployment
+
+```bash
+make deploy-clean
+```
+
+`deploy-clean` permanently deletes the selected deployment: its containers,
+networks, both volumes, including the Thunderbird profile, and its state directory
+with the connector token. It lists what it found and asks you to type the project
+name. Any other answer, or no input, cancels without removing anything and exits
+with an error. After removing the deployment, or finding nothing to remove, it
+runs every `make clean` step. Images stay, so `make deploy-up` starts a fresh,
+unconfigured deployment.
+
+It refuses the `raicho-tools` project, a state directory that is a symlink, is
+not owned by you with mode 0700, or holds another deployment's state, and a
+deployment that a credential command is changing. It also refuses a state
+directory without a `project` file that names the selected project. Credential
+commands write that file, so run `make deploy-connector-status` once for a state
+directory created before them. It removes the state directory's contents before
+the volumes, so a failure keeps the connector token paired with its database. Fix
+the reported problem and run `make deploy-clean` again. The
+[credential runbook](connector-credentials.md) describes the locks it shares with
+credential commands.
 
 ## Disposable automated checks
 

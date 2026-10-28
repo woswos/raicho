@@ -24,31 +24,53 @@ make lint test
 
 Output stays short when commands succeed. Docker builds, Cargo, and the acceptance
 suites' Docker commands print no progress. Each Rust, Node, and Python suite
-prints one summary line, and the patch coverage gate only its totals. Formatters print only problems, except that shfmt lists the
-files it rewrites. Guards still print one passed line each, and failures print
-in full. Add `VERBOSE=1`, as in `make VERBOSE=1 build`, to restore Docker and
-Cargo progress and live Rust test output.
+prints one summary line, and the patch coverage gate only its totals. Formatters
+and linters print only problems, except that shfmt lists the files it rewrites.
+Guards still print one passed line each, and failures print in full.
+
+Add `VERBOSE=1`, as in `make VERBOSE=1 lint`, to restore each tool's normal
+output. The host passes it into the tooling container, where `automation/output.py`
+drops the quiet flags of Ruff, SQLFluff, and Prettier. Node suites then use the
+standard `spec` reporter, Python suites list every test, the patch coverage gate
+prints its whole report, and Docker and Cargo show their progress. Python tests
+run without `VERBOSE`, so its value cannot change what they check.
+
+Each step prints one line when it starts and one with its duration when it
+finishes, such as `building server` and `built server, took 12 seconds`. A failed
+step prints `building server failed after 3 seconds` and keeps the command's exit
+status. Aggregate targets such as `build` print only their steps' lines.
+`automation/tooling/step.bash` writes these lines, colored when `TERM` names an
+xterm terminal.
 
 | Target | Behavior |
 | --- | --- |
 | `build` | Tooling image, server, web page, and extension builds, then the runtime images |
 | `test` | Every source suite: Python, tooling fixtures, server, web, extension, mail probe, and protocol |
-| `lint` | Repository guards, language linters, formatting and type checks, and protocol generation drift |
+| `lint` | Repository guards, language linters, spelling, formatting and type checks, and protocol generation drift |
 | `format` | Rewrite files in the documented formatting scope |
 | `generate` | Regenerate the committed protocol outputs |
 | `coverage` | Line coverage of the source suites |
 | `check-patch-coverage` | Fail when changed lines are below the coverage threshold |
+| `benchmark` | Rust benchmarks, each compared with its previous run |
 | `images` | Runtime images only |
+| `deploy` | Print the deployment guide and the selected deployment's project, state directory, enrollment, and address, colored on xterm terminals |
+| `deploy-up` | Build the runtime images, then start or upgrade the deployment, on the host |
+| `deploy-admin` | `deploy-up` with the Thunderbird desktop, on the host |
+| `deploy-down` | Stop the deployment and keep its volumes, on the host |
+| `deploy-clean` | After you confirm, delete the deployment with its volumes and state directory, then run `clean`, on the host |
+| `deploy-connector-<command>` | Build the runtime images, then run that [credential command](../operations/connector-credentials.md), on the host |
 | `acceptance` | Every disposable deployment suite, on the host |
-| `clean` | Remove ignored build output, interrupted acceptance runs, and this project's images, on the host |
+| `clean` | Remove ignored build output, interrupted acceptance runs, and the tooling cache, on the host |
+| `mrproper` | `clean`, plus every Raicho container, network, and image, keeping deployment data, on the host |
 | `lint-pr` | PR metadata, design/decision policy, and changelog guard |
 
 Component targets run one piece of those: `build-server`, `build-web`,
 `build-extension`, `test-server`, `test-web`, `test-extension`, `test-mailprobe`,
 `test-protocol`, `test-python`, and `test-tooling`; `lint-repo`, `lint-bash`,
-`lint-python`, `lint-javascript`, `lint-typescript`, `lint-rust`, and `lint-sql`;
-`format` and `format-check`, each with `-bash`, `-python`, `-javascript`, `-rust`,
-and `-sql` variants, and `typecheck`; and `generate-protocol` and `check-protocol`.
+`lint-python`, `lint-javascript`, `lint-typescript`, `lint-rust`, `lint-sql`, and
+`lint-spelling`; `format` and `format-check`, each with `-bash`, `-python`,
+`-javascript`, `-rust`, and `-sql` variants, `format-spelling`, and `typecheck`;
+and `generate-protocol` and `check-protocol`.
 The `-javascript` formatting variants also cover TypeScript, JSON, and YAML. The acceptance
 suites run one at a time as `acceptance-runtime`, `acceptance-connector`,
 `acceptance-credentials`, and `acceptance-mail`.
@@ -92,6 +114,11 @@ TypeScript, and SQL fixtures that exercise the runners. `lint-sql` checks owned
 SQLite source for syntax and configured lint rules, `format-check-sql` compares
 formatted temporary copies with the SQL sources, and `format-sql` rewrites them
 using formatting rules only.
+
+`lint-spelling` runs typos over the same files and reports one line per known
+misspelling. `make format-spelling` applies its corrections. `make format`
+leaves spelling alone, because a correction changes words in code and prose
+and needs its own review. Add accepted false positives to `.typos.toml`.
 
 The guards in `automation/repository/` are Python module entry points. Their
 optional repository-root argument defaults to the repository containing the
@@ -210,6 +237,7 @@ the suites can also run concurrently from separate shells.
 
 ```bash
 make clean
+make mrproper
 ```
 
 `clean` runs `automation/tooling/clean.bash` on the host. It removes:
@@ -221,15 +249,25 @@ make clean
   which are named `raicho-<suite>-<timestamp>-<number>`, as `raicho-ci-...` is.
 - Acceptance state directories named `raicho-<suite>.XXXXXXXX` under `TMPDIR` or
   `/tmp`. Fixture files owned by root are removed through `raicho-tools:local`.
-- The `raicho-tools:local`, `raicho-server:local`, `raicho-gateway:local`, and
-  `raicho-thunderbird:local` images. An image a container still uses is kept and
-  reported.
 - The `raicho-tools_cache` volume with Cargo's downloads and build output, unless a
   container is using it.
 
-It never touches the `raicho` deployment, its volumes, or `.raicho/`, and it does
-not prune the Docker build cache, which the default builder cannot limit to one
-project. The next `make` rebuilds the tooling image.
+It keeps the `raicho-tools:local`, `raicho-server:local`, `raicho-gateway:local`,
+and `raicho-thunderbird:local` images, and never touches the `raicho` deployment,
+its volumes, or `.raicho/`. Like `mrproper` and `deploy-clean`, it fails when Docker
+cannot list resources.
+
+`mrproper` runs `automation/tooling/mrproper.bash`. It stops and removes the
+containers and networks of the `raicho` deployment, of every deployment with a
+`.raicho/<project>` directory, and of the `raicho-tools` project, including
+running tooling containers. It cannot find a deployment that runs under another
+project name without a state directory, so stop that one first with
+`make deploy-down` under its project name. It then runs every `clean` step and
+removes the four project images. An image that another project's container still
+uses is kept and reported. Deployment volumes and `.raicho/` are never removed.
+
+Neither target prunes the Docker build cache, which the default builder cannot
+limit to one project. The next `make` rebuilds the tooling image.
 
 ## Coverage
 
@@ -249,7 +287,7 @@ guard copies that tests run from temporary repositories, with its settings under
 `[tool.coverage]` in `pyproject.toml`. The lcov reports stay in
 `/tmp/raicho-coverage` inside the container.
 
-Tests, generated files, dependencies, the acceptance drivers in
+Tests, benchmarks, generated files, dependencies, the acceptance drivers in
 `automation/acceptance/`, and the `mailprobe/` test artifact are not measured. A
 source that no test loads, such as a browser entry point, is absent from the
 reports rather than reported as uncovered.
@@ -261,6 +299,26 @@ the uncovered lines. The threshold is `fail_under` under `[tool.diff_cover]` in
 `PR_BASE_SHA`, otherwise the merge base with `origin/main`. Uncommitted changes
 count. The [patch coverage decision](../decisions/20261026-repository-layout.md#patch-coverage)
 records the tool choices.
+
+## Benchmarks
+
+```bash
+make benchmark
+```
+
+`benchmark` runs every Rust benchmark target with `cargo bench`, using
+[Criterion](https://github.com/criterion-rs/criterion.rs) under the
+[benchmark decision](../decisions/20261026-rust-benchmarks.md). Each benchmark
+prints its time range, its change from the previous run, and any outliers.
+Criterion keeps those baselines in the Cargo cache volume, so `make clean` resets
+them. Its progress lines appear only with `VERBOSE=1` or when the run fails.
+
+`protocol/rust/benches/frames.rs` measures the connector's per-frame work:
+decoding an authentication and a ping frame, sealing and opening a ping through
+`Channel`, and computing and verifying a client proof. `make lint` checks
+benchmark code with Clippy, and `make test` runs each benchmark once as a test,
+so a broken benchmark fails before anyone times it. CI does not run benchmarks,
+because shared runners make timings too noisy to compare.
 
 ## Connector contract
 

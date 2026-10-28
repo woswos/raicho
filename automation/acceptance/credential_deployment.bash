@@ -27,7 +27,7 @@ remove_credential_deployment() {
     local RESULT=0
     if ! fixture mutate cleanup; then RESULT=1; fi
     if ! "${COMPOSE[@]}" down --volumes --remove-orphans; then RESULT=1; fi
-    rm -f -- "${RAICHO_STATE_DIRECTORY}/operation.lock"
+    rm -f -- "${RAICHO_STATE_DIRECTORY}/operation.lock" "${RAICHO_STATE_DIRECTORY}/project"
     rmdir -- "${RAICHO_STATE_DIRECTORY}" || RESULT=1
     return "${RESULT}"
 }

@@ -83,7 +83,7 @@ Do not add thin compatibility wrappers or restore a flat helper directory.
 | --- | --- |
 | Agent, naming, changelog, and pull request guards | `automation/repository/` |
 | Language linting, formatting, and type checking | `automation/quality/` |
-| Development tooling image, entrypoint, Compose files, Make modes, and cleanup | `automation/tooling/` |
+| Development tooling image, entrypoint, Compose files, Make modes, step logs, and cleanup | `automation/tooling/` |
 | Cross-component application build/test dispatch and coverage | `automation/build/` |
 | Versioning, changelogs, and release preparation | `automation/release/` |
 | Cross-service disposable deployment checks | `automation/acceptance/` |
@@ -93,12 +93,13 @@ Cross-service acceptance drivers use `connector/`, `credentials/`, and `runtime/
 subpackages. The connector and credential runners source
 `automation/acceptance/credential_deployment.bash` for their disposable
 project, state directory, and fixture container.
-The shared repository-path helper lives at
-`automation/paths.py`.
+The shared repository-path and output-mode helpers live at
+`automation/paths.py` and `automation/output.py`.
 
 Operational credential provisioning, rotation, and live verification belong in
 `deploy/credentials/` as a host Bash wrapper around `raicho-server connector`
-subcommands.
+subcommands. `state.bash` there holds the deployment selection, state directory
+checks, and per-user lock that the wrapper, `make deploy-clean`, and `make mrproper` share.
 These commands manage a deployment and are separate from acceptance tests that
 create disposable deployments. Their procedure is in the
 [credential runbook](../operations/connector-credentials.md). The
@@ -140,9 +141,11 @@ persistence are defined in [architecture](architecture.md).
 
 Keep tests, mocks, fixture controllers, and profile setup with their owning
 component, using its `tests/` subtree. Do not create a repository-root test tree.
-Automation tests live in the owning package's `tests/` subtree. Changelog guard
+Automation tests live in the owning package's `tests/` subtree, and tests of the
+root `automation/` modules live in `automation/tests/`. Changelog guard
 regressions belong in `automation/repository/tests/`, beside the other PR policy
-tests. Shared guard fixtures and the `docker` command mock live in `automation/testing/`.
+tests. Shared guard fixtures, the `docker` command mock, and the POSIX ACL helper live in
+`automation/testing/`.
 
 `server/tests/`, `web/tests/`, and `extension/tests/` own their respective
 application and integration tests. `extension/tests/` also owns Python packaging
@@ -156,7 +159,9 @@ Rust test support lives under
 fixtures against their respective implementations. TypeScript protocol tests
 compile independently of the extension. See the
 [contract commands](build-test-generate.md#connector-contract).
-Generator regressions live in `protocol/generator/tests/`.
+Generator regressions live in `protocol/generator/tests/`. Rust benchmarks live in
+the owning crate's `benches/` directory, such as `protocol/rust/benches/`, and
+reuse the shared protocol fixtures.
 `protocol/fixtures/configuration/connector.json` lists valid and invalid connector
 tokens and endpoints. The server's `Credential::parse`, the Thunderbird policy
 writer, and the extension's managed configuration parser each test against it,

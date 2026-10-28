@@ -45,7 +45,11 @@ def changed_outputs(generated, committed, filenames):
     ]
 
 
-def test_typescript(compiler_arguments=(), test_arguments=(NODE_REPORTER,)):
+def node_reporter():
+    return '--test-reporter=spec' if os.environ.get('VERBOSE') else NODE_REPORTER
+
+
+def test_typescript(compiler_arguments=(), test_arguments=None):
     source = ROOT / 'protocol/typescript'
     with tempfile.TemporaryDirectory(prefix='raicho-protocol-typescript-') as directory:
         subprocess.run(
@@ -64,8 +68,9 @@ def test_typescript(compiler_arguments=(), test_arguments=(NODE_REPORTER,)):
         tests = sorted(str(path) for path in (source / 'tests').glob('*.test.mjs'))
         if not tests:
             raise ValueError('No TypeScript protocol tests were found.')
+        reporter = (node_reporter(),) if test_arguments is None else test_arguments
         subprocess.run(
-            ['node', '--test', *test_arguments, *tests],
+            ['node', '--test', *reporter, *tests],
             cwd=ROOT,
             env=os.environ | {'RAICHO_PROTOCOL_BUILD_DIR': directory},
             check=True,

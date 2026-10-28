@@ -4,6 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from automation.output import quiet
 from automation.paths import REPOSITORY_ROOT
 from automation.quality.files import (
     CONFIGURATION_SUFFIXES,
@@ -19,6 +20,7 @@ from automation.quality.projects import (
     typecheck,
     typescript_projects,
 )
+from automation.quality.spelling import spelling
 from automation.quality.sql import sql
 
 
@@ -53,13 +55,13 @@ def python(root, files, action):
         return
     configuration = ['--config', REPOSITORY_ROOT / 'pyproject.toml']
     if action == 'lint':
-        run(['ruff', 'check', '--quiet', *configuration, *sources], root)
+        run(['ruff', 'check', *quiet('--quiet'), *configuration, *sources], root)
     elif action == 'format':
         run(
             [
                 'ruff',
                 'check',
-                '--quiet',
+                *quiet('--quiet'),
                 '--select',
                 'I',
                 '--fix',
@@ -68,9 +70,9 @@ def python(root, files, action):
             ],
             root,
         )
-        run(['ruff', 'format', '--quiet', *configuration, *sources], root)
+        run(['ruff', 'format', *quiet('--quiet'), *configuration, *sources], root)
     else:
-        run(['ruff', 'format', '--check', '--quiet', *configuration, *sources], root)
+        run(['ruff', 'format', '--check', *quiet('--quiet'), *configuration, *sources], root)
 
 
 def javascript(root, files, action, typed=False):
@@ -105,8 +107,7 @@ def javascript(root, files, action, typed=False):
                 [
                     'prettier',
                     mode,
-                    '--log-level',
-                    'warn',
+                    *quiet('--log-level', 'warn'),
                     '--config',
                     REPOSITORY_ROOT / '.prettierrc.json',
                     '--ignore-path',
@@ -125,10 +126,12 @@ TARGETS = (
     'lint-typescript',
     'lint-rust',
     'lint-sql',
+    'lint-spelling',
     'format',
     'format-check',
     *(f'format-{language}' for language in LANGUAGES),
     *(f'format-check-{language}' for language in LANGUAGES),
+    'format-spelling',
     'typecheck',
 )
 
@@ -143,8 +146,17 @@ def check_language(language, root, files, action, typed=False):
     elif language == 'rust':
         require_tools('cargo', 'rustfmt', 'cargo-clippy')
         rust(root, files, action, REPOSITORY_ROOT)
+    elif language == 'spelling':
+        spelling(root, files, action)
     else:
         sql(root, files, action, REPOSITORY_ROOT)
+
+
+def failure_message(error):
+    name = Path(error.cmd[0]).name
+    if len(error.cmd) > 1 and error.cmd[1].isalpha():
+        name = f'{name} {error.cmd[1]}'
+    return f'{name} exited with status {error.returncode}'
 
 
 def main():
@@ -173,6 +185,9 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except (ValueError, OSError, subprocess.CalledProcessError) as error:
+    except subprocess.CalledProcessError as error:
+        print(f'FAIL: {failure_message(error)}', file=sys.stderr)
+        sys.exit(1)
+    except (ValueError, OSError) as error:
         print(f'FAIL: {error}', file=sys.stderr)
         sys.exit(1)

@@ -105,6 +105,12 @@ class PatchCoverageMainTests(unittest.TestCase):
         self.assertIn('server/src/cli.rs (65.9%)', output)
         self.assertNotIn('server/src/http.rs', output)
 
+    def test_a_verbose_gate_prints_the_whole_report(self):
+        with mock.patch.dict(os.environ, {'VERBOSE': '1'}):
+            status, output, _, _ = self.gate(0)
+        self.assertEqual(status, 0)
+        self.assertEqual(output, self.REPORT)
+
     def test_a_missing_base_fails_before_collecting(self):
         status, _, collect, _ = self.gate(0, base=None)
         self.assertEqual(status, 1)

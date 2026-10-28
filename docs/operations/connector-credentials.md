@@ -8,27 +8,32 @@ for storage and [connector contract](../reference/connector-contract.md) for tra
 ## Setup and commands
 
 Run from the repository root on a Linux Docker host with Bash and `flock`.
-Build the runtime images before provisioning:
+Each `make deploy-connector-<command>` target builds the runtime images, then runs
+`bash deploy/credentials/connector.bash <command>`:
 
 ```bash
-docker compose build
-bash deploy/credentials/connector.bash init
+make deploy-connector-init
 ```
 
 The project is selected by `RAICHO_PROJECT`, then `COMPOSE_PROJECT_NAME`, then
-`raicho`. Use the existing Compose project name for another deployment.
+`raicho`. Use the existing Compose project name for another deployment. The
+`raicho-tools` project belongs to the tooling container and is refused.
 `RAICHO_STATE_DIRECTORY` defaults to
 `.raicho/<project>` beneath the checkout and must be an absolute path when
-overridden. It must belong to the invoking host user with mode 0700. Keep that
-directory and the named database volume paired. Set
+overridden. It must belong to the invoking host user with mode 0700 and must not
+sit inside another deployment's state directory. The helper writes a `project`
+file naming the project into it and refuses a directory that names another one.
+Keep that
+directory and the named database volume paired. Neither `make clean` nor
+`make mrproper` removes either of them, and `make deploy-clean` removes both. Set
 `RAICHO_PORT` when the selected deployment needs a different loopback port.
 
 ```bash
-bash deploy/credentials/connector.bash rotate
-bash deploy/credentials/connector.bash verify
-bash deploy/credentials/connector.bash status
-bash deploy/credentials/connector.bash revoke
-bash deploy/credentials/connector.bash reactivate
+make deploy-connector-rotate
+make deploy-connector-verify
+make deploy-connector-status
+make deploy-connector-revoke
+make deploy-connector-reactivate
 ```
 
 Every command stops Raicho and Thunderbird. Successful `init`, `rotate`,
@@ -39,6 +44,10 @@ their health checks, and require an authenticated heartbeat within 90 seconds.
 recreation itself has already begun. Fix the reported failure before restarting.
 The helper holds a deployment operation lock for the entire sequence. SQLite's
 instance lock independently rejects provisioning while another process owns it.
+Before taking that lock, the helper and `make deploy-clean` check for overlapping
+state directories under one per-user lock in `${TMPDIR:-/tmp}/raicho-state-<uid>/`,
+so run them with the same `TMPDIR`. A command that finds this lock taken fails and
+can be run again.
 
 `compose.credentials.yaml` adds offline provisioning services and mounts
 the token read-only into Thunderbird. It configures the fixed internal gateway

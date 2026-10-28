@@ -1,47 +1,12 @@
-import shutil
-import subprocess
-import tempfile
 import unittest
-from pathlib import Path
 
-from automation.paths import REPOSITORY_ROOT
-from automation.testing.docker_mock import DockerMock, Response
-
-PROJECT_FORMAT = '{{.Label "com.docker.compose.project"}}'
-PROJECT_FILTER = 'label=com.docker.compose.project='
+from automation.testing.docker_mock import Response
+from automation.tooling.tests.cleanup_fixture import PROJECT_FILTER, PROJECT_FORMAT, CleanupFixture
 
 
-class CleanTests(unittest.TestCase):
-    def setUp(self):
-        temporary = tempfile.TemporaryDirectory(prefix='raicho-clean-test-')
-        self.addCleanup(temporary.cleanup)
-        self.directory = Path(temporary.name)
-        self.root = self.directory / 'repository'
-        self.script = self.root / 'automation/tooling/clean.bash'
-        self.script.parent.mkdir(parents=True)
-        shutil.copyfile(REPOSITORY_ROOT / 'automation/tooling/clean.bash', self.script)
-        shutil.copyfile(REPOSITORY_ROOT / '.gitignore', self.root / '.gitignore')
-        subprocess.run(['git', 'init', '-q'], cwd=self.root, check=True)
-        self.temporary = self.directory / 'tmp'
-        self.temporary.mkdir()
-
-    def write(self, relative, text=''):
-        path = self.root / relative
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text)
-        return path
-
+class CleanTests(CleanupFixture):
     def clean(self, *responses):
-        docker = DockerMock(self.directory / 'commands', responses)
-        result = subprocess.run(
-            ['bash', str(self.script)],
-            env=docker.environment(TMPDIR=str(self.temporary)),
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        return docker.commands(), result
+        return self.run_script('clean.bash', *responses)
 
     def test_removes_only_output_that_the_repository_ignores(self):
         removed = (
@@ -103,7 +68,8 @@ class CleanTests(unittest.TestCase):
                 output='ci-network\n',
             ),
         )
-        self.assertIn(['container', 'rm', '--force', 'runtime-container'], commands)
+        self.assertIn(['container', 'stop', 'runtime-container'], commands)
+        self.assertIn(['container', 'rm', 'runtime-container'], commands)
         self.assertIn(['volume', 'rm', 'connector-volume'], commands)
         self.assertIn(['network', 'rm', 'ci-network'], commands)
         filters = {word for command in commands for word in command if PROJECT_FILTER in word}
@@ -116,19 +82,22 @@ class CleanTests(unittest.TestCase):
             },
         )
 
-    def test_keeps_images_in_use_and_images_of_other_projects(self):
+    def test_a_failed_docker_listing_fails_the_clean(self):
+        for words in (('volume', 'ls', '--format'), ('image', 'ls')):
+            with self.subTest(words=words):
+                _, result = self.run_script('clean.bash', Response(words, status=1), status=1)
+                self.assertNotIn('Clean finished', result.stdout)
+
+    def test_removes_only_disposable_images(self):
         commands, result = self.clean(
             Response(
                 ('image', 'ls', '--format'),
                 output='raicho-mail-20261026120000-5:tools\nraicho-server:local\nother:latest\n',
             ),
-            Response(('image', 'rm', 'raicho-server:local'), status=1),
         )
         removed = [command[2] for command in commands if command[:2] == ['image', 'rm']]
-        self.assertIn('raicho-mail-20261026120000-5:tools', removed)
-        self.assertIn('raicho-tools:local', removed)
-        self.assertNotIn('other:latest', removed)
-        self.assertIn('Kept image raicho-server:local', result.stderr)
+        self.assertEqual(removed, ['raicho-mail-20261026120000-5:tools'])
+        self.assertIn('Project images', result.stdout)
 
     def test_removes_the_tooling_cache_unless_a_container_uses_it(self):
         commands, _ = self.clean()

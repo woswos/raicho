@@ -51,18 +51,19 @@ The [brand guide](assets/brand/README.md) covers the logo, colors, and typograph
 
 ## Getting started
 
-Install Git and Docker with Compose, then clone the repository. On Linux amd64,
-build and start the foundation from the repository root:
+Install Git, GNU Make, and Docker with Compose, then clone the repository. On
+Linux amd64, build and start the foundation from the repository root:
 
 ```bash
-docker compose build
-docker compose up -d --wait
+make deploy-up
 ```
 
 Open <http://127.0.0.1:8080> for diagnostics. Thunderbird starts without a viewer,
 with its profile in a separate persistent volume. The connector starts
-unconfigured. Follow the [credential setup](docs/operations/connector-credentials.md)
-to establish its authenticated connection. The
+unconfigured. Run `make deploy-connector-init` to establish its authenticated
+connection, as the [credential setup](docs/operations/connector-credentials.md)
+describes. `make deploy-down` stops it and keeps its data, and `make deploy` lists
+every deployment target. The
 [local runtime guide](docs/operations/local-runtime.md) covers optional browser
 administration, disposable profiles, persistence checks, and stopping services.
 

@@ -1,5 +1,6 @@
 import contextlib
 import io
+import os
 import subprocess
 import sys
 import tempfile
@@ -8,8 +9,9 @@ from pathlib import Path
 from unittest import mock
 
 from automation.build import application
-from automation.build.application import NODE_REPORTER, test_summary
+from automation.build.application import BENCHMARK, test_summary
 from automation.paths import REPOSITORY_ROOT
+from protocol.generator.cli import NODE_REPORTER
 
 RESULT = 'running 3 tests\n...\ntest result: ok. 3 passed; 0 failed; 0 ignored\n'
 
@@ -102,6 +104,7 @@ class ApplicationTests(unittest.TestCase):
                 (REPOSITORY_ROOT / 'mailprobe',),
                 {'testing': True},
             ),
+            'benchmark': ('cargo_bench', (), {}),
             'build-web': ('web', (), {'testing': False}),
             'test-web': ('web', (), {'testing': True}),
         }
@@ -113,6 +116,35 @@ class ApplicationTests(unittest.TestCase):
             ):
                 application.main()
                 called.assert_called_once_with(*arguments, **keywords)
+
+    def test_verbose_benchmarks_stream_their_progress(self):
+        with mock.patch.dict(os.environ, {'CARGO_TERM_QUIET': 'false'}), mock.patch.object(application, 'run') as run:
+            application.cargo_bench()
+        run.assert_called_once_with(BENCHMARK)
+
+    def test_quiet_benchmarks_hide_progress(self):
+        completed = subprocess.CompletedProcess([], 0, stderr='Benchmarking ping: Warming up\n')
+        errors = io.StringIO()
+        with (
+            mock.patch.dict(os.environ, {'CARGO_TERM_QUIET': 'true'}),
+            mock.patch.object(application.subprocess, 'run', return_value=completed) as run,
+            contextlib.redirect_stderr(errors),
+        ):
+            application.cargo_bench()
+        self.assertEqual(run.call_args.kwargs['stderr'], subprocess.PIPE)
+        self.assertEqual(errors.getvalue(), '')
+
+    def test_quiet_benchmark_failure_prints_its_errors(self):
+        completed = subprocess.CompletedProcess([], 101, stderr='error[E0425]\n')
+        errors = io.StringIO()
+        with (
+            mock.patch.dict(os.environ, {'CARGO_TERM_QUIET': 'true'}),
+            mock.patch.object(application.subprocess, 'run', return_value=completed),
+            contextlib.redirect_stderr(errors),
+            self.assertRaises(subprocess.CalledProcessError),
+        ):
+            application.cargo_bench()
+        self.assertEqual(errors.getvalue(), 'error[E0425]\n')
 
 
 if __name__ == '__main__':

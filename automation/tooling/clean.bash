@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Remove regenerable build output, interrupted acceptance deployments, and this project's images.
+# Remove regenerable build output and interrupted acceptance deployments.
 set -euo pipefail
 
 SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,7 +9,6 @@ cd "${REPOSITORY_ROOT}"
 PROJECT_LABEL=com.docker.compose.project
 DISPOSABLE_PROJECT='^raicho-[a-z]+-[0-9]+-[0-9]+$'
 DISPOSABLE_IMAGE='^raicho-[a-z]+-[0-9]+-[0-9]+[:-]'
-PROJECT_IMAGES=(raicho-tools:local raicho-server:local raicho-gateway:local raicho-thunderbird:local)
 CACHE_VOLUME=raicho-tools_cache
 TEMPORARY_DIRECTORY="${TMPDIR:-/tmp}"
 
@@ -38,31 +37,45 @@ list() {
 }
 
 remove_project() {
-    local PROJECT="${1}" KIND IDS
-    for KIND in container volume network; do
-        mapfile -t IDS < <(list "${KIND}" --quiet --filter "label=${PROJECT_LABEL}=${PROJECT}")
+    local PROJECT="${1}" KIND LISTED IDS
+    shift
+    for KIND in "${@}"; do
+        LISTED="$(list "${KIND}" --quiet --filter "label=${PROJECT_LABEL}=${PROJECT}")" || return 1
+        mapfile -t IDS < <(printf '%s' "${LISTED}")
         if ((${#IDS[@]} == 0)); then
             continue
         fi
+        # A graceful stop protects the volumes that mrproper keeps.
         if [[ ${KIND} == container ]]; then
-            docker container rm --force "${IDS[@]}" >/dev/null
-        else
-            docker "${KIND}" rm "${IDS[@]}" >/dev/null
+            docker container stop "${IDS[@]}" >/dev/null || return 1
         fi
+        docker "${KIND}" rm "${IDS[@]}" >/dev/null || return 1
+        echo "Removed the ${KIND}s of ${PROJECT}"
     done
-    echo "Removed acceptance project ${PROJECT}"
 }
 
 remove_disposable_projects() {
-    local PROJECTS PROJECT KIND
-    mapfile -t PROJECTS < <(
-        for KIND in container volume network; do
-            list "${KIND}" --format "{{.Label \"${PROJECT_LABEL}\"}}"
-        done | grep -E "${DISPOSABLE_PROJECT}" | sort -u
-    )
-    for PROJECT in "${PROJECTS[@]}"; do
-        remove_project "${PROJECT}"
+    local KIND LISTED LABELS='' PROJECTS PROJECT
+    for KIND in container volume network; do
+        LISTED="$(list "${KIND}" --format "{{.Label \"${PROJECT_LABEL}\"}}")" || return 1
+        LABELS+="${LISTED}"$'\n'
     done
+    mapfile -t PROJECTS < <(grep -E "${DISPOSABLE_PROJECT}" <<<"${LABELS}" | sort -u)
+    for PROJECT in "${PROJECTS[@]}"; do
+        remove_project "${PROJECT}" container volume network
+    done
+}
+
+# Credential directories hold files that belong to container users.
+remove_directory() {
+    local DIRECTORY="${1}"
+    if rm -rf -- "${DIRECTORY}" 2>/dev/null; then
+        return 0
+    fi
+    docker run --rm --pull never --network none --user 0:0 \
+        --mount "type=bind,source=${DIRECTORY},target=/state" \
+        --entrypoint find raicho-tools:local /state -mindepth 1 -delete || true
+    rmdir -- "${DIRECTORY}" 2>/dev/null
 }
 
 remove_state_directories() {
@@ -71,15 +84,9 @@ remove_state_directories() {
         if [[ ! -d ${DIRECTORY} || -L ${DIRECTORY} || ! -O ${DIRECTORY} ]]; then
             continue
         fi
-        if ! rm -rf -- "${DIRECTORY}" 2>/dev/null; then
-            # Acceptance fixtures leave root-owned credential files behind.
-            docker run --rm --pull never --network none --user 0:0 \
-                --mount "type=bind,source=${DIRECTORY},target=/state" \
-                --entrypoint find raicho-tools:local /state -mindepth 1 -delete || true
-            if ! rmdir -- "${DIRECTORY}" 2>/dev/null; then
-                echo "Kept ${DIRECTORY}: remove it as the user that owns its files" >&2
-                continue
-            fi
+        if ! remove_directory "${DIRECTORY}"; then
+            echo "Kept ${DIRECTORY}: remove it as the user that owns its files" >&2
+            continue
         fi
         echo "Removed ${DIRECTORY}"
     done
@@ -97,11 +104,8 @@ remove_cache() {
 }
 
 remove_images() {
-    local IMAGES IMAGE
-    mapfile -t IMAGES < <(
-        docker image ls --format '{{.Repository}}:{{.Tag}}' | grep -E "${DISPOSABLE_IMAGE}"
-    )
-    for IMAGE in "${IMAGES[@]}" "${PROJECT_IMAGES[@]}"; do
+    local IMAGE
+    for IMAGE in "${@}"; do
         if ! docker image inspect "${IMAGE}" >/dev/null 2>&1; then
             continue
         fi
@@ -113,9 +117,18 @@ remove_images() {
     done
 }
 
-remove_ignored_output
-remove_disposable_projects
-remove_state_directories
-remove_cache
-remove_images
-echo 'Clean finished. The raicho deployment, its volumes, and .raicho/ were not touched.'
+clean() {
+    local IMAGES DISPOSABLE_IMAGES
+    remove_ignored_output
+    remove_disposable_projects
+    remove_state_directories
+    remove_cache
+    IMAGES="$(docker image ls --format '{{.Repository}}:{{.Tag}}')" || return 1
+    mapfile -t DISPOSABLE_IMAGES < <(grep -E "${DISPOSABLE_IMAGE}" <<<"${IMAGES}")
+    remove_images "${DISPOSABLE_IMAGES[@]}"
+}
+
+if [[ ${BASH_SOURCE[0]} == "${0}" ]]; then
+    clean
+    echo 'Clean finished. Project images, the raicho deployment, its volumes, and .raicho/ were kept.'
+fi

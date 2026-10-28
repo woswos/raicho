@@ -2,6 +2,7 @@ import subprocess
 import sys
 
 from automation.build.coverage_report import OUTPUT, collect
+from automation.output import verbose
 from automation.paths import REPOSITORY_ROOT
 from automation.repository.pr_context import git_output, load_context
 
@@ -47,7 +48,12 @@ def main():
         text=True,
         check=False,
     )
-    report = partly_covered(result.stdout) if result.returncode else totals(result.stdout)
+    if verbose():
+        report = result.stdout
+    elif result.returncode:
+        report = partly_covered(result.stdout)
+    else:
+        report = totals(result.stdout)
     print(report, end='', flush=True)
     print(result.stderr, end='', file=sys.stderr)
     return result.returncode
