@@ -43,7 +43,7 @@ class DeploymentTests(unittest.TestCase):
     def test_an_unenrolled_deployment_starts_without_the_connector_token(self):
         commands = dry_run('deploy-up', RAICHO_STATE_DIRECTORY=str(self.state))
         self.assertIn(
-            f'deploy-up docker compose --progress quiet -p raicho -f {REPOSITORY_ROOT}/compose.yaml up', commands
+            f"deploy-up docker compose --progress quiet -p 'raicho' -f {REPOSITORY_ROOT}/compose.yaml up", commands
         )
         self.assertNotIn('compose.credentials.yaml', commands)
         self.assertNotIn('RAICHO_CREDENTIAL_DIRECTORY', commands)
@@ -59,6 +59,17 @@ class DeploymentTests(unittest.TestCase):
                 self.assertIn(CREDENTIALS_FILE, commands)
         self.assertNotIn(CREDENTIALS_FILE, dry_run('deploy-down', RAICHO_STATE_DIRECTORY=str(self.state)))
 
+    def test_enrolling_earlier_in_the_same_run_mounts_the_token(self):
+        commands = make(
+            '-n',
+            '--eval',
+            'enroll-fixture: ; +@mkdir -p $(DEPLOYMENT_CREDENTIALS)',
+            'enroll-fixture',
+            'deploy-up',
+            RAICHO_STATE_DIRECTORY=str(self.state),
+        )
+        self.assertIn(CREDENTIALS_FILE, commands)
+
     def test_a_state_path_with_spaces_or_quotes_keeps_its_token(self):
         for name in ('with space', 'two  spaces', "it's"):
             with self.subTest(name=name):
@@ -71,13 +82,15 @@ class DeploymentTests(unittest.TestCase):
 
     def test_the_project_follows_the_credential_script(self):
         cases = (
-            ({'RAICHO_PROJECT': 'first', 'COMPOSE_PROJECT_NAME': 'second'}, '-p first '),
-            ({'COMPOSE_PROJECT_NAME': 'second'}, '-p second '),
-            ({}, '-p raicho '),
+            ({'RAICHO_PROJECT': 'first', 'COMPOSE_PROJECT_NAME': 'second'}, "-p 'first' "),
+            ({'COMPOSE_PROJECT_NAME': 'second'}, "-p 'second' "),
+            ({}, "-p 'raicho' "),
+            ({'RAICHO_PROJECT': "it's"}, "-p 'it'\\''s' "),
         )
         for environment, expected in cases:
             with self.subTest(environment=environment):
                 self.assertIn(expected, dry_run('deploy-down', **environment))
+        self.assertIn("project            it's", make('deploy', RAICHO_PROJECT="it's"))
 
     def test_the_desktop_override_prints_its_address(self):
         commands = dry_run('deploy-admin', RAICHO_STATE_DIRECTORY=str(self.state))
