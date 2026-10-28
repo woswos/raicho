@@ -24,11 +24,11 @@ LOCK_PATH="${STATE_DIRECTORY}/operation.lock"
 if [[ -L ${LOCK_PATH} ]] || { [[ -e ${LOCK_PATH} ]] && [[ ! -f ${LOCK_PATH} ]]; }; then
     fail "${LOCK_PATH} must be a regular file"
 fi
-# Every state directory belongs to its caller, so the scan skips what the caller does not own,
-# such as the UID-10001 token directory, and fails on anything else it cannot read.
+# Every state directory belongs to its caller, so the scan skips only what the caller neither owns
+# nor can read, such as the UID-10001 token directory, and fails on anything else it cannot read.
 NESTED_LOCK=''
 if [[ -e ${STATE_DIRECTORY} ]]; then
-    NESTED_LOCK="$(find "${STATE_DIRECTORY}" -mindepth 1 \( ! -user "$(id -u)" -prune \) \
+    NESTED_LOCK="$(find "${STATE_DIRECTORY}" -mindepth 1 \( ! -user "$(id -u)" ! -readable -prune \) \
         -o \( -name operation.lock ! -path "${LOCK_PATH}" -print -quit \))" \
         || fail "could not inspect ${STATE_DIRECTORY} for another deployment's state"
 fi
