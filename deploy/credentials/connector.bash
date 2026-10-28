@@ -53,6 +53,18 @@ if ! flock --exclusive --nonblock "${LOCK_DESCRIPTOR}"; then
     echo 'FAIL: another credential operation is running' >&2
     exit 1
 fi
+# make deploy-clean deletes a state directory only when this marker names its project.
+PROJECT_MARKER="${STATE_DIRECTORY}/project"
+if [[ -L ${PROJECT_MARKER} ]] || { [[ -e ${PROJECT_MARKER} ]] && [[ ! -f ${PROJECT_MARKER} ]]; }; then
+    echo 'FAIL: the project marker must be a regular file' >&2
+    exit 1
+fi
+if [[ ! -e ${PROJECT_MARKER} ]]; then
+    printf '%s\n' "${PROJECT}" >"${PROJECT_MARKER}"
+elif [[ $(<"${PROJECT_MARKER}") != "${PROJECT}" ]]; then
+    echo "FAIL: ${STATE_DIRECTORY} belongs to project $(<"${PROJECT_MARKER}"), not ${PROJECT}" >&2
+    exit 1
+fi
 unlock_state_layout
 STATE_DIRECTORY="$(cd "${STATE_DIRECTORY}" && pwd -P)"
 export RAICHO_CREDENTIAL_DIRECTORY="${STATE_DIRECTORY}/credentials"

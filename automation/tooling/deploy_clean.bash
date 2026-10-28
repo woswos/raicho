@@ -29,6 +29,11 @@ fi
 STATE_EXISTED=false
 if [[ -e ${STATE_DIRECTORY} ]]; then
     STATE_EXISTED=true
+    # The credential wrapper writes this marker, so an override cannot point at unrelated files.
+    PROJECT_MARKER="${STATE_DIRECTORY}/project"
+    if [[ -L ${PROJECT_MARKER} || ! -f ${PROJECT_MARKER} || $(<"${PROJECT_MARKER}") != "${PROJECT}" ]]; then
+        fail "${STATE_DIRECTORY} is not marked as the state of ${PROJECT}; run make deploy-connector-status first"
+    fi
 fi
 # The shared lock covers the scan and this deployment's own lock, so a credential command cannot
 # claim state inside it until the removal ends. A missing state directory only holds the lock.

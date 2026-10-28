@@ -1,5 +1,6 @@
 import fcntl
 import os
+import shutil
 import subprocess
 import time
 import unittest
@@ -29,10 +30,11 @@ class DeployCleanTests(CleanupFixture):
     def deploy_clean(self, *responses, **options):
         return self.run_script('deploy_clean.bash', *responses, **options)
 
-    def state(self, relative='.raicho/raicho'):
+    def state(self, relative='.raicho/raicho', project='raicho'):
         directory = self.root / relative
         (directory / 'credentials').mkdir(parents=True)
         (directory / 'credentials/connector.token').write_text('secret\n')
+        (directory / 'project').write_text(f'{project}\n')
         directory.chmod(0o700)
         return directory
 
@@ -71,7 +73,7 @@ class DeployCleanTests(CleanupFixture):
         self.assertFalse(leftover.exists())
 
     def test_the_selected_project_and_state_directory_are_used(self):
-        state = self.state('../state')
+        state = self.state('../state', 'second')
         commands, _ = self.deploy_clean(
             *deployment('second'),
             answer='second\n',
@@ -184,6 +186,20 @@ class DeployCleanTests(CleanupFixture):
         self.assertIn(CACHE_REMOVAL, commands)
         self.assertIn('Deployment raicho has nothing to remove', result.stdout)
         self.assertFalse((self.root / '.raicho/raicho').exists())
+
+    def test_state_of_another_or_no_project_is_refused_before_listing(self):
+        for marker in ('other\n', None):
+            with self.subTest(marker=marker):
+                state = self.state()
+                if marker is None:
+                    (state / 'project').unlink()
+                else:
+                    (state / 'project').write_text(marker)
+                commands, result = self.deploy_clean(*deployment(), answer='raicho\n', status=1)
+                self.assertIn('is not marked as the state of raicho', result.stderr)
+                self.assertEqual(commands, [])
+                self.assertTrue((state / 'credentials/connector.token').exists())
+                shutil.rmtree(state)
 
     def test_a_cancel_leaves_no_new_state_directory(self):
         self.deploy_clean(*deployment(), answer='no\n', status=1)

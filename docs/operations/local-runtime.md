@@ -123,8 +123,10 @@ runs every `make clean` step. Images stay, so `make deploy-up` starts a fresh,
 unconfigured deployment.
 
 It refuses the `raicho-tools` project, a state directory that is a symlink, is
-not owned by you with mode 0700, or holds another deployment's state, and a
-deployment whose operation lock a credential command holds. It takes that lock
+not owned by you with mode 0700, holds another deployment's state, or lacks a
+`project` file naming the selected project, and a deployment whose operation
+lock a credential command holds. Credential commands write that file, so run
+`make deploy-connector-status` once for a state directory created before them. It takes that lock
 before listing anything, creating an empty state directory to hold it when none
 exists, and keeps the lock file until the volumes are gone, so a credential
 command cannot claim the deployment or state inside it meanwhile. Cancelling, or

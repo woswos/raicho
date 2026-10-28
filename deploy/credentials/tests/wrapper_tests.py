@@ -106,6 +106,17 @@ class ConnectorWrapperTests(unittest.TestCase):
         self.assertEqual(self.docker.commands(), [])
         self.assertFalse((self.state / 'operation.lock').exists())
 
+    def test_the_wrapper_marks_and_checks_the_project(self):
+        self.run_wrapper()
+        marker = self.state / 'project'
+        self.assertEqual(marker.read_text(), 'raicho-wrapper-test\n')
+        marker.write_text('other\n')
+        before = len(self.docker.commands())
+        result = self.run_wrapper()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('belongs to project other', result.stderr)
+        self.assertEqual(len(self.docker.commands()), before)
+
     def test_existing_private_lock_content_survives_stop_failure(self):
         lock = self.state / 'operation.lock'
         lock.write_text('existing lock content\n')
