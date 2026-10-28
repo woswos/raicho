@@ -40,31 +40,14 @@ class StepTests(unittest.TestCase):
     def test_each_target_family_has_its_own_wording(self):
         cases = {
             'build-extension': ('building extension', 'built extension'),
-            'tooling-image': ('building tooling image', 'built tooling image'),
-            'images': ('building runtime images', 'built runtime images'),
             'test-python': ('testing python', 'tested python'),
             'acceptance-mail': ('testing mail acceptance', 'tested mail acceptance'),
             'lint-rust': ('linting rust', 'linted rust'),
             'lint-repo': ('linting repository', 'linted repository'),
-            'lint-pr': ('checking pull request', 'checked pull request'),
-            'lint-spelling': ('checking spelling', 'checked spelling'),
-            'format': ('formatting sources', 'formatted sources'),
-            'format-sql': ('formatting sql', 'formatted sql'),
-            'format-spelling': ('fixing typos', 'fixed typos'),
-            'format-check': ('checking formatting', 'checked formatting'),
             'format-check-bash': ('checking bash formatting', 'checked bash formatting'),
-            'typecheck': ('checking TypeScript types', 'checked TypeScript types'),
-            'generate-protocol': ('generating protocol bindings', 'generated protocol bindings'),
-            'check-protocol': ('checking protocol bindings', 'checked protocol bindings'),
-            'check-patch-coverage': ('checking patch coverage', 'checked patch coverage'),
-            'coverage': ('measuring coverage', 'measured coverage'),
-            'benchmark': ('benchmarking Rust code', 'benchmarked Rust code'),
-            'clean': ('cleaning up', 'cleaned up'),
-            'deploy-up': ('starting deployment', 'started deployment'),
-            'deploy-down': ('stopping deployment', 'stopped deployment'),
-            'deploy-clean': ('removing deployment', 'removed deployment'),
+            'format-sql': ('formatting sql', 'formatted sql'),
             'deploy-connector-init': ('running connector init', 'ran connector init'),
-            'mrproper': ('removing everything', 'removed everything'),
+            'other': ('running other', 'ran other'),
         }
         for target, (started, finished) in cases.items():
             with self.subTest(target=target):

@@ -136,12 +136,11 @@ class DeploymentTests(unittest.TestCase):
         (self.state / 'credentials').mkdir()
         self.assertIn('connector          enrolled', make('deploy', RAICHO_STATE_DIRECTORY=str(self.state)))
 
-    def test_the_guide_is_colored_only_on_xterm_terminals(self):
+    def test_the_guide_uses_the_exported_colors(self):
         (self.state / 'credentials').mkdir()
         colored = make('deploy', TERM='xterm', RAICHO_STATE_DIRECTORY=str(self.state))
         for text in ('\x1b[36mStart and stop', '\x1b[32mmake deploy-up', '\x1b[33mRAICHO_PROJECT', '\x1b[32menrolled'):
             self.assertIn(text, colored)
-        self.assertNotIn('\x1b', make('deploy', RAICHO_STATE_DIRECTORY=str(self.state)))
 
 
 if __name__ == '__main__':

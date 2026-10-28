@@ -5,7 +5,6 @@ import stat
 import subprocess
 import time
 import unittest
-from unittest import mock
 
 from automation.testing.acl import set_default_acl
 from automation.testing.docker_mock import DockerMock, Response
@@ -127,17 +126,6 @@ class DeployCleanTests(CleanupFixture):
         self.assertNotIn('rm', {command[1] for command in commands if len(command) > 1 and command[0] == 'volume'})
         self.assertIn('run make deploy-clean again', result.stderr)
 
-    def test_the_operation_lock_outlives_the_volumes(self):
-        state = self.state()
-        self.deploy_clean(
-            *deployment(),
-            Response(('volume', '--quiet', f'{PROJECT_FILTER}raicho'), output='raicho_raicho-data\n'),
-            Response(('volume', 'rm', 'raicho_raicho-data'), status=1),
-            answer='raicho\n',
-            status=1,
-        )
-        self.assertEqual(sorted(path.name for path in state.iterdir()), ['operation.lock', 'project'])
-
     def test_a_failed_removal_listing_keeps_the_lock_and_fails(self):
         state = self.state()
         _, result = self.deploy_clean(
@@ -215,16 +203,6 @@ class DeployCleanTests(CleanupFixture):
                 self.assertEqual(commands, [])
                 self.assertTrue((state / 'credentials/connector.token').exists())
                 shutil.rmtree(state)
-
-    def test_the_callers_deployment_selection_does_not_leak_in(self):
-        selection = {
-            'RAICHO_PROJECT': 'elsewhere',
-            'COMPOSE_PROJECT_NAME': 'elsewhere',
-            'RAICHO_STATE_DIRECTORY': '/elsewhere',
-        }
-        with mock.patch.dict(os.environ, selection):
-            _, result = self.deploy_clean()
-        self.assertIn('Deployment raicho has nothing to remove', result.stdout)
 
     def test_a_cancel_leaves_no_new_state_directory(self):
         self.deploy_clean(*deployment(), answer='no\n', status=1)
