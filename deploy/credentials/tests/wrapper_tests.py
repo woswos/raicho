@@ -70,6 +70,16 @@ class ConnectorWrapperTests(unittest.TestCase):
         self.assertFalse((self.state / 'operation.lock').exists())
         self.assertIn('FAIL:', result.stderr)
 
+    def test_state_inside_another_deployment_is_rejected_before_docker(self):
+        (self.state / 'operation.lock').write_text('')
+        nested = self.state / 'credentials/nested'
+        self.state = nested
+        result = self.run_wrapper()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("inside another deployment's state", result.stderr)
+        self.assertEqual(self.docker.commands(), [])
+        self.assertFalse(nested.exists())
+
     def test_existing_private_lock_content_survives_stop_failure(self):
         lock = self.state / 'operation.lock'
         lock.write_text('existing lock content\n')

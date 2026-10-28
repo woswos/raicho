@@ -19,7 +19,8 @@ The project is selected by `RAICHO_PROJECT`, then `COMPOSE_PROJECT_NAME`, then
 `raicho`. Use the existing Compose project name for another deployment.
 `RAICHO_STATE_DIRECTORY` defaults to
 `.raicho/<project>` beneath the checkout and must be an absolute path when
-overridden. It must belong to the invoking host user with mode 0700. Keep that
+overridden. It must belong to the invoking host user with mode 0700 and must not
+sit inside another deployment's state directory. Keep that
 directory and the named database volume paired. Neither `make clean` nor
 `make mrproper` removes either of them, and `make deploy-clean` removes both. Set
 `RAICHO_PORT` when the selected deployment needs a different loopback port.

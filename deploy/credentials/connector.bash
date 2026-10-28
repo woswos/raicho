@@ -21,6 +21,15 @@ if [[ ${RAICHO_COMPOSE_TEST:-0} != 0 && ${PROJECT} != raicho-credentials-* && ${
     echo 'FAIL: the test override requires a disposable raicho-credentials- or raicho-connector- project' >&2
     exit 1
 fi
+# make deploy-clean deletes everything inside a deployment's state directory, so state cannot nest.
+PARENT="$(dirname -- "${STATE_DIRECTORY}")"
+while [[ ${PARENT} != / ]]; do
+    if [[ -e ${PARENT}/operation.lock ]]; then
+        echo "FAIL: ${STATE_DIRECTORY} is inside another deployment's state directory ${PARENT}" >&2
+        exit 1
+    fi
+    PARENT="$(dirname -- "${PARENT}")"
+done
 umask 077
 mkdir -p -- "${STATE_DIRECTORY}"
 if [[ $(stat -c '%u:%a' -- "${STATE_DIRECTORY}") != "$(id -u):700" ]]; then
