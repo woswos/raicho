@@ -59,10 +59,14 @@ if [[ -n ${NESTED_LOCK} ]]; then
 fi
 unlock_state_layout
 
+# Removing a lock file under the shared lock keeps a credential command from creating a new one
+# at the same path while it disappears.
 forget_created_state() {
     if [[ ${STATE_EXISTED} == false ]]; then
+        lock_state_layout
         rm -f -- "${LOCK_PATH}" "${PROJECT_MARKER}"
         rmdir -- "${STATE_DIRECTORY}"
+        unlock_state_layout
     fi
 }
 
@@ -131,8 +135,10 @@ if ! remove_project "${PROJECT}"; then
     fail "could not remove every resource of ${PROJECT}; run make deploy-clean again"
 fi
 # Only the lock and marker remain, so non-recursive removal cannot reach anything created meanwhile.
+lock_state_layout
 if ! { rm -f -- "${LOCK_PATH}" "${PROJECT_MARKER}" && rmdir -- "${STATE_DIRECTORY}"; }; then
     fail "removed the volumes but kept ${STATE_DIRECTORY}; remove it and run make deploy-clean again"
 fi
+unlock_state_layout
 echo "Removed deployment ${PROJECT}, its volumes, and its state directory"
 clean

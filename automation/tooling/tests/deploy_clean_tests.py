@@ -230,8 +230,7 @@ class DeployCleanTests(CleanupFixture):
         self.assertIn('Removed deployment raicho', result.stdout)
         self.assertFalse(state.exists())
 
-    def test_a_credential_command_cannot_claim_state_during_the_prompt(self):
-        state = self.root / '.raicho/raicho'
+    def prompting_cleaner(self):
         docker = DockerMock(self.directory / 'commands', deployment())
         cleaner = subprocess.Popen(
             ['bash', str(self.root / 'automation/tooling/deploy_clean.bash')],
@@ -246,6 +245,22 @@ class DeployCleanTests(CleanupFixture):
         while not any(command[:2] == ['volume', 'ls'] for command in docker.commands()):
             self.assertLess(time.monotonic(), deadline, 'deploy-clean never listed the deployment')
             time.sleep(0.05)
+        return docker, cleaner
+
+    def test_removing_created_state_waits_for_the_state_lock(self):
+        state = self.root / '.raicho/raicho'
+        _, cleaner = self.prompting_cleaner()
+        layout = self.temporary / f'raicho-state-{os.getuid()}'
+        with (layout / 'layout.lock').open('a') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            _, stderr = cleaner.communicate('no\n', timeout=10)
+        self.assertEqual(cleaner.returncode, 1)
+        self.assertIn('another credential or deploy-clean command', stderr)
+        self.assertTrue(state.exists())
+
+    def test_a_credential_command_cannot_claim_state_during_the_prompt(self):
+        state = self.root / '.raicho/raicho'
+        docker, cleaner = self.prompting_cleaner()
         wrapper = subprocess.run(
             ['bash', str(self.root / 'deploy/credentials/connector.bash'), 'status'],
             env=docker.environment(
