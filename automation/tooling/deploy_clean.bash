@@ -26,6 +26,11 @@ LOCK_PATH="${STATE_DIRECTORY}/operation.lock"
 if [[ -L ${LOCK_PATH} ]] || { [[ -e ${LOCK_PATH} ]] && [[ ! -f ${LOCK_PATH} ]]; }; then
     fail "${LOCK_PATH} must be a regular file"
 fi
+# The shared lock covers the scan and this deployment's own lock, so a credential command cannot
+# claim state inside it until the removal ends. A missing state directory only holds the lock.
+umask 077
+lock_state_layout
+# A credential command creates and marks state under the same lock, so check both only now.
 STATE_EXISTED=false
 if [[ -e ${STATE_DIRECTORY} ]]; then
     STATE_EXISTED=true
@@ -35,10 +40,6 @@ if [[ -e ${STATE_DIRECTORY} ]]; then
         fail "${STATE_DIRECTORY} is not marked as the state of ${PROJECT}; run make deploy-connector-status first"
     fi
 fi
-# The shared lock covers the scan and this deployment's own lock, so a credential command cannot
-# claim state inside it until the removal ends. A missing state directory only holds the lock.
-umask 077
-lock_state_layout
 mkdir -p -- "${STATE_DIRECTORY}"
 exec {LOCK_DESCRIPTOR}>>"${LOCK_PATH}"
 if ! flock --exclusive --nonblock "${LOCK_DESCRIPTOR}"; then

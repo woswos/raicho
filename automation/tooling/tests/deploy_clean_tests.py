@@ -205,7 +205,8 @@ class DeployCleanTests(CleanupFixture):
         self.deploy_clean(*deployment(), answer='no\n', status=1)
         self.assertFalse((self.root / '.raicho/raicho').exists())
 
-    def test_a_held_state_lock_blocks_deploy_clean(self):
+    def test_a_held_state_lock_blocks_deploy_clean_before_any_state_check(self):
+        (self.state() / 'project').unlink()
         layout = self.temporary / f'raicho-state-{os.getuid()}'
         layout.mkdir(mode=0o700)
         with (layout / 'layout.lock').open('a') as lock:
