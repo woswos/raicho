@@ -8,7 +8,8 @@ QUOTED_CREDENTIALS := $(call shell_quote,$(DEPLOYMENT_CREDENTIALS))
 # Make's wildcard splits paths on spaces, so the shell tests the quoted path instead.
 ENROLLED := $(shell test -d $(QUOTED_CREDENTIALS) && printf enrolled)
 DEPLOYMENT_COMPOSE := docker compose --progress $(PROGRESS) -p $(DEPLOYMENT_PROJECT) -f $(REPOSITORY_ROOT)compose.yaml
-DEPLOYMENT := $(strip $(if $(ENROLLED),RAICHO_CREDENTIAL_DIRECTORY=$(QUOTED_CREDENTIALS)) $(STEP))
+# strip would also squeeze repeated spaces inside the quoted path, so it covers only STEP.
+DEPLOYMENT := $(if $(ENROLLED),RAICHO_CREDENTIAL_DIRECTORY=$(QUOTED_CREDENTIALS) )$(strip $(STEP))
 DEPLOYED_COMPOSE := $(strip $(DEPLOYMENT_COMPOSE) $(if $(ENROLLED),-f $(REPOSITORY_ROOT)compose.credentials.yaml))
 APPLICATION_ADDRESS := echo "Raicho: http://127.0.0.1:$${RAICHO_PORT:-8080}"
 

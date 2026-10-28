@@ -60,7 +60,7 @@ class DeploymentTests(unittest.TestCase):
         self.assertNotIn(CREDENTIALS_FILE, dry_run('deploy-down', RAICHO_STATE_DIRECTORY=str(self.state)))
 
     def test_a_state_path_with_spaces_or_quotes_keeps_its_token(self):
-        for name in ('with space', "it's"):
+        for name in ('with space', 'two  spaces', "it's"):
             with self.subTest(name=name):
                 state = self.state / name
                 (state / 'credentials').mkdir(parents=True)
