@@ -123,17 +123,15 @@ runs every `make clean` step. Images stay, so `make deploy-up` starts a fresh,
 unconfigured deployment.
 
 It refuses the `raicho-tools` project, a state directory that is a symlink, is
-not owned by you with mode 0700, holds another deployment's state, or lacks a
-`project` file naming the selected project, and a deployment whose operation
-lock a credential command holds. Credential commands write that file, so run
-`make deploy-connector-status` once for a state directory created before them. It takes that lock
-before listing anything, creating a state directory with only that lock and its
-`project` file when none exists, and keeps both until the volumes are gone, so a credential
-command cannot claim the deployment or state inside it meanwhile. Cancelling, or
-finding nothing to remove, deletes a state directory it created. It stops the
-services first, then removes the state directory's contents, and only then the
-volumes. If those contents cannot be removed, the volumes stay paired with them.
-Fix the reported ownership and run `make deploy-clean` again.
+not owned by you with mode 0700, or holds another deployment's state, and a
+deployment that a credential command is changing. It also refuses a state
+directory without a `project` file that names the selected project. Credential
+commands write that file, so run `make deploy-connector-status` once for a state
+directory created before them. It removes the state directory's contents before
+the volumes, so a failure keeps the connector token paired with its database. Fix
+the reported problem and run `make deploy-clean` again. The
+[credential runbook](connector-credentials.md) describes the locks it shares with
+credential commands.
 
 ## Disposable automated checks
 

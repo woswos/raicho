@@ -260,12 +260,11 @@ cannot list resources.
 `mrproper` runs `automation/tooling/mrproper.bash`. It stops and removes the
 containers and networks of the `raicho` deployment, of every deployment with a
 `.raicho/<project>` directory, and of the `raicho-tools` project, including
-running tooling containers. It then runs every `clean` step and removes the four
-project images. An image that another project's container still uses is kept and
-reported. Deployment volumes and `.raicho/` are never removed, so rebuilding with
-`make images` and starting the deployment again, as in the
-[local runtime guide](../operations/local-runtime.md), keeps its Thunderbird
-profile and connector credentials.
+running tooling containers. It cannot find a deployment that runs under another
+project name without a state directory, so stop that one first with
+`make deploy-down` under its project name. It then runs every `clean` step and
+removes the four project images. An image that another project's container still
+uses is kept and reported. Deployment volumes and `.raicho/` are never removed.
 
 Neither target prunes the Docker build cache, which the default builder cannot
 limit to one project. The next `make` rebuilds the tooling image.

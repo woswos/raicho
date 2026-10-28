@@ -93,8 +93,8 @@ Cross-service acceptance drivers use `connector/`, `credentials/`, and `runtime/
 subpackages. The connector and credential runners source
 `automation/acceptance/credential_deployment.bash` for their disposable
 project, state directory, and fixture container.
-The shared repository-path helper lives at
-`automation/paths.py`.
+The shared repository-path and output-mode helpers live at
+`automation/paths.py` and `automation/output.py`.
 
 Operational credential provisioning, rotation, and live verification belong in
 `deploy/credentials/` as a host Bash wrapper around `raicho-server connector`
@@ -141,7 +141,8 @@ persistence are defined in [architecture](architecture.md).
 
 Keep tests, mocks, fixture controllers, and profile setup with their owning
 component, using its `tests/` subtree. Do not create a repository-root test tree.
-Automation tests live in the owning package's `tests/` subtree. Changelog guard
+Automation tests live in the owning package's `tests/` subtree, and tests of the
+root `automation/` modules live in `automation/tests/`. Changelog guard
 regressions belong in `automation/repository/tests/`, beside the other PR policy
 tests. Shared guard fixtures, the `docker` command mock, and the POSIX ACL helper live in
 `automation/testing/`.
