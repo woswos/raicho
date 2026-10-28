@@ -132,7 +132,7 @@ class DeployCleanTests(CleanupFixture):
             answer='raicho\n',
             status=1,
         )
-        self.assertEqual([path.name for path in state.iterdir()], ['operation.lock'])
+        self.assertEqual(sorted(path.name for path in state.iterdir()), ['operation.lock', 'project'])
 
     def test_a_failed_removal_listing_keeps_the_lock_and_fails(self):
         state = self.state()
@@ -143,12 +143,12 @@ class DeployCleanTests(CleanupFixture):
             status=1,
         )
         self.assertIn('FAIL:', result.stderr)
-        self.assertEqual([path.name for path in state.iterdir()], ['operation.lock'])
+        self.assertEqual(sorted(path.name for path in state.iterdir()), ['operation.lock', 'project'])
 
     def test_a_missing_state_directory_is_locked_before_removal(self):
         state = self.root / '.raicho/raicho'
         self.deploy_clean(*deployment(), Response(('compose', 'down'), status=1), answer='raicho\n', status=1)
-        self.assertEqual([path.name for path in state.iterdir()], ['operation.lock'])
+        self.assertEqual(sorted(path.name for path in state.iterdir()), ['operation.lock', 'project'])
 
     def test_nested_deployment_state_is_refused_before_listing(self):
         state = self.state()
@@ -214,6 +214,21 @@ class DeployCleanTests(CleanupFixture):
             commands, result = self.deploy_clean(*deployment(), answer='raicho\n', status=1)
         self.assertEqual(commands, [])
         self.assertIn('another credential or deploy-clean command', result.stderr)
+
+    def test_a_failed_removal_can_run_again(self):
+        removal = Response(('volume', '--quiet', f'{PROJECT_FILTER}raicho'), output='raicho_raicho-data\n')
+        state = self.root / '.raicho/raicho'
+        self.deploy_clean(
+            *deployment(),
+            removal,
+            Response(('volume', 'rm', 'raicho_raicho-data'), status=1),
+            answer='raicho\n',
+            status=1,
+        )
+        self.assertEqual(sorted(path.name for path in state.iterdir()), ['operation.lock', 'project'])
+        _, result = self.deploy_clean(*deployment(), removal, answer='raicho\n')
+        self.assertIn('Removed deployment raicho', result.stdout)
+        self.assertFalse(state.exists())
 
     def test_a_credential_command_cannot_claim_state_during_the_prompt(self):
         state = self.root / '.raicho/raicho'

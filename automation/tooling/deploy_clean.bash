@@ -23,6 +23,7 @@ if [[ -L ${STATE_DIRECTORY} ]] || { [[ -e ${STATE_DIRECTORY} ]] \
     fail "${STATE_DIRECTORY} must be a private directory owned by the caller"
 fi
 LOCK_PATH="${STATE_DIRECTORY}/operation.lock"
+PROJECT_MARKER="${STATE_DIRECTORY}/project"
 if [[ -L ${LOCK_PATH} ]] || { [[ -e ${LOCK_PATH} ]] && [[ ! -f ${LOCK_PATH} ]]; }; then
     fail "${LOCK_PATH} must be a regular file"
 fi
@@ -35,12 +36,15 @@ STATE_EXISTED=false
 if [[ -e ${STATE_DIRECTORY} ]]; then
     STATE_EXISTED=true
     # The credential wrapper writes this marker, so an override cannot point at unrelated files.
-    PROJECT_MARKER="${STATE_DIRECTORY}/project"
     if [[ -L ${PROJECT_MARKER} || ! -f ${PROJECT_MARKER} || $(<"${PROJECT_MARKER}") != "${PROJECT}" ]]; then
         fail "${STATE_DIRECTORY} is not marked as the state of ${PROJECT}; run make deploy-connector-status first"
     fi
 fi
 mkdir -p -- "${STATE_DIRECTORY}"
+# A failed removal leaves the lock and this marker, so running deploy-clean again accepts them.
+if [[ ${STATE_EXISTED} == false ]]; then
+    printf '%s\n' "${PROJECT}" >"${PROJECT_MARKER}"
+fi
 exec {LOCK_DESCRIPTOR}>>"${LOCK_PATH}"
 if ! flock --exclusive --nonblock "${LOCK_DESCRIPTOR}"; then
     fail 'a credential operation is running'
@@ -57,7 +61,7 @@ unlock_state_layout
 
 forget_created_state() {
     if [[ ${STATE_EXISTED} == false ]]; then
-        rm -f -- "${LOCK_PATH}"
+        rm -f -- "${LOCK_PATH}" "${PROJECT_MARKER}"
         rmdir -- "${STATE_DIRECTORY}"
     fi
 }
@@ -66,7 +70,7 @@ forget_created_state() {
 remove_state_contents() (
     shopt -s nullglob dotglob
     for ENTRY in "${STATE_DIRECTORY}"/*; do
-        if [[ ${ENTRY} == "${LOCK_PATH}" ]]; then
+        if [[ ${ENTRY} == "${LOCK_PATH}" || ${ENTRY} == "${PROJECT_MARKER}" ]]; then
             continue
         fi
         if [[ -d ${ENTRY} && ! -L ${ENTRY} ]]; then
@@ -126,8 +130,8 @@ fi
 if ! remove_project "${PROJECT}"; then
     fail "could not remove every resource of ${PROJECT}; run make deploy-clean again"
 fi
-# Only the lock remains, so non-recursive removal cannot reach anything created meanwhile.
-if ! { rm -f -- "${LOCK_PATH}" && rmdir -- "${STATE_DIRECTORY}"; }; then
+# Only the lock and marker remain, so non-recursive removal cannot reach anything created meanwhile.
+if ! { rm -f -- "${LOCK_PATH}" "${PROJECT_MARKER}" && rmdir -- "${STATE_DIRECTORY}"; }; then
     fail "removed the volumes but kept ${STATE_DIRECTORY}; remove it and run make deploy-clean again"
 fi
 echo "Removed deployment ${PROJECT}, its volumes, and its state directory"
