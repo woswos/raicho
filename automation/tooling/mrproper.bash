@@ -20,25 +20,9 @@ projects() {
     echo raicho-tools
 }
 
-stop_project() {
-    local PROJECT="${1}" CONTAINERS NETWORKS
-    mapfile -t CONTAINERS < <(list container --quiet --filter "label=${PROJECT_LABEL}=${PROJECT}")
-    mapfile -t NETWORKS < <(list network --quiet --filter "label=${PROJECT_LABEL}=${PROJECT}")
-    if ((${#CONTAINERS[@]} > 0)); then
-        docker container stop "${CONTAINERS[@]}" >/dev/null
-        docker container rm "${CONTAINERS[@]}" >/dev/null
-    fi
-    if ((${#NETWORKS[@]} > 0)); then
-        docker network rm "${NETWORKS[@]}" >/dev/null
-    fi
-    if ((${#CONTAINERS[@]} + ${#NETWORKS[@]} > 0)); then
-        echo "Removed the containers and networks of ${PROJECT}"
-    fi
-}
-
 mapfile -t PROJECTS < <(projects | sort -u)
 for PROJECT in "${PROJECTS[@]}"; do
-    stop_project "${PROJECT}"
+    remove_project "${PROJECT}" container network
 done
 clean
 remove_images "${PROJECT_IMAGES[@]}"

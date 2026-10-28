@@ -38,30 +38,31 @@ list() {
 
 remove_project() {
     local PROJECT="${1}" KIND LISTED IDS
-    for KIND in container volume network; do
+    shift
+    for KIND in "${@}"; do
         LISTED="$(list "${KIND}" --quiet --filter "label=${PROJECT_LABEL}=${PROJECT}")" || return 1
         mapfile -t IDS < <(printf '%s' "${LISTED}")
         if ((${#IDS[@]} == 0)); then
             continue
         fi
+        # A graceful stop protects the volumes that mrproper keeps.
         if [[ ${KIND} == container ]]; then
-            docker container rm --force "${IDS[@]}" >/dev/null || return 1
-        else
-            docker "${KIND}" rm "${IDS[@]}" >/dev/null || return 1
+            docker container stop "${IDS[@]}" >/dev/null || return 1
         fi
+        docker "${KIND}" rm "${IDS[@]}" >/dev/null || return 1
+        echo "Removed the ${KIND}s of ${PROJECT}"
     done
 }
 
 remove_disposable_projects() {
-    local PROJECTS PROJECT KIND
-    mapfile -t PROJECTS < <(
-        for KIND in container volume network; do
-            list "${KIND}" --format "{{.Label \"${PROJECT_LABEL}\"}}"
-        done | grep -E "${DISPOSABLE_PROJECT}" | sort -u
-    )
+    local KIND LISTED LABELS='' PROJECTS PROJECT
+    for KIND in container volume network; do
+        LISTED="$(list "${KIND}" --format "{{.Label \"${PROJECT_LABEL}\"}}")" || return 1
+        LABELS+="${LISTED}"$'\n'
+    done
+    mapfile -t PROJECTS < <(grep -E "${DISPOSABLE_PROJECT}" <<<"${LABELS}" | sort -u)
     for PROJECT in "${PROJECTS[@]}"; do
-        remove_project "${PROJECT}"
-        echo "Removed acceptance project ${PROJECT}"
+        remove_project "${PROJECT}" container volume network
     done
 }
 
@@ -117,14 +118,13 @@ remove_images() {
 }
 
 clean() {
-    local DISPOSABLE_IMAGES
+    local IMAGES DISPOSABLE_IMAGES
     remove_ignored_output
     remove_disposable_projects
     remove_state_directories
     remove_cache
-    mapfile -t DISPOSABLE_IMAGES < <(
-        docker image ls --format '{{.Repository}}:{{.Tag}}' | grep -E "${DISPOSABLE_IMAGE}"
-    )
+    IMAGES="$(docker image ls --format '{{.Repository}}:{{.Tag}}')" || return 1
+    mapfile -t DISPOSABLE_IMAGES < <(grep -E "${DISPOSABLE_IMAGE}" <<<"${IMAGES}")
     remove_images "${DISPOSABLE_IMAGES[@]}"
 }
 

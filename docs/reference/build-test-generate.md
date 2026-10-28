@@ -254,7 +254,8 @@ make mrproper
 
 It keeps the `raicho-tools:local`, `raicho-server:local`, `raicho-gateway:local`,
 and `raicho-thunderbird:local` images, and never touches the `raicho` deployment,
-its volumes, or `.raicho/`.
+its volumes, or `.raicho/`. Like `mrproper` and `deploy-clean`, it fails when Docker
+cannot list resources.
 
 `mrproper` runs `automation/tooling/mrproper.bash`. It stops and removes the
 containers and networks of the `raicho` deployment, of every deployment with a

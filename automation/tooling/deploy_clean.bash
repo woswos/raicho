@@ -134,7 +134,7 @@ docker compose -p "${PROJECT}" -f "${REPOSITORY_ROOT}/compose.yaml" down --remov
 if ! remove_state_contents; then
     fail "kept ${STATE_DIRECTORY} and the volumes; fix its file ownership and run make deploy-clean again"
 fi
-if ! remove_project "${PROJECT}"; then
+if ! remove_project "${PROJECT}" container volume network; then
     fail "could not remove every resource of ${PROJECT}; run make deploy-clean again"
 fi
 # Only the lock and marker remain, so non-recursive removal cannot reach anything created meanwhile.

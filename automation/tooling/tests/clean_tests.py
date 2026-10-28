@@ -68,7 +68,8 @@ class CleanTests(CleanupFixture):
                 output='ci-network\n',
             ),
         )
-        self.assertIn(['container', 'rm', '--force', 'runtime-container'], commands)
+        self.assertIn(['container', 'stop', 'runtime-container'], commands)
+        self.assertIn(['container', 'rm', 'runtime-container'], commands)
         self.assertIn(['volume', 'rm', 'connector-volume'], commands)
         self.assertIn(['network', 'rm', 'ci-network'], commands)
         filters = {word for command in commands for word in command if PROJECT_FILTER in word}
@@ -80,6 +81,12 @@ class CleanTests(CleanupFixture):
                 'raicho-ci-123-1',
             },
         )
+
+    def test_a_failed_docker_listing_fails_the_clean(self):
+        for words in (('volume', 'ls', '--format'), ('image', 'ls')):
+            with self.subTest(words=words):
+                _, result = self.run_script('clean.bash', Response(words, status=1), status=1)
+                self.assertNotIn('Clean finished', result.stdout)
 
     def test_removes_only_disposable_images(self):
         commands, result = self.clean(

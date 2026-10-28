@@ -11,8 +11,8 @@ def listing(kind, project, output):
 
 
 class MrproperTests(CleanupFixture):
-    def mrproper(self, *responses):
-        return self.run_script('mrproper.bash', *responses)
+    def mrproper(self, *responses, **options):
+        return self.run_script('mrproper.bash', *responses, **options)
 
     def test_stops_every_deployment_and_tooling_container_but_keeps_their_data(self):
         tokens = [
@@ -47,7 +47,14 @@ class MrproperTests(CleanupFixture):
         for token in tokens:
             with self.subTest(token=token):
                 self.assertTrue(token.exists())
-        self.assertIn('Removed the containers and networks of staging', result.stdout)
+        self.assertIn('Removed the containers of staging', result.stdout)
+
+    def test_a_failed_docker_listing_stops_before_removing_images(self):
+        commands, result = self.mrproper(
+            Response(('container', '--quiet', f'{PROJECT_FILTER}raicho'), status=1), status=1
+        )
+        self.assertNotIn('image', {command[0] for command in commands})
+        self.assertNotIn('Mrproper finished', result.stdout)
 
     def test_removes_project_images_after_cleaning(self):
         commands, result = self.mrproper(Response(('image', 'rm', 'raicho-server:local'), status=1))
