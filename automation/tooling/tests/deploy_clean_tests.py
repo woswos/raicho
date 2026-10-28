@@ -1,11 +1,13 @@
 import fcntl
 import os
 import shutil
+import stat
 import subprocess
 import time
 import unittest
 from unittest import mock
 
+from automation.testing.acl import set_default_acl
 from automation.testing.docker_mock import DockerMock, Response
 from automation.tooling.tests.cleanup_fixture import PROJECT_FILTER, CleanupFixture
 
@@ -150,6 +152,17 @@ class DeployCleanTests(CleanupFixture):
         state = self.root / '.raicho/raicho'
         self.deploy_clean(*deployment(), Response(('compose', 'down'), status=1), answer='raicho\n', status=1)
         self.assertEqual(sorted(path.name for path in state.iterdir()), ['operation.lock', 'project'])
+
+    def test_new_state_stays_private_under_a_default_acl(self):
+        parent = self.root / '.raicho'
+        parent.mkdir()
+        set_default_acl(self, parent)
+        state = parent / 'raicho'
+        self.deploy_clean(*deployment(), Response(('compose', 'down'), status=1), answer='raicho\n', status=1)
+        self.assertEqual(stat.S_IMODE(state.stat().st_mode), 0o700)
+        self.assertEqual(stat.S_IMODE((state / 'operation.lock').stat().st_mode), 0o600)
+        _, result = self.deploy_clean(*deployment(), answer='raicho\n')
+        self.assertIn('Removed deployment raicho', result.stdout)
 
     def test_nested_deployment_state_is_refused_before_listing(self):
         state = self.state()

@@ -40,12 +40,15 @@ if [[ -e ${STATE_DIRECTORY} ]]; then
         fail "${STATE_DIRECTORY} is not marked as the state of ${PROJECT}; run make deploy-connector-status first"
     fi
 fi
-mkdir -p -- "${STATE_DIRECTORY}"
 # A failed removal leaves the lock and this marker, so running deploy-clean again accepts them.
 if [[ ${STATE_EXISTED} == false ]]; then
+    mkdir -p -- "${STATE_DIRECTORY}"
+    # A default ACL overrides the umask, so set the modes explicitly.
+    chmod 700 -- "${STATE_DIRECTORY}"
     printf '%s\n' "${PROJECT}" >"${PROJECT_MARKER}"
 fi
 exec {LOCK_DESCRIPTOR}>>"${LOCK_PATH}"
+chmod 600 -- "${LOCK_PATH}"
 if ! flock --exclusive --nonblock "${LOCK_DESCRIPTOR}"; then
     fail 'a credential operation is running'
 fi

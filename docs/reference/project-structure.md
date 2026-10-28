@@ -143,7 +143,8 @@ Keep tests, mocks, fixture controllers, and profile setup with their owning
 component, using its `tests/` subtree. Do not create a repository-root test tree.
 Automation tests live in the owning package's `tests/` subtree. Changelog guard
 regressions belong in `automation/repository/tests/`, beside the other PR policy
-tests. Shared guard fixtures and the `docker` command mock live in `automation/testing/`.
+tests. Shared guard fixtures, the `docker` command mock, and the POSIX ACL helper live in
+`automation/testing/`.
 
 `server/tests/`, `web/tests/`, and `extension/tests/` own their respective
 application and integration tests. `extension/tests/` also owns Python packaging

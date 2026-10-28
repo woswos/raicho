@@ -35,7 +35,11 @@ while [[ ${PARENT} != / ]]; do
     fi
     PARENT="$(dirname -- "${PARENT}")"
 done
-mkdir -p -- "${STATE_DIRECTORY}"
+if [[ ! -e ${STATE_DIRECTORY} ]]; then
+    mkdir -p -- "${STATE_DIRECTORY}"
+    # A default ACL overrides the umask, so set the mode explicitly.
+    chmod 700 -- "${STATE_DIRECTORY}"
+fi
 if [[ $(stat -c '%u:%a' -- "${STATE_DIRECTORY}") != "$(id -u):700" ]]; then
     echo 'FAIL: state directory must belong to the caller and use mode 0700' >&2
     exit 1
