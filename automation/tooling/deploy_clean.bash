@@ -55,7 +55,7 @@ fi
 # Every state directory belongs to its caller, so the scan skips only what the caller neither owns
 # nor can read, such as the UID-10001 token directory, and fails on anything else it cannot read.
 NESTED_LOCK="$(find "${STATE_DIRECTORY}" -mindepth 1 \( ! -user "$(id -u)" ! -readable -prune \) \
-    -o \( -name operation.lock ! -path "${LOCK_PATH}" -print -quit \))" \
+    -o \( -name operation.lock ! -samefile "${LOCK_PATH}" -print -quit \))" \
     || fail "could not inspect ${STATE_DIRECTORY} for another deployment's state"
 if [[ -n ${NESTED_LOCK} ]]; then
     fail "${STATE_DIRECTORY} holds another deployment's state in ${NESTED_LOCK%/operation.lock}"

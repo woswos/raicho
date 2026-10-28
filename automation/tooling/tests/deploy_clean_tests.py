@@ -76,7 +76,7 @@ class DeployCleanTests(CleanupFixture):
         self.assertFalse(leftover.exists())
 
     def test_the_selected_project_and_state_directory_are_used(self):
-        state = self.state('../state', 'second')
+        state = self.state('../state[1]', 'second')
         commands, _ = self.deploy_clean(
             *deployment('second'),
             answer='second\n',
