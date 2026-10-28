@@ -9,8 +9,9 @@ from pathlib import Path
 from unittest import mock
 
 from automation.build import application
-from automation.build.application import BENCHMARK, NODE_REPORTER, test_summary
+from automation.build.application import BENCHMARK, test_summary
 from automation.paths import REPOSITORY_ROOT
+from protocol.generator.cli import NODE_REPORTER
 
 RESULT = 'running 3 tests\n...\ntest result: ok. 3 passed; 0 failed; 0 ignored\n'
 
@@ -115,11 +116,6 @@ class ApplicationTests(unittest.TestCase):
             ):
                 application.main()
                 called.assert_called_once_with(*arguments, **keywords)
-
-    def test_verbose_node_tests_use_the_standard_reporter(self):
-        for verbose, reporter in (('', NODE_REPORTER), ('1', '--test-reporter=spec')):
-            with self.subTest(verbose=verbose), mock.patch.dict(os.environ, {'VERBOSE': verbose}):
-                self.assertEqual(application.node_reporter(), reporter)
 
     def test_verbose_benchmarks_stream_their_progress(self):
         with mock.patch.dict(os.environ, {'CARGO_TERM_QUIET': 'false'}), mock.patch.object(application, 'run') as run:

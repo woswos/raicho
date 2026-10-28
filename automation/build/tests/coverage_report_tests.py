@@ -7,8 +7,8 @@ from pathlib import Path
 from unittest import mock
 
 from automation.build import coverage_report
-from automation.build.application import NODE_REPORTER
 from automation.paths import REPOSITORY_ROOT
+from protocol.generator.cli import NODE_REPORTER
 
 
 class CoverageReportTests(unittest.TestCase):

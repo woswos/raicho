@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from automation.build.application import NODE_REPORTER
+from protocol.generator.cli import NODE_REPORTER
 
 PASSING = """import assert from 'node:assert/strict';
 import { test } from 'node:test';

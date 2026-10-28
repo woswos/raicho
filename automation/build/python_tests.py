@@ -4,6 +4,8 @@ import os
 import sys
 import unittest
 
+from automation import output
+
 
 def summary(start, ran, skipped):
     location = '' if start == '.' else f' in {start}'
@@ -16,8 +18,9 @@ def main():
     parser.add_argument('start')
     parser.add_argument('pattern')
     arguments = parser.parse_args()
+    verbose = output.verbose()
     # Tests must not inherit the caller's output mode.
-    verbose = bool(os.environ.pop('VERBOSE', None))
+    os.environ.pop('VERBOSE', None)
     suite = unittest.defaultTestLoader.discover(arguments.start, pattern=arguments.pattern, top_level_dir='.')
     report = sys.stdout if verbose else io.StringIO()
     result = unittest.TextTestRunner(stream=report, buffer=not verbose, verbosity=2 if verbose else 1).run(suite)

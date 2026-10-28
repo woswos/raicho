@@ -6,15 +6,10 @@ import sys
 import tempfile
 from pathlib import Path
 
-from automation.output import verbose
 from automation.paths import REPOSITORY_ROOT
+from protocol.generator.cli import node_reporter
 
 BENCHMARK = ['cargo', 'bench', '--workspace', '--bench', '*', '--locked']
-NODE_REPORTER = f'--test-reporter={REPOSITORY_ROOT / "automation/build/node_reporter.mjs"}'
-
-
-def node_reporter():
-    return '--test-reporter=spec' if verbose() else NODE_REPORTER
 
 
 def run(arguments, **options):
