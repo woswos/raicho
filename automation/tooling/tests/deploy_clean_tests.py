@@ -157,6 +157,17 @@ class DeployCleanTests(CleanupFixture):
         self.assertEqual(commands, [])
         self.assertTrue((nested / 'connector.token').exists())
 
+    def test_an_unreadable_directory_of_the_caller_stops_the_scan(self):
+        state = self.state()
+        hidden = state / 'hidden'
+        (hidden / 'nested').mkdir(parents=True)
+        (hidden / 'nested/operation.lock').write_text('')
+        hidden.chmod(0o111)
+        self.addCleanup(hidden.chmod, 0o700)
+        commands, result = self.deploy_clean(*deployment(), answer='raicho\n', status=1)
+        self.assertIn('could not inspect', result.stderr)
+        self.assertEqual(commands, [])
+
     def test_a_failed_docker_listing_stops_before_reporting_or_cleaning(self):
         commands, result = self.deploy_clean(
             Response(('container', '--format', '{{.Names}}', f'{PROJECT_FILTER}raicho'), status=1), status=1
