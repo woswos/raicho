@@ -59,12 +59,15 @@ class DeploymentTests(unittest.TestCase):
                 self.assertIn(CREDENTIALS_FILE, commands)
         self.assertNotIn(CREDENTIALS_FILE, dry_run('deploy-down', RAICHO_STATE_DIRECTORY=str(self.state)))
 
-    def test_a_state_path_with_spaces_keeps_its_token(self):
-        state = self.state / 'with space'
-        (state / 'credentials').mkdir(parents=True)
-        commands = dry_run('deploy-up', RAICHO_STATE_DIRECTORY=str(state))
-        self.assertIn(f"RAICHO_CREDENTIAL_DIRECTORY='{state / 'credentials'}' ", commands)
-        self.assertIn(CREDENTIALS_FILE, commands)
+    def test_a_state_path_with_spaces_or_quotes_keeps_its_token(self):
+        for name in ('with space', "it's"):
+            with self.subTest(name=name):
+                state = self.state / name
+                (state / 'credentials').mkdir(parents=True)
+                commands = dry_run('deploy-up', RAICHO_STATE_DIRECTORY=str(state))
+                quoted = str(state / 'credentials').replace("'", "'\\''")
+                self.assertIn(f"RAICHO_CREDENTIAL_DIRECTORY='{quoted}' ", commands)
+                self.assertIn(CREDENTIALS_FILE, commands)
 
     def test_the_project_follows_the_credential_script(self):
         cases = (
