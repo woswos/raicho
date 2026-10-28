@@ -16,7 +16,7 @@ SCRIPTS = (
     'automation/tooling/mrproper.bash',
     'automation/tooling/deploy_clean.bash',
     'deploy/credentials/connector.bash',
-    'deploy/credentials/state_lock.bash',
+    'deploy/credentials/state.bash',
 )
 
 

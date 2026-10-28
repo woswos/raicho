@@ -4,8 +4,9 @@ set -euo pipefail
 
 # shellcheck source=automation/tooling/clean.bash
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/clean.bash"
+# shellcheck source=deploy/credentials/state.bash
+source "${REPOSITORY_ROOT}/deploy/credentials/state.bash"
 
-PROJECT_NAME='^[a-z0-9][a-z0-9_-]*$'
 PROJECT_IMAGES=(raicho-tools:local raicho-server:local raicho-gateway:local raicho-thunderbird:local)
 
 projects() {

@@ -98,8 +98,8 @@ The shared repository-path helper lives at
 
 Operational credential provisioning, rotation, and live verification belong in
 `deploy/credentials/` as a host Bash wrapper around `raicho-server connector`
-subcommands. `state_lock.bash` there holds the per-user lock that the wrapper and
-`make deploy-clean` share.
+subcommands. `state.bash` there holds the deployment selection, state directory
+checks, and per-user lock that the wrapper, `make deploy-clean`, and `make mrproper` share.
 These commands manage a deployment and are separate from acceptance tests that
 create disposable deployments. Their procedure is in the
 [credential runbook](../operations/connector-credentials.md). The

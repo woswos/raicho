@@ -107,6 +107,7 @@ class DeployCleanTests(CleanupFixture):
 
     def test_a_running_credential_operation_blocks_the_removal(self):
         state = self.state()
+        (state / 'operation.lock').touch(mode=0o600)
         with (state / 'operation.lock').open('a') as lock:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             commands, result = self.deploy_clean(*deployment(), answer='raicho\n', status=1)

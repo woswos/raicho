@@ -16,7 +16,8 @@ make deploy-connector-init
 ```
 
 The project is selected by `RAICHO_PROJECT`, then `COMPOSE_PROJECT_NAME`, then
-`raicho`. Use the existing Compose project name for another deployment.
+`raicho`. Use the existing Compose project name for another deployment. The
+`raicho-tools` project belongs to the tooling container and is refused.
 `RAICHO_STATE_DIRECTORY` defaults to
 `.raicho/<project>` beneath the checkout and must be an absolute path when
 overridden. It must belong to the invoking host user with mode 0700 and must not
