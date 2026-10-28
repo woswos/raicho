@@ -78,12 +78,13 @@ if [[ ${ANSWER} != "${PROJECT}" ]]; then
     exit 1
 fi
 
-if [[ -d ${STATE_DIRECTORY} ]]; then
-    umask 077
-    exec {LOCK_DESCRIPTOR}>>"${LOCK_PATH}"
-    if ! flock --exclusive --nonblock "${LOCK_DESCRIPTOR}"; then
-        fail 'a credential operation is running'
-    fi
+# A missing state directory is created only to hold the lock, so a credential command
+# cannot start on the deployment while it is removed.
+umask 077
+mkdir -p -- "${STATE_DIRECTORY}"
+exec {LOCK_DESCRIPTOR}>>"${LOCK_PATH}"
+if ! flock --exclusive --nonblock "${LOCK_DESCRIPTOR}"; then
+    fail 'a credential operation is running'
 fi
 docker compose -p "${PROJECT}" -f "${REPOSITORY_ROOT}/compose.yaml" down --remove-orphans
 # Removing the token before the volumes keeps them paired if this step fails. The lock

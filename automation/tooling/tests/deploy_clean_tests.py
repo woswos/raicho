@@ -141,6 +141,11 @@ class DeployCleanTests(CleanupFixture):
         self.assertIn('FAIL:', result.stderr)
         self.assertEqual([path.name for path in state.iterdir()], ['operation.lock'])
 
+    def test_a_missing_state_directory_is_locked_before_removal(self):
+        state = self.root / '.raicho/raicho'
+        self.deploy_clean(*deployment(), Response(('compose', 'down'), status=1), answer='raicho\n', status=1)
+        self.assertEqual([path.name for path in state.iterdir()], ['operation.lock'])
+
     def test_a_failed_docker_listing_stops_before_reporting_or_cleaning(self):
         commands, result = self.deploy_clean(
             Response(('container', '--format', '{{.Names}}', f'{PROJECT_FILTER}raicho'), status=1), status=1
