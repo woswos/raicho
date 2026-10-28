@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import time
 import unittest
+from unittest import mock
 
 from automation.testing.docker_mock import DockerMock, Response
 from automation.tooling.tests.cleanup_fixture import PROJECT_FILTER, CleanupFixture
@@ -201,6 +202,16 @@ class DeployCleanTests(CleanupFixture):
                 self.assertTrue((state / 'credentials/connector.token').exists())
                 shutil.rmtree(state)
 
+    def test_the_callers_deployment_selection_does_not_leak_in(self):
+        selection = {
+            'RAICHO_PROJECT': 'elsewhere',
+            'COMPOSE_PROJECT_NAME': 'elsewhere',
+            'RAICHO_STATE_DIRECTORY': '/elsewhere',
+        }
+        with mock.patch.dict(os.environ, selection):
+            _, result = self.deploy_clean()
+        self.assertIn('Deployment raicho has nothing to remove', result.stdout)
+
     def test_a_cancel_leaves_no_new_state_directory(self):
         self.deploy_clean(*deployment(), answer='no\n', status=1)
         self.assertFalse((self.root / '.raicho/raicho').exists())
@@ -234,7 +245,7 @@ class DeployCleanTests(CleanupFixture):
         docker = DockerMock(self.directory / 'commands', deployment())
         cleaner = subprocess.Popen(
             ['bash', str(self.root / 'automation/tooling/deploy_clean.bash')],
-            env=docker.environment(TMPDIR=str(self.temporary)),
+            env=self.script_environment(docker),
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -263,8 +274,8 @@ class DeployCleanTests(CleanupFixture):
         docker, cleaner = self.prompting_cleaner()
         wrapper = subprocess.run(
             ['bash', str(self.root / 'deploy/credentials/connector.bash'), 'status'],
-            env=docker.environment(
-                TMPDIR=str(self.temporary), RAICHO_PROJECT='raicho-child', RAICHO_STATE_DIRECTORY=str(state / 'child')
+            env=self.script_environment(
+                docker, RAICHO_PROJECT='raicho-child', RAICHO_STATE_DIRECTORY=str(state / 'child')
             ),
             capture_output=True,
             text=True,

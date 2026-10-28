@@ -7,6 +7,8 @@ from pathlib import Path
 from automation.paths import REPOSITORY_ROOT
 from automation.testing.docker_mock import DockerMock
 
+# A deployment selected in the caller's shell must not reach the scripts under test.
+SELECTION = ('RAICHO_PROJECT', 'COMPOSE_PROJECT_NAME', 'RAICHO_STATE_DIRECTORY')
 PROJECT_FORMAT = '{{.Label "com.docker.compose.project"}}'
 PROJECT_FILTER = 'label=com.docker.compose.project='
 SCRIPTS = (
@@ -38,11 +40,15 @@ class CleanupFixture(unittest.TestCase):
         path.write_text(text)
         return path
 
+    def script_environment(self, docker, **environment):
+        inherited = docker.environment(TMPDIR=str(self.temporary))
+        return {name: value for name, value in inherited.items() if name not in SELECTION} | environment
+
     def run_script(self, script, *responses, answer='', status=0, **environment):
         docker = DockerMock(self.directory / 'commands', responses)
         result = subprocess.run(
             ['bash', str(self.root / 'automation/tooling' / script)],
-            env=docker.environment(TMPDIR=str(self.temporary), **environment),
+            env=self.script_environment(docker, **environment),
             input=answer,
             capture_output=True,
             text=True,
