@@ -4,6 +4,9 @@ ifdef GITHUB_EVENT_PATH
 TOOLS += -f $(REPOSITORY_ROOT)automation/tooling/compose.ci.yaml
 endif
 ifdef RAICHO_CACHE_DIRECTORY
+# Compose resolves a relative bind source from its first file's directory, so pass Make's absolute path.
+override RAICHO_CACHE_DIRECTORY := $(abspath $(RAICHO_CACHE_DIRECTORY))
+export RAICHO_CACHE_DIRECTORY
 TOOLS += -f $(REPOSITORY_ROOT)automation/tooling/compose.cache.yaml
 endif
 # A linked worktree keeps its Git metadata outside the mounted checkout.
