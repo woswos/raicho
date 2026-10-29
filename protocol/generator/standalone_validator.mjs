@@ -1,25 +1,23 @@
 import { createRequire } from 'node:module';
 
-const require = createRequire('/opt/quality/package.json');
+export const qualityDirectory = '/opt/quality';
+const require = createRequire(`${qualityDirectory}/package.json`);
 const Ajv = require('ajv');
 const standaloneCode = require('ajv/dist/standalone').default;
 const { build } = require('esbuild');
 const typescript = require('typescript');
 
-function checkStandalone(syntaxTree) {
-  function visit(node) {
-    if (
-      typescript.isImportDeclaration(node) ||
-      (typescript.isExportDeclaration(node) && node.moduleSpecifier) ||
-      ((typescript.isCallExpression(node) || typescript.isNewExpression(node)) &&
-        (node.expression.kind === typescript.SyntaxKind.ImportKeyword ||
-          /^(?:require|eval|Function|globalThis\.(?:eval|Function))$/u.test(node.expression.getText(syntaxTree))))
-    ) {
-      throw new Error('The generated validator must be self-contained and CSP safe.');
-    }
-    typescript.forEachChild(node, visit);
+function checkStandalone(node) {
+  if (
+    typescript.isImportDeclaration(node) ||
+    (typescript.isExportDeclaration(node) && node.moduleSpecifier) ||
+    ((typescript.isCallExpression(node) || typescript.isNewExpression(node)) &&
+      (node.expression.kind === typescript.SyntaxKind.ImportKeyword ||
+        /^(?:require|eval|Function|globalThis\.(?:eval|Function))$/u.test(node.expression.getText())))
+  ) {
+    throw new Error('The generated validator must be self-contained and CSP safe.');
   }
-  visit(syntaxTree);
+  typescript.forEachChild(node, checkStandalone);
 }
 
 export async function standaloneValidator(schema, filename) {
@@ -32,10 +30,10 @@ export async function standaloneValidator(schema, filename) {
   });
   const validate = validator.compile(schema);
   const generated = await build({
-    absWorkingDir: '/opt/quality',
+    absWorkingDir: qualityDirectory,
     stdin: {
       contents: standaloneCode(validator, validate),
-      resolveDir: '/opt/quality',
+      resolveDir: qualityDirectory,
       sourcefile: filename,
     },
     bundle: true,

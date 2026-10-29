@@ -5,11 +5,16 @@ use std::{
     process::Command,
 };
 
+use serde_json::Value;
 use syn::visit_mut::VisitMut;
 
 mod diagnostics;
 mod limits;
 mod remove_debug;
+
+const CONTRACT: &str = "schema/connector.schema.json";
+const LIMITS: &str = "limits.json";
+const DIAGNOSTICS: &str = "diagnostics.json";
 
 fn main() -> Result<(), Box<dyn Error>> {
     let output = PathBuf::from(std::env::args_os().nth(1).ok_or("Supply the Rust output directory.")?);
@@ -18,28 +23,21 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 fn write_bindings(output: &Path) -> Result<(), Box<dyn Error>> {
     let protocol = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..");
+    let read = |origin: &str| -> Result<Value, Box<dyn Error>> {
+        Ok(serde_json::from_slice(&fs::read(protocol.join(origin))?)?)
+    };
     let mut types = typify::TypeSpace::default();
-    types.add_root_schema(serde_json::from_slice(&fs::read(
-        protocol.join("schema/connector.schema.json"),
-    )?)?)?;
+    types.add_root_schema(serde_json::from_value(read(CONTRACT)?)?)?;
     let mut syntax = syn::parse2(types.to_stream())?;
     remove_debug::RemoveDebug.visit_file_mut(&mut syntax);
     fs::create_dir_all(output)?;
     let files = [
-        (
-            "contract_generated.rs",
-            "schema/connector.schema.json",
-            prettyplease::unparse(&syntax),
-        ),
-        (
-            "limits_generated.rs",
-            "limits.json",
-            limits::generate(&serde_json::from_slice(&fs::read(protocol.join("limits.json"))?)?)?,
-        ),
+        ("contract_generated.rs", CONTRACT, prettyplease::unparse(&syntax)),
+        ("limits_generated.rs", LIMITS, limits::generate(&read(LIMITS)?)?),
         (
             "diagnostics_generated.rs",
-            "diagnostics.json",
-            diagnostics::generate(&serde_json::from_slice(&fs::read(protocol.join("diagnostics.json"))?)?)?,
+            DIAGNOSTICS,
+            diagnostics::generate(&read(DIAGNOSTICS)?)?,
         ),
     ];
     let mut formatter = Command::new("rustfmt");

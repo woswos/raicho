@@ -1,5 +1,6 @@
 use serde_json::Value;
 
+// The TypeScript encoding matches only after decode_value has normalized integral numbers, such as 1.0 to 1.
 pub fn canonical_json(message: &Value) -> String {
     let mut output = String::new();
     match message {

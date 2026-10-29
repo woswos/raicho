@@ -108,8 +108,9 @@ def validate_sources(schema, limits, diagnostics):
         raise ValueError('Protocol limits must contain the expected positive integers.')
     if limits['maximum_wire_integer'] > MAXIMUM_WIRE_INTEGER:
         raise ValueError(f'maximum_wire_integer must not exceed {MAXIMUM_WIRE_INTEGER}.')
-    if any(value > limits['maximum_wire_integer'] for value in limits.values()):
-        raise ValueError('Protocol limits must not exceed maximum_wire_integer.')
+    oversized = sorted(name for name, value in limits.items() if value > limits['maximum_wire_integer'])
+    if oversized:
+        raise ValueError(f'Protocol limits {", ".join(oversized)} must not exceed maximum_wire_integer.')
     # serde_json stops parsing at depth 128, so a deeper limit would make the decoders disagree.
     if limits['maximum_json_depth'] > MAXIMUM_JSON_DEPTH:
         raise ValueError(f'maximum_json_depth must not exceed {MAXIMUM_JSON_DEPTH}.')

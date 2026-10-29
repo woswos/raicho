@@ -4,9 +4,9 @@ import { dirname, isAbsolute, resolve } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
-import { standaloneValidator } from './standalone_validator.mjs';
+import { qualityDirectory, standaloneValidator } from './standalone_validator.mjs';
 
-const require = createRequire('/opt/quality/package.json');
+const require = createRequire(`${qualityDirectory}/package.json`);
 const { compile } = require('json-schema-to-typescript');
 const { format } = require('prettier');
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -25,7 +25,7 @@ if (
 const limits = JSON.parse(await readFile(resolve(repositoryRoot, 'protocol/limits.json'), 'utf8'));
 const diagnostics = JSON.parse(await readFile(resolve(repositoryRoot, 'protocol/diagnostics.json'), 'utf8'));
 
-async function schemaFiles(source, typeName, typesFile, validatorFile) {
+async function schemaOutputs(source, typeName, typesFile, validatorFile) {
   const schema = JSON.parse(await readFile(resolve(repositoryRoot, `protocol/${source}`), 'utf8'));
   const banner = `// Generated from protocol/${source}.\n`;
   return {
@@ -44,7 +44,7 @@ async function schemaFiles(source, typeName, typesFile, validatorFile) {
 }
 
 const files = {
-  ...(await schemaFiles(
+  ...(await schemaOutputs(
     'schema/connector.schema.json',
     'ConnectorMessage',
     'contract_generated.ts',
@@ -56,7 +56,7 @@ const files = {
   'limits_generated.ts':
     '// Generated from protocol/limits.json.\n' + `export const LIMITS = ${JSON.stringify(limits)} as const;\n`,
 };
-const webFiles = await schemaFiles(
+const webFiles = await schemaOutputs(
   'schema/status.schema.json',
   'ApplicationStatus',
   'status_generated.ts',
