@@ -1,6 +1,5 @@
 use std::{fs, path::PathBuf};
 
-use jsonschema::Validator;
 use raicho_protocol::{Phase, decode_frame};
 use serde::Deserialize;
 use serde_json::Value;
@@ -37,29 +36,38 @@ fn shared_contract_fixtures_agree_with_the_decoder_and_schema() {
     paths.sort();
     assert!(!paths.is_empty());
     let mut count = 0;
-    let mut nonconforming = 0;
+    let mut rejected = 0;
     for path in paths {
         let fixtures: Vec<Fixture> = serde_json::from_slice(&fs::read(path).unwrap()).unwrap();
         for fixture in fixtures {
             count += 1;
-            nonconforming += usize::from(!verify_fixture(fixture, &validator));
+            let raw = raw_frame(&fixture);
+            // Only a frame that parses shows that the schema, not the JSON parser, rejected it.
+            let parsed = serde_json::from_str::<Value>(&raw).ok();
+            let conforms = parsed.as_ref().is_some_and(|value| validator.is_valid(value));
+            rejected += usize::from(parsed.is_some() && !conforms);
+            verify_fixture(&fixture, &raw, conforms);
         }
     }
     assert!(count > 20, "The shared corpus must cover multiple boundaries.");
     assert!(
-        nonconforming > 10,
-        "The corpus must include frames that violate the schema."
+        rejected > 10,
+        "The corpus must include parsed frames that violate the schema."
     );
 }
 
-fn verify_fixture(fixture: Fixture, validator: &Validator) -> bool {
+fn raw_frame(fixture: &Fixture) -> String {
     let mut raw = fixture
         .raw
-        .unwrap_or_else(|| serde_json::to_string(&fixture.message.unwrap()).unwrap());
+        .clone()
+        .unwrap_or_else(|| serde_json::to_string(fixture.message.as_ref().unwrap()).unwrap());
     raw.push_str(&" ".repeat(fixture.padding));
+    raw
+}
+
+fn verify_fixture(fixture: &Fixture, raw: &str, conforms: bool) {
     let phase = fixture_phase(&fixture.phase);
-    let conforms = serde_json::from_str::<Value>(&raw).is_ok_and(|value| validator.is_valid(&value));
-    match decode_frame(&raw, phase, fixture.generation.as_deref()) {
+    match decode_frame(raw, phase, fixture.generation.as_deref()) {
         Ok(message) => {
             assert!(fixture.valid, "{} unexpectedly passed", fixture.name);
             assert!(conforms, "{} decodes but violates the schema", fixture.name);
@@ -75,7 +83,6 @@ fn verify_fixture(fixture: Fixture, validator: &Validator) -> bool {
             assert_eq!(Some(error.code()), fixture.error.as_deref(), "{}", fixture.name);
         }
     }
-    conforms
 }
 
 fn fixture_phase(name: &str) -> Phase {
