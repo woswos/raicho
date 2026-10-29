@@ -101,9 +101,12 @@ therefore build them with Docker's default builder and no image cache, and the
 runtime jobs build the tooling image through their builder without one.
 
 `lint`, `application-test`, and `coverage` restore a Cargo cache with
-`actions/cache`, keyed by job, `Cargo.lock`, and `rust-toolchain.toml`. The workflow
-sets `RAICHO_CACHE_DIRECTORY`, which makes Make bind that folder at `/cache` through
-`automation/tooling/compose.cache.yaml` instead of the named volume. CI turns off
+`actions/cache`, keyed by job, `Cargo.lock`, and `rust-toolchain.toml`, into
+`raicho-cache` under the runner's temporary directory. Like the acceptance state, it
+stays there because the runner shares only its work directory with the Docker host.
+Their Make steps set `RAICHO_CACHE_DIRECTORY` to that folder, which makes Make bind
+it at `/cache` through `automation/tooling/compose.cache.yaml` instead of the named
+volume. The other jobs use the named volume. CI turns off
 incremental compilation, because each run starts from that restored folder.
 A PR can restore caches saved on `main`, but not another PR's, so every job that
 restores a Cargo cache also runs on pushes to `main`.

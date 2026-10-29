@@ -20,12 +20,14 @@ SOURCE_SUITES = (
     'test-protocol',
 )
 ACCEPTANCE_JOBS = ('runtime-test', 'connector-test', 'compatibility-test')
+CACHE_DIRECTORY = '${{ runner.temp }}/raicho-cache'
 
 
 class WorkflowCoverageTests(unittest.TestCase):
     def setUp(self):
         self.text = WORKFLOW.read_text()
-        self.jobs = yaml.load(self.text, Loader=yaml.BaseLoader)['jobs']
+        self.workflow = yaml.load(self.text, Loader=yaml.BaseLoader)
+        self.jobs = self.workflow['jobs']
 
     def script(self, *names):
         return '\n'.join(step.get('run', '') for name in names for step in self.jobs[name]['steps'])
@@ -131,9 +133,14 @@ class WorkflowCoverageTests(unittest.TestCase):
         self.assertEqual(writers, ['application-build'])
 
     def test_rust_building_jobs_restore_their_cargo_cache(self):
+        # The runner shares only its work directory with the Docker host, so the folder must live there.
+        self.assertNotIn('RAICHO_CACHE_DIRECTORY', self.workflow.get('env', {}))
         for name in ('lint', 'application-test', 'coverage'):
             with self.subTest(job=name):
                 steps = self.jobs[name]['steps']
                 cache = next(step for step in steps if step.get('uses', '').startswith('actions/cache@'))
-                self.assertEqual(cache['with']['path'], '${{ env.RAICHO_CACHE_DIRECTORY }}')
+                self.assertEqual(cache['with']['path'], CACHE_DIRECTORY)
+                for step in steps:
+                    if 'make ' in step.get('run', ''):
+                        self.assertEqual(step['env']['RAICHO_CACHE_DIRECTORY'], CACHE_DIRECTORY)
                 self.assertIn("hashFiles('Cargo.lock', 'rust-toolchain.toml')", cache['with']['key'])
