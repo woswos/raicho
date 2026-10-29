@@ -29,7 +29,7 @@ METADATA_EVENTS = {'edited', 'labeled', 'unlabeled', 'ready_for_review'}
 def pull_request_events(workflow):
     triggers = workflow['on']['pull_request']
     # Without a types list, GitHub runs pull_request workflows on its default events.
-    return set(triggers['types']) if 'types' in triggers else CODE_EVENTS
+    return set((triggers or {}).get('types', CODE_EVENTS))
 
 
 class WorkflowCoverageTests(unittest.TestCase):
