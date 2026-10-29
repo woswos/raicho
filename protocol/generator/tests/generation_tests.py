@@ -65,15 +65,17 @@ class ProtocolGenerationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'depth'):
             validate_sources(self.schema, self.limits | {'maximum_json_depth': 101}, self.diagnostics)
 
-    def test_sequence_bounds_follow_the_wire_integer_limit(self):
-        for value in [self.limits['maximum_wire_integer'] - 1, 2**31]:
+    def test_the_wire_integer_limit_bounds_sequences_and_other_limits(self):
+        cases = [
+            (self.limits['maximum_wire_integer'] - 1, 'Protocol schema disagrees with limit maximum_wire_integer.'),
+            (2**31, 'maximum_wire_integer must not exceed 2147483647.'),
+            (60000, 'Protocol limits maximum_control_bytes must not exceed maximum_wire_integer.'),
+        ]
+        for value, message in cases:
             with self.subTest(value=value):
-                with self.assertRaisesRegex(ValueError, 'maximum_wire_integer'):
+                with self.assertRaises(ValueError) as raised:
                     validate_sources(self.schema, self.limits | {'maximum_wire_integer': value}, self.diagnostics)
-
-    def test_limits_cannot_exceed_the_wire_integer_limit(self):
-        with self.assertRaisesRegex(ValueError, 'maximum_wire_integer'):
-            validate_sources(self.schema, self.limits | {'maximum_wire_integer': 60000}, self.diagnostics)
+                self.assertEqual(str(raised.exception), message)
 
     def test_limits_must_be_positive_integers(self):
         for value in [0, -1, True, 1.5, '4096']:
