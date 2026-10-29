@@ -1,19 +1,21 @@
 # Continuous integration
 
 [repository-checks.yml](../../.github/workflows/repository-checks.yml) runs on
-pushes to `main` and PR activity: opened, synchronized, reopened, edited,
-labeled, unlabeled, and ready for review. Body and label edits rerun the guard.
-The workflow uses a read-only token and does not retain checkout credentials. A newer run for the same pull
-request cancels the older one, while runs for pushes to `main` and the release
-workflows always finish.
+pushes to `main` and when a PR is opened, synchronized, or reopened.
+[pull-request-guards.yml](../../.github/workflows/pull-request-guards.yml) runs the
+PR guard on the same PR events and again when the description, labels, or draft
+state change, so those edits rerun only the guard. Both workflows use a read-only
+token and do not retain checkout credentials. A newer run of either workflow for the
+same pull request cancels its older one, while runs for pushes to `main` and the
+release workflows always finish.
 
 ## Jobs
 
 - `lint`: repository integrity, every Python unit suite, language linting,
   formatting checks, TypeScript type checking, and runner fixture tests on
   pushes and PRs, including designs. `make lint` also checks protocol generation drift.
-- `pr-guards`: PR context checks on PR events only, including the changelog
-  entry required for user-visible changes.
+- `pr-guards`, in `pull-request-guards.yml`: PR context checks, including the
+  changelog entry required for user-visible changes.
 - `application-build`: runtime and fixture Compose validation and all runtime images.
 - `application-test`: `make test`, which builds and tests the Rust, browser,
   extension, mail probe, and shared protocol sources and reruns the Python suites.
@@ -163,6 +165,11 @@ that check and says so.
 | `skip-test` | Skips application, runtime, connector, compatibility, and coverage jobs. |
 | `skip-coverage-check` | Skips only the coverage job. |
 | `skip-changelog` | Skips the changelog entry check. Does not skip design, build, or test checks. |
+
+Label changes and a change of the PR's base branch rerun only the guard. A label that
+skips or restores other jobs takes effect on the next push. After a retarget, the
+other checks run against the new base when a commit is pushed or the PR is closed and
+reopened; re-running an earlier run reuses its original merge commit.
 
 The `design` label also skips all five application jobs and the coverage job. Jobs are independent,
 so a skipped build does not leave invalid test dependencies. Test jobs still

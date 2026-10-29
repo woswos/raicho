@@ -8,6 +8,7 @@ from automation.paths import REPOSITORY_ROOT
 
 WORKFLOW = REPOSITORY_ROOT / '.github/workflows/repository-checks.yml'
 PULL_REQUEST_EVENT = "${{ github.event_name == 'pull_request' }}"
+GUARD_WORKFLOW = REPOSITORY_ROOT / '.github/workflows/pull-request-guards.yml'
 HOST_MAKEFILE = REPOSITORY_ROOT / 'automation/tooling/host.mk'
 CONTAINER_MAKEFILE = REPOSITORY_ROOT / 'automation/tooling/container.mk'
 SOURCE_SUITES = (
@@ -21,6 +22,14 @@ SOURCE_SUITES = (
 )
 ACCEPTANCE_JOBS = ('runtime-test', 'connector-test', 'compatibility-test')
 CACHE_DIRECTORY = '${{ runner.temp }}/raicho-cache'
+CODE_EVENTS = {'opened', 'synchronize', 'reopened'}
+METADATA_EVENTS = {'edited', 'labeled', 'unlabeled', 'ready_for_review', 'converted_to_draft'}
+
+
+def pull_request_events(workflow):
+    triggers = workflow['on']['pull_request']
+    # Without a types list, GitHub runs pull_request workflows on its default events.
+    return set((triggers or {}).get('types', CODE_EVENTS))
 
 
 class WorkflowCoverageTests(unittest.TestCase):
@@ -95,6 +104,13 @@ class WorkflowCoverageTests(unittest.TestCase):
                 self.assertIn('github.event.pull_request.number', concurrency['group'])
                 cancels = concurrency['cancel-in-progress']
                 self.assertIn(cancels, ('true', PULL_REQUEST_EVENT))
+
+    def test_only_the_guard_reruns_on_description_and_label_changes(self):
+        guard = yaml.load(GUARD_WORKFLOW.read_text(), Loader=yaml.BaseLoader)
+        self.assertEqual(set(guard['jobs']), {'pr-guards'})
+        self.assertEqual(pull_request_events(guard), CODE_EVENTS | METADATA_EVENTS)
+        self.assertEqual(pull_request_events(self.workflow), CODE_EVENTS)
+        self.assertNotIn('pr-guards', self.jobs)
 
     def test_lint_job_runs_every_python_suite(self):
         self.assertIn('test-python', self.script('lint').split())
