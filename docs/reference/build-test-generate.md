@@ -349,12 +349,14 @@ make generate
 make check-protocol test-protocol
 ```
 
-`generate`, which runs `generate-protocol`, builds both generators into temporary output, then updates committed bindings,
-limits, diagnostics, and the standalone validator. Python orchestration and JavaScript
-generation scripts live in `protocol/generator/`, and the Rust generator in
-`protocol/generator/src/`. `check-protocol` compares fresh output without editing sources and runs under `lint` in CI. `test-protocol` runs the
-independently compiled TypeScript protocol tests. The Rust contract and generator
-tests run with the workspace under `test-server`.
+`generate`, which runs `generate-protocol`, builds both generators into temporary
+output, then updates committed bindings, limits, diagnostics, and the standalone
+validator. Python orchestration and JavaScript generation scripts live in
+`protocol/generator/`, and the Rust generator in `protocol/generator/src/`.
+`check-protocol` compares fresh output without editing sources and runs under
+`lint` in CI. `test-protocol` runs the independently compiled TypeScript protocol
+tests. The Rust contract and generator tests run with the workspace under
+`test-server`.
 `make test` includes `test-protocol` with the application and extension suites.
 See the [contract reference](connector-contract.md)
 for sources, parsing rules, and integration responsibilities.
