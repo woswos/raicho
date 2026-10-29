@@ -86,27 +86,20 @@ observations. See [acceptance evidence](connector-acceptance.md) for scope and l
 
 ## Caching
 
-The [build caching decision](../decisions/20261026-build-caching.md) records this
-design. Images build with Docker's default builder, whose layer cache stays on the
-self-hosted runner's Docker host between runs. CI uses no GitHub Actions image cache,
-because that runner restored its layers more slowly than it builds them.
+The [build caching decision](../decisions/20261026-build-caching.md) records why CI caches as it does. Images build with
+Docker's default builder and its layer cache on the runner's Docker host. CI uses
+no GitHub Actions image cache.
 
 `lint`, `application-test`, and `coverage` restore a Cargo cache with
 `actions/cache`, keyed by job, `Cargo.lock`, and `rust-toolchain.toml`, into
-`raicho-cache` under the runner's temporary directory. Like the acceptance state, it
-stays there because the runner shares only its work directory with the Docker host.
-Their Make steps set `RAICHO_CACHE_DIRECTORY` to that folder, which makes Make bind
-it at `/cache` through `automation/tooling/compose.cache.yaml` instead of the named
-volume. The other jobs use the named volume. CI turns off
-incremental compilation, because each run starts from that restored folder.
-A PR can restore caches saved on `main`, but not another PR's, so every job that
-restores a Cargo cache also runs on pushes to `main`. There, `coverage` builds only
-when no cache matches its key, because `actions/cache` saves nothing after an exact hit.
+`raicho-cache` under the runner's temporary directory. Their Make steps set
+`RAICHO_CACHE_DIRECTORY` to that folder, so Make binds it at `/cache` through
+`automation/tooling/compose.cache.yaml`. The other jobs use the named volume. CI
+turns off incremental compilation. Every job that restores a Cargo cache also runs
+on pushes to `main`, where `coverage` builds only when no cache matches its key.
 
 GitHub keeps about 10 GB of caches per repository and evicts the least recently
-used, so a run after eviction rebuilds cold and saves again. The deploy image's
-dependency layer and the cached Cargo output change only with the manifests and
-lockfile, so ordinary commits reuse them.
+used, so a run after eviction rebuilds cold and saves again.
 
 ## Repository integrity
 

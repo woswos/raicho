@@ -20,8 +20,10 @@ single `migrate!` call.
 Every debug Cargo command uses `--workspace --all-targets --locked` in the shared
 target directory. The protocol generator runs from that directory. Clippy shares it
 for the root workspace, while nested workspaces keep their own directory, because
-Cargo's artifact hashes ignore a workspace's location. Local builds are incremental.
-CI builds are not.
+Cargo's artifact hashes ignore a workspace's location. A different selection would
+resolve different dependency features and compile duplicate copies of them. Local
+builds are incremental. CI builds are not, because each run starts from a restored
+cache.
 
 The server's integration tests compile into two binaries. Tests that spawn
 processes run apart from the rest, because a child briefly holds the parent's open
@@ -47,9 +49,12 @@ CI restores a Cargo cache per job with `actions/cache`. CI binds a folder that
 `actions/cache` restores instead of the named volume, because `actions/cache` saves
 only paths on the runner, its per-job keys keep builds with different flags, such
 as coverage instrumentation, from replacing each other's artifacts, and it keeps CI
-apart from local runs that share the host's named volume. The coverage job also runs
-on pushes to `main`, because a pull request can restore caches saved on `main` but
-not another pull request's. Runtime images build with Docker's default builder,
+apart from local runs that share the host's named volume. The folder lives under the
+runner's temporary directory, because the runner shares only its work directory with
+the Docker host. The coverage job also runs on pushes to `main`, because a pull
+request can restore caches saved on `main` but not another pull request's. There it
+builds only on a cache miss, because `actions/cache` saves nothing after an exact
+key hit. Runtime images build with Docker's default builder,
 whose layer cache stays on the self-hosted runner's Docker host between runs. A
 GitHub Actions BuildKit cache was tried and dropped: on that runner it restored
 layers at about 284 KiB/s, so a restore took longer than a build. The Make

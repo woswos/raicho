@@ -94,7 +94,7 @@ outputs live outside that mount. Cargo's registry and build output persist in th
 `raicho-tools_cache` volume at `/cache`, which the `check` and `format` services
 share, so repeated runs reuse downloads and compiled dependencies. Cargo locks the
 cache, so concurrent runs wait for each other. When `RAICHO_CACHE_DIRECTORY` is set,
-as CI does, `automation/tooling/compose.cache.yaml` binds that folder at `/cache`
+as [CI](ci-cd.md#caching) does, `automation/tooling/compose.cache.yaml` binds that folder at `/cache`
 instead. A relative path resolves from the directory where `make` runs. Nothing
 sweeps old artifacts out of the cache. `make clean` removes the named volume, and
 the next build fills it again. It removes a `RAICHO_CACHE_DIRECTORY` folder only
@@ -134,8 +134,8 @@ See [automation placement](project-structure.md#automation) for the module layou
 and invocation convention.
 
 `test-python` runs one `unittest` discovery of `*_tests.py` from the repository
-root, then runs each discovered module in its own worker process, as many at once
-as the process may use cores and no more than there are modules. Modules therefore share no interpreter state, and a test
+root, then runs each discovered module in its own worker process, as
+`automation/build/python_tests.py` schedules them. Modules therefore share no interpreter state, and a test
 must not depend on another module's side effects. Discovery enters only Python
 packages, so every directory on a test's import path needs an `__init__.py`. The suites cover repository policy including
 changelog guards, quality discovery, extension and mail probe packaging, mail
@@ -212,8 +212,7 @@ outside the source mount.
 
 Tooling defaults to no Rust debug symbols, keeping the build cache small, and to
 incremental compilation, which halves a typical edit and rebuild. CI turns
-incremental output off in `compose.ci.yaml`, because each run starts from its
-restored cache. These settings affect check containers, not release images. Set
+incremental output off in `compose.ci.yaml`. These settings affect check containers, not release images. Set
 `CARGO_PROFILE_DEV_DEBUG=2` or `CARGO_PROFILE_TEST_DEBUG=2` before running Make
 for debugger symbols, or `CARGO_INCREMENTAL=0` to match CI.
 
@@ -221,8 +220,8 @@ Every debug Cargo command uses the same `--workspace --all-targets --locked`
 selection and the shared target directory: builds, tests, Clippy, and the protocol
 generator, which `check-protocol` runs from that directory. `generate-protocol`
 builds only the generator, because the consumers may not compile until they
-receive the bindings it writes. A different selection
-resolves different dependency features and compiles duplicate copies of them.
+receive the bindings it writes. The [build caching decision](../decisions/20261026-build-caching.md) explains
+the shared selection.
 
 `make images`, which the `deploy-` targets run first, builds the runtime images
 with `docker compose build`. This compiles release artifacts and installs the independently packaged Thunderbird runtime.

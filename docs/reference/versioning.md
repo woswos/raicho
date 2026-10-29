@@ -107,9 +107,8 @@ make images
 
 Building with Compose directly leaves it unset unless you pass it, and the commit
 is then `unknown`, which the page shows as the version alone. The value is
-compiled in, so each new commit recompiles the workspace crates. The release
-dependencies come from an earlier image layer that changes only with the manifests
-and `Cargo.lock`.
+compiled in, so each new commit recompiles the workspace crates but not their
+dependencies, as the [build caching decision](../decisions/20261026-build-caching.md) describes.
 
 The commit text must fit in 80 characters, which a full git object name does.
 The page rejects a longer value.
