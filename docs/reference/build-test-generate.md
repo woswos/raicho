@@ -97,8 +97,9 @@ cache, so concurrent runs wait for each other. When `RAICHO_CACHE_DIRECTORY` is 
 as CI does, `automation/tooling/compose.cache.yaml` binds that folder at `/cache`
 instead. A relative path resolves from the directory where `make` runs. Nothing
 sweeps old artifacts out of the cache. `make clean` removes the named volume, and
-the next build fills it again, but it leaves a `RAICHO_CACHE_DIRECTORY` folder in
-place; delete that folder to reset it. Other temporary output lives on each
+the next build fills it again. It removes a `RAICHO_CACHE_DIRECTORY` folder only
+when the repository ignores it, as other ignored output; delete any other folder
+yourself to reset it. Other temporary output lives on each
 container's own `/tmp` and disappears with it. The service does not mount the Docker socket or start
 application services, so Make inside the container never launches nested
 containers.
@@ -333,7 +334,7 @@ make benchmark
 [benchmark decision](../decisions/20261026-rust-benchmarks.md). Each benchmark
 prints its time range, its change from the previous run, and any outliers.
 Criterion keeps those baselines in the Cargo cache, so `make clean` resets them,
-except in a `RAICHO_CACHE_DIRECTORY` folder. Its progress lines appear only with `VERBOSE=1` or when the run fails.
+except in a `RAICHO_CACHE_DIRECTORY` folder that the repository does not ignore. Its progress lines appear only with `VERBOSE=1` or when the run fails.
 
 `protocol/rust/benches/frames.rs` measures the connector's per-frame work:
 decoding an authentication and a ping frame, sealing and opening a ping through
