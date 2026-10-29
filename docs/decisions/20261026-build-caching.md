@@ -43,7 +43,11 @@ The deploy image compiles its Rust dependencies in a layer that depends only on 
 manifests and lockfile, against placeholder workspace sources. A later layer
 compiles the real sources with `RAICHO_COMMIT`.
 
-CI restores a Cargo cache per job with `actions/cache`. The coverage job also runs
+CI restores a Cargo cache per job with `actions/cache`. CI binds a folder that
+`actions/cache` restores instead of the named volume, because `actions/cache` saves
+only paths on the runner, its per-job keys keep builds with different flags, such
+as coverage instrumentation, from replacing each other's artifacts, and it keeps CI
+apart from local runs that share the host's named volume. The coverage job also runs
 on pushes to `main`, because a pull request can restore caches saved on `main` but
 not another pull request's. Runtime images build with Docker's default builder,
 whose layer cache stays on the self-hosted runner's Docker host between runs. A
