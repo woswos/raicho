@@ -350,8 +350,8 @@ make check-protocol test-protocol
 ```
 
 `generate`, which runs `generate-protocol`, builds both generators into temporary output, then updates committed bindings,
-limits, diagnostics, and the standalone validator. Python orchestration and JavaScript
-generation scripts live in `protocol/generator/`. `check-protocol` compares fresh
+limits, diagnostics, and the standalone validator. Python orchestration, JavaScript
+generation scripts, and the Rust generator in `src/` live in `protocol/generator/`. `check-protocol` compares fresh
 output without editing sources and runs under `lint` in CI. `test-protocol` runs the
 independently compiled TypeScript protocol tests. The Rust contract and generator
 tests run with the workspace under `test-server`.

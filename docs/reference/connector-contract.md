@@ -59,8 +59,8 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
 - [TypeScript project](../../protocol/typescript/src/decode_frame.ts): generated
   types and limits with a bundled Ajv standalone validator. No runtime Ajv,
   network schema retrieval, Node imports, or dynamic code generation is required.
-- [Generation scripts](../../protocol/generator/): Python orchestration and
-  JavaScript generation.
+- [Generation scripts](../../protocol/generator/): Python orchestration,
+  JavaScript generation, and the Rust generator in `protocol/generator/src/`.
 
 The [test layout](project-structure.md#test-code) says where each part's tests
 live. The TypeScript project is private ES modules and imports no Thunderbird
@@ -144,7 +144,7 @@ its own line. Counters start at zero after welcome, count every frame each side
 sends, and never appear on the wire, so a replayed, reordered, reflected, or dropped
 frame fails. Canonical JSON sorts object members and has no whitespace, which is
 unambiguous because wire values are printable ASCII and integers.
-`protocol/rust/src/channel.rs` and `protocol/typescript/src/channel.ts` implement
+`protocol/rust/src/canonical_json.rs` and `protocol/typescript/src/channel.ts` implement
 it, pinned by `protocol/fixtures/authentication/session.json`. The decoders check
 the schema, phase, and generation first, then the MAC. A frame that fails the MAC
 ends the session with `authentication_failed`. Frames are authenticated, not
@@ -216,7 +216,7 @@ validation precedes phase and generation checks.
 Equivalent integral numeric spellings such as `1`, `1.0`, and `1e0` are accepted.
 Rust normalizes validated integral values before generated-type deserialization.
 Sequences stay at or below `maximum_wire_integer`, which the generator checks
-against the schema, avoiding loss of precision in JavaScript. Boundary,
+against the schema. JavaScript represents every such integer exactly. Boundary,
 decimal-rounding, duplicate, surrogate, and nesting regressions exercise agreement
 between the two decoders.
 
