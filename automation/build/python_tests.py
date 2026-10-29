@@ -19,10 +19,11 @@ def modules(suite, names, broken):
     for test in suite:
         if isinstance(test, unittest.TestSuite):
             modules(test, names, broken)
+        # Discovery stands a private _FailedTest in for a module that cannot import, and running it reports the error.
         elif isinstance(test, unittest.loader._FailedTest):
             broken.addTest(test)
-        elif type(test).__module__ not in names:
-            names.append(type(test).__module__)
+        else:
+            names[type(test).__module__] = None
     return names
 
 
@@ -43,7 +44,7 @@ def main():
     os.environ.pop('VERBOSE', None)
     suite = unittest.defaultTestLoader.discover(arguments.start, pattern=arguments.pattern, top_level_dir='.')
     broken = unittest.TestSuite()
-    names = modules(suite, [], broken)
+    names = list(modules(suite, {}, broken))
     ran = skipped = 0
     successful = True
     if broken.countTestCases():
