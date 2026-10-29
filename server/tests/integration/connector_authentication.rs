@@ -2,14 +2,14 @@ use raicho_protocol::diagnostics_generated::{BackendError, BackendState};
 use std::time::Duration;
 
 use futures_util::SinkExt;
+use raicho_protocol::authentication::{ConnectorKeys, authentication_message, server_signature, to_hex};
+use raicho_protocol::contract_generated::Authenticate;
 use raicho_server::persistence::CredentialStore;
 use serde_json::json;
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::{Message, client::IntoClientRequest};
 
 use crate::support::{Fixture, ORIGIN, authentication, receive, receive_within};
-use raicho_protocol::authentication::{ConnectorKeys, authentication_message, server_signature, to_hex};
-use raicho_protocol::contract_generated::Authenticate;
 
 #[tokio::test]
 async fn authentication_registers_one_session_and_replacement_fences_old_cleanup() {
