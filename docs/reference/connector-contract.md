@@ -230,7 +230,10 @@ make check-protocol test-protocol
 Make runs generation in the writable service as described in
 [build commands](build-test-generate.md#make). Generation builds
 both language outputs in temporary directories before publishing changed files.
-The check regenerates and compares bytes without changing the checkout. The
+Every generated file name carries a `_generated` suffix, which separates it from the
+hand-written sources in the same directory. Generation removes a committed generated
+file that it no longer writes, and the check reports one. The check regenerates
+and compares bytes without changing the checkout. The
 Python entry point validates every source before either generator runs. Schema
 constants must agree with the limits file. Remote, file, and missing references
 fail before generation. Review schema, generated changes, and corpus together.

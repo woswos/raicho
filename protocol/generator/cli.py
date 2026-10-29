@@ -22,12 +22,38 @@ DESTINATIONS = {
 }
 
 
-def changed_outputs(generated, committed, filenames):
-    return [
+def changed_outputs(generated, committed):
+    staged = sorted(path.name for path in generated.iterdir())
+    # Generated outputs share their directories with hand-written sources, so only the suffix marks them.
+    unmarked = [name for name in staged if '_generated.' not in name]
+    if unmarked:
+        raise ValueError(f'generated files must carry a _generated suffix: {", ".join(unmarked)}')
+    changed = [
         name
-        for name in filenames
+        for name in staged
         if not (committed / name).is_file() or (generated / name).read_bytes() != (committed / name).read_bytes()
     ]
+    stale = sorted(path.name for path in committed.glob('*_generated.*') if not (generated / path.name).exists())
+    return changed, stale
+
+
+def sync_outputs(staging, root, action):
+    # Every destination is compared before any is written, so a rejected output leaves the tree untouched.
+    outputs = {
+        language: changed_outputs(staging / language, root / destination)
+        for language, destination in DESTINATIONS.items()
+    }
+    changes = []
+    for language, (changed, stale) in outputs.items():
+        destination = DESTINATIONS[language]
+        changes.extend(str(destination / name) for name in [*changed, *stale])
+        if action == 'generate':
+            (root / destination).mkdir(parents=True, exist_ok=True)
+            for name in changed:
+                shutil.copyfile(staging / language / name, root / destination / name)
+            for name in stale:
+                (root / destination / name).unlink()
+    return changes
 
 
 def node_reporter():
@@ -89,15 +115,7 @@ def generate(action):
         ]
         for command in commands:
             subprocess.run(command, cwd=ROOT, check=True)
-        changes = []
-        for language, destination in DESTINATIONS.items():
-            filenames = sorted(path.name for path in (staging / language).iterdir())
-            changed = changed_outputs(staging / language, ROOT / destination, filenames)
-            changes.extend(str(destination / name) for name in changed)
-            if action == 'generate':
-                (ROOT / destination).mkdir(parents=True, exist_ok=True)
-                for name in changed:
-                    shutil.copyfile(staging / language / name, ROOT / destination / name)
+        changes = sync_outputs(staging, ROOT, action)
         if action == 'check' and changes:
             raise ValueError(
                 'Generated protocol outputs drifted: '

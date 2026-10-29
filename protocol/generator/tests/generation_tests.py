@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest import mock
 
 from protocol.generator import cli
-from protocol.generator.cli import NODE_REPORTER, ROOT, changed_outputs, node_reporter
+from protocol.generator.cli import NODE_REPORTER, ROOT, node_reporter, sync_outputs
 from protocol.generator.validation import validate_sources, validate_status
 
 
@@ -95,19 +95,32 @@ class ProtocolGenerationTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     validate_sources(self.schema, self.limits, diagnostics)
 
-    def test_generated_output_tampering_is_detected(self):
+    def test_outputs_sync_only_generated_files(self):
         with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
-            generated = root / 'generated'
-            committed = root / 'committed'
-            generated.mkdir()
-            committed.mkdir()
-            (generated / 'contract.ts').write_text('expected\n')
-            self.assertEqual(changed_outputs(generated, committed, ['contract.ts']), ['contract.ts'])
-            (committed / 'contract.ts').write_text('expected\n')
-            self.assertEqual(changed_outputs(generated, committed, ['contract.ts']), [])
-            (committed / 'contract.ts').write_text('edited\n')
-            self.assertEqual(changed_outputs(generated, committed, ['contract.ts']), ['contract.ts'])
+            staging = Path(temporary) / 'staging'
+            root = Path(temporary) / 'root'
+            for language in cli.DESTINATIONS:
+                (staging / language).mkdir(parents=True)
+            destination = cli.DESTINATIONS['typescript']
+            committed = root / destination
+            committed.mkdir(parents=True)
+            (staging / 'typescript/contract_generated.ts').write_text('expected\n')
+            (committed / 'old_generated.ts').write_text('stale\n')
+            (committed / 'app.ts').write_text('hand-written\n')
+            expected = [str(destination / 'contract_generated.ts'), str(destination / 'old_generated.ts')]
+            self.assertEqual(sync_outputs(staging, root, 'check'), expected)
+            self.assertTrue((committed / 'old_generated.ts').exists())
+            self.assertEqual(sync_outputs(staging, root, 'generate'), expected)
+            self.assertEqual(sorted(path.name for path in committed.iterdir()), ['app.ts', 'contract_generated.ts'])
+            self.assertEqual(sync_outputs(staging, root, 'check'), [])
+            (committed / 'contract_generated.ts').write_text('edited\n')
+            self.assertEqual(sync_outputs(staging, root, 'check'), [str(destination / 'contract_generated.ts')])
+            (staging / 'typescript/contract_generated.ts').write_text('expected\n')
+            (staging / 'web/notes.ts').write_text('')
+            with self.assertRaisesRegex(ValueError, 'notes.ts'):
+                sync_outputs(staging, root, 'generate')
+            self.assertEqual((committed / 'contract_generated.ts').read_text(), 'edited\n')
+            self.assertFalse((root / cli.DESTINATIONS['web'] / 'notes.ts').exists())
 
     def test_verbose_protocol_tests_use_the_standard_reporter(self):
         for verbose, reporter in (('', NODE_REPORTER), ('1', '--test-reporter=spec')):
