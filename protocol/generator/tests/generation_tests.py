@@ -71,6 +71,10 @@ class ProtocolGenerationTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'maximum_wire_integer'):
                     validate_sources(self.schema, self.limits | {'maximum_wire_integer': value}, self.diagnostics)
 
+    def test_limits_cannot_exceed_the_wire_integer_limit(self):
+        with self.assertRaisesRegex(ValueError, 'maximum_wire_integer'):
+            validate_sources(self.schema, self.limits | {'maximum_wire_integer': 60000}, self.diagnostics)
+
     def test_limits_must_be_positive_integers(self):
         for value in [0, -1, True, 1.5, '4096']:
             with self.subTest(value=value):

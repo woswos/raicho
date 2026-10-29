@@ -43,3 +43,18 @@ fn write_object<'message>(properties: impl Iterator<Item = (&'message String, &'
     }
     output.push('}');
 }
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::canonical_json;
+
+    #[test]
+    fn a_non_object_root_keeps_its_members_and_sorts_nested_objects() {
+        assert_eq!(
+            canonical_json(&json!([{"mac": 1, "b": 2, "a": 3}, "x"])),
+            r#"[{"a":3,"b":2,"mac":1},"x"]"#
+        );
+    }
+}
