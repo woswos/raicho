@@ -23,7 +23,7 @@ SOURCE_SUITES = (
 ACCEPTANCE_JOBS = ('runtime-test', 'connector-test', 'compatibility-test')
 CACHE_DIRECTORY = '${{ runner.temp }}/raicho-cache'
 CODE_EVENTS = {'opened', 'synchronize', 'reopened'}
-METADATA_EVENTS = {'edited', 'labeled', 'unlabeled', 'ready_for_review'}
+METADATA_EVENTS = {'edited', 'labeled', 'unlabeled', 'ready_for_review', 'converted_to_draft'}
 
 
 def pull_request_events(workflow):
