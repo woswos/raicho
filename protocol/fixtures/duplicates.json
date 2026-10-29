@@ -67,5 +67,21 @@
     "valid": false,
     "error": "invalid_message",
     "raw": "{\"type\":\"authenticate\",\"protocol_version\":1.00000000000000011102230246251565404236316680908203126,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
+  },
+  {
+    "name": "duplicate control protocol version",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "{\"type\":\"ping\",\"protocol_version\":1,\"protocol_version\":1,\"generation\":\"0123456789abcdef0123456789abcdef\",\"sequence\":1}"
+  },
+  {
+    "name": "escaped duplicate control sequence",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "{\"type\":\"ping\",\"protocol_version\":1,\"generation\":\"0123456789abcdef0123456789abcdef\",\"sequence\":1,\"\\u0073equence\":1}"
   }
 ]

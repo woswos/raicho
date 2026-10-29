@@ -60,7 +60,7 @@ class ProtocolChangelogTests(GuardTestCase):
 
     def test_protocol_tests_and_generators_remain_nonshipping(self):
         paths = (
-            'protocol/rust/tests/json_decoding.rs',
+            'protocol/rust/tests/shared_fixtures.rs',
             'protocol/typescript/tests/contract.test.mjs',
             'protocol/generator/src/main.rs',
             'protocol/generator/cli.py',
