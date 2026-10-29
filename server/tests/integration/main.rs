@@ -11,6 +11,7 @@ mod credential_live_check;
 mod credential_persistence;
 mod credential_tokens;
 mod http;
+mod http_headers;
 mod persistence_contention;
 mod persistence_initialization;
 mod persistence_migrations;
