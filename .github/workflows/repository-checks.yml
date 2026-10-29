@@ -3,7 +3,7 @@ name: Repository checks
 on:
   push:
     branches: [main]
-  # Description, label, and draft changes only rerun pull-request-guards.yml.
+  # Description, label, base, and draft changes only rerun pull-request-guards.yml.
   pull_request:
 
 permissions:

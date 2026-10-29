@@ -166,8 +166,12 @@ that check and says so.
 | `skip-coverage-check` | Skips only the coverage job. |
 | `skip-changelog` | Skips the changelog entry check. Does not skip design, build, or test checks. |
 
-Label changes rerun only the guard, so a label that skips or restores other jobs
-takes effect on the next push. The `design` label also skips all five application jobs and the coverage job. Jobs are independent,
+Label changes and a change of the PR's base branch rerun only the guard. A label that
+skips or restores other jobs takes effect on the next push. After a retarget, the
+other checks run against the new base when a commit is pushed or the PR is closed and
+reopened; re-running an earlier run reuses its original merge commit.
+
+The `design` label also skips all five application jobs and the coverage job. Jobs are independent,
 so a skipped build does not leave invalid test dependencies. Test jobs still
 compile/build their test prerequisites when `skip-build` is present. The labels
 do not bypass language linting, guard regression tests, or runner fixtures.
