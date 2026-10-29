@@ -5,22 +5,28 @@ use sqlx::{SqlSafeStr, SqlitePool};
 
 use crate::error::{Error, Result};
 
-// Applied migrations are checksummed, so each entry keeps its file's exact bytes,
-// version, and the description that sqlx derives from the file name.
-const FILES: &[(i64, &str, &str)] = &[(
-    0,
-    "connector credentials",
-    include_str!("../../migrations/0000_connector_credentials.sql"),
-)];
+// Applied migrations are checksummed, so each entry keeps its file's exact bytes.
+macro_rules! migration {
+    ($file:literal) => {
+        ($file, include_str!(concat!("../../migrations/", $file)))
+    };
+}
+
+const FILES: &[(&str, &str)] = &[migration!("0000_connector_credentials.sql")];
 
 pub(super) static MIGRATIONS: LazyLock<Migrator> = LazyLock::new(|| {
     Migrator::with_migrations(
         FILES
             .iter()
-            .map(|(version, description, sql)| {
+            .map(|(file, sql)| {
+                // sqlx derives the version and description from the file name the same way.
+                let (version, description) = file
+                    .trim_end_matches(".sql")
+                    .split_once('_')
+                    .expect("a migration file name starts with its version");
                 Migration::new(
-                    *version,
-                    (*description).into(),
+                    version.parse().expect("a migration version is an integer"),
+                    description.replace('_', " ").into(),
                     MigrationType::Simple,
                     sql.into_sql_str(),
                     false,
@@ -69,11 +75,17 @@ mod tests {
             .filter(|name| name.ends_with(".sql"))
             .collect();
         files.sort();
-        let listed: Vec<String> = FILES
-            .iter()
-            .map(|(version, description, _)| format!("{version:04}_{}.sql", description.replace(' ', "_")))
-            .collect();
+        let listed: Vec<&str> = FILES.iter().map(|(file, _)| *file).collect();
         assert_eq!(listed, files);
+    }
+
+    #[test]
+    fn versions_and_descriptions_come_from_the_file_names() {
+        let parsed: Vec<(i64, &str)> = MIGRATIONS
+            .iter()
+            .map(|migration| (migration.version, &*migration.description))
+            .collect();
+        assert_eq!(parsed, [(0, "connector credentials")]);
     }
 
     #[test]
