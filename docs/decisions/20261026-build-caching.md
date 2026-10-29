@@ -62,4 +62,4 @@ and reuse image layers while the runner's Docker host keeps them.
 New server tests are modules of an existing test binary. New migrations need an
 entry in the migration list, and a test enforces it. New workspace targets need a
 placeholder in the deploy Dockerfile. Nothing sweeps old Cargo artifacts automatically.
-`make clean` resets the cache.
+`make clean` resets the named cache volume.
