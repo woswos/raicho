@@ -6,8 +6,13 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from protocol.generator import cli
 from protocol.generator.cli import NODE_REPORTER, ROOT, changed_outputs, node_reporter
 from protocol.generator.validation import validate_sources, validate_status
+
+
+class Stop(Exception):
+    pass
 
 
 class ProtocolGenerationTests(unittest.TestCase):
@@ -102,3 +107,21 @@ class ProtocolGenerationTests(unittest.TestCase):
         for verbose, reporter in (('', NODE_REPORTER), ('1', '--test-reporter=spec')):
             with self.subTest(verbose=verbose), mock.patch.dict(os.environ, {'VERBOSE': verbose}):
                 self.assertEqual(node_reporter(), reporter)
+
+    def test_the_generator_runs_from_the_shared_target_directory(self):
+        builds = {
+            'check': ['cargo', 'build', '--workspace', '--all-targets', '--locked'],
+            'generate': ['cargo', 'build', '--locked', '--package', 'raicho-protocol-generator'],
+        }
+        for action, build in builds.items():
+            with (
+                self.subTest(action=action),
+                mock.patch.dict(os.environ, {'CARGO_TARGET_DIR': '/cache/target'}),
+                mock.patch.object(cli.subprocess, 'run', side_effect=[None, None, Stop()]) as run,
+                self.assertRaises(Stop),
+            ):
+                cli.generate(action)
+            commands = [call.args[0] for call in run.call_args_list]
+            self.assertEqual(commands[0], build)
+            self.assertEqual(commands[1][0], '/cache/target/debug/raicho-protocol-generator')
+            self.assertEqual(commands[2][0], 'node')

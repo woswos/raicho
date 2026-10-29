@@ -10,7 +10,11 @@ records the approved design.
 See [architecture](architecture.md) for component boundaries and
 [mail API compatibility](mail-api-compatibility.md) for the separate experiment.
 No fixture command, account identity, message handle, or mail content belongs in
-this contract. The backend kind is an identifier, not a Thunderbird-specific type.
+this contract. The backend kind is an identifier, not a Thunderbird-specific type,
+but `thunderbird` is its only accepted value today. The schema, the server's
+authentication, the status schema, and the connector credential table's `CHECK`
+constraint all fix it. A second backend needs those changes and a migration that
+rebuilds the table, because SQLite cannot alter a `CHECK` constraint.
 
 Offline [credential provisioning](../operations/connector-credentials.md)
 persists one active credential or a revoked record. The Rust `Credential::parse`

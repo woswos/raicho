@@ -21,7 +21,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/raicho-cache
+          key: rust-${{ github.job }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
+          restore-keys: rust-${{ github.job }}-
       - name: Check repository and languages
+        env:
+          RAICHO_CACHE_DIRECTORY: ${{ runner.temp }}/raicho-cache
         run: make lint test-python test-tooling
 
   pr-guards:
@@ -76,12 +83,18 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/raicho-cache
+          key: rust-${{ github.job }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
+          restore-keys: rust-${{ github.job }}-
       - name: Build and test application sources
+        env:
+          RAICHO_CACHE_DIRECTORY: ${{ runner.temp }}/raicho-cache
         run: make test
 
   coverage:
     if: >-
-      github.event_name == 'pull_request' &&
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-test') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-coverage-check')
@@ -92,8 +105,23 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - id: cargo
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/raicho-cache
+          key: rust-${{ github.job }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
+          restore-keys: rust-${{ github.job }}-
       - name: Check patch coverage
+        if: github.event_name == 'pull_request'
+        env:
+          RAICHO_CACHE_DIRECTORY: ${{ runner.temp }}/raicho-cache
         run: make check-patch-coverage
+      # Pull requests can restore caches saved on main, but not each other's. An exact key hit saves nothing.
+      - name: Save the coverage build for pull requests
+        if: github.event_name == 'push' && steps.cargo.outputs.cache-hit != 'true'
+        env:
+          RAICHO_CACHE_DIRECTORY: ${{ runner.temp }}/raicho-cache
+        run: make coverage
 
   runtime-test:
     if: >-

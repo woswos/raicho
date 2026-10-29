@@ -38,13 +38,12 @@ run without `VERBOSE`, so its value cannot change what they check.
 Each step prints one line when it starts and one with its duration when it
 finishes, such as `building server` and `built server, took 12 seconds`. A failed
 step prints `building server failed after 3 seconds` and keeps the command's exit
-status. Aggregate targets such as `build` print only their steps' lines.
+status. Aggregate targets such as `test` print only their steps' lines.
 `automation/tooling/step.bash` writes these lines, colored when `TERM` names an
 xterm terminal.
 
 | Target | Behavior |
 | --- | --- |
-| `build` | Tooling image, server, web page, and extension builds, then the runtime images |
 | `test` | Every source suite: Python, tooling fixtures, server, web, extension, mail probe, and protocol |
 | `lint` | Repository guards, language linters, spelling, formatting and type checks, and protocol generation drift |
 | `format` | Rewrite files in the documented formatting scope |
@@ -94,7 +93,13 @@ The `check` service mounts the repository read-only. Tool caches and temporary
 outputs live outside that mount. Cargo's registry and build output persist in the
 `raicho-tools_cache` volume at `/cache`, which the `check` and `format` services
 share, so repeated runs reuse downloads and compiled dependencies. Cargo locks the
-cache, so concurrent runs wait for each other. Other temporary output lives on each
+cache, so concurrent runs wait for each other. When `RAICHO_CACHE_DIRECTORY` is set,
+as [CI](ci-cd.md#caching) does, `automation/tooling/compose.cache.yaml` binds that folder at `/cache`
+instead. A relative path resolves from the directory where `make` runs. Nothing
+sweeps old artifacts out of the cache. `make clean` removes the named volume, and
+the next build fills it again. It removes a `RAICHO_CACHE_DIRECTORY` folder only
+when the repository ignores it, as other ignored output; delete any other folder
+yourself to reset it. Other temporary output lives on each
 container's own `/tmp` and disappears with it. The service does not mount the Docker socket or start
 application services, so Make inside the container never launches nested
 containers.
@@ -129,8 +134,10 @@ See [automation placement](project-structure.md#automation) for the module layou
 and invocation convention.
 
 `test-python` runs one `unittest` discovery of `*_tests.py` from the repository
-root. Discovery enters only Python packages, so every directory on a test's
-import path needs an `__init__.py`. The suites cover repository policy including
+root, then runs each discovered module in its own worker process, as
+`automation/build/python_tests.py` schedules them. Modules therefore share no interpreter state, and a test
+must not depend on another module's side effects. Discovery enters only Python
+packages, so every directory on a test's import path needs an `__init__.py`. The suites cover repository policy including
 changelog guards, quality discovery, extension and mail probe packaging, mail
 probe fixtures, releases, the operational credential wrapper, the Thunderbird
 runtime, protocol generation, and acceptance-driver support.
@@ -190,25 +197,40 @@ file. The checkout supplies the base/head Git objects.
 ## Application tooling
 
 ```bash
-make build test
+make test
 ```
 
-Inside the container, `build` combines `build-server`, `build-web`, and
-`build-extension`, and `test` runs every source suite. Rust uses `--workspace --all-targets --locked` and
-temporary Cargo output. The browser build uses `tsc`, copies public files and
+`test` runs every source suite, building what each one needs. `build-server`,
+`build-web`, and `build-extension` build one component without testing it. There
+is no aggregate `build` target: `make images` builds the deliverables. The Rust
+build selection and target directory are described below. The browser build uses `tsc`, copies public files and
 the selected identity assets, then runs Node's built-in tests against compiled
 modules. The web builder is `web/build.mjs`, and extension packaging
 uses `extension/build.mjs`. Both run on Node alone. The shared dispatcher remains in
 `automation/build/application.py`. All temporary build output stays
 outside the source mount.
 
-Tooling defaults to no Rust debug symbols or incremental output, keeping the
-build cache small. These settings affect check containers, not release images. Set
-`CARGO_PROFILE_DEV_DEBUG=2`, `CARGO_PROFILE_TEST_DEBUG=2`, or `CARGO_INCREMENTAL=1`
-before running Make when that output is needed for local debugging.
+Tooling defaults to no Rust debug symbols, keeping the build cache small, and to
+incremental compilation, which halves a typical edit and rebuild. CI turns
+incremental output off in `compose.ci.yaml`. These settings affect check containers, not release images. Set
+`CARGO_PROFILE_DEV_DEBUG=2` or `CARGO_PROFILE_TEST_DEBUG=2` before running Make
+for debugger symbols, or `CARGO_INCREMENTAL=0` to match CI.
 
-`make images`, which `make build` runs last on the host, builds the runtime images
+Every debug Cargo command uses the same `--workspace --all-targets --locked`
+selection and the shared target directory: builds, tests, Clippy, and the protocol
+generator, which `check-protocol` runs from that directory. `generate-protocol`
+builds only the generator, because the consumers may not compile until they
+receive the bindings it writes. The [build caching decision](../decisions/20261026-build-caching.md) explains
+the shared selection.
+
+`make images`, which the `deploy-` targets run first, builds the runtime images
 with `docker compose build`. This compiles release artifacts and installs the independently packaged Thunderbird runtime.
+The server image compiles its dependencies first, against placeholder workspace
+sources, in a layer that depends only on the Cargo manifests and `Cargo.lock`. A
+later layer copies the real sources and applies `RAICHO_COMMIT`. A source change or
+a new commit then recompiles only the workspace crates, in seconds rather than
+minutes. A new workspace target in a manifest needs its placeholder in
+`deploy/raicho/Dockerfile`, or that layer fails to build.
 The image recipes pin base digests and downloaded artifacts. The Thunderbird
 image also builds the XPI with TypeScript and the deterministic Node packager.
 See [local runtime](../operations/local-runtime.md) for Compose
@@ -259,12 +281,12 @@ cannot list resources.
 
 `mrproper` runs `automation/tooling/mrproper.bash`. It stops and removes the
 containers and networks of the `raicho` deployment, of every deployment with a
-`.raicho/<project>` directory, and of the `raicho-tools` project, including
-running tooling containers. It cannot find a deployment that runs under another
-project name without a state directory, so stop that one first with
-`make deploy-down` under its project name. It then runs every `clean` step and
-removes the four project images. An image that another project's container still
-uses is kept and reported. Deployment volumes and `.raicho/` are never removed.
+`.raicho/<project>` directory, of every other Compose project whose working-directory
+label lies in this checkout, such as a deployment that was never enrolled, and of the
+`raicho-tools` project, including running tooling containers. It then runs every
+`clean` step and removes the four project images. An image that another project's
+container still uses is kept and reported. Deployment volumes and `.raicho/` are
+never removed.
 
 Neither target prunes the Docker build cache, which the default builder cannot
 limit to one project. The next `make` rebuilds the tooling image.
@@ -310,8 +332,8 @@ make benchmark
 [Criterion](https://github.com/criterion-rs/criterion.rs) under the
 [benchmark decision](../decisions/20261026-rust-benchmarks.md). Each benchmark
 prints its time range, its change from the previous run, and any outliers.
-Criterion keeps those baselines in the Cargo cache volume, so `make clean` resets
-them. Its progress lines appear only with `VERBOSE=1` or when the run fails.
+Criterion keeps those baselines in the Cargo cache, so `make clean` resets them,
+except in a `RAICHO_CACHE_DIRECTORY` folder that the repository does not ignore. Its progress lines appear only with `VERBOSE=1` or when the run fails.
 
 `protocol/rust/benches/frames.rs` measures the connector's per-frame work:
 decoding an authentication and a ping frame, sealing and opening a ping through
@@ -415,7 +437,7 @@ bash mailprobe/tests/check_mail_compatibility.bash --native
 ```
 
 The separate `test-mailprobe` target compiles and tests the fixture extension.
-It is not part of `make build` and does not change the production XPI. The host runner builds
+It is not part of `build-extension` and does not change the production XPI. The host runner builds
 temporary tags for the tooling image and the normal Thunderbird image. The
 tooling image runs the controller, SMTP/IMAP fault proxy, and test driver as
 `mailprobe.tests` package modules. Their unit suites run under `test-python`. A one-off tooling service builds the mail test XPI into a

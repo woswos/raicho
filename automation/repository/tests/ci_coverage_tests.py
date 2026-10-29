@@ -20,12 +20,14 @@ SOURCE_SUITES = (
     'test-protocol',
 )
 ACCEPTANCE_JOBS = ('runtime-test', 'connector-test', 'compatibility-test')
+CACHE_DIRECTORY = '${{ runner.temp }}/raicho-cache'
 
 
 class WorkflowCoverageTests(unittest.TestCase):
     def setUp(self):
         self.text = WORKFLOW.read_text()
-        self.jobs = yaml.load(self.text, Loader=yaml.BaseLoader)['jobs']
+        self.workflow = yaml.load(self.text, Loader=yaml.BaseLoader)
+        self.jobs = self.workflow['jobs']
 
     def script(self, *names):
         return '\n'.join(step.get('run', '') for name in names for step in self.jobs[name]['steps'])
@@ -97,11 +99,37 @@ class WorkflowCoverageTests(unittest.TestCase):
     def test_lint_job_runs_every_python_suite(self):
         self.assertIn('test-python', self.script('lint').split())
 
+    def coverage_steps(self):
+        return {step['run']: step.get('if') for step in self.jobs['coverage']['steps'] if 'run' in step}
+
     def test_coverage_job_gates_pull_requests_on_changed_lines(self):
         job = self.jobs['coverage']
-        self.assertIn("github.event_name == 'pull_request'", job['if'])
         for label in ('design', 'skip-test', 'skip-coverage-check'):
             with self.subTest(label=label):
                 self.assertIn(f"'{label}'", job['if'])
         self.assertEqual(job['steps'][0]['with']['fetch-depth'], '0')
-        self.assertIn('make check-patch-coverage', self.script('coverage'))
+        self.assertEqual(self.coverage_steps()['make check-patch-coverage'], "github.event_name == 'pull_request'")
+
+    def test_pushes_to_main_save_the_coverage_cache_for_pull_requests(self):
+        self.assertNotIn('event_name', self.jobs['coverage']['if'])
+        # actions/cache saves nothing after an exact key hit, so the build would be wasted then.
+        cache = next(
+            step for step in self.jobs['coverage']['steps'] if step.get('uses', '').startswith('actions/cache@')
+        )
+        self.assertEqual(
+            self.coverage_steps()['make coverage'],
+            f"github.event_name == 'push' && steps.{cache['id']}.outputs.cache-hit != 'true'",
+        )
+
+    def test_rust_building_jobs_restore_their_cargo_cache(self):
+        # The runner shares only its work directory with the Docker host, so the folder must live there.
+        self.assertNotIn('RAICHO_CACHE_DIRECTORY', self.workflow.get('env', {}))
+        for name in ('lint', 'application-test', 'coverage'):
+            with self.subTest(job=name):
+                steps = self.jobs[name]['steps']
+                cache = next(step for step in steps if step.get('uses', '').startswith('actions/cache@'))
+                self.assertEqual(cache['with']['path'], CACHE_DIRECTORY)
+                for step in steps:
+                    if 'make ' in step.get('run', ''):
+                        self.assertEqual(step['env']['RAICHO_CACHE_DIRECTORY'], CACHE_DIRECTORY)
+                self.assertIn("hashFiles('Cargo.lock', 'rust-toolchain.toml')", cache['with']['key'])

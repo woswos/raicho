@@ -11,6 +11,10 @@ from protocol.generator.validation import validate_sources, validate_status
 
 ROOT = Path(__file__).resolve().parents[2]
 NODE_REPORTER = f'--test-reporter={ROOT / "automation/build/node_reporter.mjs"}'
+# Checks reuse the selection of every other debug build. Generation builds only the
+# generator, because consumers may not compile until they receive the new bindings.
+CHECK_BUILD = ['cargo', 'build', '--workspace', '--all-targets', '--locked']
+GENERATE_BUILD = ['cargo', 'build', '--locked', '--package', 'raicho-protocol-generator']
 OUTPUTS = {
     'rust': (
         Path('protocol/rust/src'),
@@ -91,16 +95,10 @@ def generate(action):
     validate_status(status, diagnostics)
     with tempfile.TemporaryDirectory(prefix='raicho-protocol-') as temporary:
         staging = Path(temporary)
+        generator = Path(os.environ.get('CARGO_TARGET_DIR', ROOT / 'target')) / 'debug/raicho-protocol-generator'
         commands = [
-            [
-                'cargo',
-                'run',
-                '--locked',
-                '--package',
-                'raicho-protocol-generator',
-                '--',
-                str(staging / 'rust'),
-            ],
+            CHECK_BUILD if action == 'check' else GENERATE_BUILD,
+            [str(generator), str(staging / 'rust')],
             [
                 'node',
                 str(ROOT / 'protocol/generator/generate_typescript.mjs'),

@@ -97,7 +97,7 @@ That command prints one dated section and fails when the section is missing.
 
 The diagnostics status reports `version` from the declared product version and
 `commit` from `RAICHO_COMMIT`. Compose passes that argument into the server
-image. `make images`, which `make build` and the `deploy-` targets run, sets it to
+image. `make images`, which the `deploy-` targets run, sets it to
 the full `HEAD` commit, with a `-dirty` suffix when tracked files have uncommitted
 changes. A `RAICHO_COMMIT` set in the environment takes precedence:
 
@@ -106,8 +106,9 @@ make images
 ```
 
 Building with Compose directly leaves it unset unless you pass it, and the commit
-is then `unknown`, which the page shows as the version alone. Each new commit
-rebuilds the server's release binary, because the value is compiled in.
+is then `unknown`, which the page shows as the version alone. The value is
+compiled in, so each new commit recompiles the workspace crates but not their
+dependencies, as the [build caching decision](../decisions/20261026-build-caching.md) describes.
 
 The commit text must fit in 80 characters, which a full git object name does.
 The page rejects a longer value.

@@ -31,8 +31,9 @@ configuration as Node code. TypeScript uses project-aware linting without a
 fallback project. Pyright and mypy are not configured.
 
 Clippy runs `--workspace --all-targets --locked` with
-`CARGO_BUILD_WARNINGS=deny` and a separate temporary target directory per
-workspace to prevent cache collisions from hiding failures. It checks Cargo
+`CARGO_BUILD_WARNINGS=deny`. It uses the shared Cargo target directory for the root
+workspace and a temporary one for each nested workspace, as the
+[build caching decision](../decisions/20261026-build-caching.md) explains. It checks Cargo
 targets under their active configuration, not
 unreferenced `.rs` files or every conditional feature combination. Formatting
 checks cover Cargo projects and each discovered owned `.rs` file independently.

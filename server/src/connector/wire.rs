@@ -1,18 +1,16 @@
-use std::time::Duration;
-
 use futures_util::SinkExt;
 use raicho_protocol::channel::Channel;
 use raicho_protocol::contract_generated::{
     Capabilities, Challenge, ChallengeType, Generation, Nonce, Ping, PingType, ProtocolError, ProtocolErrorType,
     Signature, Welcome, WelcomeType,
 };
-use raicho_protocol::limits_generated::{AUTHENTICATION_DEADLINE_MS, PROTOCOL_VERSION};
+use raicho_protocol::limits_generated::PROTOCOL_VERSION;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::tungstenite::protocol::{CloseFrame, frame::coding::CloseCode};
 
 use super::failure::Failure;
 use super::handshake::Socket;
-use super::transport::{send, send_text};
+use super::transport::{WRITE_TIMEOUT, send, send_text};
 
 fn protocol_version<Version: TryFrom<i64, Error: std::fmt::Debug>>() -> Version {
     (PROTOCOL_VERSION as i64).try_into().expect("Shared protocol version")
@@ -79,7 +77,7 @@ pub(super) async fn terminate(socket: &mut Socket, session: Option<(&Generation,
         }
         None => serde_json::to_string(&frame).expect("Connector envelope is serializable"),
     };
-    let _ = tokio::time::timeout(Duration::from_millis(AUTHENTICATION_DEADLINE_MS as u64), async {
+    let _ = tokio::time::timeout(WRITE_TIMEOUT, async {
         if send_text(socket, text).await.is_ok() {
             let _ = socket
                 .send(Message::Close(Some(CloseFrame {

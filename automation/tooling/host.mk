@@ -3,6 +3,12 @@ TOOLS := docker compose --progress $(PROGRESS) -f $(REPOSITORY_ROOT)automation/t
 ifdef GITHUB_EVENT_PATH
 TOOLS += -f $(REPOSITORY_ROOT)automation/tooling/compose.ci.yaml
 endif
+ifdef RAICHO_CACHE_DIRECTORY
+# Compose resolves a relative bind source from its first file's directory, so pass Make's absolute path.
+override RAICHO_CACHE_DIRECTORY := $(abspath $(RAICHO_CACHE_DIRECTORY))
+export RAICHO_CACHE_DIRECTORY
+TOOLS += -f $(REPOSITORY_ROOT)automation/tooling/compose.cache.yaml
+endif
 # A linked worktree keeps its Git metadata outside the mounted checkout.
 GIT_COMMON := $(shell git -C $(REPOSITORY_ROOT) rev-parse --path-format=absolute --git-common-dir 2>/dev/null)
 MOUNTS := $(if $(GIT_COMMON),$(if $(filter $(REPOSITORY_ROOT)%,$(GIT_COMMON)/),,--volume $(GIT_COMMON):$(GIT_COMMON):ro))
@@ -14,17 +20,13 @@ WRITE := $(RUN) format make
 
 .PHONY: tooling-image
 tooling-image:
-	@$(STEP) $@ $(TOOLS) build
+	@$(if $(RAICHO_CACHE_DIRECTORY),mkdir -p '$(RAICHO_CACHE_DIRECTORY)' && )$(STEP) $@ $(TOOLS) build
 
-$(filter-out build $(WRITING_TARGETS),$(CONTAINER_TARGETS)): tooling-image
+$(filter-out $(WRITING_TARGETS),$(CONTAINER_TARGETS)): tooling-image
 	@$(CHECK) $@
 
 $(WRITING_TARGETS): tooling-image
 	@$(WRITE) $@
-
-build: tooling-image
-	@$(CHECK) build
-	@$(MAKE) --no-print-directory images
 
 GIT_HEAD = $(shell git -C $(REPOSITORY_ROOT) rev-parse HEAD 2>/dev/null)
 RAICHO_COMMIT ?= $(if $(GIT_HEAD),$(GIT_HEAD)$(shell git -C $(REPOSITORY_ROOT) diff --quiet HEAD -- || echo -dirty),unknown)

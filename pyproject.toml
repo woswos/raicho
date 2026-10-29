@@ -16,6 +16,9 @@ fail_under = 90
 [tool.coverage.run]
 data_file = "/tmp/raicho-coverage/python/data"
 parallel = true
+concurrency = ["thread", "multiprocessing"]
+# The test runner process itself only dispatches modules to measured workers.
+disable_warnings = ["no-data-collected"]
 patch = ["subprocess"]
 include = ["/workspace/*", "/tmp/*/automation/*"]
 omit = ["*/tests/*", "*_tests.py", "*_checks.py", "*/automation/acceptance/*", "*/mailprobe/*"]

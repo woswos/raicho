@@ -152,8 +152,13 @@ application and integration tests. `extension/tests/` also owns Python packaging
 regressions. The production-XPI inspector that connector acceptance runs inside
 Thunderbird lives with that driver as `automation/acceptance/connector/inspect_xpi.py`,
 and the packaging boundary tests reuse it.
-Rust test support lives under
-`server/tests/support/`.
+The server's integration tests compile into two test binaries, so a change relinks
+two executables instead of one per file. `server/tests/integration/main.rs` declares
+each test module and the shared `support/` module. `server/tests/processes/` holds
+the tests that spawn processes. They run apart because a child process briefly
+inherits the open files of every test in its process, including SQLite instance
+locks. Add a test file as a module of one of them, never directly in `server/tests/`,
+where Cargo would build it as another binary.
 
 `protocol/rust/tests/` and `protocol/typescript/tests/` run the shared protocol
 fixtures against their respective implementations. TypeScript protocol tests

@@ -38,7 +38,9 @@ in `/opt/raicho/packages.tsv` inside the Raicho and Thunderbird images. Runtime
 support is Linux amd64.
 
 `deploy/gateway/Dockerfile` pins Nginx 1.30.6 Alpine by digest.
-Its routing configuration lives in `deploy/gateway/nginx.conf`.
+Its routing configuration lives in `deploy/gateway/nginx.conf`. It writes no access
+log and sends warnings and errors to standard error, which `docker compose logs`
+shows. The connector token never crosses the gateway, so its logs cannot contain it.
 The gateway runs as UID/GID 10001 with a read-only root, bounded temporary storage,
 no data or secret mounts, and no published port.
 
@@ -68,7 +70,12 @@ External Thunderbird mail directories require their own explicit mounts.
 | `/api/status` | Readiness, product version, build commit, database status, and connector diagnostics |
 | `/` | Static diagnostics page |
 
-Diagnostics use `Cache-Control: no-store`. Unknown API paths and missing assets
+`/api` and `/health` responses use `Cache-Control: no-store`. Page files use
+`no-cache`, so browsers revalidate them after an upgrade, because their names carry
+no version. Every response sends `Content-Security-Policy: default-src 'self';
+base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'`,
+`X-Content-Type-Options: nosniff`, and `Referrer-Policy: no-referrer`, so the page
+runs only its own files and cannot be framed. Unknown API paths and missing assets
 return 404, including `/connector/v1` on this listener. Stopping Thunderbird does
 not make Raicho unready. Backend status is `unconfigured`, `disconnected`,
 `connected`, `revoked`, or `unavailable`. Diagnostics include the current session
@@ -171,7 +178,11 @@ backend. The instance lock stays held for the process lifetime.
 The connector migration records backend configuration and credential state.
 No mail data is stored. Add versioned SQL files under
 `server/migrations/` with the feature that uses them, following the
-[sequential filename convention](../coding/coding-standards.md#source-filenames).
+[sequential filename convention](../coding/coding-standards.md#source-filenames),
+and list each one in `server/src/persistence/migrations.rs` with its version and
+the file name's description. The server embeds them without SQLx's compile-time
+macros, which would build a second copy of SQLite. A unit test fails when a file
+is missing from that list, and another pins the checksums of applied migrations.
 Name their tables, columns, indexes, views, and triggers in
 [snake_case](../coding/coding-standards.md#database-names).
 Embedded migration changes trigger recompilation. Do not rename, renumber, or

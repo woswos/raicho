@@ -5,8 +5,9 @@ set -euo pipefail
 SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPOSITORY_ROOT="$(cd "${SCRIPT_DIRECTORY}/../.." && pwd)"
 cd "${REPOSITORY_ROOT}"
+# shellcheck source=automation/tooling/project_removal.bash
+source "${SCRIPT_DIRECTORY}/project_removal.bash"
 
-PROJECT_LABEL=com.docker.compose.project
 DISPOSABLE_PROJECT='^raicho-[a-z]+-[0-9]+-[0-9]+$'
 DISPOSABLE_IMAGE='^raicho-[a-z]+-[0-9]+-[0-9]+[:-]'
 CACHE_VOLUME=raicho-tools_cache
@@ -23,34 +24,6 @@ remove_ignored_output() {
         fi
         rm -rf -- "${IGNORED_PATH}"
         echo "Removed ${IGNORED_PATH}"
-    done
-}
-
-list() {
-    local KIND="${1}"
-    shift
-    if [[ ${KIND} == container ]]; then
-        docker container ls --all "${@}"
-    else
-        docker "${KIND}" ls "${@}"
-    fi
-}
-
-remove_project() {
-    local PROJECT="${1}" KIND LISTED IDS
-    shift
-    for KIND in "${@}"; do
-        LISTED="$(list "${KIND}" --quiet --filter "label=${PROJECT_LABEL}=${PROJECT}")" || return 1
-        mapfile -t IDS < <(printf '%s' "${LISTED}")
-        if ((${#IDS[@]} == 0)); then
-            continue
-        fi
-        # A graceful stop protects the volumes that mrproper keeps.
-        if [[ ${KIND} == container ]]; then
-            docker container stop "${IDS[@]}" >/dev/null || return 1
-        fi
-        docker "${KIND}" rm "${IDS[@]}" >/dev/null || return 1
-        echo "Removed the ${KIND}s of ${PROJECT}"
     done
 }
 

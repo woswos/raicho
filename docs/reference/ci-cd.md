@@ -25,8 +25,10 @@ workflows always finish.
   isolation, same-profile upgrade, privacy canaries, and credential
   rotation/revocation recovery.
 - `compatibility-test`: unattended GreenMail draft/restart experiment.
-- `coverage`: on PRs only, `make check-patch-coverage` against the PR base. It
-  fails when fewer than 90 percent of changed, measured lines are covered.
+- `coverage`: on PRs, `make check-patch-coverage` against the PR base. It
+  fails when fewer than 90 percent of changed, measured lines are covered. On
+  pushes to `main` it runs `make coverage` instead, which saves the coverage
+  build's Cargo cache for later PRs.
 
 The acceptance jobs run `make acceptance-runtime`, `make acceptance-connector` and
 `make acceptance-credentials`, and `make acceptance-mail`. There are no image
@@ -81,6 +83,23 @@ builds and runtime checks. They have no dependencies on the optional build job.
 Native send permission, native draft editing, and interactive sending faults
 remain manual checks. CI does not grant native consent or claim to repeat those
 observations. See [acceptance evidence](connector-acceptance.md) for scope and limits.
+
+## Caching
+
+The [build caching decision](../decisions/20261026-build-caching.md) records why CI caches as it does. Images build with
+Docker's default builder and its layer cache on the runner's Docker host. CI uses
+no GitHub Actions image cache.
+
+`lint`, `application-test`, and `coverage` restore a Cargo cache with
+`actions/cache`, keyed by job, `Cargo.lock`, and `rust-toolchain.toml`, into
+`raicho-cache` under the runner's temporary directory. Their Make steps set
+`RAICHO_CACHE_DIRECTORY` to that folder, so Make binds it at `/cache` through
+`automation/tooling/compose.cache.yaml`. The other jobs use the named volume. CI
+turns off incremental compilation. Every job that restores a Cargo cache also runs
+on pushes to `main`, where `coverage` builds only when no cache matches its key.
+
+GitHub keeps about 10 GB of caches per repository and evicts the least recently
+used, so a run after eviction rebuilds cold and saves again.
 
 ## Repository integrity
 
