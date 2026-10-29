@@ -10,3 +10,6 @@ prettyplease.workspace = true
 serde_json.workspace = true
 syn.workspace = true
 typify.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

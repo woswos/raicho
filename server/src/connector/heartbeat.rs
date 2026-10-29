@@ -4,7 +4,7 @@ use raicho_protocol::Phase;
 use raicho_protocol::channel::Channel;
 use raicho_protocol::contract_generated::{ConnectorMessage, Generation};
 use raicho_protocol::diagnostics_generated::BackendError;
-use raicho_protocol::limits_generated::{HEARTBEAT_INTERVAL_MS, HEARTBEAT_TIMEOUT_MS};
+use raicho_protocol::limits_generated::{HEARTBEAT_INTERVAL_MS, HEARTBEAT_TIMEOUT_MS, MAXIMUM_WIRE_INTEGER};
 use tokio::time::Instant;
 use tokio_tungstenite::tungstenite::Utf8Bytes;
 
@@ -53,7 +53,7 @@ async fn send_ping(
     if heartbeat.outstanding.is_some() {
         return Err(Failure::new(BackendError::HeartbeatTimeout));
     }
-    if heartbeat.next_sequence > i32::MAX as u64 {
+    if heartbeat.next_sequence > MAXIMUM_WIRE_INTEGER as u64 {
         return Err(Failure::new(BackendError::ServerBusy));
     }
     wire::ping(socket, generation, heartbeat.next_sequence, channel).await?;

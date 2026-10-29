@@ -4,15 +4,15 @@ use serde_json::Value;
 use crate::{
     ContractError,
     contract_generated::ConnectorMessage,
-    limits_generated::{MAXIMUM_AUTHENTICATION_BYTES, MAXIMUM_CONTROL_BYTES, MAXIMUM_JSON_DEPTH, PROTOCOL_VERSION},
+    limits_generated::{
+        MAXIMUM_AUTHENTICATION_BYTES, MAXIMUM_CONTROL_BYTES, MAXIMUM_JSON_DEPTH, MAXIMUM_WIRE_INTEGER, PROTOCOL_VERSION,
+    },
     raw_json,
 };
 
-// The generated types enforce every other schema rule, but not these two bounds.
-const MAXIMUM_SEQUENCE: u64 = 2_147_483_647;
+const MAXIMUM_WIRE_FLOAT: f64 = MAXIMUM_WIRE_INTEGER as f64;
 
-#[derive(Clone, Copy, Debug, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Copy, Debug)]
 pub enum Phase {
     Authentication,
     Challenge,
@@ -47,11 +47,12 @@ pub(crate) fn decode_value(
     Ok((message, typed))
 }
 
+// The generated types enforce every other schema rule, but not these two bounds.
 fn check_schema_bounds(message: &Value) -> Result<(), ContractError> {
     let capabilities = message.get("capabilities").and_then(Value::as_array);
     let sequence = message.get("sequence").and_then(Value::as_u64);
     if capabilities.is_some_and(|capabilities| !capabilities.is_empty())
-        || sequence.is_some_and(|sequence| sequence > MAXIMUM_SEQUENCE)
+        || sequence.is_some_and(|sequence| sequence > MAXIMUM_WIRE_INTEGER as u64)
     {
         return Err(ContractError::InvalidMessage);
     }
@@ -88,7 +89,7 @@ fn is_printable_ascii(text: &str) -> bool {
 fn check_unsupported_version(message: &Value) -> Result<(), ContractError> {
     if let Some(version) = message["protocol_version"].as_f64()
         && version.fract() == 0.0
-        && (1.0..=2_147_483_647.0).contains(&version)
+        && (1.0..=MAXIMUM_WIRE_FLOAT).contains(&version)
         && version != PROTOCOL_VERSION as f64
     {
         return Err(ContractError::IncompatibleVersion);
@@ -126,7 +127,7 @@ fn normalize_numbers(message: &mut Value) {
         Value::Number(number) => {
             if let Some(value) = number.as_f64()
                 && value.fract() == 0.0
-                && (0.0..=2_147_483_647.0).contains(&value)
+                && (0.0..=MAXIMUM_WIRE_FLOAT).contains(&value)
             {
                 *number = (value as u64).into();
             }

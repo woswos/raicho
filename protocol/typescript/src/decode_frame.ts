@@ -4,9 +4,9 @@ import { LIMITS } from './limits_generated.js';
 import { isUnambiguousJson } from './raw_json.js';
 import validate from './validator_generated.js';
 
-export type Phase = 'authentication' | 'challenge' | 'handshake' | 'client_control' | 'server_control';
+const encoder = new TextEncoder();
 
-export type { ContractErrorCode };
+export type Phase = 'authentication' | 'challenge' | 'handshake' | 'client_control' | 'server_control';
 
 export class ContractError extends Error {
   constructor(readonly code: ContractErrorCode) {
@@ -50,7 +50,7 @@ function hasUnsupportedVersion(value: unknown): boolean {
     typeof version === 'number' &&
     Number.isInteger(version) &&
     version > 0 &&
-    version <= 2147483647 &&
+    version <= LIMITS.maximum_wire_integer &&
     version !== LIMITS.protocol_version
   );
 }
@@ -82,7 +82,8 @@ function checkPhase(message: ConnectorMessage, phase: Phase, generation: string 
 
 export function decodeFrame(raw: string, phase: Phase, generation?: string): ConnectorMessage {
   const maximumBytes = phase === 'authentication' ? LIMITS.maximum_authentication_bytes : LIMITS.maximum_control_bytes;
-  if (raw.length > maximumBytes || new TextEncoder().encode(raw).byteLength > maximumBytes) {
+  // UTF-8 is never shorter than UTF-16, so oversized input fails before it is encoded.
+  if (raw.length > maximumBytes || encoder.encode(raw).byteLength > maximumBytes) {
     throw new ContractError('message_too_large');
   }
   const message = decodeJson(raw);

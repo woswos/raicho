@@ -164,7 +164,8 @@ where Cargo would build it as another binary.
 fixtures against their respective implementations. TypeScript protocol tests
 compile independently of the extension. See the
 [contract commands](build-test-generate.md#connector-contract).
-Generator regressions live in `protocol/generator/tests/`. Rust benchmarks live in
+Generator regressions live in `protocol/generator/tests/`, and the Rust generator's
+unit tests sit beside its code in `protocol/generator/src/`. Rust benchmarks live in
 the owning crate's `benches/` directory, such as `protocol/rust/benches/`, and
 reuse the shared protocol fixtures.
 `protocol/fixtures/configuration/connector.json` lists valid and invalid connector

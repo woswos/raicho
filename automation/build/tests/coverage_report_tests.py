@@ -31,7 +31,7 @@ class CoverageReportTests(unittest.TestCase):
 
     def test_typescript_suites_build_with_source_maps(self):
         with (
-            mock.patch.object(coverage_report, 'test_typescript') as protocol,
+            mock.patch.object(coverage_report, 'run_typescript_tests') as protocol,
             mock.patch.object(coverage_report, 'web') as web,
             mock.patch.object(coverage_report, 'extension') as extension,
         ):

@@ -1,3 +1,4 @@
+// Generated from protocol/schema/connector.schema.json.
 ///`Authenticate`
 #[derive(::serde::Deserialize, ::serde::Serialize, Clone)]
 #[serde(deny_unknown_fields)]

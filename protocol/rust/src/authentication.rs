@@ -7,7 +7,8 @@ use crate::contract_generated::Authenticate;
 pub const KEY_BYTES: usize = 32;
 pub type Key = [u8; KEY_BYTES];
 
-const CLIENT_KEY_LABEL: &[u8] = b"raicho connector client key";
+// Every derived key depends on these exact bytes, so changing the label changes every key.
+const CONNECTOR_KEY_LABEL: &[u8] = b"raicho connector client key";
 const SERVER_KEY_LABEL: &[u8] = b"raicho connector server key";
 
 pub struct ConnectorKeys {
@@ -18,7 +19,7 @@ pub struct ConnectorKeys {
 impl ConnectorKeys {
     pub fn derive(token: &str) -> Self {
         Self {
-            stored_key: Sha256::digest(client_key(token)).into(),
+            stored_key: derive_stored_key(&connector_key(token)),
             server_key: hmac(token.as_bytes(), SERVER_KEY_LABEL),
         }
     }
@@ -40,15 +41,16 @@ pub fn authentication_message(server_nonce: &str, authenticate: &Authenticate) -
 }
 
 pub fn client_proof(token: &str, message: &str) -> Key {
-    let client_key = client_key(token);
-    let stored_key: Key = Sha256::digest(client_key).into();
-    xor(&client_key, &hmac(&stored_key, message.as_bytes()))
+    let connector_key = connector_key(token);
+    xor(
+        &connector_key,
+        &hmac(&derive_stored_key(&connector_key), message.as_bytes()),
+    )
 }
 
 pub fn verify_client_proof(stored_key: &Key, message: &str, proof: &Key) -> bool {
-    let client_key = xor(proof, &hmac(stored_key, message.as_bytes()));
-    let candidate: Key = Sha256::digest(client_key).into();
-    bool::from(candidate.ct_eq(stored_key))
+    let connector_key = xor(proof, &hmac(stored_key, message.as_bytes()));
+    bool::from(derive_stored_key(&connector_key).ct_eq(stored_key))
 }
 
 pub fn server_signature(server_key: &Key, message: &str) -> Key {
@@ -70,8 +72,12 @@ pub fn from_hex(value: &str) -> Option<Key> {
     Some(key)
 }
 
-fn client_key(token: &str) -> Key {
-    hmac(token.as_bytes(), CLIENT_KEY_LABEL)
+fn connector_key(token: &str) -> Key {
+    hmac(token.as_bytes(), CONNECTOR_KEY_LABEL)
+}
+
+fn derive_stored_key(connector_key: &Key) -> Key {
+    Sha256::digest(connector_key).into()
 }
 
 pub(crate) fn hmac(key: &[u8], message: &[u8]) -> Key {

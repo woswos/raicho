@@ -42,8 +42,8 @@ def database_check(arguments):
     assert len(rows) == 1, 'Exactly one connector credential must exist'
     backend, stored_key, server_key, revoked, revision = rows[0]
     assert backend == 'thunderbird', 'Unexpected persisted backend kind'
-    client_key = hmac.digest(selected, b'raicho connector client key', 'sha256')
-    assert stored_key == hashlib.sha256(client_key).digest(), 'Token and stored key differ'
+    connector_key = hmac.digest(selected, b'raicho connector client key', 'sha256')
+    assert stored_key == hashlib.sha256(connector_key).digest(), 'Token and stored key differ'
     assert server_key == hmac.digest(selected, b'raicho connector server key', 'sha256'), 'Token and server key differ'
     assert revoked == int(arguments.revoked), 'Persisted revocation state differs'
     assert revision == arguments.revision, 'Credential revision differs'

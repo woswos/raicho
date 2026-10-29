@@ -35,8 +35,8 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
 - [Schema](../../protocol/schema/connector.schema.json): Draft 7, closed tagged
   objects and local definitions only. The generation guard restricts its vocabulary.
 - [Limits](../../protocol/limits.json): shared constants, including frame sizes,
-  authentication deadline, heartbeat timing, nesting, connection budgets, and
-  the WebSocket close codes the server sends.
+  authentication deadline, heartbeat timing, nesting, the largest wire integer,
+  connection budgets, and the WebSocket close codes the server sends.
 - [Diagnostics](../../protocol/diagnostics.json): the backend states and error
   codes that the status API reports, and the decoder error codes. They generate
   Rust enums, including `ContractError`, and the TypeScript `ContractErrorCode`.
@@ -52,22 +52,22 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
 - [Rust crate](../../protocol/rust/src/lib.rs): generated types and limits, and a
   boundary decoder. The decoder relies on the generated types, which enforce the
   schema's types, lengths, patterns, and unknown-field rules, and checks the two
-  bounds they miss itself: empty `capabilities` and the `sequence` maximum. A
-  conformance test runs every shared fixture through offline `jsonschema`
+  bounds they miss itself: empty `capabilities` and the `sequence` maximum. The
+  Rust fixture test also runs every shared fixture through offline `jsonschema`
   validation, which is a test-only dependency, and fails when a frame that the schema
   rejects decodes.
 - [TypeScript project](../../protocol/typescript/src/decode_frame.ts): generated
   types and limits with a bundled Ajv standalone validator. No runtime Ajv,
   network schema retrieval, Node imports, or dynamic code generation is required.
-- [Generation scripts](../../protocol/generator/): Python orchestration and
-  JavaScript generation, with regression tests in its `tests/` directory.
+- [Generation scripts](../../protocol/generator/): Python orchestration,
+  JavaScript generation, and the Rust generator in `protocol/generator/src/`.
 
-Both implementations live under `protocol/`, with their own tests. The TypeScript
-project is private ES modules and imports no Thunderbird APIs. The extension
-imports those sources directly. Its XPI preserves the compiled `extension/src/`
-and `protocol/typescript/src/` paths so browser module imports resolve inside the
-archive. The background page remains at the archive root. Protocol fixtures and
-tests are excluded from production packaging.
+The [test layout](project-structure.md#test-code) says where each part's tests
+live. The TypeScript project is private ES modules and imports no Thunderbird
+APIs. The extension imports those sources directly. Its XPI preserves the compiled
+`extension/src/` and `protocol/typescript/src/` paths so browser module imports
+resolve inside the archive. The background page remains at the archive root.
+Protocol fixtures and tests are excluded from production packaging.
 
 Use the boundary decoder on untrusted input. Deserializing a generated type or
 calling the schema validator alone does not enforce frame size, phase, generation,
@@ -144,7 +144,7 @@ its own line. Counters start at zero after welcome, count every frame each side
 sends, and never appear on the wire, so a replayed, reordered, reflected, or dropped
 frame fails. Canonical JSON sorts object members and has no whitespace, which is
 unambiguous because wire values are printable ASCII and integers.
-`protocol/rust/src/channel.rs` and `protocol/typescript/src/channel.ts` implement
+`protocol/rust/src/canonical_json.rs` and `protocol/typescript/src/channel.ts` implement
 it, pinned by `protocol/fixtures/authentication/session.json`. The decoders check
 the schema, phase, and generation first, then the MAC. A frame that fails the MAC
 ends the session with `authentication_failed`. Frames are authenticated, not
@@ -208,15 +208,17 @@ Binary application frames are rejected.
 Reject duplicate object members, including keys spelled with equivalent JSON
 escapes. Reject nesting deeper than the shared limit, measured with the root at
 depth zero. Reject non-finite numbers and invalid JSON. These checks happen before
-version classification. An unsupported positive integer version within the
-32-bit signed range produces `incompatible_version`. Malformed versions produce
-`invalid_message`. Schema validation precedes phase and generation checks.
+version classification. An unsupported positive integer version up to the
+`maximum_wire_integer` limit, the largest signed 32-bit integer, produces
+`incompatible_version`. Malformed versions produce `invalid_message`. Schema
+validation precedes phase and generation checks.
 
 Equivalent integral numeric spellings such as `1`, `1.0`, and `1e0` are accepted.
 Rust normalizes validated integral values before generated-type deserialization.
-Sequences remain within the shared schema's 32-bit signed range, avoiding loss of
-precision in JavaScript. Boundary, decimal-rounding, duplicate, surrogate, and
-nesting regressions exercise agreement between the two decoders.
+Sequences stay at or below `maximum_wire_integer`, which the generator checks
+against the schema. JavaScript represents every such integer exactly. Boundary,
+decimal-rounding, duplicate, surrogate, and nesting regressions exercise agreement
+between the two decoders.
 
 ## Generation and verification
 
@@ -228,7 +230,10 @@ make check-protocol test-protocol
 Make runs generation in the writable service as described in
 [build commands](build-test-generate.md#make). Generation builds
 both language outputs in temporary directories before publishing changed files.
-The check regenerates and compares bytes without changing the checkout. The
+Every generated file name carries a `_generated` suffix, which separates it from the
+hand-written sources in the same directory. Generation removes a committed generated
+file that it no longer writes, and the check reports one. The check regenerates
+and compares bytes without changing the checkout. The
 Python entry point validates every source before either generator runs. Schema
 constants must agree with the limits file. Remote, file, and missing references
 fail before generation. Review schema, generated changes, and corpus together.

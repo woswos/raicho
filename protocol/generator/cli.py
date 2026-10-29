@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -15,45 +16,58 @@ NODE_REPORTER = f'--test-reporter={ROOT / "automation/build/node_reporter.mjs"}'
 # generator, because consumers may not compile until they receive the new bindings.
 CHECK_BUILD = ['cargo', 'build', '--workspace', '--all-targets', '--locked']
 GENERATE_BUILD = ['cargo', 'build', '--locked', '--package', 'raicho-protocol-generator']
-OUTPUTS = {
-    'rust': (
-        Path('protocol/rust/src'),
-        ['contract_generated.rs', 'limits_generated.rs', 'diagnostics_generated.rs'],
-    ),
-    'typescript': (
-        Path('protocol/typescript/src'),
-        [
-            'contract_generated.ts',
-            'diagnostics_generated.ts',
-            'validator_generated.js',
-            'validator_generated.d.ts',
-            'limits_generated.ts',
-        ],
-    ),
-    'web': (
-        Path('web/src'),
-        [
-            'status_generated.ts',
-            'status_validator_generated.js',
-            'status_validator_generated.d.ts',
-        ],
-    ),
+DESTINATIONS = {
+    'rust': Path('protocol/rust/src'),
+    'typescript': Path('protocol/typescript/src'),
+    'web': Path('web/src'),
 }
 
 
-def changed_outputs(generated, committed, filenames):
-    return [
+# Generated outputs share their directories with hand-written sources, so only their names mark them.
+GENERATED_NAME = re.compile(r'[a-z0-9_]+_generated\.(?:rs|ts|js|d\.ts)')
+
+
+def compare_outputs(generated, committed):
+    staged = sorted(path.name for path in generated.iterdir())
+    unmarked = [name for name in staged if not GENERATED_NAME.fullmatch(name)]
+    if unmarked:
+        raise ValueError(f'Generated files must be named like contract_generated.ts: {", ".join(unmarked)}.')
+    changed = [
         name
-        for name in filenames
+        for name in staged
         if not (committed / name).is_file() or (generated / name).read_bytes() != (committed / name).read_bytes()
     ]
+    stale = sorted(
+        path.name
+        for path in committed.glob('*_generated.*')
+        if path.is_file() and GENERATED_NAME.fullmatch(path.name) and not (generated / path.name).exists()
+    )
+    return changed, stale
+
+
+def sync_outputs(staging, root, action):
+    # Every destination is compared before any is written, so a rejected output leaves the tree untouched.
+    outputs = [
+        (language, destination, *compare_outputs(staging / language, root / destination))
+        for language, destination in DESTINATIONS.items()
+    ]
+    changes = []
+    for language, destination, changed, stale in outputs:
+        changes.extend(str(destination / name) for name in [*changed, *stale])
+        if action == 'generate':
+            (root / destination).mkdir(parents=True, exist_ok=True)
+            for name in changed:
+                shutil.copyfile(staging / language / name, root / destination / name)
+            for name in stale:
+                (root / destination / name).unlink()
+    return changes
 
 
 def node_reporter():
     return '--test-reporter=spec' if os.environ.get('VERBOSE') else NODE_REPORTER
 
 
-def test_typescript(compiler_arguments=(), test_arguments=None):
+def run_typescript_tests(compiler_arguments=(), test_arguments=None):
     source = ROOT / 'protocol/typescript'
     with tempfile.TemporaryDirectory(prefix='raicho-protocol-typescript-') as directory:
         subprocess.run(
@@ -108,14 +122,7 @@ def generate(action):
         ]
         for command in commands:
             subprocess.run(command, cwd=ROOT, check=True)
-        changes = []
-        for language, (destination, filenames) in OUTPUTS.items():
-            changed = changed_outputs(staging / language, ROOT / destination, filenames)
-            changes.extend(str(destination / name) for name in changed)
-            if action == 'generate':
-                (ROOT / destination).mkdir(parents=True, exist_ok=True)
-                for name in changed:
-                    shutil.copyfile(staging / language / name, ROOT / destination / name)
+        changes = sync_outputs(staging, ROOT, action)
         if action == 'check' and changes:
             raise ValueError(
                 'Generated protocol outputs drifted: '
@@ -131,7 +138,7 @@ def main():
     action = parser.parse_args().action
     try:
         if action == 'test':
-            test_typescript()
+            run_typescript_tests()
         else:
             generate(action)
     except (OSError, ValueError, subprocess.CalledProcessError) as error:

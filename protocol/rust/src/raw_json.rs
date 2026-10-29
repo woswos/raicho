@@ -56,10 +56,6 @@ impl<'de> Visitor<'de> for UniqueValueVisitor {
         Ok(UniqueValue(Value::String(value.to_owned())))
     }
 
-    fn visit_string<Failure: Error>(self, value: String) -> Result<Self::Value, Failure> {
-        Ok(UniqueValue(Value::String(value)))
-    }
-
     fn visit_unit<Failure: Error>(self) -> Result<Self::Value, Failure> {
         Ok(UniqueValue(Value::Null))
     }
