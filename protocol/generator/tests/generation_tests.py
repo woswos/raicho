@@ -11,6 +11,10 @@ from protocol.generator.cli import NODE_REPORTER, ROOT, changed_outputs, node_re
 from protocol.generator.validation import validate_sources, validate_status
 
 
+class Stop(Exception):
+    pass
+
+
 class ProtocolGenerationTests(unittest.TestCase):
     def setUp(self):
         self.schema = json.loads((ROOT / 'protocol/schema/connector.schema.json').read_text())
@@ -113,11 +117,11 @@ class ProtocolGenerationTests(unittest.TestCase):
             with (
                 self.subTest(action=action),
                 mock.patch.dict(os.environ, {'CARGO_TARGET_DIR': '/cache/target'}),
-                mock.patch.object(cli.subprocess, 'run') as run,
-                mock.patch.object(cli.shutil, 'copyfile'),
-                self.assertRaises(OSError),
+                mock.patch.object(cli.subprocess, 'run', side_effect=[None, None, Stop()]) as run,
+                self.assertRaises(Stop),
             ):
                 cli.generate(action)
             commands = [call.args[0] for call in run.call_args_list]
             self.assertEqual(commands[0], build)
             self.assertEqual(commands[1][0], '/cache/target/debug/raicho-protocol-generator')
+            self.assertEqual(commands[2][0], 'node')
