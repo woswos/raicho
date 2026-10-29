@@ -49,7 +49,9 @@ def main():
     if broken.countTestCases():
         successful = unittest.TextTestRunner(stream=sys.stdout).run(broken).wasSuccessful()
     # Modules run in separate processes, so their tests share no interpreter state.
-    with ProcessPoolExecutor(max_workers=os.cpu_count(), mp_context=multiprocessing.get_context('fork')) as pool:
+    # A fork pool starts every worker at once, so it starts no more than there are modules.
+    workers = max(1, min(len(names), os.process_cpu_count() or 1))
+    with ProcessPoolExecutor(max_workers=workers, mp_context=multiprocessing.get_context('fork')) as pool:
         for count, skips, passed, report in pool.map(run_module, names, [verbose] * len(names)):
             ran += count
             skipped += skips
