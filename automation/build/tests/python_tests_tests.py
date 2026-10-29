@@ -93,6 +93,21 @@ class PythonTestsRunnerTests(unittest.TestCase):
         self.assertIn('broken on purpose', result.stdout)
         self.assertNotIn('tests passed', result.stdout)
 
+    def test_a_module_skipped_at_import_counts_as_skipped(self):
+        result = self.run_suite(first=PASSING, second='import unittest\n\nraise unittest.SkipTest("not here")\n')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stdout, 'Python: 1 tests passed, 1 skipped in sample\n')
+
+    def test_tests_from_load_tests_run_as_discovered(self):
+        source = (
+            'import unittest\n\n\n'
+            'def check():\n    pass\n\n\n'
+            'def load_tests(loader, tests, pattern):\n    return unittest.TestSuite([unittest.FunctionTestCase(check)])\n'
+        )
+        result = self.run_suite(first=source)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stdout, 'Python: 1 tests passed in sample\n')
+
     def test_a_module_that_cannot_import_fails_the_run(self):
         result = self.run_suite(first=PASSING, second='import missing_module_for_this_test\n')
         self.assertEqual(result.returncode, 1)
