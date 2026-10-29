@@ -13,7 +13,7 @@ def listing(kind, project, output):
 
 
 def removable(*containers):
-    return Response(('container', 'inspect', *containers), output=''.join(f'{name}\n' for name in containers))
+    return Response(('container', 'inspect', *containers), output=''.join(f'false {name}\n' for name in containers))
 
 
 class MrproperTests(CleanupFixture):
@@ -85,14 +85,18 @@ class MrproperTests(CleanupFixture):
         }
         self.assertEqual(projects, {'raicho', 'preview', 'tooling', 'raicho-tools'})
 
-    def test_containers_that_remove_themselves_are_only_stopped(self):
+    def test_containers_that_remove_themselves_are_stopped_and_awaited(self):
         commands, _ = self.mrproper(
             listing('container', 'raicho-tools', 'tooling-run\ntooling\n'),
-            Response(('container', 'inspect', 'tooling-run', 'tooling'), output='\ntooling\n'),
-            Response(('container', 'rm', 'tooling-run'), status=1),
+            Response(('container', 'inspect', '--format'), output='true tooling-run-id\nfalse tooling-id\n'),
+            Response(('container', 'inspect', 'tooling-run-id'), status=1),
         )
-        self.assertIn(['container', 'stop', 'tooling-run', 'tooling'], commands)
-        self.assertIn(['container', 'rm', 'tooling'], commands)
+        stop = commands.index(['container', 'stop', 'tooling-run', 'tooling'])
+        self.assertLess(stop, commands.index(['container', 'inspect', 'tooling-run-id']))
+        self.assertIn(['container', 'rm', 'tooling-id'], commands)
+        self.assertNotIn(
+            'tooling-run-id', [word for command in commands if command[:2] == ['container', 'rm'] for word in command]
+        )
 
     def test_removes_project_images_after_cleaning(self):
         commands, result = self.mrproper(Response(('image', 'rm', 'raicho-server:local'), status=1))

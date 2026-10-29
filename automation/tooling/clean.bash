@@ -36,8 +36,21 @@ list() {
     fi
 }
 
+# Docker deletes a --rm container itself after stop returns, and its volumes stay in use until then.
+wait_for_removal() {
+    local WAITED
+    for ((WAITED = 0; WAITED < 30; WAITED++)); do
+        if ! docker container inspect "${1}" >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 1
+    done
+    echo "FAIL: Docker did not remove container ${1}" >&2
+    return 1
+}
+
 remove_project() {
-    local PROJECT="${1}" KIND LISTED KEPT IDS
+    local PROJECT="${1}" KIND LISTED IDS SELF_REMOVING CONTAINER
     shift
     for KIND in "${@}"; do
         LISTED="$(list "${KIND}" --quiet --filter "label=${PROJECT_LABEL}=${PROJECT}")" || return 1
@@ -46,12 +59,14 @@ remove_project() {
             continue
         fi
         if [[ ${KIND} == container ]]; then
-            # Docker is already deleting a --rm container when stop returns, so removing it again fails.
-            KEPT="$(docker container inspect --format '{{if not .HostConfig.AutoRemove}}{{.Id}}{{end}}' \
-                "${IDS[@]}")" || return 1
+            LISTED="$(docker container inspect --format '{{.HostConfig.AutoRemove}} {{.Id}}' "${IDS[@]}")" || return 1
             # A graceful stop protects the volumes that mrproper keeps.
             docker container stop "${IDS[@]}" >/dev/null || return 1
-            mapfile -t IDS < <(grep . <<<"${KEPT}")
+            mapfile -t SELF_REMOVING < <(sed -n 's/^true //p' <<<"${LISTED}")
+            for CONTAINER in "${SELF_REMOVING[@]}"; do
+                wait_for_removal "${CONTAINER}" || return 1
+            done
+            mapfile -t IDS < <(sed -n 's/^false //p' <<<"${LISTED}")
         fi
         if ((${#IDS[@]} > 0)); then
             docker "${KIND}" rm "${IDS[@]}" >/dev/null || return 1

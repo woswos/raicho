@@ -67,7 +67,7 @@ class CleanTests(CleanupFixture):
                 ('network', '--quiet', f'{PROJECT_FILTER}raicho-ci-123-1'),
                 output='ci-network\n',
             ),
-            Response(('container', 'inspect', 'runtime-container'), output='runtime-container\n'),
+            Response(('container', 'inspect', 'runtime-container'), output='false runtime-container\n'),
         )
         self.assertIn(['container', 'stop', 'runtime-container'], commands)
         self.assertIn(['container', 'rm', 'runtime-container'], commands)
