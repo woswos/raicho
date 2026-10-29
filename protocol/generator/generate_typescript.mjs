@@ -25,19 +25,23 @@ if (
 const limits = JSON.parse(await readFile(resolve(repositoryRoot, 'protocol/limits.json'), 'utf8'));
 const diagnostics = JSON.parse(await readFile(resolve(repositoryRoot, 'protocol/diagnostics.json'), 'utf8'));
 
+function banner(source) {
+  return `// Generated from protocol/${source}.\n`;
+}
+
 async function schemaOutputs(source, typeName, typesFile, validatorFile) {
   const schema = JSON.parse(await readFile(resolve(repositoryRoot, `protocol/${source}`), 'utf8'));
-  const banner = `// Generated from protocol/${source}.\n`;
+  const header = banner(source);
   return {
     [typesFile]: await compile(schema, typeName, {
-      bannerComment: banner.trimEnd(),
+      bannerComment: header.trimEnd(),
       unknownAny: true,
       unreachableDefinitions: true,
       style: { singleQuote: true },
     }),
-    [validatorFile]: banner + (await standaloneValidator(schema, validatorFile)),
+    [validatorFile]: header + (await standaloneValidator(schema, validatorFile)),
     [validatorFile.replace(/\.js$/u, '.d.ts')]:
-      banner +
+      header +
       `import type { ${typeName} } from './${typesFile.replace(/\.ts$/u, '.js')}';\n` +
       `export default function validate(value: unknown): value is ${typeName};\n`,
   };
@@ -51,10 +55,9 @@ const files = {
     'validator_generated.js',
   )),
   'diagnostics_generated.ts':
-    '// Generated from protocol/diagnostics.json.\n' +
+    banner('diagnostics.json') +
     `export type ContractErrorCode = ${diagnostics.contract_errors.map((code) => JSON.stringify(code)).join(' | ')};\n`,
-  'limits_generated.ts':
-    '// Generated from protocol/limits.json.\n' + `export const LIMITS = ${JSON.stringify(limits)} as const;\n`,
+  'limits_generated.ts': banner('limits.json') + `export const LIMITS = ${JSON.stringify(limits)} as const;\n`,
 };
 const webFiles = await schemaOutputs(
   'schema/status.schema.json',

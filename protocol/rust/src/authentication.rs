@@ -7,7 +7,7 @@ use crate::contract_generated::Authenticate;
 pub const KEY_BYTES: usize = 32;
 pub type Key = [u8; KEY_BYTES];
 
-// Every derived key depends on these exact bytes, so the label keeps its original "client" wording.
+// Every derived key depends on these exact bytes, so changing the label changes every key.
 const CONNECTOR_KEY_LABEL: &[u8] = b"raicho connector client key";
 const SERVER_KEY_LABEL: &[u8] = b"raicho connector server key";
 
