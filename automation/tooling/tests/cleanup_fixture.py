@@ -13,6 +13,7 @@ PROJECT_FORMAT = '{{.Label "com.docker.compose.project"}}'
 PROJECT_FILTER = 'label=com.docker.compose.project='
 SCRIPTS = (
     'automation/tooling/clean.bash',
+    'automation/tooling/project_removal.bash',
     'automation/tooling/mrproper.bash',
     'automation/tooling/deploy_clean.bash',
     'deploy/credentials/connector.bash',
