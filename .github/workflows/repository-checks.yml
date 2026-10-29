@@ -105,7 +105,8 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - id: cargo
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/raicho-cache
           key: rust-${{ github.job }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
@@ -115,9 +116,9 @@ jobs:
         env:
           RAICHO_CACHE_DIRECTORY: ${{ runner.temp }}/raicho-cache
         run: make check-patch-coverage
-      # Pull requests can restore caches saved on main, but not each other's.
+      # Pull requests can restore caches saved on main, but not each other's. An exact key hit saves nothing.
       - name: Save the coverage build for pull requests
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && steps.cargo.outputs.cache-hit != 'true'
         env:
           RAICHO_CACHE_DIRECTORY: ${{ runner.temp }}/raicho-cache
         run: make coverage

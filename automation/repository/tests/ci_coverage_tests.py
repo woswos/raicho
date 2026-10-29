@@ -112,7 +112,14 @@ class WorkflowCoverageTests(unittest.TestCase):
 
     def test_pushes_to_main_save_the_coverage_cache_for_pull_requests(self):
         self.assertNotIn('event_name', self.jobs['coverage']['if'])
-        self.assertEqual(self.coverage_steps()['make coverage'], "github.event_name == 'push'")
+        # actions/cache saves nothing after an exact key hit, so the build would be wasted then.
+        cache = next(
+            step for step in self.jobs['coverage']['steps'] if step.get('uses', '').startswith('actions/cache@')
+        )
+        self.assertEqual(
+            self.coverage_steps()['make coverage'],
+            f"github.event_name == 'push' && steps.{cache['id']}.outputs.cache-hit != 'true'",
+        )
 
     def test_rust_building_jobs_restore_their_cargo_cache(self):
         # The runner shares only its work directory with the Docker host, so the folder must live there.

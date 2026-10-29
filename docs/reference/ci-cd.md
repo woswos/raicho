@@ -100,7 +100,8 @@ it at `/cache` through `automation/tooling/compose.cache.yaml` instead of the na
 volume. The other jobs use the named volume. CI turns off
 incremental compilation, because each run starts from that restored folder.
 A PR can restore caches saved on `main`, but not another PR's, so every job that
-restores a Cargo cache also runs on pushes to `main`.
+restores a Cargo cache also runs on pushes to `main`. There, `coverage` builds only
+when no cache matches its key, because `actions/cache` saves nothing after an exact hit.
 
 GitHub keeps about 10 GB of caches per repository and evicts the least recently
 used, so a run after eviction rebuilds cold and saves again. The deploy image's
