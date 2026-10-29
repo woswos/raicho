@@ -87,18 +87,9 @@ observations. See [acceptance evidence](connector-acceptance.md) for scope and l
 ## Caching
 
 The [build caching decision](../decisions/20261026-build-caching.md) records this
-design. `application-build`, `runtime-test`, and `connector-test` first run the
-local [image cache action](../../.github/actions/images/action.yml). It starts a
-BuildKit container builder that loads its results into Docker and exposes the
-job's cache service to BuildKit. It then runs `automation/tooling/cache_images.bash`,
-which builds `server`, `gateway`, and `thunderbird` from the GitHub Actions layer
-cache, one cache scope per image. Its builds match the Compose builds, so the later
-`make` targets and acceptance runners in the job reuse those layers through the same
-builder. Only `application-build` writes the layers. Every later build through that
-builder also copies its image into Docker, which costs about as long as building the
-tooling or Thunderbird image from scratch. Jobs that need only those images
-therefore build them with Docker's default builder and no image cache, and the
-runtime jobs build the tooling image through their builder without one.
+design. Images build with Docker's default builder, whose layer cache stays on the
+self-hosted runner's Docker host between runs. CI uses no GitHub Actions image cache,
+because that runner restored its layers more slowly than it builds them.
 
 `lint`, `application-test`, and `coverage` restore a Cargo cache with
 `actions/cache`, keyed by job, `Cargo.lock`, and `rust-toolchain.toml`, into

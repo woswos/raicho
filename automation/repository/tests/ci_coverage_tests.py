@@ -114,24 +114,6 @@ class WorkflowCoverageTests(unittest.TestCase):
         self.assertNotIn('event_name', self.jobs['coverage']['if'])
         self.assertEqual(self.coverage_steps()['make coverage'], "github.event_name == 'push'")
 
-    def image_caches(self):
-        return {
-            name: step['with']
-            for name, job in self.jobs.items()
-            for step in job['steps']
-            if step.get('uses') == './.github/actions/images'
-        }
-
-    def test_only_runtime_jobs_cache_images_and_one_job_writes_them(self):
-        # Loading a cached image costs about as much as building the tooling or Thunderbird image alone.
-        caches = self.image_caches()
-        self.assertEqual(set(caches), {'application-build', *ACCEPTANCE_JOBS} - {'compatibility-test'})
-        for name, options in caches.items():
-            with self.subTest(job=name):
-                self.assertEqual(options['images'].split(), ['server', 'gateway', 'thunderbird'])
-        writers = [name for name, options in caches.items() if options.get('write') == 'true']
-        self.assertEqual(writers, ['application-build'])
-
     def test_rust_building_jobs_restore_their_cargo_cache(self):
         # The runner shares only its work directory with the Docker host, so the folder must live there.
         self.assertNotIn('RAICHO_CACHE_DIRECTORY', self.workflow.get('env', {}))

@@ -55,10 +55,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/images
-        with:
-          images: server gateway thunderbird
-          write: 'true'
       - name: Validate runtime configuration
         env:
           RAICHO_CREDENTIAL_DIRECTORY: /tmp/raicho-ci-credentials
@@ -139,9 +135,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/images
-        with:
-          images: server gateway thunderbird
       - name: Verify startup, persistence, isolation, and independent readiness
         run: make acceptance-runtime
 
@@ -155,9 +148,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/images
-        with:
-          images: server gateway thunderbird
       - name: Verify production connector and ten-minute idle acceptance
         env:
           TMPDIR: ${{ runner.temp }}

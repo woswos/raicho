@@ -45,11 +45,10 @@ compiles the real sources with `RAICHO_COMMIT`.
 
 CI restores a Cargo cache per job with `actions/cache`. The coverage job also runs
 on pushes to `main`, because a pull request can restore caches saved on `main` but
-not another pull request's. Jobs that run the application build its server,
-gateway, and Thunderbird images through the GitHub Actions BuildKit cache, and one
-job writes those layers. That cache needs a container builder, which copies every
-image it builds into Docker. The copy takes about as long as building the tooling
-or Thunderbird image alone, so the other jobs build their images without it. The Make
+not another pull request's. Runtime images build with Docker's default builder,
+whose layer cache stays on the self-hosted runner's Docker host between runs. A
+GitHub Actions BuildKit cache was tried and dropped: on that runner it restored
+layers at about 284 KiB/s, so a restore took longer than a build. The Make
 `build` target is removed. `make images` builds the deliverables, and the test and
 lint targets build what they check.
 
@@ -57,12 +56,10 @@ lint targets build what they check.
 
 A source edit relinks two test binaries instead of one per file. A new commit
 recompiles only the workspace crates in the deploy image. CI jobs reuse compiled
-dependencies and runtime image layers until `Cargo.lock`, the toolchain, or an image
-input changes, or GitHub evicts the cache. Measured warm, the runtime image build job
-fell from 331 to 72 seconds and runtime acceptance from 384 to 142 seconds.
+dependencies until `Cargo.lock` or the toolchain changes, or GitHub evicts the cache,
+and reuse image layers while the runner's Docker host keeps them.
 
 New server tests are modules of an existing test binary. New migrations need an
 entry in the migration list, and a test enforces it. New workspace targets need a
-placeholder in the deploy Dockerfile. The CI cache step hands the job's cache
-service token to later steps. Nothing sweeps old Cargo artifacts automatically.
+placeholder in the deploy Dockerfile. Nothing sweeps old Cargo artifacts automatically.
 `make clean` resets the cache.
