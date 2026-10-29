@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -22,30 +23,36 @@ DESTINATIONS = {
 }
 
 
-def changed_outputs(generated, committed):
+# Generated outputs share their directories with hand-written sources, so only their names mark them.
+GENERATED_NAME = re.compile(r'[a-z0-9_]+_generated\.(?:rs|ts|js|d\.ts)')
+
+
+def compare_outputs(generated, committed):
     staged = sorted(path.name for path in generated.iterdir())
-    # Generated outputs share their directories with hand-written sources, so only the suffix marks them.
-    unmarked = [name for name in staged if '_generated.' not in name]
+    unmarked = [name for name in staged if not GENERATED_NAME.fullmatch(name)]
     if unmarked:
-        raise ValueError(f'generated files must carry a _generated suffix: {", ".join(unmarked)}')
+        raise ValueError(f'generated files must be named like contract_generated.ts: {", ".join(unmarked)}')
     changed = [
         name
         for name in staged
         if not (committed / name).is_file() or (generated / name).read_bytes() != (committed / name).read_bytes()
     ]
-    stale = sorted(path.name for path in committed.glob('*_generated.*') if not (generated / path.name).exists())
+    stale = sorted(
+        path.name
+        for path in committed.glob('*_generated.*')
+        if path.is_file() and GENERATED_NAME.fullmatch(path.name) and not (generated / path.name).exists()
+    )
     return changed, stale
 
 
 def sync_outputs(staging, root, action):
     # Every destination is compared before any is written, so a rejected output leaves the tree untouched.
-    outputs = {
-        language: changed_outputs(staging / language, root / destination)
+    outputs = [
+        (language, destination, *compare_outputs(staging / language, root / destination))
         for language, destination in DESTINATIONS.items()
-    }
+    ]
     changes = []
-    for language, (changed, stale) in outputs.items():
-        destination = DESTINATIONS[language]
+    for language, destination, changed, stale in outputs:
         changes.extend(str(destination / name) for name in [*changed, *stale])
         if action == 'generate':
             (root / destination).mkdir(parents=True, exist_ok=True)

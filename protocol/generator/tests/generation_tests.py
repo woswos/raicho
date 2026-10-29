@@ -113,11 +113,23 @@ class ProtocolGenerationTests(unittest.TestCase):
             (staging / 'typescript/contract_generated.ts').write_text('expected\n')
             (committed / 'old_generated.ts').write_text('stale\n')
             (committed / 'app.ts').write_text('hand-written\n')
+            (committed / '.contract_generated.ts.swp').write_text('editor\n')
+            (committed / 'contract_generated.ts~').write_text('backup\n')
+            (committed / 'folder_generated.ts').mkdir()
             expected = [str(destination / 'contract_generated.ts'), str(destination / 'old_generated.ts')]
             self.assertEqual(sync_outputs(staging, root, 'check'), expected)
             self.assertTrue((committed / 'old_generated.ts').exists())
             self.assertEqual(sync_outputs(staging, root, 'generate'), expected)
-            self.assertEqual(sorted(path.name for path in committed.iterdir()), ['app.ts', 'contract_generated.ts'])
+            self.assertEqual(
+                sorted(path.name for path in committed.iterdir()),
+                [
+                    '.contract_generated.ts.swp',
+                    'app.ts',
+                    'contract_generated.ts',
+                    'contract_generated.ts~',
+                    'folder_generated.ts',
+                ],
+            )
             self.assertEqual(sync_outputs(staging, root, 'check'), [])
             (committed / 'contract_generated.ts').write_text('edited\n')
             self.assertEqual(sync_outputs(staging, root, 'check'), [str(destination / 'contract_generated.ts')])
