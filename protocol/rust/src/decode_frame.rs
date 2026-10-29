@@ -10,6 +10,8 @@ use crate::{
     raw_json,
 };
 
+const MAXIMUM_WIRE_FLOAT: f64 = MAXIMUM_WIRE_INTEGER as f64;
+
 #[derive(Clone, Copy, Debug)]
 pub enum Phase {
     Authentication,
@@ -87,7 +89,7 @@ fn is_printable_ascii(text: &str) -> bool {
 fn check_unsupported_version(message: &Value) -> Result<(), ContractError> {
     if let Some(version) = message["protocol_version"].as_f64()
         && version.fract() == 0.0
-        && (1.0..=MAXIMUM_WIRE_INTEGER as f64).contains(&version)
+        && (1.0..=MAXIMUM_WIRE_FLOAT).contains(&version)
         && version != PROTOCOL_VERSION as f64
     {
         return Err(ContractError::IncompatibleVersion);
@@ -125,7 +127,7 @@ fn normalize_numbers(message: &mut Value) {
         Value::Number(number) => {
             if let Some(value) = number.as_f64()
                 && value.fract() == 0.0
-                && (0.0..=MAXIMUM_WIRE_INTEGER as f64).contains(&value)
+                && (0.0..=MAXIMUM_WIRE_FLOAT).contains(&value)
             {
                 *number = (value as u64).into();
             }

@@ -31,7 +31,7 @@ def compare_outputs(generated, committed):
     staged = sorted(path.name for path in generated.iterdir())
     unmarked = [name for name in staged if not GENERATED_NAME.fullmatch(name)]
     if unmarked:
-        raise ValueError(f'generated files must be named like contract_generated.ts: {", ".join(unmarked)}')
+        raise ValueError(f'Generated files must be named like contract_generated.ts: {", ".join(unmarked)}.')
     changed = [
         name
         for name in staged

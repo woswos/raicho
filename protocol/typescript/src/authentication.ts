@@ -1,6 +1,5 @@
 import type { Authenticate } from './contract_generated.js';
 
-// Every derived key depends on these exact bytes, so changing the label changes every key.
 const CONNECTOR_KEY_LABEL = 'raicho connector client key';
 const SERVER_KEY_LABEL = 'raicho connector server key';
 const encoder = new TextEncoder();
