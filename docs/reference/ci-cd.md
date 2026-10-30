@@ -22,9 +22,9 @@ release workflows always finish.
 - `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
   administrative network isolation and listener closure, and application readiness
   while Thunderbird is stopped, in a disposable project.
-- `connector-test` and `compatibility-test`: `make acceptance-connector` with
-  `make acceptance-credentials`, and `make acceptance-mail`. The
-  [acceptance scope](connector-acceptance.md#scope) lists what each verifies.
+- `connector-test`: `make acceptance-connector`, then `make acceptance-credentials`.
+  The [acceptance scope](connector-acceptance.md#scope) lists what each verifies.
+- `compatibility-test`: `make acceptance-mail`.
 - `coverage`: on PRs, `make check-patch-coverage` against the PR base. It
   fails when fewer than 90 percent of changed, measured lines are covered. On
   pushes to `main` it runs `make coverage` instead, which saves the coverage
