@@ -13,32 +13,24 @@ pub enum CredentialStatus {
     Revoked,
 }
 
-pub struct CredentialStore<'database> {
-    database: &'database Database,
-}
-
-impl<'database> CredentialStore<'database> {
-    pub fn new(database: &'database Database) -> Self {
-        Self { database }
-    }
-
-    pub async fn status(&self) -> Result<CredentialStatus> {
-        Ok(match read(self.database.pool()).await? {
+impl Database {
+    pub async fn credential_status(&self) -> Result<CredentialStatus> {
+        Ok(match read(self.pool()).await? {
             None => CredentialStatus::Unconfigured,
             Some((_, _, true)) => CredentialStatus::Revoked,
             Some((_, _, false)) => CredentialStatus::Active,
         })
     }
 
-    pub async fn verify(&self, credential: &Credential) -> Result<bool> {
-        Ok(match read(self.database.pool()).await? {
-            Some((stored_key, _, false)) => credential.matches(&stored_key),
-            _ => false,
-        })
+    pub async fn verify_credential(&self, credential: &Credential) -> Result<bool> {
+        Ok(self
+            .active_connector_keys()
+            .await?
+            .is_some_and(|keys| credential.matches(&keys.stored_key)))
     }
 
-    pub async fn active_keys(&self) -> Result<Option<ConnectorKeys>> {
-        Ok(match read(self.database.pool()).await? {
+    pub async fn active_connector_keys(&self) -> Result<Option<ConnectorKeys>> {
+        Ok(match read(self.pool()).await? {
             Some((stored_key, server_key, false)) => Some(ConnectorKeys {
                 stored_key: stored_key.try_into().map_err(|_| invalid_key())?,
                 server_key: server_key.try_into().map_err(|_| invalid_key())?,
@@ -47,8 +39,8 @@ impl<'database> CredentialStore<'database> {
         })
     }
 
-    pub async fn initialize(&self, credential: &Credential) -> Result<()> {
-        let mut transaction = self.database.pool().begin().await.map_err(storage_error)?;
+    pub async fn initialize_credential(&self, credential: &Credential) -> Result<()> {
+        let mut transaction = self.pool().begin().await.map_err(storage_error)?;
         match read(&mut *transaction).await? {
             None => {
                 sqlx::query(include_str!("../../queries/initialize_connector_credential.sql"))
@@ -64,11 +56,11 @@ impl<'database> CredentialStore<'database> {
         transaction.commit().await.map_err(storage_error)
     }
 
-    pub async fn rotate(&self, current: &Credential, replacement: &Credential) -> Result<()> {
+    pub async fn rotate_credential(&self, current: &Credential, replacement: &Credential) -> Result<()> {
         if current.matches(replacement.stored_key()) {
             return Err(Error::message("Replacement connector credential must differ"));
         }
-        let mut transaction = self.database.pool().begin().await.map_err(storage_error)?;
+        let mut transaction = self.pool().begin().await.map_err(storage_error)?;
         match read(&mut *transaction).await? {
             Some((stored_key, _, false)) if replacement.matches(&stored_key) => {}
             Some((stored_key, _, false)) if current.matches(&stored_key) => {
@@ -84,8 +76,8 @@ impl<'database> CredentialStore<'database> {
         transaction.commit().await.map_err(storage_error)
     }
 
-    pub async fn revoke(&self) -> Result<()> {
-        let mut transaction = self.database.pool().begin().await.map_err(storage_error)?;
+    pub async fn revoke_credential(&self) -> Result<()> {
+        let mut transaction = self.pool().begin().await.map_err(storage_error)?;
         if read(&mut *transaction).await?.is_none() {
             return Err(Error::message("Connector is not configured"));
         }
@@ -96,8 +88,8 @@ impl<'database> CredentialStore<'database> {
         transaction.commit().await.map_err(storage_error)
     }
 
-    pub async fn reactivate(&self, replacement: &Credential) -> Result<()> {
-        let mut transaction = self.database.pool().begin().await.map_err(storage_error)?;
+    pub async fn reactivate_credential(&self, replacement: &Credential) -> Result<()> {
+        let mut transaction = self.pool().begin().await.map_err(storage_error)?;
         match read(&mut *transaction).await? {
             Some((stored_key, _, false)) if replacement.matches(&stored_key) => {}
             Some((stored_key, _, true)) if !replacement.matches(&stored_key) => {

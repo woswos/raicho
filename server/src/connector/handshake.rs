@@ -1,11 +1,6 @@
-use std::io;
-use std::pin::Pin;
 use std::sync::Arc;
-use std::task::{Context, Poll};
 
 use raicho_protocol::limits_generated::{MAXIMUM_AUTHENTICATION_BYTES, MAXIMUM_CONTROL_BYTES};
-use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
-use tokio::net::TcpStream;
 use tokio::sync::OwnedSemaphorePermit;
 use tokio_tungstenite::WebSocketStream;
 use tokio_tungstenite::tungstenite::handshake::server::{Callback, ErrorResponse, Request, Response};
@@ -13,12 +8,11 @@ use tokio_tungstenite::tungstenite::http::{HeaderMap, StatusCode};
 use tokio_tungstenite::tungstenite::protocol::WebSocketConfig;
 
 use super::Connector;
-
-const MAXIMUM_HEADER_BYTES: usize = 8192;
+use super::handshake_limit::HandshakeLimit;
 
 pub(super) type Socket = WebSocketStream<HandshakeLimit>;
 
-pub(super) fn config() -> WebSocketConfig {
+pub(super) fn websocket_configuration() -> WebSocketConfig {
     WebSocketConfig::default()
         .read_buffer_size(MAXIMUM_AUTHENTICATION_BYTES)
         .write_buffer_size(0)
@@ -58,7 +52,7 @@ fn check(request: &Request, connector: &Connector) -> Result<OwnedSemaphorePermi
     {
         return Err(StatusCode::FORBIDDEN);
     }
-    if connector.state.lock().expect("Connector state lock poisoned").stopping {
+    if *connector.shutdown.borrow() {
         return Err(StatusCode::SERVICE_UNAVAILABLE);
     }
     Arc::clone(&connector.pending)
@@ -85,55 +79,4 @@ fn valid_origin(headers: &HeaderMap) -> bool {
                 character.is_ascii_digit() || (b'a'..=b'f').contains(&character)
             }
         })
-}
-
-pub(super) struct HandshakeLimit {
-    stream: TcpStream,
-    remaining: Option<usize>,
-}
-
-impl HandshakeLimit {
-    pub(super) fn new(stream: TcpStream) -> Self {
-        Self {
-            stream,
-            remaining: Some(MAXIMUM_HEADER_BYTES),
-        }
-    }
-
-    pub(super) fn release(&mut self) {
-        self.remaining = None;
-    }
-}
-
-impl AsyncRead for HandshakeLimit {
-    fn poll_read(self: Pin<&mut Self>, context: &mut Context<'_>, buffer: &mut ReadBuf<'_>) -> Poll<io::Result<()>> {
-        let limited = self.get_mut();
-        let previous = buffer.filled().len();
-        let result = Pin::new(&mut limited.stream).poll_read(context, buffer);
-        if let (Some(remaining), Poll::Ready(Ok(()))) = (limited.remaining.as_mut(), &result) {
-            let read = buffer.filled().len() - previous;
-            if read > *remaining {
-                return Poll::Ready(Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "Connector upgrade headers too large",
-                )));
-            }
-            *remaining -= read;
-        }
-        result
-    }
-}
-
-impl AsyncWrite for HandshakeLimit {
-    fn poll_write(self: Pin<&mut Self>, context: &mut Context<'_>, bytes: &[u8]) -> Poll<io::Result<usize>> {
-        Pin::new(&mut self.get_mut().stream).poll_write(context, bytes)
-    }
-
-    fn poll_flush(self: Pin<&mut Self>, context: &mut Context<'_>) -> Poll<io::Result<()>> {
-        Pin::new(&mut self.get_mut().stream).poll_flush(context)
-    }
-
-    fn poll_shutdown(self: Pin<&mut Self>, context: &mut Context<'_>) -> Poll<io::Result<()>> {
-        Pin::new(&mut self.get_mut().stream).poll_shutdown(context)
-    }
 }

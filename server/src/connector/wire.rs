@@ -64,7 +64,7 @@ pub(super) async fn ping(
 
 pub(super) async fn terminate(socket: &mut Socket, session: Option<(&Generation, &mut Channel)>, failure: Failure) {
     let mut frame = ProtocolError {
-        code: failure.code,
+        code: failure.code(),
         generation: None,
         mac: None,
         protocol_version: protocol_version(),
@@ -82,7 +82,7 @@ pub(super) async fn terminate(socket: &mut Socket, session: Option<(&Generation,
             let _ = socket
                 .send(Message::Close(Some(CloseFrame {
                     code: CloseCode::from(failure.close_code()),
-                    reason: failure.code.to_string().into(),
+                    reason: failure.code().to_string().into(),
                 })))
                 .await;
         }

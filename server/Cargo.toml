@@ -9,7 +9,6 @@ license.workspace = true
 axum.workspace = true
 futures-util.workspace = true
 getrandom.workspace = true
-libc.workspace = true
 libsqlite3-sys.workspace = true
 serde.workspace = true
 serde_json.workspace = true
@@ -25,5 +24,6 @@ tower-http.workspace = true
 jsonschema.workspace = true
 rustix = { workspace = true, features = ["process"] }
 tokio = { workspace = true, features = ["test-util"] }
+tokio-tungstenite = { workspace = true, features = ["connect"] }
 tempfile.workspace = true
 tower.workspace = true

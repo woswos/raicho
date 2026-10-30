@@ -13,9 +13,9 @@ from that target.
 
 Docker Compose runs a Rust diagnostics server and an independently built
 Thunderbird container. The server serves the TypeScript diagnostics page and
-initializes SQLite with backend configuration and keys derived from the connector token. Its status reports
-the [product version](versioning.md) and the build commit. Thunderbird owns a
-separate profile volume. Its internal display starts without a viewer, and a
+initializes SQLite with backend configuration and keys derived from the connector
+token. Its status reports the [product version](versioning.md) and the build
+commit. Thunderbird owns a separate profile volume. Its internal display starts without a viewer, and a
 local override enables browser administration. Separate Compose networks prevent
 Raicho from reaching Thunderbird's administrative listener. Both retain provider
 internet access. The image includes a TypeScript extension with a persistent

@@ -7,7 +7,8 @@ use tokio::sync::OwnedSemaphorePermit;
 use tokio::time::Instant;
 use tokio_tungstenite::accept_hdr_async_with_config;
 
-use super::handshake::{self, HandshakeLimit, UpgradeCheck};
+use super::handshake::{self, UpgradeCheck};
+use super::handshake_limit::HandshakeLimit;
 use super::{Connector, session};
 
 const ACCEPT_RETRY_DELAY: Duration = Duration::from_millis(100);
@@ -21,20 +22,20 @@ impl Connector {
                 _ = shutdown.wait_for(|stopping| *stopping) => return,
                 accepted = accept(&self, &listener) => accepted,
             };
-            if let Some((stream, socket)) = accepted {
-                tokio::spawn(connection(stream, Arc::clone(&self), socket));
+            if let Some((stream, socket_permit)) = accepted {
+                tokio::spawn(connection(stream, Arc::clone(&self), socket_permit));
             }
         }
     }
 }
 
 async fn accept(connector: &Connector, listener: &TcpListener) -> Option<(TcpStream, OwnedSemaphorePermit)> {
-    let socket = Arc::clone(&connector.sockets)
+    let socket_permit = Arc::clone(&connector.sockets)
         .acquire_owned()
         .await
         .expect("Socket semaphore remains open");
     match listener.accept().await {
-        Ok((stream, _)) => Some((stream, socket)),
+        Ok((stream, _)) => Some((stream, socket_permit)),
         Err(_) => {
             tokio::time::sleep(ACCEPT_RETRY_DELAY).await;
             None
@@ -42,7 +43,7 @@ async fn accept(connector: &Connector, listener: &TcpListener) -> Option<(TcpStr
     }
 }
 
-async fn connection(stream: TcpStream, connector: Arc<Connector>, _socket: OwnedSemaphorePermit) {
+async fn connection(stream: TcpStream, connector: Arc<Connector>, _socket_permit: OwnedSemaphorePermit) {
     let deadline = Instant::now() + Duration::from_millis(AUTHENTICATION_DEADLINE_MS as u64);
     let mut shutdown = connector.shutdown.subscribe();
     let mut pending = None;
@@ -53,7 +54,7 @@ async fn connection(stream: TcpStream, connector: Arc<Connector>, _socket: Owned
                 connector: &connector,
                 pending: &mut pending,
             },
-            Some(handshake::config()),
+            Some(handshake::websocket_configuration()),
         );
         tokio::select! {
             biased;

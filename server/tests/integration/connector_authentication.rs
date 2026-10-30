@@ -4,7 +4,6 @@ use std::time::Duration;
 use futures_util::SinkExt;
 use raicho_protocol::authentication::{ConnectorKeys, authentication_message, server_signature, to_hex};
 use raicho_protocol::contract_generated::Authenticate;
-use raicho_server::persistence::CredentialStore;
 use serde_json::json;
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::{Message, client::IntoClientRequest};
@@ -50,7 +49,7 @@ async fn rejected_credentials_do_not_displace_an_authenticated_session() {
 #[tokio::test]
 async fn revoked_credentials_remain_revoked_and_are_never_enrolled_by_authentication() {
     let fixture = Fixture::new().await;
-    CredentialStore::new(&fixture.database).revoke().await.unwrap();
+    fixture.database.revoke_credential().await.unwrap();
     let (mut socket, server_nonce) = fixture.connect().await;
     socket
         .send(Message::Text(authentication("a", &server_nonce).to_string().into()))

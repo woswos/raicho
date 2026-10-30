@@ -1,7 +1,9 @@
-use std::fs::{File, OpenOptions};
+use std::fs::File;
 use std::io::Read;
-use std::os::unix::fs::{MetadataExt, OpenOptionsExt};
+use std::os::unix::fs::MetadataExt;
 use std::path::Path;
+
+use rustix::fs::{Mode, OFlags, open};
 
 use crate::error::{Error, Result};
 
@@ -24,12 +26,10 @@ impl Credential {
 }
 
 fn read_file(path: &Path, owner: Owner) -> Result<String> {
-    let file = OpenOptions::new()
-        .read(true)
-        .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
-        .open(path)
-        .map_err(|_| Error::message("Cannot open connector token file"))?;
-    read_token(file, owner)
+    let flags = OFlags::RDONLY | OFlags::NOFOLLOW | OFlags::NONBLOCK | OFlags::CLOEXEC;
+    let descriptor =
+        open(path, flags, Mode::empty()).map_err(|_| Error::message("Cannot open connector token file"))?;
+    read_token(File::from(descriptor), owner)
 }
 
 pub(super) fn check_owner(uid: u32, gid: u32, mode: u32, owner: Owner, expected: u32) -> Result<()> {

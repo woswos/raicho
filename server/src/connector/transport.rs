@@ -32,6 +32,7 @@ pub(super) async fn receive_text(socket: &mut Socket) -> Result<Utf8Bytes, Failu
         match socket.next().await {
             Some(Ok(Message::Text(text))) => return Ok(text),
             Some(Ok(Message::Ping(_) | Message::Pong(_))) => {
+                // Buffered frames skip Tokio's task budget, so a ping flood must not hold the worker.
                 tokio::task::yield_now().await;
             }
             Some(Ok(Message::Close(_))) | None => {

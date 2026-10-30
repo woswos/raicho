@@ -29,9 +29,3 @@ export function readStatus(value: unknown): ApplicationStatus | undefined {
     commit,
   };
 }
-
-export function parseStatus(value: unknown): ApplicationStatus {
-  const status = readStatus(value);
-  if (status === undefined) throw new StatusResponseError();
-  return status;
-}

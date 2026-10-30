@@ -1,6 +1,7 @@
 mod authentication;
 mod failure;
 mod handshake;
+mod handshake_limit;
 mod heartbeat;
 mod listener;
 mod session;
@@ -14,9 +15,11 @@ use raicho_protocol::diagnostics_generated::{BackendError, BackendState};
 use raicho_protocol::limits_generated::{MAXIMUM_ACTIVE_CONNECTIONS, MAXIMUM_PENDING_AUTHENTICATIONS};
 use tokio::sync::{Semaphore, watch};
 
-use crate::persistence::{CredentialStatus, CredentialStore, Database};
+use crate::persistence::{CredentialStatus, Database};
 
 pub use state::BackendStatus;
+
+pub const BACKEND_KIND: &str = "thunderbird";
 
 // Room beyond the pending and active sessions lets excess upgrades receive a 503.
 pub const SOCKET_LIMIT: usize = MAXIMUM_ACTIVE_CONNECTIONS + 2 * MAXIMUM_PENDING_AUTHENTICATIONS;
@@ -41,7 +44,7 @@ impl Connector {
     }
 
     pub async fn snapshot(&self) -> BackendStatus {
-        let credential_status = CredentialStore::new(&self.database).status().await;
+        let credential_status = self.database.credential_status().await;
         let state = self.state.lock().expect("Connector state lock poisoned");
         let status = match credential_status {
             Ok(CredentialStatus::Unconfigured) => BackendState::Unconfigured,
@@ -51,7 +54,7 @@ impl Connector {
             Err(_) => BackendState::Unavailable,
         };
         BackendStatus {
-            kind: "thunderbird",
+            kind: BACKEND_KIND,
             status,
             generation: state.active.as_ref().map(|active| active.generation.to_string()),
             last_error: if status == BackendState::Unavailable {
@@ -65,8 +68,8 @@ impl Connector {
 
     pub async fn shutdown(&self) {
         {
-            let mut state = self.state.lock().expect("Connector state lock poisoned");
-            state.stopping = true;
+            // Registrations check shutdown under this lock, so none can start after it.
+            let _state = self.state.lock().expect("Connector state lock poisoned");
             self.shutdown.send_replace(true);
         }
         let _all_sockets = Arc::clone(&self.sockets)
