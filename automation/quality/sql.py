@@ -13,7 +13,7 @@ def formatted(options, root, path, source):
     ).stdout
     try:
         run(
-            ['sqlfluff', 'parse', *options, '--format', 'none', '--stdin-filename', path.as_posix(), '-'],
+            ['sqlfluff', 'parse', *options, '--format', 'human', '--stdin-filename', path.as_posix(), '-'],
             root,
             capture=True,
             stdin=result,
