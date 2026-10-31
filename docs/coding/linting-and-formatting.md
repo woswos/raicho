@@ -32,7 +32,7 @@ fallback project. Pyright and mypy are not configured.
 
 Clippy runs `--workspace --all-targets --locked` with
 `CARGO_BUILD_WARNINGS=deny`. It uses the shared Cargo target directory for the root
-workspace and a temporary one for each nested workspace, as the
+workspace and a subdirectory of it for each nested workspace, as the
 [build caching decision](../decisions/20261026-build-caching.md) explains. It checks Cargo
 targets under their active configuration, not
 unreferenced `.rs` files or every conditional feature combination. Formatting
@@ -106,8 +106,9 @@ avoid accidental credential formatting. See the [contract reference](../referenc
 
 `format-check` never rewrites sources. `format` is an explicit writable command
 using the caller's UID/GID. CI runs checks without automatic fixes.
-SQL format checks parse and format temporary copies with the original relative
-paths, then compare bytes. Missing SQL tools or configuration fail even when no
+SQL format checks pass each source to SQLFluff on standard input under its relative
+path, parse the formatted result, then compare bytes.
+Missing SQL tools or configuration fail even when no
 SQL files exist. An empty valid SQL scope reports an explicit skip. SQL strings
 inside Rust or Python are outside SQLFluff's file scope. Production queries live
 in `server/queries/`, while intentionally invalid test fixtures remain inline.

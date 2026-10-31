@@ -118,7 +118,7 @@ formatting without edits, and `typecheck` runs the TypeScript compiler with no
 emitted output. `test-tooling` runs disposable passing and failing Rust,
 TypeScript, and SQL fixtures that exercise the runners. `lint-sql` checks owned
 SQLite source for syntax and configured lint rules, `format-check-sql` compares
-formatted temporary copies with the SQL sources, and `format-sql` rewrites them
+each SQL source with its formatted output, and `format-sql` rewrites the sources
 using formatting rules only.
 
 `lint-spelling` runs typos over the same files and reports one line per known
