@@ -15,7 +15,7 @@ class RestartTests(unittest.TestCase):
         client.call.side_effect = lambda action, _arguments: (
             {'messages': [baseline]} if action == 'query' else {'subject': 'Draft'}
         )
-        client.request.return_value = {'ok': True, 'result': {'messages': [baseline]}}
+        client.command.return_value = {'ok': True, 'result': {'messages': [baseline]}}
         client.messages.return_value = []
         return client
 
@@ -26,7 +26,7 @@ class RestartTests(unittest.TestCase):
         self.assertEqual(len(client.record.call_args.args[1]['drafts']), 3)
         for recovered in client.record.call_args.args[1]['drafts'].values():
             self.assertFalse(recovered['folder_selection_required'])
-        self.assertTrue(all(request.args[1]['action'] == 'query' for request in client.request.call_args_list))
+        self.assertTrue(all(command.args[0] == 'query' for command in client.command.call_args_list))
         client.messages.assert_not_called()
 
     def test_full_restart_also_verifies_queued_message(self):
@@ -38,7 +38,7 @@ class RestartTests(unittest.TestCase):
     def test_restart_polls_read_only_identity_query_until_draft_is_visible(self):
         client = self.fixture(with_delivery=False)
         restored = {'id': 42, 'headerMessageId': 'draft', 'folder': {'id': 'drafts'}}
-        client.request.side_effect = [
+        client.command.side_effect = [
             {'ok': True, 'result': {'messages': []}},
             {'ok': True, 'result': {'folder_id': 'drafts'}},
             {'ok': True, 'result': {'messages': []}},
@@ -46,20 +46,17 @@ class RestartTests(unittest.TestCase):
         ]
         with patch('mailprobe.tests.probe.scenario_restart.time.sleep'):
             run(client)
-        self.assertEqual(client.request.call_count, 6)
+        self.assertEqual(client.command.call_count, 6)
         selections = []
-        for command in client.request.call_args_list:
-            self.assertEqual(command.args[0], 'command')
-            if command.args[1]['action'] == 'select_folder':
-                selections.append(command.args[1]['arguments'])
+        for command in client.command.call_args_list:
+            action, arguments = command.args
+            if action == 'select_folder':
+                selections.append(arguments)
                 continue
-            self.assertEqual(command.args[1]['action'], 'query')
-            self.assertEqual(
-                command.args[1]['arguments'],
-                {'query': {'headerMessageId': 'draft', 'folderId': 'drafts'}},
-            )
-            self.assertLessEqual(command.args[1]['timeout'], 10)
-            self.assertLessEqual(command.kwargs['timeout'], 30)
+            self.assertEqual(action, 'query')
+            self.assertEqual(arguments, {'query': {'headerMessageId': 'draft', 'folderId': 'drafts'}})
+            self.assertLessEqual(command.kwargs['timeout'], 10)
+            self.assertLessEqual(command.kwargs['request_timeout'], 30)
         self.assertEqual(selections, [{'folder_id': 'drafts'}])
         for command in client.call.call_args_list:
             self.assertEqual(command.args, ('get_message', {'message_id': 42}))
@@ -69,7 +66,7 @@ class RestartTests(unittest.TestCase):
 
     def test_restart_stops_polling_after_deadline_without_mutation(self):
         client = self.fixture(with_delivery=False)
-        client.request.return_value = {'ok': True, 'result': {'messages': []}}
+        client.command.return_value = {'ok': True, 'result': {'messages': []}}
         clock = Mock()
         clock.elapsed = 0
 
@@ -87,7 +84,7 @@ class RestartTests(unittest.TestCase):
                 run(client)
         self.assertEqual(clock.elapsed, 30)
         self.assertEqual(
-            sum(request.args[1]['action'] == 'select_folder' for request in client.request.call_args_list),
+            sum(command.args[0] == 'select_folder' for command in client.command.call_args_list),
             1,
         )
         client.call.assert_not_called()

@@ -39,8 +39,6 @@ export async function dispatchCommand(api: MailApi, command: Command): Promise<u
     }
     case 'query':
       return collectMessages(api, await api.messages.query(queryDetails(parameters.query ?? {})));
-    case 'list':
-      return collectMessages(api, await api.messages.list(stringValue(parameters.folder_id)));
     case 'get_message':
       return inspectMessage(api, integerValue(parameters.message_id));
     case 'begin_new': {
@@ -60,10 +58,7 @@ export async function dispatchCommand(api: MailApi, command: Command): Promise<u
         mode: 'draft',
       });
     case 'inspect_native_compose': {
-      const tabs =
-        parameters.tab_id === undefined
-          ? (await api.tabs.query({})).filter((tab) => tab.type === 'messageCompose')
-          : [{ id: integerValue(parameters.tab_id) }];
+      const tabs = (await api.tabs.query({})).filter((tab) => tab.type === 'messageCompose');
       return Promise.all(
         tabs.map(async (tab) => ({
           tab,

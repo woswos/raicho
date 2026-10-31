@@ -6,6 +6,5 @@
 !.npmrc
 !eslint.config.mjs
 !mailprobe/tests/probe/
-!mailprobe/tests/profile/
 !mailprobe/tests/proxy/
 **/__pycache__

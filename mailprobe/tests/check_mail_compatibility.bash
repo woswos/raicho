@@ -35,6 +35,14 @@ cleanup() {
         >/dev/null 2>&1 || true
     exit "${RESULT}"
 }
+
+print_admin_url() {
+    local CONTAINER ADMIN_ADDRESS
+    CONTAINER="$("${COMPOSE[@]}" ps -q thunderbird)"
+    ADMIN_ADDRESS="$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${CONTAINER}")"
+    printf 'On the Linux Docker host, open http://%s:6080/vnc.html?autoconnect=true&resize=scale\n' "${ADMIN_ADDRESS}"
+}
+
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
@@ -70,9 +78,7 @@ done
 "${COMPOSE[@]}" run --rm driver drafts
 if [[ ${NATIVE} == true ]]; then
     "${COMPOSE[@]}" run --rm driver command --action open_permission_page
-    CONTAINER="$("${COMPOSE[@]}" ps -q thunderbird)"
-    ADMIN_ADDRESS="$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${CONTAINER}")"
-    printf 'On the Linux Docker host, open http://%s:6080/vnc.html?autoconnect=true&resize=scale\n' "${ADMIN_ADDRESS}"
+    print_admin_url
     echo 'In Thunderbird, request the probe send permission and click Allow.'
     echo 'Press Enter after Thunderbird grants the messages.send permission.'
     read -r
@@ -89,9 +95,7 @@ fi
 
 if [[ ${NATIVE} == true ]]; then
     "${COMPOSE[@]}" run --rm driver native_prepare
-    CONTAINER="$("${COMPOSE[@]}" ps -q thunderbird)"
-    ADMIN_ADDRESS="$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${CONTAINER}")"
-    printf 'On the Linux Docker host, open http://%s:6080/vnc.html?autoconnect=true&resize=scale\n' "${ADMIN_ADDRESS}"
+    print_admin_url
     echo 'Open the selected draft in Thunderbird, verify the alias and attachment,'
     echo 'then follow the native_prepare instructions to edit and save it.'
     echo 'Press Ctrl+S and leave the compose window open. Press Enter here to verify it.'

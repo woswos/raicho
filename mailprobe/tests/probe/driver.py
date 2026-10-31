@@ -1,31 +1,34 @@
 import argparse
-import importlib
 import json
 
+from mailprobe.tests.probe import (
+    scenario_delivery,
+    scenario_drafts,
+    scenario_faults,
+    scenario_native,
+    scenario_permissions,
+    scenario_restart,
+    scenario_settlement,
+)
 from mailprobe.tests.probe.client import ProbeClient, wait_until
 from mailprobe.tests.proxy.mail_inspect import ensure_mailboxes
+
+SCENARIOS = {
+    'drafts': scenario_drafts.run,
+    'delivery': scenario_delivery.run,
+    'restart': scenario_restart.run,
+    'faults': scenario_faults.run,
+    'settlement': scenario_settlement.run,
+    'native_prepare': scenario_native.prepare,
+    'native_verify': scenario_native.verify,
+    'permission_verify': scenario_permissions.verify,
+    'record_skips': scenario_permissions.record_skips,
+}
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        'phase',
-        choices=[
-            'prepare',
-            'inventory',
-            'drafts',
-            'delivery',
-            'restart',
-            'faults',
-            'settlement',
-            'native_prepare',
-            'native_verify',
-            'permission_verify',
-            'record_skips',
-            'evidence',
-            'command',
-        ],
-    )
+    parser.add_argument('phase', choices=['prepare', 'inventory', 'evidence', 'command', *SCENARIOS])
     parser.add_argument('--action')
     parser.add_argument('--arguments', default='{}')
     arguments = parser.parse_args()
@@ -55,18 +58,8 @@ def main():
                 indent=2,
             )
         )
-    elif arguments.phase.startswith('native_'):
-        from mailprobe.tests.probe import scenario_native
-
-        getattr(scenario_native, arguments.phase.removeprefix('native_'))(client)
-    elif arguments.phase in ['permission_verify', 'record_skips']:
-        from mailprobe.tests.probe import scenario_permissions
-
-        function = 'verify' if arguments.phase == 'permission_verify' else 'record_skips'
-        getattr(scenario_permissions, function)(client)
     else:
-        module = importlib.import_module(f'mailprobe.tests.probe.scenario_{arguments.phase}')
-        module.run(client)
+        SCENARIOS[arguments.phase](client)
 
 
 if __name__ == '__main__':

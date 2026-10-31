@@ -25,6 +25,8 @@ class ProbePackagingTests(unittest.TestCase):
                 manifest = json.loads(archive.read('manifest.json'))
         self.assertNotIn('messages.send', manifest['permissions'])
         self.assertEqual(manifest['optional_permissions'], ['messages.send'])
+        self.assertNotIn('mailTabs', manifest['permissions'])
+        self.assertEqual(manifest['options_ui']['page'], 'permission.html')
         self.assertIn('mailprobe/src/dispatcher.js', names)
         self.assertIn('permission.html', names)
         self.assertFalse(any(name.startswith('protocol/') for name in names))

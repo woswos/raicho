@@ -16,7 +16,6 @@ export function startProbeTransport(
   },
 ) {
   const session = new CommandSession(dispatch);
-  let stopped = false;
   function connect() {
     const socket = dependencies.connect(endpoint);
     socket.binaryType = 'arraybuffer';
@@ -24,10 +23,7 @@ export function startProbeTransport(
     socket.onmessage = (event: MessageEvent<unknown>) => {
       void receive(event.data).catch(() => socket.close(1003, 'Invalid fixture command.'));
     };
-    socket.onclose = (event) => {
-      if (event.code === 4003) stopped = true;
-      if (!stopped) dependencies.schedule(connect, 1000);
-    };
+    socket.onclose = () => dependencies.schedule(connect, 1000);
     async function receive(data: unknown) {
       const text =
         data instanceof ArrayBuffer

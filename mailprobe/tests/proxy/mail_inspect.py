@@ -1,9 +1,11 @@
-import argparse
 import hashlib
 import imaplib
-import json
 from email import policy
 from email.parser import BytesParser
+
+HOST = 'greenmail'
+PORT = 3143
+PASSWORD = 'fixture'
 
 
 def describe_message(uid: bytes, content: bytes) -> dict:
@@ -37,15 +39,9 @@ def describe_message(uid: bytes, content: bytes) -> dict:
     return description
 
 
-def inspect_messages(
-    host='greenmail',
-    port=3143,
-    username='recipient',
-    password='fixture',
-    folder='INBOX',
-) -> list[dict]:
-    with imaplib.IMAP4(host, port, timeout=10) as client:
-        client.login(username, password)
+def inspect_messages(username='recipient', folder='INBOX') -> list[dict]:
+    with imaplib.IMAP4(HOST, PORT, timeout=10) as client:
+        client.login(username, PASSWORD)
         status, _result = client.select(folder, readonly=True)
         if status != 'OK':
             raise ValueError(f'Fixture mailbox is unavailable: {folder}')
@@ -64,9 +60,9 @@ def inspect_messages(
         return messages
 
 
-def ensure_mailboxes(host='greenmail', port=3143) -> None:
-    with imaplib.IMAP4(host, port, timeout=10) as client:
-        client.login('sender', 'fixture')
+def ensure_mailboxes() -> None:
+    with imaplib.IMAP4(HOST, PORT, timeout=10) as client:
+        client.login('sender', PASSWORD)
         for folder in ['Drafts', 'Sent', 'Trash']:
             status, _result = client.create(folder)
             if status != 'OK':
@@ -74,31 +70,3 @@ def ensure_mailboxes(host='greenmail', port=3143) -> None:
                 if status != 'OK':
                     raise ValueError(f'Could not prepare fixture mailbox: {folder}')
             client.subscribe(folder)
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--host', default='greenmail')
-    parser.add_argument('--port', type=int, default=3143)
-    parser.add_argument('--username', default='recipient')
-    parser.add_argument('--folder', default='INBOX')
-    parser.add_argument('--prepare', action='store_true')
-    arguments = parser.parse_args()
-    if arguments.prepare:
-        ensure_mailboxes(arguments.host, arguments.port)
-    else:
-        print(
-            json.dumps(
-                inspect_messages(
-                    arguments.host,
-                    arguments.port,
-                    arguments.username,
-                    folder=arguments.folder,
-                ),
-                sort_keys=True,
-            )
-        )
-
-
-if __name__ == '__main__':
-    main()

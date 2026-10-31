@@ -1,5 +1,6 @@
-import hashlib
 import time
+
+from mailprobe.tests.probe.scenario_helpers import ATTACHMENT, ATTACHMENT_SHA256, IMMEDIATE_SUBJECT, QUEUED_SUBJECT
 
 
 def message_details(subject):
@@ -34,24 +35,16 @@ def received_once(client, subject):
 def run(client):
     client.faults()
     identity = client.read_record('drafts')['identity']
-    immediate_subject = 'Raicho probe immediate send'
-    attachment_content = 'Raicho fixture attachment\n'
     immediate = client.command(
         'send',
         {
             'details': {
                 'identityId': identity['id'],
                 'to': ['recipient@raicho.test'],
-                'subject': immediate_subject,
+                'subject': IMMEDIATE_SUBJECT,
                 'body': '<p>Raicho <strong>HTML delivery</strong>.</p>',
                 'deliveryFormat': 'html',
-                'attachments': [
-                    {
-                        'name': 'probe.txt',
-                        'content': attachment_content,
-                        'type': 'text/plain',
-                    }
-                ],
+                'attachments': [ATTACHMENT],
             },
             'mode': 'sendNow',
         },
@@ -59,20 +52,18 @@ def run(client):
     )
     assert immediate['ok'], immediate
     assert immediate['result']['mode'] == 'sendNow', immediate
-    delivered = received_once(client, immediate_subject)
+    delivered = received_once(client, IMMEDIATE_SUBJECT)
     message = delivered[0]
     assert identity['email'] in message['from'], message
     assert '<strong>HTML delivery</strong>' in message['html'], message
     assert any(
-        attachment['filename'] == 'probe.txt'
-        and attachment['sha256'] == hashlib.sha256(attachment_content.encode()).hexdigest()
+        attachment['filename'] == ATTACHMENT['name'] and attachment['sha256'] == ATTACHMENT_SHA256
         for attachment in message['attachments']
     ), message
-    queued_subject = 'Raicho probe queued send'
     queued = client.call(
         'send',
         {
-            'details': message_details(queued_subject),
+            'details': message_details(QUEUED_SUBJECT),
             'mode': 'sendLater',
         },
     )
@@ -80,11 +71,11 @@ def run(client):
     queued_messages = client.call(
         'query',
         {
-            'query': {'subject': queued_subject},
+            'query': {'subject': QUEUED_SUBJECT},
         },
     )['messages']
     assert len(queued_messages) == 1, queued_messages
-    assert not client.messages(queued_subject)
+    assert not client.messages(QUEUED_SUBJECT)
     client.record(
         'delivery',
         {
@@ -92,6 +83,6 @@ def run(client):
             'delivered': delivered,
             'queued': queued,
             'queued_message': queued_messages[0],
-            'queued_subject': queued_subject,
+            'queued_subject': QUEUED_SUBJECT,
         },
     )

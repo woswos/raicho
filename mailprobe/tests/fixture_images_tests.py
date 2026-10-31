@@ -13,30 +13,21 @@ def services(filename):
 
 class TestImageTests(unittest.TestCase):
     def test_mock_services_share_the_tooling_image_and_remain_isolated(self):
-        configurations = {
-            'mailprobe/compose.yaml': (
-                'probe',
-                'mail-proxy',
-                'driver',
-                'extension',
-            ),
-        }
-        for filename, names in configurations.items():
-            configured = services(filename)
-            for name in names:
-                with self.subTest(file=filename, service=name):
-                    service = configured[name]
-                    self.assertEqual(service['image'], TOOLING_IMAGE)
-                    self.assertEqual(service['user'], '10001:10001')
-                    self.assertTrue(service['read_only'])
-                    self.assertEqual(service['cap_drop'], ['ALL'])
-                    self.assertEqual(service['security_opt'], ['no-new-privileges:true'])
-                    self.assertNotIn('ports', service)
-                    self.assertNotIn('cap_add', service)
-                    if name == 'extension':
-                        self.assertEqual(service['network_mode'], 'none')
-                    else:
-                        self.assertEqual(service['volumes'], ['fixture:/config'])
+        configured = services('mailprobe/compose.yaml')
+        for name in ('probe', 'mail-proxy', 'driver', 'extension'):
+            with self.subTest(service=name):
+                service = configured[name]
+                self.assertEqual(service['image'], TOOLING_IMAGE)
+                self.assertEqual(service['user'], '10001:10001')
+                self.assertTrue(service['read_only'])
+                self.assertEqual(service['cap_drop'], ['ALL'])
+                self.assertEqual(service['security_opt'], ['no-new-privileges:true'])
+                self.assertNotIn('ports', service)
+                self.assertNotIn('cap_add', service)
+                if name == 'extension':
+                    self.assertEqual(service['network_mode'], 'none')
+                else:
+                    self.assertEqual(service['volumes'], ['fixture:/config'])
 
     def test_mail_fixture_mounts_only_the_disposable_test_artifact(self):
         configured = services('mailprobe/compose.yaml')

@@ -80,9 +80,9 @@ the same commands locally and in their dedicated jobs. Each owns its disposable
 project and traps exit, including failures, to remove its resources.
 The connector job allows 60 minutes and compatibility allows 45 minutes for cold
 builds and runtime checks. They have no dependencies on the optional build job.
-Native send permission, native draft editing, and interactive sending faults
-remain manual checks. CI does not grant native consent or claim to repeat those
-observations. See [acceptance evidence](connector-acceptance.md) for scope and limits.
+The [compatibility matrix](mail-api-compatibility.md#running-the-experiment) lists
+the mail checks that stay manual. See [acceptance evidence](connector-acceptance.md)
+for scope and limits.
 
 ## Caching
 

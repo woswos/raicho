@@ -2,9 +2,8 @@ import imaplib
 import smtplib
 import unittest
 from email.message import EmailMessage
-from pathlib import Path
 
-from mailprobe.tests.proxy.fault_state import write_json
+from mailprobe.tests.probe.client import ProbeClient
 from mailprobe.tests.proxy.mail_inspect import ensure_mailboxes, inspect_messages
 
 
@@ -12,16 +11,13 @@ class MailFixtureIntegration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         ensure_mailboxes()
+        cls.client = ProbeClient()
 
     def setUp(self):
-        self.set_faults()
+        self.client.faults()
 
     def tearDown(self):
-        self.set_faults()
-
-    @staticmethod
-    def set_faults(smtp='normal', imap='normal'):
-        write_json(Path('/config/faults.json'), {'smtp': smtp, 'imap': imap})
+        self.client.faults()
 
     @staticmethod
     def message(suffix):
@@ -48,21 +44,21 @@ class MailFixtureIntegration(unittest.TestCase):
 
     def test_rejected_submission_never_arrives(self):
         message = self.message('rejected')
-        self.set_faults(smtp='reject')
+        self.client.faults(smtp='reject')
         with self.assertRaises(smtplib.SMTPRecipientsRefused):
             self.send(message)
         self.assertEqual(self.count(message), 0)
 
     def test_lost_acknowledgment_still_delivers_once(self):
         message = self.message('lost-ack')
-        self.set_faults(smtp='drop_ack')
+        self.client.faults(smtp='drop_ack')
         with self.assertRaises(smtplib.SMTPServerDisconnected):
             self.send(message)
         self.assertEqual(self.count(message), 1)
 
     def test_sent_append_rejection_keeps_drafts_available(self):
         message = self.message('append')
-        self.set_faults(imap='reject_sent_append')
+        self.client.faults(imap='reject_sent_append')
         with imaplib.IMAP4('127.0.0.1', 3143, timeout=10) as client:
             client.login('sender', 'fixture')
             status, _result = client.append('Sent', None, None, message.as_bytes())
