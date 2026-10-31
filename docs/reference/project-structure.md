@@ -90,9 +90,11 @@ Do not add thin compatibility wrappers or restore a flat helper directory.
 | Fixtures shared by automation tests | `automation/testing/` |
 
 Cross-service acceptance drivers use `connector/`, `credentials/`, and `runtime/`
-subpackages. The connector and credential runners source
-`automation/acceptance/credential_deployment.bash` for their disposable
-project, state directory, and fixture container.
+subpackages, each with its own `run.bash`. The connector and credential runners
+source `automation/acceptance/credential_deployment.bash` for their disposable
+project, state directory, fixture container, credential commands, and cleanup.
+The connector runner also sources `connector/network.bash`, which its tests
+exercise directly.
 The shared repository-path and output-mode helpers live at
 `automation/paths.py` and `automation/output.py`.
 

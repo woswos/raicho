@@ -1,5 +1,7 @@
 # Sourced by acceptance runners that own a disposable deployment with generated credentials.
 
+HARDENED_RUN=(docker run --rm -i --read-only --cap-drop ALL --security-opt no-new-privileges:true --workdir /)
+
 prepare_credential_deployment() {
     export RAICHO_PROJECT
     RAICHO_PROJECT="raicho-${1}-$(date -u +%Y%m%d%H%M%S)-${RANDOM}"
@@ -12,10 +14,17 @@ prepare_credential_deployment() {
         -f compose.credentials.yaml -f automation/acceptance/runtime/compose.test.yaml)
 }
 
+database() {
+    "${COMPOSE[@]}" run --rm --no-deps -T provisioner connector "${@}"
+}
+
+files() {
+    "${COMPOSE[@]}" run --rm --no-deps -T credential-files "${1}" /credentials
+}
+
 fixture() {
-    docker run --rm -i --network none --read-only --user 0:0 \
-        --cap-drop ALL --cap-add CHOWN --cap-add DAC_OVERRIDE --cap-add FOWNER \
-        --security-opt no-new-privileges:true --workdir / \
+    "${HARDENED_RUN[@]}" --network none --user 0:0 \
+        --cap-add CHOWN --cap-add DAC_OVERRIDE --cap-add FOWNER \
         --mount "type=bind,source=${REPOSITORY_ROOT}/automation,target=/automation,readonly" \
         --mount "type=bind,source=${RAICHO_STATE_DIRECTORY},target=/fixture" \
         --mount "type=volume,source=${RAICHO_PROJECT}_raicho-data,target=/database" \
@@ -30,4 +39,26 @@ remove_credential_deployment() {
     rm -f -- "${RAICHO_STATE_DIRECTORY}/operation.lock" "${RAICHO_STATE_DIRECTORY}/project"
     rmdir -- "${RAICHO_STATE_DIRECTORY}" || RESULT=1
     return "${RESULT}"
+}
+
+# Runners redefine these hooks to report extra diagnostics or release their own resources.
+on_failure() { :; }
+on_cleanup() { :; }
+
+cleanup_credential_deployment() {
+    local RESULT="${?}"
+    trap - EXIT
+    if ((RESULT != 0)); then
+        "${COMPOSE[@]}" ps --all || true
+        on_failure || true
+    fi
+    on_cleanup || true
+    remove_credential_deployment || RESULT=1
+    exit "${RESULT}"
+}
+
+install_cleanup() {
+    trap cleanup_credential_deployment EXIT
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
 }

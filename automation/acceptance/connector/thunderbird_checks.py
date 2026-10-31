@@ -1,8 +1,8 @@
+import argparse
 import json
 import os
 import socket
 import stat
-import sys
 import time
 from pathlib import Path
 
@@ -58,19 +58,23 @@ def wait_for_version(expected):
         time.sleep(1)
 
 
-def main(arguments):
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('mode', nargs='?', choices=('seed', 'persist'))
+    parser.add_argument('version', nargs='?')
+    arguments = parser.parse_args()
+    if arguments.version is not None and arguments.mode != 'persist':
+        parser.error('only persist takes a version')
     check_runtime()
-    if arguments == ['seed']:
+    if arguments.mode == 'seed':
         SENTINEL.write_text('disposable acceptance profile\n')
-    elif arguments[:1] == ['persist'] and len(arguments) <= 2:
+    elif arguments.mode == 'persist':
         if SENTINEL.read_text() != 'disposable acceptance profile\n':
             raise ValueError('The disposable profile was not preserved.')
-        if len(arguments) == 2:
-            wait_for_version(arguments[1])
-    elif arguments:
-        raise ValueError('Expected seed, persist, or persist with a version.')
+        if arguments.version is not None:
+            wait_for_version(arguments.version)
     print('Thunderbird passed: UID 10001, private policy, no viewer, same profile.')
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

@@ -5,6 +5,9 @@ import urllib.request
 from contextlib import closing
 from pathlib import Path
 
+from automation.acceptance.connector.endpoints import STATUS_URL
+from automation.acceptance.credentials.files import read_token, stored_files
+
 MAIL_CANARIES = (
     b'raicho-private-subject-acceptance',
     b'raicho-private-body-acceptance',
@@ -21,26 +24,24 @@ def check_database(directory, token):
         tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         assert tables <= {'_sqlx_migrations', 'connector_credentials'}, 'Unexpected application table'
         check_payload('\n'.join(connection.iterdump()).encode(), token)
-    for path in directory.iterdir():
-        if path.is_file():
-            check_payload(path.read_bytes(), token)
+    for contents in stored_files(directory):
+        check_payload(contents, token)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('mode', choices=('logs', 'database', 'diagnostics'))
     arguments = parser.parse_args()
-    token = Path('/fixture/credentials/connector.token').read_bytes().strip()
-    assert len(token) == 64, 'Fixture credential is invalid'
+    fixture_token = read_token(Path('/fixture/credentials/connector.token'))
     if arguments.mode == 'logs':
-        check_payload(sys.stdin.buffer.read(), token)
+        check_payload(sys.stdin.buffer.read(), fixture_token)
     elif arguments.mode == 'database':
-        check_database(Path('/database'), token)
+        check_database(Path('/database'), fixture_token)
     else:
-        with urllib.request.urlopen('http://raicho:8080/api/status', timeout=5) as response:
+        with urllib.request.urlopen(STATUS_URL, timeout=5) as response:
             contents = response.read(65537)
         assert len(contents) <= 65536, 'Diagnostics exceeded the fixture bound'
-        check_payload(contents, token)
+        check_payload(contents, fixture_token)
     print(f'Privacy passed: {arguments.mode} retained neither raw token nor mail canaries')
 
 

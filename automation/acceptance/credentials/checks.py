@@ -8,6 +8,7 @@ import stat
 import sys
 from pathlib import Path
 
+from automation.acceptance.credentials.files import read_token, stored_files
 from automation.acceptance.credentials.mutations import (
     CREDENTIALS,
     CURRENT,
@@ -18,22 +19,12 @@ from automation.acceptance.credentials.mutations import (
 DATABASE_DIRECTORY = Path('/database')
 
 
-def token(path):
-    metadata = path.stat(follow_symlinks=False)
-    assert stat.S_ISREG(metadata.st_mode), 'Token must be a regular file'
-    assert metadata.st_uid == SERVICE_UID, 'Token must belong to the service UID'
-    assert stat.S_IMODE(metadata.st_mode) == 0o600, 'Token must use mode 0600'
-    contents = path.read_bytes()
-    assert re.fullmatch(rb'[0-9a-f]{64}\n?', contents), 'Token is not canonical'
-    return contents.rstrip(b'\n')
-
-
 def database_check(arguments):
     metadata = CREDENTIALS.stat(follow_symlinks=False)
     assert stat.S_ISDIR(metadata.st_mode), 'Token directory must be real'
     assert metadata.st_uid == SERVICE_UID, 'Token directory must belong to the service UID'
     assert stat.S_IMODE(metadata.st_mode) == 0o700, 'Token directory mode differs'
-    selected = token(CREDENTIALS / arguments.token)
+    selected = read_token(CREDENTIALS / arguments.token)
     with sqlite3.connect(f'file:{DATABASE_DIRECTORY}/raicho.sqlite3?mode=ro', uri=True) as connection:
         rows = connection.execute(
             'SELECT backend_kind, stored_key, server_key, revoked, revision FROM connector_credentials'
@@ -47,9 +38,8 @@ def database_check(arguments):
     assert server_key == hmac.digest(selected, b'raicho connector server key', 'sha256'), 'Token and server key differ'
     assert revoked == int(arguments.revoked), 'Persisted revocation state differs'
     assert revision == arguments.revision, 'Credential revision differs'
-    for path in DATABASE_DIRECTORY.iterdir():
-        if path.is_file():
-            assert selected not in path.read_bytes(), 'Database leaked the raw token'
+    for contents in stored_files(DATABASE_DIRECTORY):
+        assert selected not in contents, 'Database leaked the raw token'
     print('Credential keys, permissions, persistence, and token isolation passed')
 
 
@@ -76,7 +66,7 @@ def mount_check():
 
 
 def log_check():
-    assert token(CURRENT) not in sys.stdin.buffer.read(), 'Service logs leaked the raw token'
+    assert read_token(CURRENT) not in sys.stdin.buffer.read(), 'Service logs leaked the raw token'
     print('Service logs contain no raw token')
 
 

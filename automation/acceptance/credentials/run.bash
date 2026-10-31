@@ -9,29 +9,10 @@ cd "${REPOSITORY_ROOT}"
 source automation/acceptance/credential_deployment.bash
 prepare_credential_deployment credentials
 
-cleanup() {
-    local RESULT="${?}"
-    trap - EXIT
-    if ((RESULT != 0)); then
-        "${COMPOSE[@]}" ps --all || true
-    fi
-    remove_credential_deployment || RESULT=1
-    exit "${RESULT}"
-}
-trap cleanup EXIT
-trap 'exit 130' INT
-trap 'exit 143' TERM
+install_cleanup
 
 operate() {
     bash deploy/credentials/connector.bash "${1}"
-}
-
-database() {
-    "${COMPOSE[@]}" run --rm --no-deps -T provisioner connector "${@}"
-}
-
-files() {
-    "${COMPOSE[@]}" run --rm --no-deps -T credential-files "${1}" /credentials
 }
 
 prepare_rotation() {

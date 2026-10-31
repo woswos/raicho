@@ -4,6 +4,7 @@ import time
 import urllib.error
 import urllib.request
 
+from automation.acceptance.connector.endpoints import STATUS_URL
 from automation.paths import REPOSITORY_ROOT
 
 
@@ -12,7 +13,7 @@ def contract():
 
 
 def status():
-    with urllib.request.urlopen('http://raicho:8080/api/status', timeout=5) as response:
+    with urllib.request.urlopen(STATUS_URL, timeout=5) as response:
         assert response.headers.get('Cache-Control') == 'no-store'
         payload = json.load(response)
     schema = contract()
@@ -26,6 +27,7 @@ def status():
 
 def wait_for_status(arguments):
     deadline = time.monotonic() + arguments.timeout
+    failure = None
     while time.monotonic() < deadline:
         try:
             backend = status()
@@ -43,10 +45,10 @@ def wait_for_status(arguments):
                     assert generation is None
                 print(generation or arguments.status)
                 return
-        except (OSError, ValueError, urllib.error.URLError):
-            pass
+        except (OSError, ValueError, urllib.error.URLError) as error:
+            failure = error
         time.sleep(1)
-    raise AssertionError(f'Connector did not become {arguments.status} in time')
+    raise AssertionError(f'Connector did not become {arguments.status} in time') from failure
 
 
 def snapshot():

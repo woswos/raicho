@@ -60,7 +60,7 @@ test('answers the challenge with a proof, never the token, and accepts a proven 
   assert.equal(fixture.timers.size, 0);
 });
 
-async function assertRetried(fixture, socket) {
+function assertRetried(fixture, socket) {
   assert.equal(socket.readyState, 3);
   assert.equal(fixture.timers.size, 1);
   assert.equal([...fixture.timers.values()][0].delay, 1000);
@@ -78,7 +78,7 @@ for (const message of [
     const socket = fixture.sockets[0];
     socket.open();
     await socket.receive(message);
-    await assertRetried(fixture, socket);
+    assertRetried(fixture, socket);
   });
 }
 
@@ -95,7 +95,7 @@ for (const [name, change] of [
     socket.open();
     await socket.receive(challenge);
     await socket.receive(change(await provenWelcome(socket.sent[0])));
-    await assertRetried(fixture, socket);
+    assertRetried(fixture, socket);
   });
 }
 
@@ -105,7 +105,7 @@ test('a welcome signed with another token is not trusted', async () => {
   socket.open();
   await socket.receive(challenge);
   await socket.receive(await provenWelcome(socket.sent[0], 'c'.repeat(64)));
-  await assertRetried(fixture, socket);
+  assertRetried(fixture, socket);
 });
 
 for (const code of [
@@ -125,7 +125,7 @@ for (const code of [
       code,
       generation,
     });
-    await assertRetried(fixture, socket);
+    assertRetried(fixture, socket);
   });
 }
 
@@ -139,7 +139,7 @@ test('retries an unproven replacement but stops on an authenticated one', async 
     protocol_version: 1,
     code: 'session_replaced',
   });
-  await assertRetried(unproven, pending);
+  assertRetried(unproven, pending);
   const proven = connectorFixture();
   const socket = proven.sockets[0];
   await socket.handshake();
@@ -173,7 +173,7 @@ test('retries every frame it cannot authenticate after proof', async () => {
     await socket.handshake();
     await socket.receiveSealed(ping);
     await deliver(socket);
-    await assertRetried(fixture, socket);
+    assertRetried(fixture, socket);
   }
 });
 
@@ -184,5 +184,5 @@ test('retries a replayed ping', async () => {
   const sealed = await socket.server.seal(ping);
   await socket.receive(sealed);
   await socket.receive(sealed);
-  await assertRetried(fixture, socket);
+  assertRetried(fixture, socket);
 });

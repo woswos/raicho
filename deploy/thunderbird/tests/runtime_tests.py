@@ -1,3 +1,4 @@
+import json
 import os
 import signal
 import subprocess
@@ -67,7 +68,6 @@ class RuntimeTests(unittest.TestCase):
             self.assertFalse(state_path.exists())
 
     def test_health_requires_all_children_and_responsive_display(self):
-        import json
 
         with tempfile.TemporaryDirectory() as directory:
             state_path = Path(directory) / 'state.json'

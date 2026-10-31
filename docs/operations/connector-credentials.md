@@ -131,12 +131,11 @@ restore its token as an active credential.
 
 ## A connector that stops retrying
 
-The extension retries every failure with capped backoff, including rejected
-credentials, closes, and frames it cannot authenticate. It stops only when the
-server sends an authenticated `session_replaced` error, which means another
-connector with the same token connected after it. The stopped connector stays idle
-until Thunderbird restarts, so two connectors never compete for the session, and
-the diagnostics page reports the newer connection. Stop the other Thunderbird
+The extension stops reconnecting only after an authenticated `session_replaced`
+error, which means another connector with the same token connected after it; the
+[contract](../reference/connector-contract.md#frame-authentication) describes the
+retry rules. The stopped connector stays idle until Thunderbird restarts, and the
+diagnostics page reports the newer connection. Stop the other Thunderbird
 instance, then restart this one with the credentials override:
 
 ```bash
@@ -153,6 +152,6 @@ make acceptance-credentials
 ```
 
 The runner owns a uniquely named disposable Compose project and temporary host
-state. It exercises enrollment, rotation interruptions, mismatch and permission
-failures, lock contention, restart, revocation, and token isolation. It does not
-use an existing deployment, personal profile, or provider credentials.
+state, and never uses an existing deployment, personal profile, or provider
+credentials. The [acceptance scope](../reference/connector-acceptance.md#scope)
+lists what it checks.

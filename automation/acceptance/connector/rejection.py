@@ -5,6 +5,7 @@ import secrets
 import socket
 import struct
 
+from automation.acceptance.connector.endpoints import GATEWAY_ADDRESS, upgrade_request
 from automation.acceptance.connector.privacy import MAIL_CANARIES
 from automation.paths import REPOSITORY_ROOT
 
@@ -42,15 +43,16 @@ def send(connection, opcode, contents):
 
 
 def reject(mail=False):
-    with socket.create_connection(('gateway', 8081), timeout=8) as connection:
+    with socket.create_connection(GATEWAY_ADDRESS, timeout=8) as connection:
         key = base64.b64encode(secrets.token_bytes(16)).decode()
-        request = (
-            'GET /connector/v1 HTTP/1.1\r\nHost: gateway:8081\r\n'
-            'Origin: moz-extension://12345678-1234-1234-1234-123456789abc\r\n'
-            'Upgrade: websocket\r\nConnection: Upgrade\r\n'
-            f'Sec-WebSocket-Version: 13\r\nSec-WebSocket-Key: {key}\r\n\r\n'
+        connection.sendall(
+            upgrade_request(
+                'GET /connector/v1 HTTP/1.1',
+                'gateway:8081',
+                key,
+                origin='moz-extension://12345678-1234-1234-1234-123456789abc',
+            )
         )
-        connection.sendall(request.encode())
         response = bytearray()
         while not response.endswith(b'\r\n\r\n'):
             assert len(response) < 4096, 'Upgrade headers exceeded the fixture bound'
@@ -76,13 +78,8 @@ def reject(mail=False):
             'capabilities': [],
         }
         if mail:
-            payload |= dict(
-                zip(
-                    ('subject', 'body', 'sender'),
-                    (value.decode() for value in MAIL_CANARIES),
-                    strict=True,
-                )
-            )
+            subject, body, sender = (value.decode() for value in MAIL_CANARIES)
+            payload |= {'subject': subject, 'body': body, 'sender': sender}
         send(
             connection,
             1,

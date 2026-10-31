@@ -55,7 +55,8 @@ COPY --from=download /opt/thunderbird /opt/thunderbird
 COPY --from=download /opt/novnc /usr/share/novnc
 COPY --from=extension /artifact/ /opt/raicho/extension/
 COPY deploy/thunderbird/__init__.py deploy/thunderbird/runtime.py deploy/thunderbird/supervisor.py \
-    deploy/thunderbird/health_check.py deploy/thunderbird/policy.py /opt/raicho/thunderbird/
+    deploy/thunderbird/health_check.py deploy/thunderbird/policy.py deploy/thunderbird/managed_settings.py \
+    /opt/raicho/thunderbird/
 RUN mkdir -p /opt/thunderbird/distribution && \
     ln -s /tmp/raicho-runtime/policies.json /opt/thunderbird/distribution/policies.json
 

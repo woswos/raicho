@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+
 export function probeFixture() {
   const sockets = [];
   const timers = new Map();
@@ -38,7 +40,9 @@ export function probeFixture() {
     sockets,
     timers,
     fireTimer(delay) {
-      const [identifier, timer] = [...timers].find(([, candidate]) => candidate.delay === delay);
+      const pending = [...timers].find(([, candidate]) => candidate.delay === delay);
+      assert.ok(pending, `No timer is pending for ${String(delay)} ms.`);
+      const [identifier, timer] = pending;
       timers.delete(identifier);
       timer.callback();
     },

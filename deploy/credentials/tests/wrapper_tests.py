@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 from automation.testing.acl import set_default_acl
-from automation.testing.docker_mock import DockerMock
+from automation.testing.docker_mock import DockerMock, Response
 
 WRAPPER = Path(__file__).resolve().parents[1] / 'connector.bash'
 
@@ -21,13 +21,13 @@ class ConnectorWrapperTests(unittest.TestCase):
         self.state.mkdir(mode=0o700)
         self.docker = DockerMock(self.directory / 'commands', status=1)
 
-    def run_wrapper(self):
+    def run_wrapper(self, operation='status', project='raicho-wrapper-test', compose_test='0'):
         return subprocess.run(
-            ['bash', str(WRAPPER), 'status'],
+            ['bash', str(WRAPPER), operation],
             env=self.docker.environment(
-                RAICHO_PROJECT='raicho-wrapper-test',
+                RAICHO_PROJECT=project,
                 RAICHO_STATE_DIRECTORY=str(self.state),
-                RAICHO_COMPOSE_TEST='0',
+                RAICHO_COMPOSE_TEST=compose_test,
                 TMPDIR=str(self.directory),
             ),
             capture_output=True,
@@ -113,3 +113,34 @@ class ConnectorWrapperTests(unittest.TestCase):
         self.run_wrapper()
         self.assertEqual(stat.S_IMODE(self.state.stat().st_mode), 0o700)
         self.assertEqual(stat.S_IMODE((self.state / 'operation.lock').stat().st_mode), 0o600)
+
+    def verify(self, check_status):
+        self.docker = DockerMock(
+            self.directory / 'commands',
+            [Response(('credential-check',), status=check_status)],
+        )
+        result = self.run_wrapper('verify')
+        return result, [' '.join(command) for command in self.docker.commands()]
+
+    def test_failed_live_authentication_does_not_discard_previous_token(self):
+        result, commands = self.verify(1)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertTrue(any('credential-check' in command for command in commands))
+        self.assertFalse(any('credential-files finish' in command for command in commands))
+        self.assertNotIn('Services recreated.', result.stdout)
+
+    def test_cleanup_follows_gateway_start_and_live_verification(self):
+        result, commands = self.verify(0)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        start = next(index for index, command in enumerate(commands) if ' up ' in command)
+        verify = next(index for index, command in enumerate(commands) if 'credential-check' in command)
+        finish = next(index for index, command in enumerate(commands) if 'credential-files finish' in command)
+        self.assertIn('raicho gateway thunderbird', commands[start])
+        self.assertLess(start, verify)
+        self.assertLess(verify, finish)
+
+    def test_any_test_flag_adds_the_test_overlay(self):
+        self.run_wrapper(project='raicho-credentials-overlay', compose_test='2')
+        commands = [' '.join(command) for command in self.docker.commands()]
+        self.assertTrue(commands)
+        self.assertTrue(all('automation/acceptance/runtime/compose.test.yaml' in command for command in commands))

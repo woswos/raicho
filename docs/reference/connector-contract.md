@@ -148,7 +148,8 @@ unambiguous because wire values are printable ASCII and integers.
 it, pinned by `protocol/fixtures/authentication/session.json`. The decoders check
 the schema, phase, and generation first, then the MAC. A frame that fails the MAC
 ends the session with `authentication_failed`. Frames are authenticated, not
-encrypted, because the gateway between the networks has no outbound route.
+encrypted, because the gateway between the networks has no outbound route (see
+[network isolation](runtime.md#network-isolation)).
 
 The server initiates heartbeat after welcome, with at most one outstanding ping.
 Only its matching pong satisfies that ping. It uses the shared 15-second interval

@@ -23,9 +23,10 @@ Its supervisor starts Thunderbird without a viewer, terminates the other childre
 if a required child exits, and forwards shutdown. The health check verifies
 processes and the internal display. A desktop HTTP response alone is insufficient.
 These modules live beside the image recipe in `deploy/thunderbird/` as
-`runtime.py`, `supervisor.py`, `policy.py`, and `health_check.py`. The image
-installs them as the `/opt/raicho/thunderbird/` package and runs
-`python3 -m thunderbird.runtime` and `python3 -m thunderbird.health_check`. The
+`runtime.py`, `supervisor.py`, `policy.py`, `managed_settings.py`, and
+`health_check.py`. The image installs them as the `/opt/raicho/thunderbird/`
+package and runs `python3 -m thunderbird.runtime` and
+`python3 -m thunderbird.health_check`. The
 operational credential wrapper lives in `deploy/credentials/`, with its tests
 under `tests/`. Its token-file and live-check services run the
 `raicho-server connector files` and `connector wait` subcommands from the server
