@@ -77,8 +77,8 @@ class RecordedProjectTests(unittest.TestCase):
         runner = self.runner()
         commands, _ = self.remove(
             [(runner.pid, start_time(runner.pid), PROJECT, '')],
-            Response(('network', 'ls', '--format', PROJECT_FILTER), output=f'{NETWORK}\n'),
-            Response(('volume', 'ls', '--format', PROJECT_FILTER), output=f'{VOLUME}\n'),
+            Response(('network', 'ls', '--format'), output=f'{NETWORK}\nraicho_application\n'),
+            Response(('volume', 'ls', '--format'), output=f'{VOLUME}\nraicho_raicho-data\n'),
             Response(('container', 'ls', f'network={NETWORK}'), output='probe\nraicho\n'),
             Response(('container', 'ls', f'volume={VOLUME}'), output='raicho\nfixture\n'),
             Response(('volume', 'ls', '--quiet', PROJECT_FILTER), output='volume-id\n'),
@@ -130,6 +130,18 @@ class RecordedProjectTests(unittest.TestCase):
                 self.assertEqual(commands, [])
                 self.assertIsNone(runner.poll())
                 self.assertIn('FAIL', result.stderr)
+
+    def test_removes_a_project_volume_created_without_the_project_label(self):
+        runner = self.runner()
+        commands, _ = self.remove(
+            [(runner.pid, start_time(runner.pid), PROJECT, '')],
+            Response(('volume', 'ls', '--format'), output=f'{VOLUME}\n{PROJECT}9_raicho-data\nraicho_raicho-data\n'),
+            Response(('container', 'ls', f'volume={VOLUME}'), output='fixture\n'),
+        )
+        attached = commands.index(['container', 'rm', '--force', 'fixture'])
+        self.assertLess(attached, commands.index(['volume', 'rm', VOLUME]))
+        removed = [command for command in commands if command[:2] == ['volume', 'rm']]
+        self.assertEqual(removed, [['volume', 'rm', VOLUME]])
 
     def test_removes_networks_after_a_failed_volume_removal(self):
         runner = self.runner()

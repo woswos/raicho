@@ -37,8 +37,10 @@ step of each acceptance job runs with `if: always()` and handles every recorded
 entry. It kills the recorded process group only while a leader with the recorded
 start time still runs, because Linux can reuse the group ID after a runner
 exits. It then removes containers attached to the project's networks or volumes,
-removes the resources with the project's exact Compose label and the images in
-the project's repository, and removes the state directory.
+removes the resources with the project's exact Compose label or the `<project>_`
+name prefix that Compose gives them, removes the images in the project's
+repository, and removes the state directory. The prefix also covers a volume
+that a fixture container created before Compose did, without the label.
 
 The step refuses entries that name its own process group, a project outside the
 disposable naming pattern, or a directory that is not an acceptance state
