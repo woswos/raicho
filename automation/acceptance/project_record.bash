@@ -17,9 +17,11 @@ record_project() {
     if [[ -z ${RAICHO_ACCEPTANCE_RECORD:-} ]]; then
         return 0
     fi
-    local GROUP START
+    local GROUP START RUNNER_START
     GROUP="$(process_field "$$" "${GROUP_FIELD}")"
-    # Cleanup never kills a group recorded with a zero start time, because nothing identifies its leader.
+    # A zero start time matches no process, so cleanup then identifies the group by this runner alone.
     START="$(process_field "${GROUP}" "${START_FIELD}")" || START=0
-    printf '%s\t%s\t%s\t%s\n' "${GROUP}" "${START}" "${1}" "${2:-}" >>"${RAICHO_ACCEPTANCE_RECORD}"
+    RUNNER_START="$(process_field "$$" "${START_FIELD}")"
+    printf '%s\t%s\t%s\t%s\t%s\t%s\n' "${GROUP}" "${START}" "$$" "${RUNNER_START}" "${1}" "${2:-}" \
+        >>"${RAICHO_ACCEPTANCE_RECORD}"
 }

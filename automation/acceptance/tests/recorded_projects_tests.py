@@ -3,6 +3,7 @@ import shlex
 import signal
 import subprocess
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -25,6 +26,30 @@ def start_time(process):
     return status.rsplit(') ', 1)[1].split()[19]
 
 
+def stopped(process):
+    for _ in range(100):
+        try:
+            state = Path(f'/proc/{process}/stat').read_text().rsplit(') ', 1)[1].split()[0]
+        except FileNotFoundError:
+            return True
+        if state == 'Z':
+            return True
+        time.sleep(0.1)
+    return False
+
+
+def kill(process):
+    try:
+        os.kill(process, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+
+
+def entry(runner, project=PROJECT, state=''):
+    start = start_time(runner.pid)
+    return (runner.pid, start, runner.pid, start, project, state)
+
+
 class RecordedProjectTests(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory(prefix='raicho-record-test-')
@@ -34,12 +59,14 @@ class RecordedProjectTests(unittest.TestCase):
 
     def record_project(self, *arguments, **variables):
         inherited = {name: value for name, value in os.environ.items() if name != 'RAICHO_ACCEPTANCE_RECORD'}
-        subprocess.run(
-            ['bash', '-euo', 'pipefail', '-c', f'source {shlex.quote(str(RECORDER))}\nrecord_project "$@"', 'record']
-            + list(arguments),
+        script = f'source {shlex.quote(str(RECORDER))}\nrecord_project "$@"\necho "$$"'
+        return subprocess.run(
+            ['bash', '-euo', 'pipefail', '-c', script, 'record', *arguments],
             env=inherited | variables,
             check=True,
-        )
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
 
     def runner(self):
         runner = subprocess.Popen(['sleep', '60'], start_new_session=True)
@@ -63,11 +90,17 @@ class RecordedProjectTests(unittest.TestCase):
 
     def test_records_the_runner_process_group_with_its_project(self):
         state = '/tmp/raicho-connector.Ab3dE5gH'
-        self.record_project(PROJECT, state, RAICHO_ACCEPTANCE_RECORD=str(self.record))
-        self.record_project('raicho-ci-123-1', RAICHO_ACCEPTANCE_RECORD=str(self.record))
+        workers = [
+            self.record_project(PROJECT, state, RAICHO_ACCEPTANCE_RECORD=str(self.record)),
+            self.record_project('raicho-ci-123-1', RAICHO_ACCEPTANCE_RECORD=str(self.record)),
+        ]
         group = os.getpgrp()
-        identity = f'{group}\t{start_time(group)}'
-        self.assertEqual(self.record.read_text(), f'{identity}\t{PROJECT}\t{state}\n{identity}\traicho-ci-123-1\t\n')
+        lines = [line.split('\t') for line in self.record.read_text().splitlines()]
+        self.assertEqual(
+            [fields[:3] for fields in lines], [[str(group), start_time(group), worker] for worker in workers]
+        )
+        self.assertTrue(all(fields[3].isdigit() and fields[3] != '0' for fields in lines))
+        self.assertEqual([fields[4:] for fields in lines], [[PROJECT, state], ['raicho-ci-123-1', '']])
 
     def test_records_nothing_without_a_record_path(self):
         self.record_project(PROJECT)
@@ -76,7 +109,7 @@ class RecordedProjectTests(unittest.TestCase):
     def test_stops_the_runner_and_removes_only_its_project(self):
         runner = self.runner()
         commands, _ = self.remove(
-            [(runner.pid, start_time(runner.pid), PROJECT, '')],
+            [entry(runner)],
             Response(('network', 'ls', '--format'), output=f'{NETWORK}\nraicho_application\n'),
             Response(('volume', 'ls', '--format'), output=f'{VOLUME}\nraicho_raicho-data\n'),
             Response(('container', 'ls', f'network={NETWORK}'), output='probe\nraicho\n'),
@@ -98,15 +131,26 @@ class RecordedProjectTests(unittest.TestCase):
         (state / 'credentials').mkdir(parents=True)
         (state / 'credentials/connector.token').write_text('secret\n')
         runner = self.runner()
-        self.remove([(runner.pid, start_time(runner.pid), 'raicho-credentials-20261101120000-7', state)])
+        self.remove([entry(runner, 'raicho-credentials-20261101120000-7', state)])
         self.assertFalse(state.exists())
 
-    def test_leaves_a_process_group_whose_leader_is_not_the_recorded_runner(self):
+    def test_leaves_a_process_group_without_the_recorded_leader_or_runner(self):
         runner = self.runner()
         for start in ('0', str(int(start_time(runner.pid)) + 1)):
             with self.subTest(start=start):
-                self.remove([(runner.pid, start, PROJECT, '')])
+                self.remove([(runner.pid, start, runner.pid, start, PROJECT, '')])
                 self.assertIsNone(runner.poll())
+
+    def test_stops_a_runner_whose_group_leader_exited(self):
+        leader = subprocess.Popen(
+            ['bash', '-c', 'sleep 60 & echo "$!"'], start_new_session=True, stdout=subprocess.PIPE, text=True
+        )
+        worker = int(leader.stdout.readline())
+        self.addCleanup(kill, worker)
+        leader.wait()
+        leader.stdout.close()
+        self.remove([(leader.pid, '1', worker, start_time(worker), PROJECT, '')])
+        self.assertTrue(stopped(worker))
 
     def test_does_nothing_without_a_record(self):
         commands, _ = self.remove(None)
@@ -115,18 +159,21 @@ class RecordedProjectTests(unittest.TestCase):
     def test_refuses_entries_that_could_reach_another_process_or_project(self):
         elsewhere = Path(tempfile.mkdtemp(dir=self.directory)) / 'raicho-credentials.Ab3dE5gH'
         entries = {
-            'no process group': (0, PROJECT, ''),
-            'non-numeric process group': ('1x', PROJECT, ''),
-            'own process group': (os.getpgrp(), PROJECT, ''),
-            'persistent project': (None, 'raicho', ''),
-            'foreign directory': (None, PROJECT, self.directory),
-            'state directory away from the record': (None, PROJECT, elsewhere),
+            'no process group': (0, None, PROJECT, ''),
+            'non-numeric process group': ('1x', None, PROJECT, ''),
+            'own process group': (os.getpgrp(), None, PROJECT, ''),
+            'non-numeric runner': (None, '1x', PROJECT, ''),
+            'persistent project': (None, None, 'raicho', ''),
+            'foreign directory': (None, None, PROJECT, self.directory),
+            'state directory away from the record': (None, None, PROJECT, elsewhere),
         }
-        for case, (group, project, state) in entries.items():
+        for case, (group, worker, project, state) in entries.items():
             with self.subTest(case=case):
                 runner = self.runner()
+                start = start_time(runner.pid)
                 group = runner.pid if group is None else group
-                commands, result = self.remove([(group, start_time(runner.pid), project, state)], status=1)
+                worker = runner.pid if worker is None else worker
+                commands, result = self.remove([(group, start, worker, start, project, state)], status=1)
                 self.assertEqual(commands, [])
                 self.assertIsNone(runner.poll())
                 self.assertIn('FAIL', result.stderr)
@@ -134,7 +181,7 @@ class RecordedProjectTests(unittest.TestCase):
     def test_removes_a_project_volume_created_without_the_project_label(self):
         runner = self.runner()
         commands, _ = self.remove(
-            [(runner.pid, start_time(runner.pid), PROJECT, '')],
+            [entry(runner)],
             Response(('volume', 'ls', '--format'), output=f'{VOLUME}\n{PROJECT}9_raicho-data\nraicho_raicho-data\n'),
             Response(('container', 'ls', f'volume={VOLUME}'), output='fixture\n'),
         )
@@ -146,7 +193,7 @@ class RecordedProjectTests(unittest.TestCase):
     def test_removes_networks_after_a_failed_volume_removal(self):
         runner = self.runner()
         commands, _ = self.remove(
-            [(runner.pid, start_time(runner.pid), PROJECT, '')],
+            [entry(runner)],
             Response(('volume', 'ls', '--quiet', PROJECT_FILTER), output='volume-id\n'),
             Response(('volume', 'rm'), status=1),
             Response(('network', 'ls', '--quiet', PROJECT_FILTER), output='network-id\n'),
@@ -171,7 +218,7 @@ class RecordedProjectTests(unittest.TestCase):
                 (state / 'credentials').mkdir(parents=True, exist_ok=True)
                 (state / 'credentials/connector.token').write_text('secret\n')
                 runner = self.runner()
-                _, result = self.remove([(runner.pid, start_time(runner.pid), PROJECT, state)], *responses, status=1)
+                _, result = self.remove([entry(runner, state=state)], *responses, status=1)
                 self.assertIn(PROJECT, result.stderr)
                 self.assertFalse(state.exists())
 

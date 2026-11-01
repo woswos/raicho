@@ -95,23 +95,25 @@ removes its deployment. Each acceptance step therefore starts its Make target
 under `setsid`, which puts the runner and its Docker commands in their own
 process group. When `RAICHO_ACCEPTANCE_RECORD` names a file, every runner
 sources [project_record.bash](../../automation/acceptance/project_record.bash)
-and appends its process group, the start time of that group's leader, its
-Compose project, and any state directory to that file before it creates any
-Docker resource. The jobs keep the record in the runner's temporary directory,
-which the runner empties at the start of each job. Local runs set no record.
+and appends its process group, the start time of that group's leader, its own
+process ID and start time, its Compose project, and any state directory to that
+file before it creates any Docker resource. The jobs keep the record in the
+runner's temporary directory, which the runner empties at the start of each job.
+Local runs set no record.
 
 The last step of each acceptance job runs
 [remove_recorded_projects.bash](../../automation/acceptance/remove_recorded_projects.bash)
 with `if: always()`, which GitHub also runs after a cancellation. For each entry
-whose group leader is still running with the recorded start time, it kills the
-process group, so the runner cannot recreate anything. A runner that already
-exited is left alone, because Linux can reuse its group ID. The step then
-removes the containers attached to the project's networks or volumes, the
-containers, volumes, and networks with the project's exact Compose label, and
-any remaining volumes and networks whose names start with the `<project>_`
-prefix that Compose gives them. That prefix also finds a volume that a fixture
-container created before Compose did, which has no project label. It then
-removes images in the repository named after the project, and the state
+whose group leader or runner is still running in the recorded group with its
+recorded start time, it kills the process group, so the runner cannot recreate
+anything. Checking the runner as well covers a leader that was killed on its
+own. A group with neither left is not killed, because Linux can reuse its ID.
+The step then removes the containers attached to the project's networks or
+volumes, the containers, volumes, and networks with the project's exact Compose
+label, and any remaining volumes and networks whose names start with the
+`<project>_` prefix that Compose gives them. That prefix also finds a volume
+that a fixture container created before Compose did, which has no project label.
+It then removes images in the repository named after the project, and the state
 directory. It fails when any of them remains. It refuses an entry that names its
 own process group, a project outside the disposable
 `raicho-<suite>-<timestamp>-<number>` pattern, or a state directory that is not

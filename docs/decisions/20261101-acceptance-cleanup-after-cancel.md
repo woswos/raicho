@@ -31,16 +31,18 @@ step.
 
 Each acceptance step runs its Make target under `setsid`, which gives the runner
 its own process group. Runners append their process group, the start time of its
-leader, their Compose project, and an optional state directory to the file in
-`RAICHO_ACCEPTANCE_RECORD` before they create any Docker resource. The final
-step of each acceptance job runs with `if: always()` and handles every recorded
-entry. It kills the recorded process group only while a leader with the recorded
-start time still runs, because Linux can reuse the group ID after a runner
-exits. It then removes containers attached to the project's networks or volumes,
-removes the resources with the project's exact Compose label or the `<project>_`
-name prefix that Compose gives them, removes the images in the project's
-repository, and removes the state directory. The prefix also covers a volume
-that a fixture container created before Compose did, without the label.
+leader, their own process ID and start time, their Compose project, and an
+optional state directory to the file in `RAICHO_ACCEPTANCE_RECORD` before they
+create any Docker resource. The final step of each acceptance job runs with
+`if: always()` and handles every recorded entry. It kills the recorded process group
+only while its leader or its runner still runs in that group with the recorded
+start time, because Linux can reuse an exited process's ID. The runner check
+covers a leader that was killed on its own while the runner kept going. It then
+removes containers attached to the project's networks or volumes, removes the
+resources with the project's exact Compose label or the `<project>_` name prefix
+that Compose gives them, removes the images in the project's repository, and
+removes the state directory. The prefix also covers a volume that a fixture
+container created before Compose did, without the label.
 
 The step refuses entries that name its own process group, a project outside the
 disposable naming pattern, or a directory that is not an acceptance state
