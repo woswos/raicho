@@ -30,19 +30,21 @@ step.
 ## Decision
 
 Each acceptance step runs its Make target under `setsid`, which gives the runner
-its own process group. Runners append their process group, Compose project, and
-optional state directory to the file in `RAICHO_ACCEPTANCE_RECORD` before they
-create any Docker resource. The final step of each acceptance job runs with
-`if: always()` and handles every recorded entry. It kills the recorded process group, removes
-containers attached to the project's networks or volumes, removes the resources
-with the project's exact Compose label and the images in the project's
-repository, and removes the state directory.
+its own process group. Runners append their process group, the start time of its
+leader, their Compose project, and an optional state directory to the file in
+`RAICHO_ACCEPTANCE_RECORD` before they create any Docker resource. The final
+step of each acceptance job runs with `if: always()` and handles every recorded
+entry. It kills the recorded process group only while a leader with the recorded
+start time still runs, because Linux can reuse the group ID after a runner
+exits. It then removes containers attached to the project's networks or volumes,
+removes the resources with the project's exact Compose label and the images in
+the project's repository, and removes the state directory.
 
 The step refuses entries that name its own process group, a project outside the
 disposable naming pattern, or a directory that is not an acceptance state
-directory. The record lives in the runner's temporary directory, which the
-runner empties at the start of each job, so the step only reaches this job's
-projects.
+directory beside the record. The record lives in the runner's temporary
+directory, which the runner empties at the start of each job, so the step only
+reaches this job's projects.
 
 ## Consequences
 

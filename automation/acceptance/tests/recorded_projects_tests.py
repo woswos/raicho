@@ -17,6 +17,14 @@ NETWORK = f'{PROJECT}_application'
 VOLUME = f'{PROJECT}_raicho-data'
 
 
+def start_time(process):
+    try:
+        status = Path(f'/proc/{process}/stat').read_text()
+    except FileNotFoundError:
+        return '0'
+    return status.rsplit(') ', 1)[1].split()[19]
+
+
 class RecordedProjectTests(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory(prefix='raicho-record-test-')
@@ -58,7 +66,10 @@ class RecordedProjectTests(unittest.TestCase):
         self.record_project(PROJECT, state, RAICHO_ACCEPTANCE_RECORD=str(self.record))
         self.record_project('raicho-ci-123-1', RAICHO_ACCEPTANCE_RECORD=str(self.record))
         group = os.getpgrp()
-        self.assertEqual(self.record.read_text(), f'{group}\t{PROJECT}\t{state}\n{group}\traicho-ci-123-1\t\n')
+        identity = f'{group}\t{start_time(group)}'
+        self.assertEqual(
+            self.record.read_text(), f'{identity}\t{PROJECT}\t{state}\n{identity}\traicho-ci-123-1\t\n'
+        )
 
     def test_records_nothing_without_a_record_path(self):
         self.record_project(PROJECT)
@@ -67,7 +78,7 @@ class RecordedProjectTests(unittest.TestCase):
     def test_stops_the_runner_and_removes_only_its_project(self):
         runner = self.runner()
         commands, _ = self.remove(
-            [(runner.pid, PROJECT, '')],
+            [(runner.pid, start_time(runner.pid), PROJECT, '')],
             Response(('network', 'ls', '--format', PROJECT_FILTER), output=f'{NETWORK}\n'),
             Response(('volume', 'ls', '--format', PROJECT_FILTER), output=f'{VOLUME}\n'),
             Response(('container', 'ls', f'network={NETWORK}'), output='probe\nraicho\n'),
@@ -88,37 +99,56 @@ class RecordedProjectTests(unittest.TestCase):
         state = self.directory / 'raicho-credentials.Ab3dE5gH'
         (state / 'credentials').mkdir(parents=True)
         (state / 'credentials/connector.token').write_text('secret\n')
-        self.remove([(self.runner().pid, 'raicho-credentials-20261101120000-7', state)])
+        runner = self.runner()
+        self.remove([(runner.pid, start_time(runner.pid), 'raicho-credentials-20261101120000-7', state)])
         self.assertFalse(state.exists())
+
+    def test_leaves_a_process_group_whose_leader_is_not_the_recorded_runner(self):
+        runner = self.runner()
+        for start in ('0', str(int(start_time(runner.pid)) + 1)):
+            with self.subTest(start=start):
+                self.remove([(runner.pid, start, PROJECT, '')])
+                self.assertIsNone(runner.poll())
 
     def test_does_nothing_without_a_record(self):
         commands, _ = self.remove(None)
         self.assertEqual(commands, [])
 
     def test_refuses_entries_that_could_reach_another_process_or_project(self):
+        elsewhere = Path(tempfile.mkdtemp(dir=self.directory)) / 'raicho-credentials.Ab3dE5gH'
         entries = {
             'no process group': (0, PROJECT, ''),
             'non-numeric process group': ('1x', PROJECT, ''),
             'own process group': (os.getpgrp(), PROJECT, ''),
             'persistent project': (None, 'raicho', ''),
             'foreign directory': (None, PROJECT, self.directory),
+            'state directory away from the record': (None, PROJECT, elsewhere),
         }
         for case, (group, project, state) in entries.items():
             with self.subTest(case=case):
                 runner = self.runner()
-                commands, result = self.remove([(runner.pid if group is None else group, project, state)], status=1)
+                group = runner.pid if group is None else group
+                commands, result = self.remove([(group, start_time(runner.pid), project, state)], status=1)
                 self.assertEqual(commands, [])
                 self.assertIsNone(runner.poll())
                 self.assertIn('FAIL', result.stderr)
 
     def test_reports_a_project_it_could_not_remove(self):
-        _, result = self.remove(
-            [(self.runner().pid, PROJECT, '')],
-            Response(('volume', 'ls', '--quiet', PROJECT_FILTER), output='volume-id\n'),
-            Response(('volume', 'rm'), status=1),
-            status=1,
-        )
-        self.assertIn(PROJECT, result.stderr)
+        failures = {
+            'volume': (
+                Response(('volume', 'ls', '--quiet', PROJECT_FILTER), output='volume-id\n'),
+                Response(('volume', 'rm'), status=1),
+            ),
+            'image': (
+                Response(('image', 'ls'), output=f'{PROJECT}:tools\n'),
+                Response(('image', 'rm'), status=1),
+            ),
+        }
+        for kind, responses in failures.items():
+            with self.subTest(kind=kind):
+                runner = self.runner()
+                _, result = self.remove([(runner.pid, start_time(runner.pid), PROJECT, '')], *responses, status=1)
+                self.assertIn(PROJECT, result.stderr)
 
 
 if __name__ == '__main__':
