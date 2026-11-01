@@ -71,8 +71,14 @@ Non-trivial changes use two pull requests:
    containing only dated planning documents, labeled `design`. Discuss and merge
    it into its target branch before implementation.
 2. Open a separate implementation PR. Its description names the merged plan:
-   `Design: docs/planning/active/YYYYMMDD-slug.md`. Use `verify-against-design`
-   before review.
+   `Design: docs/planning/active/YYYYMMDD-slug.md`.
+
+Before asking for review of a draft implementation PR with a `Design:` line,
+run `verify-against-design` against its current head. Rerun it after later
+pushes. The check is read-only and needs no approval. Run it in a fresh context
+without the implementation history, such as a new session or a subagent. When
+the agent cannot start one, ask the user to run it in a new session. Record the
+verdict and any gaps in the PR's Validation section.
 
 An implementation PR without a relevant design can add an ADR and reference it
 with `Decision: docs/decisions/YYYYMMDD-slug.md`. Every PR is an implementation
