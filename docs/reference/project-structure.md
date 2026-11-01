@@ -95,6 +95,10 @@ source `automation/acceptance/credential_deployment.bash` for their disposable
 project, state directory, fixture container, credential commands, and cleanup.
 The connector runner also sources `connector/network.bash`, which its tests
 exercise directly.
+Every acceptance runner, including the mail runner, sources
+`automation/acceptance/project_record.bash` to record its project for CI.
+`automation/acceptance/remove_recorded_projects.bash` removes those projects in
+the final step of each acceptance job.
 The shared repository-path and output-mode helpers live at
 `automation/paths.py` and `automation/output.py`.
 

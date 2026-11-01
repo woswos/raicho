@@ -1,5 +1,8 @@
 # Sourced by acceptance runners that own a disposable deployment with generated credentials.
 
+# shellcheck source=automation/acceptance/project_record.bash
+source automation/acceptance/project_record.bash
+
 HARDENED_RUN=(docker run --rm -i --read-only --cap-drop ALL --security-opt no-new-privileges:true --workdir /)
 
 prepare_credential_deployment() {
@@ -10,6 +13,7 @@ prepare_credential_deployment() {
     export RAICHO_CREDENTIAL_DIRECTORY="${RAICHO_STATE_DIRECTORY}/credentials"
     export RAICHO_COMPOSE_TEST=1
     mkdir -m 700 "${RAICHO_CREDENTIAL_DIRECTORY}"
+    record_project "${RAICHO_PROJECT}" "${RAICHO_STATE_DIRECTORY}"
     COMPOSE=(docker compose -p "${RAICHO_PROJECT}" -f compose.yaml
         -f compose.credentials.yaml -f automation/acceptance/runtime/compose.test.yaml)
 }

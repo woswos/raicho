@@ -22,6 +22,7 @@ SOURCE_SUITES = (
 )
 ACCEPTANCE_JOBS = ('runtime-test', 'connector-test', 'compatibility-test')
 CACHE_DIRECTORY = '${{ runner.temp }}/raicho-cache'
+ACCEPTANCE_RECORD = '${{ runner.temp }}/raicho-acceptance'
 CODE_EVENTS = {'opened', 'synchronize', 'reopened'}
 METADATA_EVENTS = {'edited', 'labeled', 'unlabeled', 'ready_for_review', 'converted_to_draft'}
 
@@ -68,9 +69,21 @@ class WorkflowCoverageTests(unittest.TestCase):
 
     def test_acceptance_state_stays_where_the_docker_host_can_bind_it(self):
         for step in self.jobs['connector-test']['steps']:
-            if 'name' in step:
+            if 'make acceptance-' in step.get('run', ''):
                 with self.subTest(step=step['name']):
                     self.assertEqual(step.get('env', {}).get('TMPDIR'), '${{ runner.temp }}')
+
+    def test_acceptance_jobs_remove_their_recorded_projects_even_when_cancelled(self):
+        for name in ACCEPTANCE_JOBS:
+            with self.subTest(job=name):
+                *runners, removal = [step for step in self.jobs[name]['steps'] if 'run' in step]
+                self.assertTrue(runners)
+                for step in runners:
+                    self.assertRegex(step['run'], r'^setsid --wait make acceptance-[a-z]+$')
+                    self.assertEqual(step['env']['RAICHO_ACCEPTANCE_RECORD'], ACCEPTANCE_RECORD)
+                self.assertEqual(removal['if'], 'always()')
+                self.assertEqual(removal['run'], 'bash automation/acceptance/remove_recorded_projects.bash')
+                self.assertEqual(removal['env']['RAICHO_ACCEPTANCE_RECORD'], ACCEPTANCE_RECORD)
 
     def test_every_compose_file_is_exercised(self):
         paths = subprocess.run(

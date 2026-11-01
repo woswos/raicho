@@ -270,6 +270,8 @@ make mrproper
   only by global or `.git/info/exclude` rules stay.
 - Containers, volumes, networks, and images of interrupted acceptance projects,
   which are named `raicho-<suite>-<timestamp>-<number>`, as `raicho-ci-...` is.
+  CI jobs remove their own projects through
+  [acceptance cleanup](ci-cd.md#acceptance-cleanup) instead.
 - Acceptance state directories named `raicho-<suite>.XXXXXXXX` under `TMPDIR` or
   `/tmp`. Fixture files owned by root are removed through `raicho-tools:local`.
 - The `raicho-tools_cache` volume with Cargo's downloads and build output, unless a

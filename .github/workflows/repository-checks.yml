@@ -125,7 +125,14 @@ jobs:
         with:
           persist-credentials: false
       - name: Verify startup, persistence, isolation, and independent readiness
-        run: make acceptance-runtime
+        env:
+          RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance
+        run: setsid --wait make acceptance-runtime
+      - name: Remove this job's disposable deployments
+        if: always()
+        env:
+          RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance
+        run: bash automation/acceptance/remove_recorded_projects.bash
 
   connector-test:
     if: >-
@@ -140,11 +147,18 @@ jobs:
       - name: Verify production connector and ten-minute idle acceptance
         env:
           TMPDIR: ${{ runner.temp }}
-        run: make acceptance-connector
+          RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance
+        run: setsid --wait make acceptance-connector
       - name: Verify credential rotation, recovery, and revocation
         env:
           TMPDIR: ${{ runner.temp }}
-        run: make acceptance-credentials
+          RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance
+        run: setsid --wait make acceptance-credentials
+      - name: Remove this job's disposable deployments
+        if: always()
+        env:
+          RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance
+        run: bash automation/acceptance/remove_recorded_projects.bash
 
   compatibility-test:
     if: >-
@@ -157,4 +171,11 @@ jobs:
         with:
           persist-credentials: false
       - name: Verify unattended mail API compatibility
-        run: make acceptance-mail
+        env:
+          RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance
+        run: setsid --wait make acceptance-mail
+      - name: Remove this job's disposable deployments
+        if: always()
+        env:
+          RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance
+        run: bash automation/acceptance/remove_recorded_projects.bash
