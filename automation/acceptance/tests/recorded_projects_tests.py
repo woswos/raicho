@@ -142,11 +142,15 @@ class RecordedProjectTests(unittest.TestCase):
                 Response(('image', 'rm'), status=1),
             ),
         }
+        state = self.directory / 'raicho-connector.Ab3dE5gH'
         for kind, responses in failures.items():
             with self.subTest(kind=kind):
+                (state / 'credentials').mkdir(parents=True, exist_ok=True)
+                (state / 'credentials/connector.token').write_text('secret\n')
                 runner = self.runner()
-                _, result = self.remove([(runner.pid, start_time(runner.pid), PROJECT, '')], *responses, status=1)
+                _, result = self.remove([(runner.pid, start_time(runner.pid), PROJECT, state)], *responses, status=1)
                 self.assertIn(PROJECT, result.stderr)
+                self.assertFalse(state.exists())
 
 
 if __name__ == '__main__':

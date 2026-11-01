@@ -44,16 +44,18 @@ remove_attached_containers() {
     fi
 }
 
-remove_recorded_project() {
-    local PROJECT="${1}" STATE_DIRECTORY="${2}" LISTED IMAGES
-    remove_attached_containers "${PROJECT}" || return 1
-    remove_project "${PROJECT}" container volume network || return 1
+remove_project_images() {
+    local PROJECT="${1}" LISTED IMAGES
     LISTED="$(docker image ls --format '{{.Repository}}:{{.Tag}}' --filter "reference=${PROJECT}:*")" || return 1
     mapfile -t IMAGES < <(printf '%s' "${LISTED}")
     if ((${#IMAGES[@]} > 0)); then
         docker image rm "${IMAGES[@]}" >/dev/null || return 1
         echo "Removed the images of ${PROJECT}"
     fi
+}
+
+remove_state_directory() {
+    local STATE_DIRECTORY="${1}"
     if [[ -z ${STATE_DIRECTORY} || ! -e ${STATE_DIRECTORY} ]]; then
         return 0
     fi
@@ -62,6 +64,16 @@ remove_recorded_project() {
         return 1
     fi
     remove_directory "${STATE_DIRECTORY}"
+}
+
+# A failed Docker step must not leave the state directory's credentials behind, so every step runs.
+remove_recorded_project() {
+    local PROJECT="${1}" STATE_DIRECTORY="${2}" RESULT=0
+    remove_attached_containers "${PROJECT}" || RESULT=1
+    remove_project "${PROJECT}" container volume network || RESULT=1
+    remove_project_images "${PROJECT}" || RESULT=1
+    remove_state_directory "${STATE_DIRECTORY}" || RESULT=1
+    return "${RESULT}"
 }
 
 if [[ ! -e ${RECORD} ]]; then
