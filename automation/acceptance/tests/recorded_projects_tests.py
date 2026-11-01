@@ -67,9 +67,7 @@ class RecordedProjectTests(unittest.TestCase):
         self.record_project('raicho-ci-123-1', RAICHO_ACCEPTANCE_RECORD=str(self.record))
         group = os.getpgrp()
         identity = f'{group}\t{start_time(group)}'
-        self.assertEqual(
-            self.record.read_text(), f'{identity}\t{PROJECT}\t{state}\n{identity}\traicho-ci-123-1\t\n'
-        )
+        self.assertEqual(self.record.read_text(), f'{identity}\t{PROJECT}\t{state}\n{identity}\traicho-ci-123-1\t\n')
 
     def test_records_nothing_without_a_record_path(self):
         self.record_project(PROJECT)
