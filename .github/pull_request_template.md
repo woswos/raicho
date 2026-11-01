@@ -24,6 +24,6 @@ Design: docs/planning/active/YYYYMMDD-slug.md
 - [ ] Tests or the plan's explicit asset/documentation checks cover the change.
 - [ ] Any design deviation is recorded in the planning document.
 - [ ] Architecture documentation reflects any changed subsystem connections.
-- [ ] `verify-against-design` was run when implementing a design.
+- [ ] The `verify-against-design` verdict is in Validation, or the description has no `Design:` line.
 
 ## Related links

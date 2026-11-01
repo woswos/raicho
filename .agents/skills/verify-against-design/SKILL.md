@@ -1,6 +1,6 @@
 ---
 name: verify-against-design
-description: Check whether an implementation pull request follows its approved design doc. Trigger when verifying an implementation PR against its plan, checking design adherence, or auditing whether code matches the agreed design before review.
+description: Check whether an implementation pull request follows its approved design doc. Trigger before requesting review of a draft implementation PR whose description names a Design plan, again after later pushes to it, or when verifying an implementation PR against its plan, checking design adherence, or auditing whether code matches the agreed design before review.
 ---
 
 # verify-against-design
