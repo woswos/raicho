@@ -2,9 +2,8 @@ import json
 import os
 from pathlib import Path
 
-from automation.build.application import cargo_test, run
+from automation.build.application import CARGO_WORKSPACE, cargo_test, run
 
-RUST_TARGET = Path(os.environ.get('CARGO_TARGET_DIR', '/tmp/raicho-target')).parent / 'coverage-target'
 RUST_IGNORED = r'(/registry/|^/rustc/|/tests/|/benches/|_generated\.rs$)'
 
 
@@ -23,13 +22,12 @@ def rust(output):
     profiles.mkdir()
     environment = os.environ | {
         'RUSTFLAGS': '-C instrument-coverage',
-        'CARGO_TARGET_DIR': str(RUST_TARGET),
+        'CARGO_TARGET_DIR': str(Path(os.environ['CARGO_TARGET_DIR']).parent / 'coverage-target'),
         'LLVM_PROFILE_FILE': str(profiles / '%p-%m.profraw'),
     }
-    arguments = ['--workspace', '--all-targets', '--locked']
-    cargo_test(arguments, env=environment)
+    cargo_test(CARGO_WORKSPACE, env=environment)
     listing = run(
-        ['cargo', 'test', *arguments, '--no-run', '--message-format=json'],
+        ['cargo', 'test', *CARGO_WORKSPACE, '--no-run', '--message-format=json'],
         env=environment,
         capture_output=True,
         text=True,

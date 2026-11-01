@@ -32,7 +32,7 @@ fallback project. Pyright and mypy are not configured.
 
 Clippy runs `--workspace --all-targets --locked` with
 `CARGO_BUILD_WARNINGS=deny`. It uses the shared Cargo target directory for the root
-workspace and a temporary one for each nested workspace, as the
+workspace and a subdirectory of it for each nested workspace, as the
 [build caching decision](../decisions/20261026-build-caching.md) explains. It checks Cargo
 targets under their active configuration, not
 unreferenced `.rs` files or every conditional feature combination. Formatting
@@ -77,8 +77,8 @@ describe the guard here, and record a decision.
 SQLFluff's capitalization rules ignore.
 
 Check and format commands discover tracked and non-ignored untracked source
-through Git. Disposable fixture directories use filesystem discovery. Scope
-includes Bash (`.bash`, `.sh`, and shell shebangs), Python (`.py`, `.pyi`),
+through Git, so their test fixtures initialize a repository. They reject every
+symlink among those files without following it. Scope includes Bash (`.bash`, `.sh`, and shell shebangs), Python (`.py`, `.pyi`),
 JavaScript (`.js`, `.mjs`, `.cjs`), TypeScript (`.ts`, `.tsx`, `.mts`, `.cts`),
 Rust (`.rs` and Cargo projects), and SQL (`.sql`).
 
@@ -106,8 +106,9 @@ avoid accidental credential formatting. See the [contract reference](../referenc
 
 `format-check` never rewrites sources. `format` is an explicit writable command
 using the caller's UID/GID. CI runs checks without automatic fixes.
-SQL format checks parse and format temporary copies with the original relative
-paths, then compare bytes. Missing SQL tools or configuration fail even when no
+SQL format checks pass each source to SQLFluff on standard input under its relative
+path, parse the formatted result, then compare bytes.
+Missing SQL tools or configuration fail even when no
 SQL files exist. An empty valid SQL scope reports an explicit skip. SQL strings
 inside Rust or Python are outside SQLFluff's file scope. Production queries live
 in `server/queries/`, while intentionally invalid test fixtures remain inline.
@@ -138,7 +139,7 @@ Bookworm support packages from the `20261018T000000Z` snapshot.
 Python tooling dependencies and their wheel hashes are locked in
 `automation/tooling/requirements.txt`, currently for Python 3.13 on Linux amd64.
 Its first lines set `--only-binary=:all:` and `--require-hashes`, so the image installs it with a plain
-`pip install -r` and keep them when refreshing the lock.
+`pip install -r`. Keep those lines when refreshing the lock.
 Refresh this lock inside Docker when upgrading SQLFluff, coverage, or test dependencies,
 review all dependency changes, and rebuild the image. The entrypoint at
 `automation/tooling/entrypoint.bash` detects a stale requirements

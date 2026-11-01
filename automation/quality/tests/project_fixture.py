@@ -1,5 +1,7 @@
 import os
+import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -9,11 +11,12 @@ from automation.paths import REPOSITORY_ROOT
 MAKEFILE = REPOSITORY_ROOT / 'Makefile'
 
 
-class QualityFixture(unittest.TestCase):
+class ProjectFixture(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory(prefix='raicho-tooling-')
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
+        subprocess.run(['git', 'init', '--quiet'], cwd=self.root, check=True)
 
     def write(self, relative, content):
         path = self.root / relative
@@ -35,10 +38,27 @@ class QualityFixture(unittest.TestCase):
             text=True,
             check=False,
         )
+        self.verify(result, successful, diagnostic)
+
+    def check_runner(self, target, successful=True, diagnostic=None, environment=None):
+        result = subprocess.run(
+            [sys.executable, '-B', '-m', 'automation.quality.runner', '--root', str(self.root), target],
+            cwd=self.root,
+            env={**os.environ, **(environment or {}), 'PYTHONPATH': str(REPOSITORY_ROOT)},
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.verify(result, successful, diagnostic)
+
+    def verify(self, result, successful, diagnostic):
         output = result.stdout + result.stderr
-        if successful:
-            self.assertEqual(result.returncode, 0, output)
-        else:
-            self.assertNotEqual(result.returncode, 0, output)
+        self.assertEqual(result.returncode == 0, successful, output)
         if diagnostic:
             self.assertIn(diagnostic, output)
+
+    def git_only_environment(self):
+        binaries = self.root / 'vendor'
+        binaries.mkdir(exist_ok=True)
+        (binaries / 'git').symlink_to(shutil.which('git'))
+        return {**os.environ, 'PATH': str(binaries)}

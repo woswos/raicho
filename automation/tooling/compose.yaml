@@ -41,7 +41,6 @@ services:
     volumes:
       - ../..:/workspace:rw
       - cache:/cache
-    command: [make, format]
 
 volumes:
   cache:

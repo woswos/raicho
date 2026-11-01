@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest import mock
 
 from automation.build import coverage_report
+from automation.build.python_suite import SUITES
 from automation.paths import REPOSITORY_ROOT
 from protocol.generator.cli import NODE_REPORTER
 
@@ -54,10 +55,7 @@ class CoverageReportTests(unittest.TestCase):
         for command in commands:
             self.assertIn(f'--rcfile={REPOSITORY_ROOT / "pyproject.toml"}', command)
         suites = [command for command in commands if 'run' in command]
-        self.assertEqual(
-            [command[-2:] for command in suites],
-            [['.', '*_tests.py'], ['automation/quality/tests', '*tooling_checks.py']],
-        )
+        self.assertEqual([command[-1] for command in suites], list(SUITES))
         self.assertIn('combine', commands[-2])
         self.assertIn('lcov', commands[-1])
 

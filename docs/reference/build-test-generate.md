@@ -63,13 +63,14 @@ xterm terminal.
 | `mrproper` | `clean`, plus every Raicho container, network, and image, keeping deployment data, on the host |
 | `lint-pr` | PR metadata, design/decision policy, and changelog guard |
 
-Component targets run one piece of those: `build-server`, `build-web`,
-`build-extension`, `test-server`, `test-web`, `test-extension`, `test-mailprobe`,
-`test-protocol`, `test-python`, and `test-tooling`; `lint-repo`, `lint-bash`,
-`lint-python`, `lint-javascript`, `lint-typescript`, `lint-rust`, `lint-sql`, and
-`lint-spelling`; `format` and `format-check`, each with `-bash`, `-python`,
-`-javascript`, `-rust`, and `-sql` variants, `format-spelling`, and `typecheck`;
-and `generate-protocol` and `check-protocol`.
+Component targets run one piece of those. The build and test pieces are
+`build-server`, `build-web`, `build-extension`, `test-server`, `test-web`,
+`test-extension`, `test-mailprobe`, `test-protocol`, `test-python`, and
+`test-tooling`. The lint pieces are `lint-repo`, `lint-bash`, `lint-python`,
+`lint-javascript`, `lint-typescript`, `lint-rust`, `lint-sql`, and `lint-spelling`.
+`format` and `format-check` each have `-bash`, `-python`, `-javascript`, `-rust`,
+and `-sql` variants, alongside `format-spelling` and `typecheck`. Protocol
+bindings use `generate-protocol` and `check-protocol`.
 The `-javascript` formatting variants also cover TypeScript, JSON, and YAML. The acceptance
 suites run one at a time as `acceptance-runtime`, `acceptance-connector`,
 `acceptance-credentials`, and `acceptance-mail`.
@@ -117,7 +118,7 @@ formatting without edits, and `typecheck` runs the TypeScript compiler with no
 emitted output. `test-tooling` runs disposable passing and failing Rust,
 TypeScript, and SQL fixtures that exercise the runners. `lint-sql` checks owned
 SQLite source for syntax and configured lint rules, `format-check-sql` compares
-formatted temporary copies with the SQL sources, and `format-sql` rewrites them
+each SQL source with its formatted output, and `format-sql` rewrites the sources
 using formatting rules only.
 
 `lint-spelling` runs typos over the same files and reports one line per known
@@ -135,7 +136,7 @@ and invocation convention.
 
 `test-python` runs one `unittest` discovery of `*_tests.py` from the repository
 root, then runs each discovered module in its own worker process, as
-`automation/build/python_tests.py` schedules them. Modules therefore share no interpreter state, and a test
+`automation/build/python_suite.py` schedules them. Modules therefore share no interpreter state, and a test
 must not depend on another module's side effects. Discovery enters only Python
 packages, so every directory on a test's import path needs an `__init__.py`. The suites cover repository policy including
 changelog guards, quality discovery, extension and mail probe packaging, mail

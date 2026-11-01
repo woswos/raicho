@@ -46,4 +46,3 @@ ENV PATH="/opt/quality/node_modules/.bin:/usr/local/cargo/bin:${PATH}" \
     npm_config_cache=/tmp/npm HOME=/tmp/home RAICHO_TOOLING_CONTAINER=1
 WORKDIR /workspace
 ENTRYPOINT ["bash", "/usr/local/bin/raicho-tooling"]
-CMD ["make", "lint", "format-check", "typecheck", "test-python"]

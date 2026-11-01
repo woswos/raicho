@@ -1,13 +1,16 @@
 import shutil
+import tomllib
 from pathlib import Path
 
 from automation.build.application import extension, node_reporter, run, web
 from automation.build.lcov import merge, summary
+from automation.build.python_suite import SUITES
 from automation.build.rust_coverage import rust
 from automation.paths import REPOSITORY_ROOT
 from protocol.generator.cli import run_typescript_tests
 
-OUTPUT = Path('/tmp/raicho-coverage')
+COVERAGE = tomllib.loads((REPOSITORY_ROOT / 'pyproject.toml').read_text())['tool']['coverage']
+OUTPUT = Path(COVERAGE['run']['data_file']).parents[1]
 TYPESCRIPT_IGNORED = ('**/tests/**', '**/node_modules/**', '**/*_generated.*')
 
 
@@ -38,21 +41,8 @@ def python():
     (OUTPUT / 'python').mkdir()
     configuration = REPOSITORY_ROOT / 'pyproject.toml'
     coverage = ['python3', '-B', '-m', 'coverage']
-    for start, pattern in (
-        ('.', '*_tests.py'),
-        ('automation/quality/tests', '*tooling_checks.py'),
-    ):
-        run(
-            [
-                *coverage,
-                'run',
-                f'--rcfile={configuration}',
-                '-m',
-                'automation.build.python_tests',
-                start,
-                pattern,
-            ]
-        )
+    for suite in SUITES:
+        run([*coverage, 'run', f'--rcfile={configuration}', '-m', 'automation.build.python_suite', suite])
     run([*coverage, 'combine', '--quiet', f'--rcfile={configuration}'])
     run(
         [

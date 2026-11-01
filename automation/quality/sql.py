@@ -1,24 +1,32 @@
 import subprocess
-import tempfile
-from pathlib import Path
 
 from automation.output import quiet
-from automation.quality.files import require_tools, run
+from automation.quality.files import regular_file, require_tools, run
 
 
-def check_syntax(options, root):
+def formatted(options, root, path, source):
+    result = run(
+        ['sqlfluff', 'format', *options, '--stdin-filename', path.as_posix(), '-'],
+        root,
+        capture=True,
+        stdin=source,
+    ).stdout
     try:
-        run(['sqlfluff', 'parse', *options, '--format', 'none', '.'], root, capture=True)
+        run(
+            ['sqlfluff', 'parse', *options, '--format', 'human', '--stdin-filename', path.as_posix(), '-'],
+            root,
+            capture=True,
+            stdin=result,
+        )
     except subprocess.CalledProcessError as error:
         print(error.stdout, end='')
         raise
+    return result
 
 
 def sql(root, files, action, tooling_root):
     require_tools('sqlfluff')
-    configuration = tooling_root / '.sqlfluff'
-    if not configuration.is_file() or configuration.is_symlink():
-        raise ValueError(f'SQL configuration is missing or not a regular file: {configuration}')
+    configuration = regular_file(tooling_root / '.sqlfluff', 'SQL configuration')
     sources = [path for path in files if path.suffix == '.sql']
     if not sources:
         print('SKIP: no owned SQL sources')
@@ -42,35 +50,16 @@ def sql(root, files, action, tooling_root):
             root,
         )
         return
-    with tempfile.TemporaryDirectory(prefix='raicho-sql-format-') as directory:
-        temporary_root = Path(directory)
-        originals = {path: (root / path).read_bytes() for path in sources}
-        for path, contents in originals.items():
-            destination = temporary_root / path
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            destination.write_bytes(contents)
-        check_syntax(options, temporary_root)
-        run(
-            [
-                'sqlfluff',
-                'format',
-                *options,
-                *quiet('--quiet'),
-                '--disregard-sqlfluffignores',
-                *sources,
-            ],
-            temporary_root,
-        )
-        check_syntax(options, temporary_root)
-        changed = {
-            path: (temporary_root / path).read_bytes()
-            for path, contents in originals.items()
-            if (temporary_root / path).read_bytes() != contents
-        }
-        if action == 'format-check' and changed:
-            raise ValueError('SQL formatting differs: ' + ', '.join(path.as_posix() for path in changed))
-        if action == 'format':
-            for path, contents in changed.items():
-                if (root / path).read_bytes() != originals[path]:
-                    raise ValueError(f'SQL source changed during formatting: {path}')
-                (root / path).write_bytes(contents)
+    originals = {path: (root / path).read_text() for path in sources}
+    changed = {}
+    for path, original in originals.items():
+        result = formatted(options, root, path, original)
+        if result != original:
+            changed[path] = result
+    if action == 'format-check' and changed:
+        raise ValueError('SQL formatting differs: ' + ', '.join(path.as_posix() for path in changed))
+    if action == 'format':
+        for path, contents in changed.items():
+            if (root / path).read_text() != originals[path]:
+                raise ValueError(f'SQL source changed during formatting: {path}')
+            (root / path).write_text(contents)
