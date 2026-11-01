@@ -131,6 +131,17 @@ class RecordedProjectTests(unittest.TestCase):
                 self.assertIsNone(runner.poll())
                 self.assertIn('FAIL', result.stderr)
 
+    def test_removes_networks_after_a_failed_volume_removal(self):
+        runner = self.runner()
+        commands, _ = self.remove(
+            [(runner.pid, start_time(runner.pid), PROJECT, '')],
+            Response(('volume', 'ls', '--quiet', PROJECT_FILTER), output='volume-id\n'),
+            Response(('volume', 'rm'), status=1),
+            Response(('network', 'ls', '--quiet', PROJECT_FILTER), output='network-id\n'),
+            status=1,
+        )
+        self.assertIn(['network', 'rm', 'network-id'], commands)
+
     def test_reports_a_project_it_could_not_remove(self):
         failures = {
             'volume': (

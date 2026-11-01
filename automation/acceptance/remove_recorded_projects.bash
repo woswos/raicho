@@ -68,9 +68,12 @@ remove_state_directory() {
 
 # A failed Docker step must not leave the state directory's credentials behind, so every step runs.
 remove_recorded_project() {
-    local PROJECT="${1}" STATE_DIRECTORY="${2}" RESULT=0
+    local PROJECT="${1}" STATE_DIRECTORY="${2}" RESULT=0 KIND
     remove_attached_containers "${PROJECT}" || RESULT=1
-    remove_project "${PROJECT}" container volume network || RESULT=1
+    # remove_project stops at its first failure, so each kind gets its own call.
+    for KIND in container volume network; do
+        remove_project "${PROJECT}" "${KIND}" || RESULT=1
+    done
     remove_project_images "${PROJECT}" || RESULT=1
     remove_state_directory "${STATE_DIRECTORY}" || RESULT=1
     return "${RESULT}"
