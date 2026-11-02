@@ -66,6 +66,42 @@ class RemoveRecordedProjectsTests(unittest.TestCase):
         filters = {word for command in commands for word in command if word.startswith(('label=', 'reference='))}
         self.assertEqual(filters, {PROJECT_FILTER, f'reference={PROJECT}:*'})
 
+    def test_removes_the_project_after_a_self_removing_container_left(self):
+        missing = 'Error response from daemon: No such container: probe-id\n'
+        cases = {
+            'before the inspection': (
+                Response(('container', 'inspect', '--format'), status=1, output='false server-id\n', error=missing),
+            ),
+            'before the stop': (
+                Response(('container', 'inspect', '--format'), output='true probe-id\nfalse server-id\n'),
+                Response(('container', 'stop'), status=1, error=missing),
+            ),
+        }
+        for case, responses in cases.items():
+            with self.subTest(case=case):
+                runner = self.runner()
+                commands, _ = self.remove(
+                    [entry(runner)],
+                    Response(('container', 'ls', '--quiet', PROJECT_FILTER), output='probe-id\nserver-id\n'),
+                    *responses,
+                    Response(('container', 'inspect'), status=1),
+                    Response(('volume', 'ls', '--quiet', PROJECT_FILTER), output='volume-id\n'),
+                )
+                self.assertIn(['container', 'rm', 'server-id'], commands)
+                self.assertIn(['volume', 'rm', 'volume-id'], commands)
+
+    def test_reports_a_container_it_could_not_stop(self):
+        runner = self.runner()
+        commands, result = self.remove(
+            [entry(runner)],
+            Response(('container', 'ls', '--quiet', PROJECT_FILTER), output='server-id\n'),
+            Response(('container', 'inspect', '--format'), output='false server-id\n'),
+            Response(('container', 'stop'), status=1, error='permission denied\n'),
+            status=1,
+        )
+        self.assertNotIn(['container', 'rm', 'server-id'], commands)
+        self.assertIn('permission denied', result.stderr)
+
     def test_removes_the_recorded_state_directory(self):
         state = self.directory / 'raicho-credentials.Ab3dE5gH'
         (state / 'credentials').mkdir(parents=True)
