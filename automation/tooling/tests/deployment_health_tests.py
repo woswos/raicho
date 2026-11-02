@@ -4,9 +4,10 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 from automation.paths import REPOSITORY_ROOT
-from automation.tooling.deployment_health import commits_behind, report
+from automation.tooling.deployment_health import commit_distance, report
 
 DEPLOYED = 'f9b72381ff0701f17a254a44526409183f849c03'
 CHECKOUT = '41dad8535dcc0b7bc1d6e48b1ad5eb7c4bd4d6aa'
@@ -53,9 +54,16 @@ class DeploymentHealthReportTests(unittest.TestCase):
     def test_an_unavailable_application_is_unhealthy(self):
         self.assertFalse(report(status(application='unavailable'), DEPLOYED)[1])
 
-    def test_an_older_deployment_counts_the_commits_behind(self):
-        lines = report(status(), CHECKOUT, behind=10)[0]
-        self.assertIn('  Deployed commit    f9b7238, 10 commits behind checkout 41dad85', lines)
+    def test_a_different_deployment_names_its_position(self):
+        cases = (
+            ((0, 10), 'f9b7238, 10 commits behind checkout 41dad85'),
+            ((3, 0), 'f9b7238, 3 commits ahead of checkout 41dad85'),
+            ((2, 5), 'f9b7238, diverged from checkout 41dad85: 2 ahead, 5 behind'),
+            (None, 'f9b7238, checkout is 41dad85'),
+        )
+        for distance, line in cases:
+            with self.subTest(distance=distance):
+                self.assertIn(f'  Deployed commit    {line}', report(status(), CHECKOUT, distance)[0])
         lines = report(status(), f'{CHECKOUT}-dirty')[0]
         self.assertIn('  Deployed commit    f9b7238, checkout is 41dad85-dirty', lines)
 
@@ -63,8 +71,8 @@ class DeploymentHealthReportTests(unittest.TestCase):
         self.assertIn('  Deployed commit    unknown', report(status(commit=None), CHECKOUT)[0])
 
 
-class CommitsBehindTests(unittest.TestCase):
-    def test_counts_checkout_commits_missing_from_the_deployment(self):
+class CommitDistanceTests(unittest.TestCase):
+    def test_counts_the_commits_on_each_side(self):
         with tempfile.TemporaryDirectory() as directory:
 
             def git(*arguments):
@@ -72,15 +80,24 @@ class CommitsBehindTests(unittest.TestCase):
                     ['git', *arguments], cwd=directory, capture_output=True, text=True, check=True
                 ).stdout.strip()
 
-            git('init', '--quiet')
-            commits = []
-            for message in ('first', 'second', 'third'):
+            def commit(message):
                 git(*IDENTITY, 'commit', '--allow-empty', '-qm', message)
-                commits.append(git('rev-parse', 'HEAD'))
-            self.assertEqual(commits_behind(commits[0], commits[2], directory), 2)
-            self.assertEqual(commits_behind(commits[0], f'{commits[2]}-dirty', directory), 2)
-            self.assertIsNone(commits_behind('0' * 40, commits[2], directory))
-            self.assertIsNone(commits_behind(commits[0], 'unknown', directory))
+                return git('rev-parse', 'HEAD')
+
+            git('init', '--quiet')
+            first, _, third = (commit(message) for message in ('first', 'second', 'third'))
+            git('checkout', '--quiet', '-b', 'side', first)
+            side = commit('side')
+            self.assertEqual(commit_distance(first, third, directory), (0, 2))
+            self.assertEqual(commit_distance(third, first, directory), (2, 0))
+            self.assertEqual(commit_distance(side, f'{third}-dirty', directory), (1, 2))
+            self.assertIsNone(commit_distance('0' * 40, third, directory))
+
+    def test_only_full_commit_hashes_reach_git(self):
+        for deployed in ('unknown', '--output=/tmp/x', 'f9b7238'):
+            with self.subTest(deployed=deployed), mock.patch.object(subprocess, 'run') as run:
+                self.assertIsNone(commit_distance(deployed, CHECKOUT))
+                run.assert_not_called()
 
 
 class DeploymentHealthCommandTests(unittest.TestCase):
