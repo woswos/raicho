@@ -14,7 +14,7 @@ remain outside this experiment.
 | Thunderbird | 153.5.0 ESR, Linux amd64 |
 | Thunderbird build ID | `20261013011825` |
 | Thunderbird source stamp | `9d5971ae648b0d17ab57509dcdcb0a06d3fdbe14` |
-| Mail probe | 0.1.1 full interactive experiment, 0.1.2 unattended restart follow-up, persistent Manifest V2 background page |
+| Mail probe | 0.1.1 full interactive experiment, 0.1.2 unattended restart follow-up, 2026-11-03 synchronization follow-up, persistent Manifest V2 background page |
 | GreenMail | 2.1.14, Linux amd64 |
 | GreenMail image digest | `sha256:2bcd0470f569af3c8b98509421b23f1ad11ebb2d58c3648f4233bf450f3b5e2b` |
 
@@ -50,6 +50,8 @@ boundary. This deployment is not a production mail backend or connector protocol
 | Repeated background save | Two calls created two drafts. No replacement operation was inferred. |
 | Repeated save in the same compose tab | One edited draft after two saves, with the second body stored. The first saved numeric ID then returned `Message not found`. |
 | Draft rediscovery after Thunderbird restart | Folder plus RFC Message-ID located drafts. Numeric IDs changed. The unattended run needed one native-tab folder selection through the standard API after its initial query returned empty. |
+| Folder discovery | `Sent` and `Trash` existed on the server before Thunderbird first started, and the extension never saw them. Thunderbird listed only folders it had created or opened, such as `Drafts` and a folder made through `folders.create`. |
+| Background synchronization after restart | Mail appended to INBOX and `Projects` while Thunderbird was stopped. INBOX matched on the first query after restart. With `check_all_folders_for_new`, `Projects` matched after 56 seconds under a one-minute check interval. With the preference explicitly false, `Projects` stayed empty for 150 seconds. No folder was selected. |
 | Native reopen, edit, and resave | Native Edit opened type `draft`. Editing Subject/body and pressing Ctrl+S left one replacement and zero original-subject drafts. The alias and attachment digest were preserved. |
 | Permission to send | `messages.send` is optional-only in this runtime and requires an explicit native permission grant. Force installation does not grant it. |
 | `sendLater` and Thunderbird-owned queue | Message remained in Local Folders/Outbox across restart. No recipient delivery. Startup asked whether to send unsent mail, and the native check chose Later. |
@@ -84,6 +86,28 @@ the experiment does not establish a general background IMAP discovery strategy.
 Native-tab selection changes Thunderbird's UI. Record that dependency before
 building mailbox discovery, rather than editing its mail database.
 
+### Synchronization and folder discovery
+
+The unattended synchronization scenario stops Thunderbird, appends a message to
+INBOX and `Projects` over IMAP, starts it again, and never selects a folder.
+Thunderbird checks INBOX at login. Other folders are refreshed only by the
+periodic new-mail check, and only when `check_all_folders_for_new` is true. The
+production policy therefore sets `mail.server.default.check_all_folders_for_new`
+as a default preference. Thunderbird's account wizard writes `check_new_mail`,
+the check interval, and `login_at_startup` for each server, but not this
+preference, so the default reaches new accounts. A per-account setting in the
+desktop still overrides it. Mail in a folder other than INBOX can therefore
+appear up to one check interval after a restart. Thunderbird's default interval
+is 10 minutes.
+
+IMAP folder discovery is a separate limit. The pinned `about3Pane.js` asks the
+server to discover mailboxes when a person expands the account in the folder pane.
+No WebExtension API starts that discovery, and `folders.query` and
+`accounts.list` report only folders that Thunderbird already knows. Folders that
+another client creates appear after Thunderbird's desktop expands the account
+again. Raicho shows the folders Thunderbird reports and does not select folders in
+a native tab. See the [synchronization decision](../decisions/20261103-mail-synchronization.md).
+
 The edit-as-new result does not authorize a save-new/delete-old replacement
 strategy. Native draft interoperability and a standard programmatic replacement
 operation are separate acceptance gates. Dependent compose work needs a design
@@ -115,8 +139,9 @@ Grant `messages.send` through Thunderbird's permission UI when prompted. The
 native flow is interactive and is not evidence of unattended permission granting.
 No real account, personal profile, or provider credential belongs in either run.
 
-CI runs probe source tests and the default unattended runner. It explicitly
-skips consent-dependent delivery, native editing, and interactive fault checks.
+CI runs probe source tests and the default unattended runner, including the
+synchronization scenario. It explicitly skips consent-dependent delivery, native
+editing, and interactive fault checks.
 Their observations above remain the separately recorded manual evidence. Some
 unattended runs find every restarted draft before the folder-selection fallback,
 so that synchronization dependency is intermittent rather than resolved. The

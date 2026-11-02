@@ -9,7 +9,15 @@
       "strict_min_version": "153.0"
     }
   },
-  "permissions": ["storage", "accountsRead", "messagesRead", "messages.save", "compose", "compose.save"],
+  "permissions": [
+    "storage",
+    "accountsRead",
+    "accountsFolders",
+    "messagesRead",
+    "messages.save",
+    "compose",
+    "compose.save"
+  ],
   "optional_permissions": ["messages.send"],
   "options_ui": { "page": "permission.html", "open_in_tab": true },
   "background": { "page": "background.html", "persistent": true },

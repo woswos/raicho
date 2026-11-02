@@ -16,6 +16,7 @@ export interface Tab extends Record<string, unknown> {
 
 export interface MailApi {
   accounts: { list: (includeFolders: boolean) => Promise<unknown> };
+  folders: { create: (parentIdentifier: string, name: string) => Promise<unknown> };
   runtime: {
     getBrowserInfo: () => Promise<{ version: string }>;
     getManifest: () => { version: string };

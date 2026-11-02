@@ -13,6 +13,7 @@ const actions = new Set([
   'close_compose',
   'select_draft',
   'select_folder',
+  'create_folder',
   'permission_status',
   'open_permission_page',
 ]);
