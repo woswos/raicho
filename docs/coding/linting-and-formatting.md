@@ -108,11 +108,11 @@ avoid accidental credential formatting. See the [contract reference](../referenc
 `format-check` never rewrites sources. `format` is an explicit writable command
 using the caller's UID/GID. CI runs checks without automatic fixes. SQL format
 checks pass each source to SQLFluff on standard input under its relative path,
-parse the formatted result, then compare bytes. Missing SQL tools or
-configuration fail even when no SQL files exist. An empty valid SQL scope
-reports an explicit skip. SQL strings inside Rust or Python are outside
-SQLFluff's file scope. Production queries live in `server/queries/`, while
-intentionally invalid test fixtures remain inline. Follow the [migration
+parse the formatted result, then compare the result with the source text.
+Missing SQL tools or configuration fail even when no SQL files exist. An empty
+valid SQL scope reports an explicit skip. SQL strings inside Rust or Python are
+outside SQLFluff's file scope. Production queries live in `server/queries/`,
+while intentionally invalid test fixtures remain inline. Follow the [migration
 immutability rule](../reference/runtime.md#sqlite-initialization-and-migrations)
 before formatting migration files.
 

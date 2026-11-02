@@ -96,15 +96,15 @@ the runner's temporary directory. Local runs set no record.
 
 The last step of each acceptance job runs
 [remove_recorded_projects.bash](../../automation/acceptance/remove_recorded_projects.bash)
-with `if: always()`. For each entry it kills the recorded process group while its
-leader or runner still runs, then removes the containers, volumes, and networks
-with the project's Compose label, the images named after the project, and the
-state directory. Containers and volumes that runners create outside Compose carry
-the same label. The step refuses entries outside the disposable project and state
-directory patterns and fails when anything remains. Locally, `make clean` removes
-interrupted acceptance projects. The
-[cancel cleanup decision](../decisions/20261101-acceptance-cleanup-after-cancel.md)
-and its [labelling amendment](../decisions/20261102-label-acceptance-containers.md)
+with `if: always()`. For each entry it kills the recorded process group while
+its leader or runner still runs, then removes the containers, volumes, and
+networks with the project's Compose label, the images named after the project,
+and the state directory. Containers, volumes, and networks that runners create
+outside Compose carry the same label. The step refuses entries outside the
+disposable project and state directory patterns and fails when anything remains.
+Locally, `make clean` removes interrupted acceptance projects. The [cancel
+cleanup decision](../decisions/20261101-acceptance-cleanup-after-cancel.md) and
+its [labelling amendment](../decisions/20261102-label-acceptance-containers.md)
 explain the design.
 
 ## Caching
