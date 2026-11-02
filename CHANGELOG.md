@@ -17,3 +17,6 @@ Notable changes to Raicho. The format follows
   with `deploy/credentials/connector.bash`.
 - Show Thunderbird connection status and failure reasons on the diagnostics page
   and in `/api/status`.
+- Publish the Thunderbird administration desktop to native VNC viewers on
+  loopback port 5900, opened with `make deploy-vnc`.
+- List a deployment's running containers with `make deploy-ps`.

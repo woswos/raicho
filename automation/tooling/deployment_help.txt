@@ -2,16 +2,23 @@
 
 Run these from the repository root on a Linux Docker host. Each target acts on
 one deployment, chosen by RAICHO_PROJECT, then COMPOSE_PROJECT_NAME, then
-"raicho". RAICHO_PORT (8080) and RAICHO_ADMIN_PORT (6080) set loopback ports.
+"raicho". RAICHO_PORT (8080), RAICHO_ADMIN_PORT (6080), and RAICHO_VNC_PORT
+(5900) set loopback ports.
 
 # Start and stop
   make deploy-up      Build the runtime images (make images), then run
                       docker compose up -d --wait. Starts or upgrades the
                       deployment and prints http://127.0.0.1:8080.
   make deploy-admin   deploy-up plus compose.admin.yaml, which opens the
-                      Thunderbird desktop on 127.0.0.1:6080. Run
+                      Thunderbird desktop in a browser on 127.0.0.1:6080 and
+                      to VNC viewers on 127.0.0.1:5900. Run
                       make deploy-up to close it again.
   make deploy-down    docker compose down. Keeps the volumes.
+
+# Inspect
+  make deploy-ps      docker compose ps. Lists the running containers.
+  make deploy-vnc     Open vncviewer on this computer to the desktop that
+                      make deploy-admin publishes.
 
 # Connector credentials
   make deploy-connector-<command>

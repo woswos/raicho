@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 from automation.paths import REPOSITORY_ROOT
-from automation.testing.docker_mock import DockerMock
+from automation.testing.docker_mock import DockerMock, Response
 
 SELECTION = (
     'RAICHO_TOOLING_CONTAINER',
@@ -19,15 +19,20 @@ SELECTION = (
 CREDENTIALS_FILE = f'-f {REPOSITORY_ROOT}/compose.credentials.yaml'
 
 
-def make(*arguments, **environment):
+def run_make(*arguments, **environment):
     host = {name: value for name, value in os.environ.items() if name not in SELECTION}
     return subprocess.run(
         ['make', '--no-print-directory', '-f', str(REPOSITORY_ROOT / 'Makefile'), *arguments],
         env=host | {'TERM': 'dumb'} | environment,
         capture_output=True,
         text=True,
-        check=True,
-    ).stdout
+    )
+
+
+def make(*arguments, **environment):
+    result = run_make(*arguments, **environment)
+    result.check_returncode()
+    return result.stdout
 
 
 def dry_run(target, **environment):
@@ -96,6 +101,54 @@ class DeploymentTests(unittest.TestCase):
         commands = dry_run('deploy-admin', RAICHO_STATE_DIRECTORY=str(self.state))
         self.assertIn(f'-f {REPOSITORY_ROOT}/compose.admin.yaml up -d --wait', commands)
         self.assertIn('/vnc.html?autoconnect=true&resize=remote', commands)
+        self.assertIn('make deploy-vnc', commands)
+
+    def test_the_container_listing_selects_the_deployment(self):
+        self.assertEqual(
+            dry_run('deploy-ps', COMPOSE_PROJECT_NAME='second'),
+            f"docker compose --progress quiet -p 'second' -f {REPOSITORY_ROOT}/compose.yaml ps\n",
+        )
+
+    def fake_viewer(self, docker):
+        viewer = docker.directory / 'vncviewer'
+        viewer.write_text('#!/bin/sh\nprintf "%s\\n" "$@" > "$(dirname "$0")/viewer"\n')
+        viewer.chmod(0o700)
+        return docker.directory / 'viewer'
+
+    def test_the_viewer_opens_the_published_desktop(self):
+        docker = DockerMock(
+            self.state / 'docker', [Response(('port', 'thunderbird', '5900'), output='127.0.0.1:5901\n')], status=1
+        )
+        viewer = self.fake_viewer(docker)
+        make('deploy-vnc', PATH=docker.environment()['PATH'], COMPOSE_PROJECT_NAME='second')
+        self.assertEqual(viewer.read_text(), '127.0.0.1::5901\n')
+        self.assertEqual(
+            docker.commands(),
+            [
+                [
+                    'compose',
+                    '--progress',
+                    'quiet',
+                    '-p',
+                    'second',
+                    '-f',
+                    f'{REPOSITORY_ROOT}/compose.yaml',
+                    'port',
+                    'thunderbird',
+                    '5900',
+                ]
+            ],
+        )
+
+    def test_the_viewer_needs_the_desktop_override(self):
+        for status, output in ((1, ''), (0, ':0\n')):
+            with self.subTest(status=status, output=output):
+                docker = DockerMock(self.state / 'docker', [Response(('port',), status=status, output=output)])
+                viewer = self.fake_viewer(docker)
+                result = run_make('deploy-vnc', PATH=docker.environment()['PATH'])
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn('Run make deploy-admin first.', result.stderr)
+                self.assertFalse(viewer.exists())
 
     def test_connector_targets_run_the_matching_command(self):
         for command in ('init', 'rotate', 'verify', 'status', 'revoke', 'reactivate'):

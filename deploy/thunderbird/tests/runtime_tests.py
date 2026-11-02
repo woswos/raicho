@@ -29,9 +29,10 @@ class RuntimeTests(unittest.TestCase):
         self.assertIn('tcp', selected['display'])
         self.assertEqual(selected['thunderbird'][-2:], ['-profile', '/config/profile'])
 
-    def test_administration_binds_vnc_to_loopback(self):
+    def test_administration_serves_vnc_to_published_ports(self):
         selected = commands(True)
-        self.assertIn('-localhost', selected['vnc'])
+        self.assertNotIn('-localhost', selected['vnc'])
+        self.assertEqual(selected['vnc'][selected['vnc'].index('-rfbport') + 1], '5900')
         self.assertEqual(selected['browser-admin'][-2:], ['6080', '127.0.0.1:5900'])
 
     def test_process_identity_detects_exited_process(self):

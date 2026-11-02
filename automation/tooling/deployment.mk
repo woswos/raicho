@@ -28,9 +28,19 @@ deploy-admin: images
 	@$(DEPLOYMENT) $@ $(DEPLOYED_COMPOSE) -f $(REPOSITORY_ROOT)compose.admin.yaml up -d --wait
 	@$(APPLICATION_ADDRESS)
 	@echo "Thunderbird desktop: http://127.0.0.1:$${RAICHO_ADMIN_PORT:-6080}/vnc.html?autoconnect=true&resize=remote"
+	@echo "Thunderbird VNC: 127.0.0.1::$${RAICHO_VNC_PORT:-5900}, opened by make deploy-vnc"
 
 deploy-down:
 	@$(STEP) $@ $(DEPLOYMENT_COMPOSE) down
+
+deploy-ps:
+	@$(DEPLOYMENT_COMPOSE) ps
+
+deploy-vnc:
+	@command -v vncviewer >/dev/null || { echo 'make deploy-vnc needs vncviewer, such as TigerVNC.' >&2; exit 1; }
+	@ADDRESS="$$($(DEPLOYMENT_COMPOSE) port thunderbird 5900 2>/dev/null)"; \
+	    case "$${ADDRESS}" in ?*:[1-9]*) ;; *) echo 'The Thunderbird VNC port is not published. Run make deploy-admin first.' >&2; exit 1 ;; esac; \
+	    vncviewer "$${ADDRESS%:*}::$${ADDRESS##*:}"
 
 deploy-clean: tooling-image
 	@$(QUIET_DOCKER) $(STEP) $@ bash $(REPOSITORY_ROOT)automation/tooling/deploy_clean.bash

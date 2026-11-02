@@ -65,7 +65,7 @@ connection, as the [credential setup](docs/operations/connector-credentials.md)
 describes. `make deploy-down` stops it and keeps its data, and `make deploy` lists
 every deployment target. The
 [local runtime guide](docs/operations/local-runtime.md) covers optional browser
-administration, disposable profiles, persistence checks, and stopping services.
+and VNC administration, disposable profiles, persistence checks, and stopping services.
 
 Run development checks and tests with GNU Make:
 

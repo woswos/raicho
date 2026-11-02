@@ -16,7 +16,7 @@ Thunderbird container. The server serves the TypeScript diagnostics page and
 initializes SQLite with backend configuration and keys derived from the connector
 token. Its status reports the [product version](versioning.md) and the build
 commit. Thunderbird owns a separate profile volume. Its internal display starts without a viewer, and a
-local override enables browser administration. Separate Compose networks prevent
+local override enables browser and native VNC administration. Separate Compose networks prevent
 Raicho from reaching Thunderbird's administrative listener. Both retain provider
 internet access. The image includes a TypeScript extension with a persistent
 background page and generated enterprise policy. It is inactive without managed
@@ -72,7 +72,7 @@ flowchart LR
     Provisioner[Offline credential command] --> State
     Token[Private host token] --> Provisioner
     Token --> Thunderbird
-    Admin[Optional local browser desktop] -.-> Display[Internal display]
+    Admin[Optional local browser or VNC desktop] -.-> Display[Internal display]
     Display --> Thunderbird[Thunderbird]
     Thunderbird --> Profile[(Thunderbird profile)]
     Thunderbird --> Extension[Packaged extension]

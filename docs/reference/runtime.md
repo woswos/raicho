@@ -125,10 +125,13 @@ WebSocket route `/connector/v1`. Compose never publishes it. Authentication and
 transport bounds are defined in the [connector contract](connector-contract.md).
 
 `RAICHO_ADMIN_ENABLED=true` starts remote desktop support. Only
-`compose.admin.yaml` enables it and publishes loopback port `RAICHO_ADMIN_PORT`,
-default 6080. This administrative interface has no application authentication.
-Keep it local, close it by recreating Thunderbird without the override, and use
-the Raicho page for diagnostics. Remote deployment and browser login are planned
+`compose.admin.yaml` enables it. It publishes noVNC on loopback port
+`RAICHO_ADMIN_PORT`, default 6080, and x11vnc on loopback port `RAICHO_VNC_PORT`,
+default 5900, for native viewers. This administrative interface has no application
+authentication or VNC password. Keep it local, close it by recreating Thunderbird
+without the override, and use the Raicho page for diagnostics. The
+[native VNC decision](../decisions/20261102-native-vnc-administration.md) records
+the second port. Remote deployment and browser login are planned
 in the [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md).
 
 ## Extension installation
@@ -179,12 +182,13 @@ at `/connector/v1` and forwards to `raicho:8082`. Alternate paths, queries, meth
 and arbitrary destinations are rejected. Docker DNS is re-resolved so a changed
 Raicho IP requires no gateway recreation. HTTP access logs are disabled.
 
-The administrative override publishes only on host loopback. Use Docker Engine
-28 or newer, since older versions have a
+The administrative override publishes both of its ports only on host loopback.
+Inside the container, websockify and x11vnc listen on every interface, which
+Raicho cannot reach. Use Docker Engine 28 or newer, since older versions have a
 [localhost publication limitation](https://docs.docker.com/engine/network/port-publishing/).
 The [disposable checks](../operations/local-runtime.md#disposable-automated-checks)
-verify loopback access, denial from Raicho to the actual Thunderbird IP, and
-listener closure after removing the override.
+verify loopback access to each port, denial from Raicho to the actual Thunderbird
+IP, and listener closure after removing the override.
 
 ## SQLite initialization and migrations
 

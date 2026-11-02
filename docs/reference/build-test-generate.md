@@ -56,6 +56,8 @@ xterm terminal.
 | `deploy-up` | Build the runtime images, then start or upgrade the deployment, on the host |
 | `deploy-admin` | `deploy-up` with the Thunderbird desktop, on the host |
 | `deploy-down` | Stop the deployment and keep its volumes, on the host |
+| `deploy-ps` | List the deployment's running containers, on the host |
+| `deploy-vnc` | Open `vncviewer` on the desktop that `deploy-admin` publishes, on the host |
 | `deploy-clean` | After you confirm, delete the deployment with its volumes and state directory, then run `clean`, on the host |
 | `deploy-connector-<command>` | Build the runtime images, then run that [credential command](../operations/connector-credentials.md), on the host |
 | `acceptance` | Every disposable deployment suite, on the host |
