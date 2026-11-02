@@ -15,11 +15,6 @@ DEPLOYMENT = $(if $(ENROLLED),RAICHO_CREDENTIAL_DIRECTORY=$(QUOTED_CREDENTIALS) 
 DEPLOYED_COMPOSE = $(strip $(DEPLOYMENT_COMPOSE) $(if $(ENROLLED),-f $(REPOSITORY_ROOT)compose.credentials.yaml))
 APPLICATION_ADDRESS := echo "Raicho: http://127.0.0.1:$${RAICHO_PORT:-8080}"
 
-deploy:
-	@DEPLOYMENT_PROJECT=$(QUOTED_PROJECT) DEPLOYMENT_STATE=$(call shell_quote,$(DEPLOYMENT_STATE)) \
-	    DEPLOYMENT_ENROLLED='$(ENROLLED)' \
-	    bash $(REPOSITORY_ROOT)automation/tooling/deployment_help.bash
-
 deploy-up: images
 	@$(DEPLOYMENT) $@ $(DEPLOYED_COMPOSE) up -d --wait
 	@$(APPLICATION_ADDRESS)

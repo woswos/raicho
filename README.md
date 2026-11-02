@@ -62,8 +62,8 @@ Open <http://127.0.0.1:8080> for diagnostics. Thunderbird starts without a viewe
 with its profile in a separate persistent volume. The connector starts
 unconfigured. Run `make deploy-connector-init` to establish its authenticated
 connection, as the [credential setup](docs/operations/connector-credentials.md)
-describes. `make deploy-down` stops it and keeps its data, and `make deploy` lists
-every deployment target. The
+describes. `make deploy-down` stops it and keeps its data, and `make help` lists
+every target. The
 [local runtime guide](docs/operations/local-runtime.md) covers optional browser
 and VNC administration, disposable profiles, persistence checks, and stopping services.
 

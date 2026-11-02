@@ -11,7 +11,7 @@ CONTAINER_TARGETS := test lint generate lint-repo lint-pr test-python test-tooli
     check-patch-coverage audit $(QUALITY_TARGETS) $(APPLICATION_TARGETS) $(PROTOCOL_TARGETS)
 WRITING_TARGETS := format format-bash format-python format-javascript format-rust format-sql format-spelling \
     generate generate-protocol
-DEPLOYMENT_TARGETS := deploy deploy-up deploy-admin deploy-restart deploy-down deploy-ps deploy-health \
+DEPLOYMENT_TARGETS := deploy-up deploy-admin deploy-restart deploy-down deploy-ps deploy-health \
     deploy-logs deploy-shell deploy-vnc deploy-clean \
     $(addprefix deploy-connector-,init rotate verify status revoke reactivate)
 HOST_TARGETS := images acceptance acceptance-runtime acceptance-connector acceptance-credentials \
@@ -38,8 +38,10 @@ STEP := bash $(REPOSITORY_ROOT)automation/tooling/step.bash
 .DEFAULT_GOAL := help
 .PHONY: help $(CONTAINER_TARGETS) $(HOST_TARGETS)
 
+# Only the host loads deployment.mk, so the container's guide leaves out the selected deployment.
 help:
-	@bash $(REPOSITORY_ROOT)automation/tooling/guide.bash $(REPOSITORY_ROOT)automation/tooling/help.txt
+	@DEPLOYMENT_PROJECT=$(QUOTED_PROJECT) DEPLOYMENT_STATE=$(call shell_quote,$(DEPLOYMENT_STATE)) \
+	    DEPLOYMENT_ENROLLED='$(ENROLLED)' bash $(REPOSITORY_ROOT)automation/tooling/help.bash
 
 ifdef RAICHO_TOOLING_CONTAINER
 include $(REPOSITORY_ROOT)automation/tooling/container.mk

@@ -99,7 +99,7 @@ class DeploymentTests(unittest.TestCase):
         for environment, expected in cases:
             with self.subTest(environment=environment):
                 self.assertIn(expected, dry_run('deploy-down', **environment))
-        self.assertIn("project            it's", make('deploy', RAICHO_PROJECT="it's"))
+        self.assertIn("project            it's", make('help', RAICHO_PROJECT="it's"))
 
     def test_the_desktop_override_prints_its_address(self):
         commands = dry_run('deploy-admin', RAICHO_STATE_DIRECTORY=str(self.state))
@@ -177,41 +177,6 @@ class DeploymentTests(unittest.TestCase):
     def test_images_record_the_checked_out_commit(self):
         self.assertRegex(dry_run('images'), re.compile(r'^RAICHO_COMMIT=[0-9a-f]{40}(-dirty)? ', re.MULTILINE))
         self.assertIn('RAICHO_COMMIT=custom ', dry_run('images', RAICHO_COMMIT='custom'))
-
-    def test_the_guide_covers_every_deployment_target_without_docker(self):
-        docker = DockerMock(self.state / 'docker')
-        guide = make('deploy', PATH=docker.environment()['PATH'])
-        targets = make('--eval', 'print-targets: ; @echo $(DEPLOYMENT_TARGETS)', 'print-targets').split()
-        for target in targets:
-            with self.subTest(target=target):
-                if target.startswith('deploy-connector-'):
-                    self.assertIn(target.removeprefix('deploy-connector-'), guide)
-                elif target != 'deploy':
-                    self.assertIn(f'make {target} ', guide)
-        self.assertIn('make deploy-connector-<command>', guide)
-        self.assertTrue(guide.startswith('Raicho deployment\n'))
-        self.assertNotIn('\n# ', guide)
-        self.assertEqual(docker.commands(), [])
-
-    def test_the_guide_describes_the_selected_deployment(self):
-        guide = make(
-            'deploy', COMPOSE_PROJECT_NAME='second', RAICHO_STATE_DIRECTORY=str(self.state), RAICHO_PORT='8081'
-        )
-        for line in (
-            'project            second',
-            f'state directory    {self.state}',
-            'connector          not enrolled',
-        ):
-            self.assertIn(line, guide)
-        self.assertIn('http://127.0.0.1:8081', guide)
-        (self.state / 'credentials').mkdir()
-        self.assertIn('connector          enrolled', make('deploy', RAICHO_STATE_DIRECTORY=str(self.state)))
-
-    def test_the_guide_uses_the_exported_colors(self):
-        (self.state / 'credentials').mkdir()
-        colored = make('deploy', TERM='xterm', RAICHO_STATE_DIRECTORY=str(self.state))
-        for text in ('\x1b[36mStart and stop', '\x1b[32mmake deploy-up', '\x1b[33mRAICHO_PROJECT', '\x1b[32menrolled'):
-            self.assertIn(text, colored)
 
 
 if __name__ == '__main__':

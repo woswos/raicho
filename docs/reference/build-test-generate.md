@@ -46,7 +46,7 @@ xterm terminal.
 
 | Target | Behavior |
 | --- | --- |
-| `help` | Print the development guide, colored on xterm terminals. The default goal |
+| `help` | Print every target, then on the host the selected deployment's project, state directory, enrollment, and address, colored on xterm terminals. The default goal |
 | `test` | Every source suite: Python, tooling fixtures, server, web, extension, mail probe, and protocol |
 | `lint` | Repository guards, language linters, spelling, formatting and type checks, and protocol generation drift |
 | `format` | Rewrite files in the documented formatting scope |
@@ -56,7 +56,6 @@ xterm terminal.
 | `benchmark` | Rust benchmarks, each compared with its previous run |
 | `audit` | Check every lockfile against known security advisories, with network access |
 | `images` | Runtime images only |
-| `deploy` | Print the deployment guide and the selected deployment's project, state directory, enrollment, and address, colored on xterm terminals |
 | `deploy-up` | Build the runtime images, then start or upgrade the deployment, on the host |
 | `deploy-admin` | `deploy-up` with the Thunderbird desktop, on the host |
 | `deploy-restart` | Restart the deployment's containers, or `SERVICE=`, without rebuilding or recreating them, on the host |
