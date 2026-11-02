@@ -44,9 +44,18 @@ def browser_route():
     print('Browser listener does not expose the connector')
 
 
+CHECKS = {
+    'routes': gateway_routes,
+    'browser': browser_route,
+    'deployment': deployment,
+    'snapshot': snapshot,
+    'idle': observe_idle,
+}
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=('wait', 'routes', 'browser', 'deployment', 'snapshot', 'idle'))
+    parser.add_argument('mode', choices=('wait', *CHECKS))
     parser.add_argument('--status', default='connected')
     parser.add_argument('--previous-generation')
     parser.add_argument('--minimum-heartbeats', type=int, default=1)
@@ -55,13 +64,7 @@ def main():
     if arguments.mode == 'wait':
         wait_for_status(arguments)
     else:
-        {
-            'routes': gateway_routes,
-            'browser': browser_route,
-            'deployment': deployment,
-            'snapshot': snapshot,
-            'idle': observe_idle,
-        }[arguments.mode]()
+        CHECKS[arguments.mode]()
 
 
 if __name__ == '__main__':
