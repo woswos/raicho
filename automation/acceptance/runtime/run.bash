@@ -5,6 +5,8 @@ set -euo pipefail
 SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPOSITORY_ROOT="$(cd "${SCRIPT_DIRECTORY}/../../.." && pwd)"
 cd "${REPOSITORY_ROOT}"
+# shellcheck source=automation/acceptance/project_record.bash
+source automation/acceptance/project_record.bash
 
 export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-raicho-runtime-$(date -u +%Y%m%d%H%M%S)-${RANDOM}}"
 export COMPOSE_FILE=compose.yaml:automation/acceptance/runtime/compose.test.yaml
@@ -12,6 +14,7 @@ if [[ ${COMPOSE_PROJECT_NAME} == raicho ]]; then
     echo 'FAIL: the runtime check removes its project; choose a disposable COMPOSE_PROJECT_NAME' >&2
     exit 1
 fi
+record_project "${COMPOSE_PROJECT_NAME}"
 
 cleanup() {
     local RESULT="${?}"

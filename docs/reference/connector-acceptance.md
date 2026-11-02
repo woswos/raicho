@@ -14,7 +14,9 @@ profile, and generated fixture credentials. Production checks use control traffi
 and fictional rejection canaries, without mail accounts. The separate mail
 experiment uses fictional GreenMail accounts on an internal network. No personal
 profile or provider credential is used. Each runner removes its owned containers,
-volumes, networks, temporary credentials, and fixture image tags.
+volumes, networks, temporary credentials, and fixture image tags. In CI a final
+step removes them after a cancellation or timeout, as
+[acceptance cleanup](ci-cd.md#acceptance-cleanup) describes.
 
 | Runner | Verifies |
 | --- | --- |

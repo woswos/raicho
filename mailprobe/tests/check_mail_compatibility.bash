@@ -5,6 +5,8 @@ set -euo pipefail
 SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPOSITORY_ROOT="$(cd "${SCRIPT_DIRECTORY}/../.." && pwd)"
 cd "${REPOSITORY_ROOT}"
+# shellcheck source=automation/acceptance/project_record.bash
+source automation/acceptance/project_record.bash
 
 NATIVE=false
 if [[ ${#} == 1 && ${1} == --native ]]; then
@@ -15,6 +17,7 @@ elif [[ ${#} != 0 ]]; then
 fi
 
 PROJECT="raicho-mail-$(date -u +%Y%m%d%H%M%S)-${RANDOM}"
+record_project "${PROJECT}"
 export RAICHO_TEST_TOOLING_IMAGE="${PROJECT}:tools"
 export RAICHO_MAIL_TEST_IMAGE="${PROJECT}:thunderbird"
 COMPOSE=(docker compose -p "${PROJECT}" -f mailprobe/compose.yaml)

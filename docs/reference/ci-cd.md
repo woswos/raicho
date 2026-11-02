@@ -31,10 +31,11 @@ release workflows always finish.
   build's Cargo cache for later PRs.
 
 The acceptance jobs run `make acceptance-runtime`, `make acceptance-connector` and
-`make acceptance-credentials`, and `make acceptance-mail`. There are no image
-publication or deployment jobs. Changelog
+`make acceptance-credentials`, and `make acceptance-mail`, each under `setsid`.
+There are no image publication or deployment jobs. Changelog
 releases are separate workflows described below. Runtime tests
-use no accounts and remove only their job-specific containers and volumes.
+use no accounts and remove only their job-specific resources, as
+[acceptance cleanup](#acceptance-cleanup) describes.
 
 Language jobs build the same pinned tooling image used locally. Runtime jobs
 build the application images and use that tooling image for the smoke driver.
@@ -45,7 +46,7 @@ Sources remain read-only, with separate cache/temp storage. No formatter writes
 or lint fixes run in CI. Jobs run on the
 repository's self-hosted runners, labeled `self-hosted`, `Linux`, and `X64`. Each
 runner host provides Docker Engine 28 or newer with Compose 2.24 or newer and
-Buildx, Git, GNU Make, Bash, `flock`, and `timeout`. The release workflows install
+Buildx, Git, GNU Make, Bash, `flock`, `setsid`, and `timeout`. The release workflows install
 Python 3.13 with `actions/setup-python` and need the GitHub CLI. Language tools come from the image. Runners
 keep Docker images and volumes between jobs, so prune them occasionally. Run only
 one runner per Docker host, because jobs use fixed image tags, Compose project
@@ -77,12 +78,51 @@ The [credential](build-test-generate.md#credential-persistence),
 [production connector](build-test-generate.md#production-connector), and
 [mail compatibility](build-test-generate.md#mail-api-compatibility) runners use
 the same commands locally and in their dedicated jobs. Each owns its disposable
-project and traps exit, including failures, to remove its resources.
+project and traps exit, including failures, to remove its resources. A cancelled
+job never reaches those traps, so its final step removes them instead.
 The connector job allows 60 minutes and compatibility allows 45 minutes for cold
 builds and runtime checks. They have no dependencies on the optional build job.
 The [compatibility matrix](mail-api-compatibility.md#running-the-experiment) lists
 the mail checks that stay manual. See [acceptance evidence](connector-acceptance.md)
 for scope and limits.
+
+## Acceptance cleanup
+
+When GitHub cancels a run or a job times out, the runner signals only the entry
+shell of the running step. That shell exits, but the acceptance runner below it
+receives no signal and keeps running until the job ends, so its exit trap never
+removes its deployment. Each acceptance step therefore starts its Make target
+under `setsid`, which puts the runner and its Docker commands in their own
+process group. When `RAICHO_ACCEPTANCE_RECORD` names a file, every runner
+sources [project_record.bash](../../automation/acceptance/project_record.bash)
+and appends its process group, the start time of that group's leader, its own
+process ID and start time, its Compose project, and any state directory to that
+file before it creates any Docker resource. The jobs keep the record in the
+runner's temporary directory, which the runner empties at the start of each job.
+Local runs set no record.
+
+The last step of each acceptance job runs
+[remove_recorded_projects.bash](../../automation/acceptance/remove_recorded_projects.bash)
+with `if: always()`, which GitHub also runs after a cancellation. For each entry
+whose group leader or runner is still running in the recorded group with its
+recorded start time, it kills the process group, so the runner cannot recreate
+anything. Checking the runner as well covers a leader that was killed on its
+own. A group with neither left is not killed, because Linux can reuse its ID.
+The step then removes the containers attached to the project's networks or
+volumes, the containers, volumes, and networks with the project's exact Compose
+label, and any remaining volumes and networks whose names start with the
+`<project>_` prefix that Compose gives them. That prefix also finds a volume
+that a fixture container created before Compose did, which has no project label.
+It then removes images in the repository named after the project, and the state
+directory. It fails when any of them remains. It refuses an entry that names its
+own process group, a project outside the disposable
+`raicho-<suite>-<timestamp>-<number>` pattern, or a state directory that is not
+a `raicho-<suite>.XXXXXXXX` directory beside the record. It therefore cannot
+stop the CI runner or reach another job's deployment. After a completed run the
+step finds nothing left to remove. Locally, `make clean` removes interrupted
+acceptance projects. The
+[decision record](../decisions/20261101-acceptance-cleanup-after-cancel.md)
+explains this design.
 
 ## Caching
 
