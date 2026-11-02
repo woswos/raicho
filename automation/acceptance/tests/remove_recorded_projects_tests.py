@@ -1,46 +1,17 @@
 import os
-import shlex
 import signal
 import subprocess
 import tempfile
-import time
 import unittest
 from pathlib import Path
 
+from automation.acceptance.tests.process_fixture import kill, start_time, stopped
 from automation.paths import REPOSITORY_ROOT
 from automation.testing.docker_mock import DockerMock, Response
 
-RECORDER = REPOSITORY_ROOT / 'automation/acceptance/project_record.bash'
 REMOVAL = REPOSITORY_ROOT / 'automation/acceptance/remove_recorded_projects.bash'
 PROJECT = 'raicho-connector-20261101120000-42'
 PROJECT_FILTER = f'label=com.docker.compose.project={PROJECT}'
-
-
-def start_time(process):
-    try:
-        status = Path(f'/proc/{process}/stat').read_text()
-    except FileNotFoundError:
-        return '0'
-    return status.rsplit(') ', 1)[1].split()[19]
-
-
-def stopped(process):
-    for _ in range(100):
-        try:
-            state = Path(f'/proc/{process}/stat').read_text().rsplit(') ', 1)[1].split()[0]
-        except FileNotFoundError:
-            return True
-        if state == 'Z':
-            return True
-        time.sleep(0.1)
-    return False
-
-
-def kill(process):
-    try:
-        os.kill(process, signal.SIGKILL)
-    except ProcessLookupError:
-        pass
 
 
 def entry(runner, project=PROJECT, state=''):
@@ -48,23 +19,12 @@ def entry(runner, project=PROJECT, state=''):
     return (runner.pid, start, runner.pid, start, project, state)
 
 
-class RecordedProjectTests(unittest.TestCase):
+class RemoveRecordedProjectsTests(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory(prefix='raicho-record-test-')
         self.addCleanup(temporary.cleanup)
         self.directory = Path(temporary.name)
         self.record = self.directory / 'record'
-
-    def record_project(self, *arguments, **variables):
-        inherited = {name: value for name, value in os.environ.items() if name != 'RAICHO_ACCEPTANCE_RECORD'}
-        script = f'source {shlex.quote(str(RECORDER))}\nrecord_project "$@"\necho "$$"'
-        return subprocess.run(
-            ['bash', '-euo', 'pipefail', '-c', script, 'record', *arguments],
-            env=inherited | variables,
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.strip()
 
     def runner(self):
         runner = subprocess.Popen(['sleep', '60'], start_new_session=True)
@@ -85,24 +45,6 @@ class RecordedProjectTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, status, result.stderr)
         return docker.commands(), result
-
-    def test_records_the_runner_process_group_with_its_project(self):
-        state = '/tmp/raicho-connector.Ab3dE5gH'
-        workers = [
-            self.record_project(PROJECT, state, RAICHO_ACCEPTANCE_RECORD=str(self.record)),
-            self.record_project('raicho-ci-123-1', RAICHO_ACCEPTANCE_RECORD=str(self.record)),
-        ]
-        group = os.getpgrp()
-        lines = [line.split('\t') for line in self.record.read_text().splitlines()]
-        self.assertEqual(
-            [fields[:3] for fields in lines], [[str(group), start_time(group), worker] for worker in workers]
-        )
-        self.assertTrue(all(fields[3].isdigit() and fields[3] != '0' for fields in lines))
-        self.assertEqual([fields[4:] for fields in lines], [[PROJECT, state], ['raicho-ci-123-1', '']])
-
-    def test_records_nothing_without_a_record_path(self):
-        self.record_project(PROJECT)
-        self.assertEqual(list(self.directory.iterdir()), [])
 
     def test_stops_the_runner_and_removes_only_its_project(self):
         runner = self.runner()
