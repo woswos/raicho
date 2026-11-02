@@ -141,7 +141,10 @@ through `ExtensionSettings`. The stable ID is `connector@raicho`. Runtime startu
 generates `/tmp/raicho-runtime/policies.json` atomically with mode 0600 under a
 0700 directory. The normal Thunderbird policy path is a baked symlink to it.
 The policy preserves `DisableAppUpdate`, uses `force_installed`, and disables
-extension background updates. Image updates own the XPI version.
+extension background updates. Image updates own the XPI version. It also sets
+`mail.server.default.check_all_folders_for_new` as a default, not locked,
+preference, so Thunderbird's periodic check refreshes every known IMAP folder. The
+[synchronization decision](../decisions/20261103-mail-synchronization.md) explains why.
 
 Without connector configuration the extension is inactive. The credentials override
 sets `RAICHO_CONNECTOR_ENDPOINT` and `RAICHO_CONNECTOR_TOKEN_FILE` together.
