@@ -36,7 +36,6 @@ def commands(administration):
             'x11vnc',
             '-display',
             ':99',
-            '-localhost',
             '-rfbport',
             '5900',
             '-forever',

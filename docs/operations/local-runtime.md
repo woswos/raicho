@@ -19,8 +19,8 @@ docker compose --env-file .env config --quiet
 
 ## Start and inspect
 
-From the repository root, `make deploy` prints an overview of the deployment
-targets and the deployment they would act on. To start it:
+From the repository root, `make help` lists the deployment targets with every
+other target, then the deployment they would act on. To start it:
 
 ```bash
 make deploy-up
@@ -43,7 +43,21 @@ make deploy-admin
 Open <http://127.0.0.1:6080/vnc.html?autoconnect=true&resize=remote>. This is the
 native Thunderbird desktop for setup and recovery. Foundation checks use empty
 profiles and no provider credentials. `make deploy-up` disables the
-administrative listener again, because Compose recreates Thunderbird without it.
+administrative listeners again, because Compose recreates Thunderbird without them.
+
+The same desktop is published to native VNC viewers on `127.0.0.1:5900`, set by
+`RAICHO_VNC_PORT`. On the deployment computer, open it with TigerVNC:
+
+```bash
+make deploy-vnc
+```
+
+The target fails until `make deploy-admin` has published the port, and it never
+starts or recreates Thunderbird. Keep both ports on loopback, as
+[network isolation](../reference/runtime.md#network-isolation) explains. From
+another computer, tunnel them over SSH, for example with
+`ssh -L 6080:127.0.0.1:6080 -L 5900:127.0.0.1:5900 <host>`. See the
+[native VNC decision](../decisions/20261102-native-vnc-administration.md).
 
 Once a deployment has a `credentials/` directory in its state directory, the
 `deploy-` targets add `compose.credentials.yaml` and set
@@ -51,8 +65,12 @@ Once a deployment has a `credentials/` directory in its state directory, the
 include both, because recreating Thunderbird without the credentials override
 disables its connector configuration.
 
-Inspect failures with `docker compose logs` and
-`docker compose ps`. To stop while retaining both volumes:
+`make help` lists the targets that inspect the selected deployment:
+`deploy-ps`, `deploy-health`, `deploy-logs`, and `deploy-shell`. For example,
+`make deploy-logs SERVICE=thunderbird FOLLOW=1` follows one service's logs.
+`make deploy-restart` restarts containers without recreating them, so
+credential mounts and the administration override stay as they are. To stop
+while retaining both volumes:
 
 ```bash
 make deploy-down
@@ -70,7 +88,7 @@ on the same project. The equivalent `-p` option must be included on every comman
 For example, in a separate shell:
 
 ```bash
-export COMPOSE_PROJECT_NAME=raicho-second RAICHO_PORT=8081 RAICHO_ADMIN_PORT=6081
+export COMPOSE_PROJECT_NAME=raicho-second RAICHO_PORT=8081 RAICHO_ADMIN_PORT=6081 RAICHO_VNC_PORT=5901
 make deploy-up
 ```
 
@@ -140,7 +158,8 @@ only that project's resources. Test overrides publish no application host port.
 Fixture seeding requires both services stopped. Fixtures add a test-only SQLite
 record and Thunderbird preference, not production tables or account data.
 Run it on a Linux Docker host. The administration check temporarily publishes
-an ephemeral loopback port and uses containerized probes in the host network.
+ephemeral loopback ports for noVNC and VNC and uses containerized probes in the
+host network.
 It restores Thunderbird without administration before returning.
 
 ```bash
@@ -149,8 +168,8 @@ make acceptance-runtime
 
 Expected evidence: HTTP/asset isolation passes, SQLite contents and actual
 Thunderbird preferences survive recreation, and Raicho stays ready with
-Thunderbird stopped. Administration is reachable on host loopback, inaccessible
-from Raicho by container IP, and closed after removing the override.
+Thunderbird stopped. Both administrative ports are reachable on host loopback,
+inaccessible from Raicho by container IP, and closed after removing the override.
 Process supervision tests and migration failure cases run
 through the [application test commands](../reference/build-test-generate.md).
 Visual administration verification is separate from these automated checks.

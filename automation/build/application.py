@@ -17,9 +17,10 @@ def run(arguments, **options):
     return subprocess.run(arguments, cwd=REPOSITORY_ROOT, check=True, **options)
 
 
-def cargo_test(arguments, env=None):
+def cargo_test(arguments, env=None, capture=False):
     command = ['cargo', 'test', *arguments]
-    if (env or os.environ).get('CARGO_TERM_QUIET') != 'true':
+    quiet = (env or os.environ).get('CARGO_TERM_QUIET') == 'true'
+    if not quiet and not capture:
         return run(command, env=env)
     result = subprocess.run(
         command,
@@ -30,10 +31,24 @@ def cargo_test(arguments, env=None):
         text=True,
         check=False,
     )
-    if result.returncode:
+    if result.returncode or not quiet:
         sys.stdout.write(result.stdout)
+    if result.returncode:
         raise subprocess.CalledProcessError(result.returncode, command)
-    print(test_summary(result.stdout), flush=True)
+    if quiet:
+        print(test_summary(result.stdout), flush=True)
+    return result
+
+
+def server_tests():
+    # Rust tests must not see the caller's test filter.
+    name = os.environ.pop('TEST', '')
+    if not name:
+        return cargo_test(CARGO_WORKSPACE)
+    result = cargo_test([*CARGO_WORKSPACE, '--', name], capture=True)
+    if sum(passed_counts(result.stdout)) == 0:
+        print(f'FAIL: no tests matched TEST={name}', file=sys.stderr)
+        raise SystemExit(1)
     return result
 
 
@@ -48,9 +63,13 @@ def cargo_bench():
     return result
 
 
+def passed_counts(output):
+    return [int(count) for count in re.findall(r'^test result: ok\. (\d+) passed', output, re.MULTILINE)]
+
+
 def test_summary(output):
-    results = re.findall(r'^test result: ok\. (\d+) passed', output, re.MULTILINE)
-    return f'Rust: {sum(map(int, results))} tests passed in {len(results)} test binaries'
+    counts = passed_counts(output)
+    return f'Rust: {sum(counts)} tests passed in {len(counts)} test binaries'
 
 
 def node_test(test_arguments, tests, environment):
@@ -108,7 +127,7 @@ def web(testing=False, build_arguments=(), test_arguments=None):
 # Each entry looks its function up when called, so tests can patch the module.
 TARGETS = {
     'build-server': lambda: run(['cargo', 'build', *CARGO_WORKSPACE]),
-    'test-server': lambda: cargo_test(CARGO_WORKSPACE),
+    'test-server': lambda: server_tests(),
     'build-web': lambda: web(testing=False),
     'test-web': lambda: web(testing=True),
     'build-extension': lambda: extension(REPOSITORY_ROOT / 'extension', testing=False),

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Print the deployment guide, then the deployment that the deploy- targets select.
+# Print the target guide, then the deployment that the deploy- targets select when Make names one.
 set -euo pipefail
 
 HEADING="${COLOR_CYAN:-}"
@@ -10,8 +10,12 @@ RESET="${COLOR_RESET:-}"
 sed -E \
     -e "s/^# (.*)$/${HEADING}\1${RESET}/" \
     -e "s/make [a-z<>-]+/${COMMAND}&${RESET}/g" \
-    -e "s/(RAICHO|COMPOSE)_[A-Z_]+|VERBOSE=1/${VALUE}&${RESET}/g" \
-    "$(dirname "${BASH_SOURCE[0]}")/deployment_help.txt"
+    -e "s/(RAICHO|COMPOSE|PR)_[A-Z_]+|(VERBOSE|FOLLOW)=1|(TEST|SERVICE)=/${VALUE}&${RESET}/g" \
+    "$(dirname "${BASH_SOURCE[0]}")/help.txt"
+
+if [[ -z ${DEPLOYMENT_PROJECT:-} ]]; then
+    exit 0
+fi
 
 row() {
     printf '  %-18s %s%s%s\n' "${1}" "${2}" "${3}" "${RESET}"

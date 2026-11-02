@@ -34,11 +34,22 @@ def run_suite(index, verbose):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('suite', choices=SUITES)
-    start, pattern = SUITES[parser.parse_args().suite]
+    suite = parser.parse_args().suite
+    start, pattern = SUITES[suite]
     verbose = output.verbose()
-    # Tests must not inherit the caller's output mode.
+    names = os.environ.get('TEST', '').split() if suite == 'python' else []
+    # Tests must not inherit the caller's output mode or test filter.
     os.environ.pop('VERBOSE', None)
-    DISCOVERED[:] = unittest.defaultTestLoader.discover(start, pattern=pattern, top_level_dir='.')
+    os.environ.pop('TEST', None)
+    loader = unittest.defaultTestLoader
+    if names:
+        DISCOVERED[:] = [loader.loadTestsFromName(name) for name in names]
+        empty = [name for name, tests in zip(names, DISCOVERED, strict=True) if tests.countTestCases() == 0]
+        if empty:
+            print(f'FAIL: no tests matched TEST={" ".join(empty)}', file=sys.stderr)
+            return 1
+    else:
+        DISCOVERED[:] = loader.discover(start, pattern=pattern, top_level_dir='.')
     ran = skipped = 0
     successful = True
     # Modules run in separate processes, so their tests share no interpreter state.

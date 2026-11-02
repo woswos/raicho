@@ -40,7 +40,8 @@ Every command stops Raicho and Thunderbird. Successful `init`, `rotate`,
 `reactivate`, and `verify` recreate both services and the gateway, wait for
 their health checks, and require an authenticated heartbeat within 90 seconds.
 `status` and
-`revoke` leave them stopped. Failures also leave services stopped unless service
+`revoke` leave them stopped. For a read-only check of a running deployment, use
+`make deploy-health` instead. Failures also leave services stopped unless service
 recreation itself has already begun. Fix the reported failure before restarting.
 The helper holds a deployment operation lock for the entire sequence. SQLite's
 instance lock independently rejects provisioning while another process owns it.

@@ -19,7 +19,7 @@ ADMIN_COMPOSE=("${BASE_COMPOSE[@]}" -f compose.admin.yaml)
 PROBE=(docker run --rm --pull never --read-only --cap-drop ALL --security-opt no-new-privileges:true
     --label "com.docker.compose.project=${COMPOSE_PROJECT_NAME}" --entrypoint curl)
 CURL_OPTIONS=(--noproxy '*' --connect-timeout 3 --max-time 5 --silent --show-error --output /dev/null)
-export RAICHO_ADMIN_PORT=0
+export RAICHO_ADMIN_PORT=0 RAICHO_VNC_PORT=0
 
 expect_connection_failure() {
     local ALLOWED_STATUSES="${1}"
@@ -31,6 +31,21 @@ expect_connection_failure() {
         echo "FAIL: expected no connection (${ALLOWED_STATUSES}), got status ${RESULT}, connections ${CONNECTIONS}" >&2
         return 1
     fi
+}
+
+expect_vnc_banner() {
+    local ATTEMPT BANNER
+    for ATTEMPT in 1 2 3 4 5 6; do
+        # A telnet transfer never ends by itself, so the time limit stops it after the banner.
+        BANNER="$("${PROBE[@]}" --network host "${RAICHO_IMAGE}" --noproxy '*' --connect-timeout 3 --max-time 2 \
+            --silent "telnet://${VNC_ADDRESS}" </dev/null)" || true
+        if [[ ${BANNER} == 'RFB '* ]]; then
+            return 0
+        fi
+        sleep 1
+    done
+    echo "FAIL: expected a VNC server on ${VNC_ADDRESS} after ${ATTEMPT} attempts" >&2
+    return 1
 }
 
 restore_default() {
@@ -50,6 +65,7 @@ trap restore_default EXIT
 THUNDERBIRD_CONTAINER="$("${ADMIN_COMPOSE[@]}" ps -q thunderbird)"
 mapfile -t THUNDERBIRD_ADDRESSES < <(docker inspect --format '{{range .NetworkSettings.Networks}}{{println .IPAddress}}{{end}}' "${THUNDERBIRD_CONTAINER}" | sed '/^$/d')
 ADMIN_ADDRESS="$("${ADMIN_COMPOSE[@]}" port thunderbird 6080)"
+VNC_ADDRESS="$("${ADMIN_COMPOSE[@]}" port thunderbird 5900)"
 if ((${#THUNDERBIRD_ADDRESSES[@]} != 2)); then
     echo 'FAIL: expected Thunderbird on its egress and connector networks' >&2
     exit 1
@@ -60,29 +76,38 @@ for THUNDERBIRD_ADDRESS in "${THUNDERBIRD_ADDRESSES[@]}"; do
         exit 1
     fi
 done
-if [[ ! ${ADMIN_ADDRESS} =~ ^127\.0\.0\.1:[0-9]+$ ]]; then
-    echo "FAIL: administration must publish on host loopback: ${ADMIN_ADDRESS}" >&2
-    exit 1
-fi
+for ADDRESS in "${ADMIN_ADDRESS}" "${VNC_ADDRESS}"; do
+    if [[ ! ${ADDRESS} =~ ^127\.0\.0\.1:[0-9]+$ ]]; then
+        echo "FAIL: administration must publish on host loopback: ${ADDRESS}" >&2
+        exit 1
+    fi
+done
 
 "${PROBE[@]}" --network host "${RAICHO_IMAGE}" "${CURL_OPTIONS[@]}" --fail \
     --retry 6 --retry-delay 1 --retry-connrefused "http://${ADMIN_ADDRESS}/vnc.html"
+expect_vnc_banner
 for THUNDERBIRD_ADDRESS in "${THUNDERBIRD_ADDRESSES[@]}"; do
-    expect_connection_failure '7 28' "${BASE_COMPOSE[@]}" exec -T raicho curl \
-        "${CURL_OPTIONS[@]}" "http://${THUNDERBIRD_ADDRESS}:6080/vnc.html"
+    for URL in "http://${THUNDERBIRD_ADDRESS}:6080/vnc.html" "telnet://${THUNDERBIRD_ADDRESS}:5900"; do
+        expect_connection_failure '7 28' "${BASE_COMPOSE[@]}" exec -T raicho curl "${CURL_OPTIONS[@]}" "${URL}" </dev/null
+    done
 done
 "${PROBE[@]}" --network host "${RAICHO_IMAGE}" "${CURL_OPTIONS[@]}" --fail \
     "http://${ADMIN_ADDRESS}/vnc.html"
+expect_vnc_banner
 echo 'Administration is reachable on host loopback and isolated from Raicho'
 
 "${BASE_COMPOSE[@]}" up -d --force-recreate --wait --wait-timeout 120 thunderbird
 trap - EXIT
 THUNDERBIRD_CONTAINER="$("${BASE_COMPOSE[@]}" ps -q thunderbird)"
-PUBLISHED_ADMIN="$(docker inspect --format '{{if index .NetworkSettings.Ports "6080/tcp"}}published{{end}}' "${THUNDERBIRD_CONTAINER}")"
-if [[ -n ${PUBLISHED_ADMIN} ]]; then
-    echo 'FAIL: administration port remains published without the override' >&2
-    exit 1
-fi
-expect_connection_failure '7' "${PROBE[@]}" --network "container:${THUNDERBIRD_CONTAINER}" \
-    "${RAICHO_IMAGE}" "${CURL_OPTIONS[@]}" http://127.0.0.1:6080/vnc.html
+for PORT in 6080 5900; do
+    PUBLISHED="$(docker inspect --format "{{if index .NetworkSettings.Ports \"${PORT}/tcp\"}}published{{end}}" "${THUNDERBIRD_CONTAINER}")"
+    if [[ -n ${PUBLISHED} ]]; then
+        echo "FAIL: administration port ${PORT} remains published without the override" >&2
+        exit 1
+    fi
+done
+for URL in http://127.0.0.1:6080/vnc.html telnet://127.0.0.1:5900; do
+    expect_connection_failure '7' "${PROBE[@]}" --network "container:${THUNDERBIRD_CONTAINER}" \
+        "${RAICHO_IMAGE}" "${CURL_OPTIONS[@]}" "${URL}"
+done
 echo 'Administration is unpublished and its listener is closed without the override'

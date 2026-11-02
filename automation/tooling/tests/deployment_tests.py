@@ -6,7 +6,6 @@ import unittest
 from pathlib import Path
 
 from automation.paths import REPOSITORY_ROOT
-from automation.testing.docker_mock import DockerMock
 
 SELECTION = (
     'RAICHO_TOOLING_CONTAINER',
@@ -15,19 +14,31 @@ SELECTION = (
     'RAICHO_STATE_DIRECTORY',
     'RAICHO_COMMIT',
     'VERBOSE',
+    'SERVICE',
+    'FOLLOW',
+    'TEST',
+    # A Make that runs these tests passes its own command-line assignments on through these.
+    'MAKEFLAGS',
+    'MFLAGS',
+    'MAKELEVEL',
 )
 CREDENTIALS_FILE = f'-f {REPOSITORY_ROOT}/compose.credentials.yaml'
 
 
-def make(*arguments, **environment):
+def run_make(*arguments, **environment):
     host = {name: value for name, value in os.environ.items() if name not in SELECTION}
     return subprocess.run(
         ['make', '--no-print-directory', '-f', str(REPOSITORY_ROOT / 'Makefile'), *arguments],
         env=host | {'TERM': 'dumb'} | environment,
         capture_output=True,
         text=True,
-        check=True,
-    ).stdout
+    )
+
+
+def make(*arguments, **environment):
+    result = run_make(*arguments, **environment)
+    result.check_returncode()
+    return result.stdout
 
 
 def dry_run(target, **environment):
@@ -90,12 +101,18 @@ class DeploymentTests(unittest.TestCase):
         for environment, expected in cases:
             with self.subTest(environment=environment):
                 self.assertIn(expected, dry_run('deploy-down', **environment))
-        self.assertIn("project            it's", make('deploy', RAICHO_PROJECT="it's"))
 
     def test_the_desktop_override_prints_its_address(self):
         commands = dry_run('deploy-admin', RAICHO_STATE_DIRECTORY=str(self.state))
         self.assertIn(f'-f {REPOSITORY_ROOT}/compose.admin.yaml up -d --wait', commands)
         self.assertIn('/vnc.html?autoconnect=true&resize=remote', commands)
+        self.assertIn('make deploy-vnc', commands)
+
+    def test_the_container_listing_selects_the_deployment(self):
+        self.assertEqual(
+            dry_run('deploy-ps', COMPOSE_PROJECT_NAME='second'),
+            f"docker compose --progress quiet -p 'second' -f {REPOSITORY_ROOT}/compose.yaml ps\n",
+        )
 
     def test_connector_targets_run_the_matching_command(self):
         for command in ('init', 'rotate', 'verify', 'status', 'revoke', 'reactivate'):
@@ -106,41 +123,6 @@ class DeploymentTests(unittest.TestCase):
     def test_images_record_the_checked_out_commit(self):
         self.assertRegex(dry_run('images'), re.compile(r'^RAICHO_COMMIT=[0-9a-f]{40}(-dirty)? ', re.MULTILINE))
         self.assertIn('RAICHO_COMMIT=custom ', dry_run('images', RAICHO_COMMIT='custom'))
-
-    def test_the_guide_covers_every_deployment_target_without_docker(self):
-        docker = DockerMock(self.state / 'docker')
-        guide = make('deploy', PATH=docker.environment()['PATH'])
-        targets = make('--eval', 'print-targets: ; @echo $(DEPLOYMENT_TARGETS)', 'print-targets').split()
-        for target in targets:
-            with self.subTest(target=target):
-                if target.startswith('deploy-connector-'):
-                    self.assertIn(target.removeprefix('deploy-connector-'), guide)
-                elif target != 'deploy':
-                    self.assertIn(f'make {target} ', guide)
-        self.assertIn('make deploy-connector-<command>', guide)
-        self.assertTrue(guide.startswith('Raicho deployment\n'))
-        self.assertNotIn('\n# ', guide)
-        self.assertEqual(docker.commands(), [])
-
-    def test_the_guide_describes_the_selected_deployment(self):
-        guide = make(
-            'deploy', COMPOSE_PROJECT_NAME='second', RAICHO_STATE_DIRECTORY=str(self.state), RAICHO_PORT='8081'
-        )
-        for line in (
-            'project            second',
-            f'state directory    {self.state}',
-            'connector          not enrolled',
-        ):
-            self.assertIn(line, guide)
-        self.assertIn('http://127.0.0.1:8081', guide)
-        (self.state / 'credentials').mkdir()
-        self.assertIn('connector          enrolled', make('deploy', RAICHO_STATE_DIRECTORY=str(self.state)))
-
-    def test_the_guide_uses_the_exported_colors(self):
-        (self.state / 'credentials').mkdir()
-        colored = make('deploy', TERM='xterm', RAICHO_STATE_DIRECTORY=str(self.state))
-        for text in ('\x1b[36mStart and stop', '\x1b[32mmake deploy-up', '\x1b[33mRAICHO_PROJECT', '\x1b[32menrolled'):
-            self.assertIn(text, colored)
 
 
 if __name__ == '__main__':

@@ -15,11 +15,6 @@ DEPLOYMENT = $(if $(ENROLLED),RAICHO_CREDENTIAL_DIRECTORY=$(QUOTED_CREDENTIALS) 
 DEPLOYED_COMPOSE = $(strip $(DEPLOYMENT_COMPOSE) $(if $(ENROLLED),-f $(REPOSITORY_ROOT)compose.credentials.yaml))
 APPLICATION_ADDRESS := echo "Raicho: http://127.0.0.1:$${RAICHO_PORT:-8080}"
 
-deploy:
-	@DEPLOYMENT_PROJECT=$(QUOTED_PROJECT) DEPLOYMENT_STATE=$(call shell_quote,$(DEPLOYMENT_STATE)) \
-	    DEPLOYMENT_ENROLLED='$(ENROLLED)' \
-	    bash $(REPOSITORY_ROOT)automation/tooling/deployment_help.bash
-
 deploy-up: images
 	@$(DEPLOYMENT) $@ $(DEPLOYED_COMPOSE) up -d --wait
 	@$(APPLICATION_ADDRESS)
@@ -28,9 +23,30 @@ deploy-admin: images
 	@$(DEPLOYMENT) $@ $(DEPLOYED_COMPOSE) -f $(REPOSITORY_ROOT)compose.admin.yaml up -d --wait
 	@$(APPLICATION_ADDRESS)
 	@echo "Thunderbird desktop: http://127.0.0.1:$${RAICHO_ADMIN_PORT:-6080}/vnc.html?autoconnect=true&resize=remote"
+	@echo "Thunderbird VNC: 127.0.0.1::$${RAICHO_VNC_PORT:-5900}, opened by make deploy-vnc"
+
+deploy-restart:
+	@$(STEP) $@ $(DEPLOYMENT_COMPOSE) restart$(if $(SERVICE), $(call shell_quote,$(SERVICE)))
 
 deploy-down:
 	@$(STEP) $@ $(DEPLOYMENT_COMPOSE) down
+
+deploy-ps:
+	@$(DEPLOYMENT_COMPOSE) ps
+
+deploy-health: tooling-image
+	@$(DEPLOYMENT_COMPOSE) exec -T raicho curl --silent --show-error --max-time 5 http://127.0.0.1:8080/api/status | \
+	    $(RUN) -T check python3 -B -m automation.tooling.deployment_health $(RAICHO_COMMIT)
+
+deploy-logs:
+	@$(DEPLOYMENT_COMPOSE) logs --timestamps$(if $(FOLLOW), --follow)$(if $(SERVICE), $(call shell_quote,$(SERVICE)))
+
+deploy-shell:
+	@$(if $(SERVICE),,echo 'Name the service, as in make deploy-shell SERVICE=thunderbird.' >&2; exit 1)
+	@$(DEPLOYMENT_COMPOSE) exec $(call shell_quote,$(SERVICE)) sh
+
+deploy-vnc:
+	@bash $(REPOSITORY_ROOT)automation/tooling/deploy_vnc.bash $(DEPLOYMENT_COMPOSE)
 
 deploy-clean: tooling-image
 	@$(QUIET_DOCKER) $(STEP) $@ bash $(REPOSITORY_ROOT)automation/tooling/deploy_clean.bash

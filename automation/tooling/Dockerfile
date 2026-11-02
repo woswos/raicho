@@ -29,6 +29,9 @@ COPY --from=ruff /ruff /usr/local/bin/ruff
 COPY --from=shellcheck /bin/shellcheck /usr/local/bin/shellcheck
 COPY --from=shfmt /bin/shfmt /usr/local/bin/shfmt
 COPY --from=typos /usr/local/bin/typos /usr/local/bin/typos
+ADD --checksum=sha256:160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b --chmod=0755 \
+    https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_amd64 \
+    /usr/local/bin/osv-scanner
 
 WORKDIR /opt/quality
 COPY automation/tooling/requirements.txt ./requirements.txt

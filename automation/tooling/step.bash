@@ -14,6 +14,7 @@ describe() {
         build-*) echo "building|built|${TARGET#build-}" ;;
         deploy-up) echo 'starting|started|deployment' ;;
         deploy-admin) echo 'starting|started|deployment with the Thunderbird desktop' ;;
+        deploy-restart) echo 'restarting|restarted|deployment' ;;
         deploy-down) echo 'stopping|stopped|deployment' ;;
         deploy-clean) echo 'removing|removed|deployment' ;;
         deploy-connector-*) echo "running|ran|connector ${TARGET#deploy-connector-}" ;;
@@ -36,6 +37,7 @@ describe() {
         check-patch-coverage) echo 'checking|checked|patch coverage' ;;
         coverage) echo 'measuring|measured|coverage' ;;
         benchmark) echo 'benchmarking|benchmarked|Rust code' ;;
+        audit) echo 'auditing|audited|dependencies' ;;
         clean) echo 'cleaning|cleaned|up' ;;
         mrproper) echo 'removing|removed|everything' ;;
         *) echo "running|ran|${TARGET}" ;;

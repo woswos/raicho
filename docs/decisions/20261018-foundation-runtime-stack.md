@@ -1,6 +1,6 @@
 # Containerized foundation runtime
 
-- Status: accepted, amended by `20261026-build-caching`
+- Status: accepted, amended by `20261026-build-caching` and `20261102-native-vnc-administration`
 - Date: 2026-10-18
 - Deciders: project maintainer
 
