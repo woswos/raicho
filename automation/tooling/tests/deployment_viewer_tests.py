@@ -34,7 +34,7 @@ class DeploymentViewerTests(unittest.TestCase):
         )
 
     def test_the_viewer_needs_the_desktop_override(self):
-        for status, output in ((1, ''), (0, ':0\n')):
+        for status, output in ((1, 'no port 5900/tcp for container raicho-thunderbird-1: \n'), (0, ':0\n')):
             with self.subTest(status=status, output=output):
                 docker = DockerMock(
                     self.state / f'docker-{status}', [Response(('port',), status=status, output=output)]
@@ -46,11 +46,22 @@ class DeploymentViewerTests(unittest.TestCase):
                 self.assertFalse(viewer.exists())
                 self.assertEqual([command[-3:] for command in docker.commands()], [['port', 'thunderbird', '5900']])
 
+    def test_a_failed_lookup_shows_the_docker_error(self):
+        error = 'failed to connect to the docker API at unix:///var/run/docker.sock\n'
+        docker = DockerMock(self.state / 'docker', [Response(('port',), status=1, output=error)])
+        viewer = mock_viewer(docker)
+        result = run_make('deploy-vnc', PATH=docker.environment()['PATH'])
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(error.strip(), result.stderr)
+        self.assertIn('Could not look up the Thunderbird VNC port.', result.stderr)
+        self.assertNotIn('make deploy-admin', result.stderr)
+        self.assertFalse(viewer.exists())
+
     def test_the_viewer_must_be_installed(self):
         docker = DockerMock(self.state / 'docker', [Response(('port',), output='127.0.0.1:5900\n')])
         tools = self.state / 'tools'
         tools.mkdir()
-        for name in ('make', 'python3'):
+        for name in ('make', 'python3', 'bash'):
             (tools / name).symlink_to(shutil.which(name))
         result = run_make('deploy-vnc', PATH=f'{docker.directory}:{tools}')
         self.assertNotEqual(result.returncode, 0)

@@ -46,10 +46,7 @@ deploy-shell:
 	@$(DEPLOYMENT_COMPOSE) exec $(call shell_quote,$(SERVICE)) sh
 
 deploy-vnc:
-	@command -v vncviewer >/dev/null || { echo 'make deploy-vnc needs vncviewer, such as TigerVNC.' >&2; exit 1; }
-	@ADDRESS="$$($(DEPLOYMENT_COMPOSE) port thunderbird 5900 2>/dev/null)"; \
-	    case "$${ADDRESS}" in ?*:[1-9]*) ;; *) echo 'The Thunderbird VNC port is not published. Run make deploy-admin first.' >&2; exit 1 ;; esac; \
-	    vncviewer "$${ADDRESS%:*}::$${ADDRESS##*:}"
+	@bash $(REPOSITORY_ROOT)automation/tooling/deploy_vnc.bash $(DEPLOYMENT_COMPOSE)
 
 deploy-clean: tooling-image
 	@$(QUIET_DOCKER) $(STEP) $@ bash $(REPOSITORY_ROOT)automation/tooling/deploy_clean.bash
