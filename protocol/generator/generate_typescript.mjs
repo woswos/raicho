@@ -1,14 +1,12 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { createRequire } from 'node:module';
 import { dirname, isAbsolute, resolve } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
-import { qualityDirectory, standaloneValidator } from './standalone_validator.mjs';
+import { requireQuality, standaloneValidator } from './standalone_validator.mjs';
 
-const require = createRequire(`${qualityDirectory}/package.json`);
-const { compile } = require('json-schema-to-typescript');
-const { format } = require('prettier');
+const { compile } = requireQuality('json-schema-to-typescript');
+const { format } = requireQuality('prettier');
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const formatting = JSON.parse(await readFile(resolve(repositoryRoot, '.prettierrc.json'), 'utf8'));
 const [outputDirectory, webDirectory] = process.argv.slice(2);
