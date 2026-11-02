@@ -34,7 +34,8 @@ mail API compatibility. A fixed SMTP/IMAP fault proxy and test controller run
 on an internal network with a fresh fictional profile. These Python helpers
 share the development tooling image. Thunderbird uses its
 normal runtime image with read-only mounts for the mail test extension and
-profile setup code. The production XPI has no mail permissions or probe commands. See the
+profile setup code. The production XPI reads accounts, folders, and message
+summaries but cannot compose, send, or change mail, and it has no probe commands. See the
 [versioned compatibility matrix](mail-api-compatibility.md) for observed behavior
 and the native consent and draft-editing gates.
 
