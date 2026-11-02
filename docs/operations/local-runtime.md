@@ -53,8 +53,9 @@ make deploy-vnc
 ```
 
 The target fails until `make deploy-admin` has published the port, and it never
-starts or recreates Thunderbird. Neither port has a password, so keep both on
-loopback. From another computer, tunnel them over SSH, for example with
+starts or recreates Thunderbird. Keep both ports on loopback, as
+[network isolation](../reference/runtime.md#network-isolation) explains. From
+another computer, tunnel them over SSH, for example with
 `ssh -L 6080:127.0.0.1:6080 -L 5900:127.0.0.1:5900 <host>`. See the
 [native VNC decision](../decisions/20261102-native-vnc-administration.md).
 
@@ -64,19 +65,12 @@ Once a deployment has a `credentials/` directory in its state directory, the
 include both, because recreating Thunderbird without the credentials override
 disables its connector configuration.
 
-These targets inspect the selected deployment without changing it:
-
-- `make deploy-ps` lists its running containers and published ports.
-- `make deploy-health` summarizes `/api/status`: readiness, database, connector
-  state, last error, heartbeats, and the deployed commit against the checkout.
-  It fails unless the connector is connected.
-- `make deploy-logs` prints the logs with timestamps. Add `SERVICE=thunderbird`
-  for one service and `FOLLOW=1` to keep streaming.
-
-`make deploy-shell SERVICE=thunderbird` opens `sh` inside one service, where
-commands can change the deployment. `make deploy-restart` restarts every container, or one with `SERVICE=`, without
-rebuilding images or recreating containers. Credential mounts and the
-administration override stay as they are. To stop while retaining both volumes:
+`make help` lists the targets that inspect the selected deployment:
+`deploy-ps`, `deploy-health`, `deploy-logs`, and `deploy-shell`. For example,
+`make deploy-logs SERVICE=thunderbird FOLLOW=1` follows one service's logs.
+`make deploy-restart` restarts containers without recreating them, so
+credential mounts and the administration override stay as they are. To stop
+while retaining both volumes:
 
 ```bash
 make deploy-down

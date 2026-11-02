@@ -4,6 +4,8 @@ Run these from the repository root. On the host, Make builds the tooling image
 and runs each check inside it, so the host needs only Docker, Compose, Git, and
 GNU Make. Add VERBOSE=1 for each tool's normal output.
 
+  make help           This guide, which a bare make also prints.
+
 # Check
   make lint           Repository guards, linters, spelling, formatting and
                       type checks, and protocol generation drift.

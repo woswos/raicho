@@ -5,9 +5,7 @@ procedure is maintained in the [showcase guide](../../assets/brand/showcase/READ
 
 ## Make
 
-Run Make from the repository root, or with `-f` from anywhere. A bare `make` runs
-`help`, which prints every target grouped by purpose from
-`automation/tooling/help.txt`. The host needs
+Run Make from the repository root, or with `-f` from anywhere. The host needs
 Docker, Compose, Git, and GNU Make, but no language toolchains. On the host, each
 target first builds the tooling image, which the Docker cache keeps quick when
 nothing changed, then runs the same target inside the tooling container as the
@@ -46,7 +44,7 @@ xterm terminal.
 
 | Target | Behavior |
 | --- | --- |
-| `help` | Print every target, then on the host the selected deployment's project, state directory, enrollment, and address, colored on xterm terminals. The default goal |
+| `help` | Print every target from `automation/tooling/help.txt`, then on the host the selected deployment's project, state directory, enrollment, and address, colored on xterm terminals. The default goal |
 | `test` | Every source suite: Python, tooling fixtures, server, web, extension, mail probe, and protocol |
 | `lint` | Repository guards, language linters, spelling, formatting and type checks, and protocol generation drift |
 | `format` | Rewrite files in the documented formatting scope |
@@ -191,13 +189,8 @@ request does not authorize checks, formatting, or hooks.
 make audit
 ```
 
-`audit` runs OSV-Scanner over `Cargo.lock`, `package-lock.json`, and
-`automation/tooling/requirements.txt`, and fails when a known advisory applies.
-It prints only findings unless `VERBOSE=1` is set. It queries the OSV API, so
-it needs network access and its result can change without a code change. CI
-does not run it. A tooling test requires every tracked lockfile in the command.
 The [dependency audit decision](../decisions/20261102-dependency-audit.md)
-records the choice.
+records what `audit` scans, its network access, and why CI does not run it.
 
 ## Pull request checks
 

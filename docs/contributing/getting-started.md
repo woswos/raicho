@@ -38,8 +38,8 @@ each target. Versions and commands are recorded in
 make lint test
 ```
 
-A bare `make` prints every target. `make shell` opens the tooling container,
-and `make test-python TEST=<module>` runs one test module.
+`make shell` opens the tooling container, and `make test-python TEST=<module>`
+runs one test module.
 
 ## Application development
 
