@@ -41,19 +41,18 @@ Language jobs build the same pinned tooling image used locally. Runtime jobs
 build the application images and use that tooling image for the smoke driver.
 Compatibility runners also use it for Python mock services, fixture unit tests,
 and the mail test extension build. Thunderbird and GreenMail retain their own
-runtime images.
-Sources remain read-only, with separate cache/temp storage. No formatter writes
-or lint fixes run in CI. Jobs run on the
-repository's self-hosted runners, labeled `self-hosted`, `Linux`, and `X64`. Each
-runner host provides Docker Engine 28 or newer with Compose 2.24 or newer and
-Buildx, Git, GNU Make, Bash, `flock`, `setsid`, and `timeout`. The release workflows install
-Python 3.13 with `actions/setup-python` and need the GitHub CLI. Language tools come from the image. Runners
-keep Docker images and volumes between jobs, so prune them occasionally. Run only
-one runner per Docker host, because jobs use fixed image tags, Compose project
-names, and Cargo caches. A runner in a container shares only its work directory
-with the Docker host, at the same path, so jobs keep bind-mounted files in the
-runner's temporary directory. Exact commands
-and pins are in [build, test, and generate](build-test-generate.md) and
+runtime images. Sources remain read-only, with separate cache/temp storage. No
+formatter writes or lint fixes run in CI. Jobs run on the repository's
+self-hosted runners, labeled `self-hosted`, `Linux`, and `X64`. Each runner host
+provides Docker Engine 28 or newer with Compose 2.24 or newer and Buildx, Git,
+GNU Make, Bash, `flock`, `setsid`, and `timeout`. The release workflows install
+Python 3.13 with `actions/setup-python` and need the GitHub CLI. Language tools
+come from the image. Runners keep Docker images and volumes between jobs, so
+prune them occasionally. Run only one runner per Docker host, because jobs use
+fixed image tags, Compose project names, and Cargo caches. A runner in a
+container shares only its work directory with the Docker host, at the same path,
+so jobs keep bind-mounted files in the runner's temporary directory. Exact
+commands and pins are in [build, test, and generate](build-test-generate.md) and
 [linting and formatting](../coding/linting-and-formatting.md).
 
 Rust, TypeScript, and SQL checks cover the application sources. SQL linting and

@@ -132,7 +132,7 @@ restore its token as an active credential.
 ## A connector that stops retrying
 
 The extension stops reconnecting only after an authenticated `session_replaced`
-error, which means another connector with the same token connected after it; the
+error, which means another connector with the same token connected after it. The
 [contract](../reference/connector-contract.md#frame-authentication) describes the
 retry rules. The stopped connector stays idle until Thunderbird restarts, and the
 diagnostics page reports the newer connection. Stop the other Thunderbird

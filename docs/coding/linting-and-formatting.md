@@ -78,9 +78,10 @@ SQLFluff's capitalization rules ignore.
 
 Check and format commands discover tracked and non-ignored untracked source
 through Git, so their test fixtures initialize a repository. They reject every
-symlink among those files without following it. Scope includes Bash (`.bash`, `.sh`, and shell shebangs), Python (`.py`, `.pyi`),
-JavaScript (`.js`, `.mjs`, `.cjs`), TypeScript (`.ts`, `.tsx`, `.mts`, `.cts`),
-Rust (`.rs` and Cargo projects), and SQL (`.sql`).
+symlink among those files without following it. Scope includes Bash (`.bash`,
+`.sh`, and shell shebangs), Python (`.py`, `.pyi`), JavaScript (`.js`, `.mjs`,
+`.cjs`), TypeScript (`.ts`, `.tsx`, `.mts`, `.cts`), Rust (`.rs` and Cargo
+projects), and SQL (`.sql`).
 
 Prettier also covers every tracked JSON and YAML file, including package, manifest,
 and TypeScript configuration, every Compose file, the GitHub workflows, and the
@@ -105,14 +106,14 @@ Regenerate these files instead of editing them. Rust wire types omit `Debug` to
 avoid accidental credential formatting. See the [contract reference](../reference/connector-contract.md).
 
 `format-check` never rewrites sources. `format` is an explicit writable command
-using the caller's UID/GID. CI runs checks without automatic fixes.
-SQL format checks pass each source to SQLFluff on standard input under its relative
-path, parse the formatted result, then compare bytes.
-Missing SQL tools or configuration fail even when no
-SQL files exist. An empty valid SQL scope reports an explicit skip. SQL strings
-inside Rust or Python are outside SQLFluff's file scope. Production queries live
-in `server/queries/`, while intentionally invalid test fixtures remain inline.
-Follow the [migration immutability rule](../reference/runtime.md#sqlite-initialization-and-migrations)
+using the caller's UID/GID. CI runs checks without automatic fixes. SQL format
+checks pass each source to SQLFluff on standard input under its relative path,
+parse the formatted result, then compare bytes. Missing SQL tools or
+configuration fail even when no SQL files exist. An empty valid SQL scope
+reports an explicit skip. SQL strings inside Rust or Python are outside
+SQLFluff's file scope. Production queries live in `server/queries/`, while
+intentionally invalid test fixtures remain inline. Follow the [migration
+immutability rule](../reference/runtime.md#sqlite-initialization-and-migrations)
 before formatting migration files.
 
 ## Versions and updates
