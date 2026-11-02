@@ -4,6 +4,8 @@ import stat
 from urllib.parse import urlsplit
 
 ENDPOINT_MESSAGE = 'Connector endpoint must be a ws/wss URL without credentials, query, or fragment.'
+# One byte past the longest valid file, so an oversized file fails the token match.
+TOKEN_READ_LIMIT = 66
 
 
 def validate_endpoint(endpoint):
@@ -32,7 +34,7 @@ def read_token(token_path):
         with os.fdopen(descriptor, 'rb') as token_file:
             if not stat.S_ISREG(os.fstat(token_file.fileno()).st_mode):
                 raise ValueError('Connector token file must be a regular file.')
-            token_bytes = token_file.read(66)
+            token_bytes = token_file.read(TOKEN_READ_LIMIT)
     except OSError:
         raise ValueError('Connector token file could not be read.') from None
     if not re.fullmatch(rb'[0-9a-f]{64}\n?', token_bytes):
