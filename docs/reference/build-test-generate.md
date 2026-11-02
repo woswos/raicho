@@ -65,6 +65,7 @@ xterm terminal.
 | `deploy-vnc` | Open `vncviewer` on the desktop that `deploy-admin` publishes, on the host |
 | `deploy-clean` | After you confirm, delete the deployment with its volumes and state directory, then run `clean`, on the host |
 | `deploy-connector-<command>` | Build the runtime images, then run that [credential command](../operations/connector-credentials.md), on the host |
+| `deploy-login-<command>` | Build the runtime images, then run that [login command](../operations/browser-login.md), on the host |
 | `acceptance` | Every disposable deployment suite, on the host |
 | `shell` | Open Bash in the read-only `check` tooling container, on the host |
 | `clean` | Remove ignored build output, interrupted acceptance runs, and the tooling cache, on the host |

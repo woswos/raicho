@@ -6,7 +6,7 @@ image, brand assets, and the shared workflow. Mail integration is still planned.
 ```text
 AGENTS.md          Always-loaded instructions and pointers to task-specific docs
 CHANGELOG.md       Product changelog used to cut semantic versions
-compose*.yaml      Base deployment and its administration and credential overlays
+compose*.yaml      Base deployment and its administration, credential, and login overlays
 .agents/skills/    Canonical shared workflow skills
 .github/           Pull request templates and GitHub Actions workflows
 assets/brand/      Production identity masters, fonts, guides, and prototypes
@@ -104,8 +104,9 @@ The shared repository-path and output-mode helpers live at
 
 Operational credential provisioning, rotation, and live verification belong in
 `deploy/credentials/` as a host Bash wrapper around `raicho-server connector`
-subcommands. `state.bash` there holds the deployment selection, state directory
-checks, and per-user lock that the wrapper, `make deploy-clean`, and `make mrproper` share.
+subcommands. `login.bash` there wraps the `raicho-server login` subcommands.
+`state.bash` holds the deployment selection, state directory checks, operation
+lock, and per-user lock that both wrappers, `make deploy-clean`, and `make mrproper` share.
 These commands manage a deployment and are separate from acceptance tests that
 create disposable deployments. Their procedure is in the
 [credential runbook](../operations/connector-credentials.md). The
@@ -120,6 +121,8 @@ from the repository root without `-f`. `compose.admin.yaml` adds local desktop
 administration. `compose.credentials.yaml` supplies offline provisioning and the
 Thunderbird token mount, endpoint, and live verification through the
 [credential commands](../operations/connector-credentials.md).
+`compose.login.yaml` adds the one-off `login` service that the
+[login commands](../operations/browser-login.md) run.
 
 Test overlays live with their drivers. `automation/acceptance/runtime/compose.test.yaml`
 adds the isolated runtime fixture driver, and
