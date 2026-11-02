@@ -31,8 +31,8 @@ class HostMakeTests(unittest.TestCase):
 
     def test_a_shell_opens_in_the_read_only_tooling_container(self):
         commands = dry_run('shell')
-        self.assertIn('/automation/tooling/compose.yaml build', commands)
-        self.assertTrue(commands.endswith(' run --rm check bash\n'), commands)
+        self.assertRegex(commands, r'step\.bash tooling-image docker compose .* build\n')
+        self.assertRegex(commands, r' run --rm(?: --volume \S+)? check bash\n$')
 
 
 if __name__ == '__main__':

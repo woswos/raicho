@@ -38,7 +38,10 @@ class DeploymentInspectionTests(unittest.TestCase):
         commands = dry_run('deploy-health', RAICHO_COMMIT='custom')
         self.assertIn(f'{COMPOSE} exec -T raicho curl', commands)
         self.assertIn(' http://127.0.0.1:8080/api/status | ', commands)
-        self.assertIn(' run --rm -T check python3 -B -m automation.tooling.deployment_health custom\n', commands)
+        self.assertRegex(
+            commands,
+            r' run --rm(?: --volume \S+)? -T check python3 -B -m automation\.tooling\.deployment_health custom\n',
+        )
 
 
 if __name__ == '__main__':
