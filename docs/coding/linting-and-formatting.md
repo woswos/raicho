@@ -166,6 +166,11 @@ in `package-lock.json`:
 | json-schema-to-typescript | 16.0.0 |
 | esbuild | 0.28.2 |
 
+An `overrides` entry in `package.json` pins minimatch 11.0.3. ESLint,
+`@eslint/config-array`, and typescript-eslint still require minimatch 10, and
+GHSA-g3hv-75wg-m249 affects every 10.x release. Remove the entry once their
+releases accept minimatch 11.
+
 The contract uses typify 0.8.0 for Rust generation,
 jsonschema 0.59.0 in tests that check the decoders and status documents against the
 schemas, and prettyplease 0.3.0 with

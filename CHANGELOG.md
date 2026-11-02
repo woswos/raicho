@@ -27,3 +27,8 @@ Notable changes to Raicho. The format follows
 - Open the tooling container with `make shell`, and run selected tests with
   `TEST=` for `test-python` and `test-server`.
 - Check lockfiles against known security advisories with `make audit`.
+
+### Security
+
+- Update ctutils to 0.4.4 under the connector's HMAC and SHA-2 crates. It fixes
+  non-constant-time mask generation and `u128` comparisons (RUSTSEC-2026-0385).
