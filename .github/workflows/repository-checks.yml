@@ -54,6 +54,7 @@ jobs:
           docker compose -f compose.yaml -f automation/acceptance/runtime/compose.test.yaml config --quiet
           docker compose -f compose.yaml -f automation/acceptance/runtime/compose.test.yaml -f compose.admin.yaml config --quiet
           docker compose -f compose.yaml -f compose.credentials.yaml config --quiet
+          docker compose -f compose.yaml -f compose.login.yaml --profile login config --quiet
           docker compose -f compose.yaml -f automation/acceptance/runtime/compose.test.yaml -f compose.admin.yaml -f compose.credentials.yaml config --quiet
           docker compose -f compose.yaml -f compose.credentials.yaml -f automation/acceptance/runtime/compose.test.yaml -f automation/acceptance/connector/compose.upgrade.yaml --profile test config --quiet
           docker compose -f mailprobe/compose.yaml --profile test config --quiet
