@@ -5,7 +5,7 @@ use tokio::sync::OwnedSemaphorePermit;
 use tokio::time::Instant;
 
 use super::handshake::Socket;
-use super::{Connector, authentication, failure::Failure, heartbeat, wire};
+use super::{Connector, authentication, control, failure::Failure, wire};
 
 pub(super) async fn run(
     mut socket: Socket,
@@ -27,6 +27,7 @@ pub(super) async fn run(
         mut replaced,
         server_signature,
         mut channel,
+        mut queue,
     } = match authenticated {
         Ok(session) => session,
         Err(failure) => {
@@ -45,7 +46,7 @@ pub(super) async fn run(
         _ = replaced.changed() => Some(Failure::new(BackendError::SessionReplaced)),
         result = async {
             match wire::welcome(&mut socket, &generation, &server_signature).await {
-                Ok(()) => heartbeat::run(&mut socket, &connector, &generation, &mut channel).await,
+                Ok(()) => control::run(&mut socket, &connector, &generation, &mut channel, &mut queue).await,
                 Err(error) => error,
             }
         } => Some(result),
