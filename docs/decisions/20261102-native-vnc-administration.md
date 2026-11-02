@@ -24,6 +24,8 @@ In administration mode, x11vnc listens on the container's interfaces at port
 `make deploy-vnc` opens `vncviewer` on the deployment computer against the
 published address and fails when the port is not published. It never starts or
 recreates Thunderbird. Without the override, x11vnc does not run.
+`make deploy-ps` lists the deployment's running containers with their published
+ports, so an administrator can see whether the override is active.
 
 ## Consequences
 
