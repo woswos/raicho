@@ -1,13 +1,19 @@
+pub mod browser;
+pub mod mock_backend;
+
 use std::sync::Arc;
 use std::time::Duration;
 
+use axum::Router;
 use futures_util::{SinkExt, StreamExt};
 use raicho_protocol::authentication::{ConnectorKeys, authentication_message, client_proof, to_hex};
 use raicho_protocol::channel::{Channel, Peer, session_key};
 use raicho_protocol::contract_generated::Authenticate;
 use raicho_server::connector::Connector;
 use raicho_server::credentials::Credential;
+use raicho_server::mail::ConnectorBackend;
 use raicho_server::persistence::Database;
+use raicho_server::public_origin::PublicOrigin;
 use serde_json::{Value, json};
 use tempfile::TempDir;
 use tokio::net::{TcpListener, TcpStream};
@@ -124,4 +130,19 @@ pub async fn elapse(milliseconds: usize) {
     tokio::time::pause();
     tokio::time::advance(Duration::from_millis(milliseconds as u64)).await;
     tokio::time::resume();
+}
+
+pub const PUBLIC_ORIGIN: &str = "http://localhost:8080";
+
+/// The production router, with the connector backend and the default loopback origin.
+pub fn application(database: Arc<Database>, web_dir: &std::path::Path) -> Router {
+    let connector = Connector::new(Arc::clone(&database));
+    let backend = Arc::new(ConnectorBackend::new(Arc::clone(&connector)));
+    raicho_server::router(
+        database,
+        web_dir,
+        connector,
+        backend,
+        PublicOrigin::parse(PUBLIC_ORIGIN).unwrap(),
+    )
 }

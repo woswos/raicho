@@ -6,21 +6,31 @@ use sqlx::Connection;
 use tempfile::tempdir;
 
 #[tokio::test]
-async fn fresh_database_has_connector_schema_and_survives_reopening() {
+async fn fresh_database_has_application_schema_and_survives_reopening() {
     let directory = tempdir().unwrap();
     let database = Database::open(directory.path()).await.unwrap();
     assert_eq!(database.version(), "3.51.3");
-    let tables: Vec<String> =
-        sqlx::query_scalar("SELECT name FROM sqlite_schema WHERE type = 'table' AND name NOT GLOB 'sqlite_*'")
-            .fetch_all(database.pool())
-            .await
-            .unwrap();
-    assert_eq!(tables, ["_sqlx_migrations", "connector_credentials"]);
+    let tables: Vec<String> = sqlx::query_scalar(
+        "SELECT name FROM sqlite_schema WHERE type = 'table' AND name NOT GLOB 'sqlite_*' ORDER BY name",
+    )
+    .fetch_all(database.pool())
+    .await
+    .unwrap();
+    assert_eq!(
+        tables,
+        [
+            "_sqlx_migrations",
+            "browser_sessions",
+            "connector_credentials",
+            "login_password",
+            "preferences"
+        ]
+    );
     let versions: Vec<i64> = sqlx::query_scalar("SELECT version FROM _sqlx_migrations")
         .fetch_all(database.pool())
         .await
         .unwrap();
-    assert_eq!(versions, [0]);
+    assert_eq!(versions, [0, 1]);
     database.close().await;
     drop(database);
     let reopened = Database::open(directory.path()).await.unwrap();
@@ -29,7 +39,7 @@ async fn fresh_database_has_connector_schema_and_survives_reopening() {
         .fetch_all(reopened.pool())
         .await
         .unwrap();
-    assert_eq!(versions, [0]);
+    assert_eq!(versions, [0, 1]);
     assert!(directory.path().join("raicho.sqlite3").is_file());
     reopened.close().await;
 }

@@ -12,7 +12,10 @@ macro_rules! migration {
     };
 }
 
-const FILES: &[(&str, &str)] = &[migration!("0000_connector_credentials.sql")];
+const FILES: &[(&str, &str)] = &[
+    migration!("0000_connector_credentials.sql"),
+    migration!("0001_browser_login.sql"),
+];
 
 pub(super) static MIGRATIONS: LazyLock<Migrator> = LazyLock::new(|| {
     Migrator::with_migrations(
@@ -85,7 +88,7 @@ mod tests {
             .iter()
             .map(|migration| (migration.version, &*migration.description))
             .collect();
-        assert_eq!(parsed, [(0, "connector credentials")]);
+        assert_eq!(parsed, [(0, "connector credentials"), (1, "browser login")]);
     }
 
     #[test]
@@ -96,7 +99,10 @@ mod tests {
             .collect();
         assert_eq!(
             checksums,
-            ["398E200B80E67D0E112DE1E317F7F78F3B10E1111A322F217DEE93FD05863C8B3872FF682EE71DB19E1D0BC7B659B541"]
+            [
+                "398E200B80E67D0E112DE1E317F7F78F3B10E1111A322F217DEE93FD05863C8B3872FF682EE71DB19E1D0BC7B659B541",
+                "77892E3A53D3D289EBE9F7675E59893884C7EA6D2979BA98DB7EE0B78DF64B3769124034C333A6D74702AD197749AB2A",
+            ]
         );
     }
 }
