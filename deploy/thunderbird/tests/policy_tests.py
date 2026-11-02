@@ -22,6 +22,10 @@ class PolicyTests(PolicyFixture, unittest.TestCase):
                 'updates_disabled': True,
             },
         )
+        self.assertEqual(
+            policies['Preferences'],
+            {'mail.server.default.check_all_folders_for_new': {'Value': True, 'Status': 'default'}},
+        )
 
     def test_managed_configuration_and_private_permissions(self):
         self.runtime.mkdir(mode=0o755)
