@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Sourced by acceptance runners that own a disposable deployment with generated credentials.
 
 # shellcheck source=automation/acceptance/project_record.bash
