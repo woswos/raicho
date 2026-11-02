@@ -87,24 +87,26 @@ for scope and limits.
 
 ## Acceptance cleanup
 
-A cancelled or timed-out job signals only the entry shell of the running step, so
-an acceptance runner's own exit trap may never run. Each acceptance step runs its
-Make target under `setsid`. Before creating any Docker resource, every runner
-appends its process group, its own process, its Compose project, and any state
-directory to the file named by `RAICHO_ACCEPTANCE_RECORD`, which the jobs keep in
-the runner's temporary directory. Local runs set no record.
+A cancelled or timed-out job signals only the entry shell of the running step,
+so an acceptance runner's own exit trap may never run. Each acceptance step runs
+its Make target under `setsid`. Before creating any Docker resource, every
+runner appends its process group and that group leader's start time, its own
+process ID and start time, its Compose project, and any state directory to the
+file named by `RAICHO_ACCEPTANCE_RECORD`, which the jobs keep in the runner's
+temporary directory. Local runs set no record.
 
 The last step of each acceptance job runs
 [remove_recorded_projects.bash](../../automation/acceptance/remove_recorded_projects.bash)
-with `if: always()`. For each entry it kills the recorded process group while
-its leader or runner still runs, then removes the containers, volumes, and
-networks with the project's Compose label, the images named after the project,
-and the state directory. Containers, volumes, and networks that runners create
-outside Compose carry the same label. The step refuses entries outside the
-disposable project and state directory patterns and fails when anything remains.
-Locally, `make clean` removes interrupted acceptance projects. The [cancel
-cleanup decision](../decisions/20261101-acceptance-cleanup-after-cancel.md) and
-its [labelling amendment](../decisions/20261102-label-acceptance-containers.md)
+with `if: always()`. For each entry it kills the recorded process group only
+while its leader or runner still runs in that group with its recorded start
+time, then removes the containers, volumes, and networks with the project's
+Compose label, the images named after the project, and the state directory.
+Containers, volumes, and networks that runners create outside Compose carry the
+same label. The step refuses entries outside the disposable project and state
+directory patterns and fails when anything remains. Locally, `make clean`
+removes interrupted acceptance projects. The [cancel cleanup
+decision](../decisions/20261101-acceptance-cleanup-after-cancel.md) and its
+[labelling amendment](../decisions/20261102-label-acceptance-containers.md)
 explain the design.
 
 ## Caching
