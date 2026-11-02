@@ -10,7 +10,9 @@
     "noEmitOnError": true,
     "rootDir": "src",
     "outDir": "dist",
-    "allowJs": true
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
   },
-  "include": ["src/**/*.ts", "src/status_validator_generated.js"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/status_validator_generated.js", "src/api_validator_generated.js"]
 }

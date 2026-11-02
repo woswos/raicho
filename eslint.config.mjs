@@ -42,5 +42,19 @@ export default defineConfig(
       },
     },
   },
+  {
+    files: ['web/src/**/*.{ts,tsx}'],
+    rules: {
+      // Mail must not persist in the browser, so the client never uses browser storage.
+      'no-restricted-globals': ['error', 'localStorage', 'sessionStorage', 'indexedDB', 'caches'],
+      'no-restricted-properties': [
+        'error',
+        { object: 'window', property: 'localStorage' },
+        { object: 'window', property: 'sessionStorage' },
+        { object: 'window', property: 'indexedDB' },
+        { object: 'navigator', property: 'serviceWorker' },
+      ],
+    },
+  },
   prettierConfig,
 );
