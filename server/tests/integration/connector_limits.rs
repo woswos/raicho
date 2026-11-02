@@ -34,7 +34,7 @@ async fn unsolicited_and_stale_pongs_cannot_satisfy_heartbeat() {
         } else {
             "unexpected_message"
         };
-        let pong = json!({"type":"pong","protocol_version":1,
+        let pong = json!({"type":"pong","protocol_version":2,
             "generation": generation.unwrap_or_else(|| welcome["generation"].as_str().unwrap().into()),
             "sequence":1});
         socket.send(Message::Text(channel.seal(&pong).into())).await.unwrap();
@@ -53,7 +53,7 @@ async fn heartbeat_accepts_only_its_sequence_and_silent_peers_expire() {
     channel
         .open(&ping.to_string(), Phase::ServerControl, generation)
         .unwrap();
-    let pong = json!({"type":"pong","protocol_version":1,
+    let pong = json!({"type":"pong","protocol_version":2,
         "generation":generation,"sequence":ping["sequence"]});
     socket.send(Message::Text(channel.seal(&pong).into())).await.unwrap();
     tokio::time::sleep(Duration::from_millis(20)).await;
@@ -78,7 +78,7 @@ async fn forged_and_replayed_pongs_end_the_session_with_a_sealed_error() {
         channel
             .open(&ping.to_string(), Phase::ServerControl, generation)
             .unwrap();
-        let pong = channel.seal(&json!({"type":"pong","protocol_version":1,
+        let pong = channel.seal(&json!({"type":"pong","protocol_version":2,
             "generation":generation,"sequence":ping["sequence"]}));
         let rejected = if replay {
             socket.send(Message::Text(pong.clone().into())).await.unwrap();

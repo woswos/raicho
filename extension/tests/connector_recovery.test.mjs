@@ -83,7 +83,7 @@ test('retries server busy and heartbeat timeout without an application queue', a
     await socket.handshake();
     await socket.receiveSealed({
       type: 'error',
-      protocol_version: 1,
+      protocol_version: 2,
       code,
       generation,
     });

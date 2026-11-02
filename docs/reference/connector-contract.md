@@ -1,15 +1,16 @@
 # Connector contract
 
-The first connector contract defines connection control only. The production
-Rust listener and TypeScript extension use its generated bindings and boundary
-decoders for authentication and heartbeat. The
+The connector contract defines connection control and read-only mail requests.
+The production Rust listener and TypeScript extension use its generated bindings
+and boundary decoders for authentication, heartbeat, and request frames. The
 [acceptance record](connector-acceptance.md) describes production validation and
 the [connector plan](../planning/done/20261018-foundation-stage-two-connector.md)
 records the approved design.
 
 See [architecture](architecture.md) for component boundaries and
 [mail API compatibility](mail-api-compatibility.md) for the separate experiment.
-No fixture command, account identity, message handle, or mail content belongs in
+Mail payloads are limited to the account, identity, mailbox, and message summary
+results below. Fixture commands, message bodies, and attachments do not belong in
 this contract. The backend kind is an identifier, not a Thunderbird-specific type,
 but `thunderbird` is its only accepted value today. The schema, the server's
 authentication, the status schema, and the connector credential table's `CHECK`
@@ -77,8 +78,8 @@ contain fixed codes without rejected input.
 
 ## Envelopes and direction
 
-Every envelope carries `type` and `protocol_version: 1`. Additional members and
-unknown message types are rejected. The first version accepts an empty capability
+Every envelope carries `type` and `protocol_version: 2`. Additional members and
+unknown message types are rejected. The handshake accepts an empty capability
 list only. Heartbeat is mandatory connection control, not an advertised mail feature.
 
 | Type | Direction and phase | Fields beyond the common envelope |
@@ -89,6 +90,18 @@ list only. Heartbeat is mandatory connection control, not an advertised mail fea
 | `ping` | Server to connector, `server_control` | Current generation, bounded positive sequence, and frame MAC |
 | `pong` | Connector to server, `client_control` | Current generation, echoed sequence, and frame MAC |
 | `error` | Server to connector, challenge, handshake, or control | Enumerated code, generation and frame MAC only after negotiation |
+| `request` | Server to connector, `server_control` | Current generation, request identifier, one `operation`, and frame MAC |
+| `cancel` | Server to connector, `server_control` | Current generation, the request identifier to abandon, and frame MAC |
+| `reply` | Connector to server, `client_control` | Current generation, the request identifier, one `result`, and frame MAC |
+
+A request names one operation: `list_accounts`, `list_mailboxes` with an account
+handle, `list_messages` with a mailbox handle, or `continue_list` and `close_list`
+with a cursor. A reply carries one result: accounts with their identities,
+mailboxes, or message summaries, the last two with an optional cursor for the next
+page, `closed`, or an enumerated mail error. Handles and cursors are 22-character
+base64url tokens that the connector issues. The
+[request decision](../decisions/20261103-connector-requests.md) records these
+frames and their bounds.
 
 The decoder rejects a challenge or handshake error carrying a generation or MAC.
 A control frame requires the current generation and a MAC. A connector cannot send an error envelope.
@@ -142,8 +155,10 @@ session key of `raicho-connector-frame`, the sender (`server` or `client`), the
 sender's frame counter, and the canonical JSON of the frame without `mac`, each on
 its own line. Counters start at zero after welcome, count every frame each side
 sends, and never appear on the wire, so a replayed, reordered, reflected, or dropped
-frame fails. Canonical JSON sorts object members and has no whitespace, which is
-unambiguous because wire values are printable ASCII and integers.
+frame fails. Canonical JSON sorts object members and has no whitespace. Member names
+are printable ASCII, numbers are integers, and strings contain no control characters
+or unpaired surrogates, so both serializers escape only quotation marks and
+backslashes and write every other character literally.
 `protocol/rust/src/canonical_json.rs` and `protocol/typescript/src/channel.ts` implement
 it, pinned by `protocol/fixtures/authentication/session.json`. The decoders check
 the schema, phase, and generation first, then the MAC. A frame that fails the MAC
@@ -198,9 +213,11 @@ change bumps the version and ships in one release of both images.
 ## Parsing and limits
 
 Frame budgets count UTF-8 bytes, including whitespace, before JSON decoding.
-The authentication phase uses its smaller budget. Every object key and string
-value must be printable ASCII. These are control envelopes, so this restriction
-does not define the encoding of future mail content.
+The authentication phase uses its smaller budget. Every object key must be
+printable ASCII. String values may contain any Unicode text except C0 control
+characters (U+0000 to U+001F) and unpaired surrogates, whether written literally or
+as escapes. Control fields keep their ASCII patterns in the schema. The connector
+replaces control characters in mail text before sending it.
 
 Native WebSocket Ping/Pong frames are handled separately. They neither
 authenticate a connection nor satisfy or extend the application heartbeat.

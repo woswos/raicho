@@ -47,12 +47,18 @@ pub(crate) fn decode_value(
     Ok((message, typed))
 }
 
-// The generated types enforce every other schema rule, but not these two bounds.
+// The generated types enforce every other schema rule, but not these bounds.
 fn check_schema_bounds(message: &Value) -> Result<(), ContractError> {
     let capabilities = message.get("capabilities").and_then(Value::as_array);
-    let sequence = message.get("sequence").and_then(Value::as_u64);
+    let oversized = |name| {
+        message
+            .get(name)
+            .and_then(Value::as_u64)
+            .is_some_and(|value| value > MAXIMUM_WIRE_INTEGER as u64)
+    };
     if capabilities.is_some_and(|capabilities| !capabilities.is_empty())
-        || sequence.is_some_and(|sequence| sequence > MAXIMUM_WIRE_INTEGER as u64)
+        || oversized("sequence")
+        || oversized("request_id")
     {
         return Err(ContractError::InvalidMessage);
     }
@@ -66,7 +72,7 @@ fn check_wire_values(message: &Value) -> Result<(), ContractError> {
             return Err(ContractError::InvalidMessage);
         }
         match value {
-            Value::String(text) if !is_printable_ascii(text) => {
+            Value::String(text) if text.chars().any(is_c0_control) => {
                 return Err(ContractError::InvalidMessage);
             }
             Value::Array(values) => pending.extend(values.iter().map(|value| (value, depth + 1))),
@@ -84,6 +90,11 @@ fn check_wire_values(message: &Value) -> Result<(), ContractError> {
 
 fn is_printable_ascii(text: &str) -> bool {
     text.bytes().all(|byte| (32..=126).contains(&byte))
+}
+
+// Canonical JSON then escapes only quotation marks and backslashes, as JSON.stringify does.
+fn is_c0_control(character: char) -> bool {
+    character < ' '
 }
 
 fn check_unsupported_version(message: &Value) -> Result<(), ContractError> {
@@ -105,8 +116,8 @@ fn check_phase(message: &Value, phase: Phase, generation: Option<&str>) -> Resul
         Phase::Authentication => message_type == Some("authenticate"),
         Phase::Challenge => message_type == Some("challenge") || unclaimed_error,
         Phase::Handshake => message_type == Some("welcome") || unclaimed_error,
-        Phase::ClientControl => message_type == Some("pong"),
-        Phase::ServerControl => matches!(message_type, Some("ping" | "error")),
+        Phase::ClientControl => matches!(message_type, Some("pong" | "reply")),
+        Phase::ServerControl => matches!(message_type, Some("ping" | "error" | "request" | "cancel")),
     };
     if !permitted {
         return Err(ContractError::UnexpectedMessage);

@@ -31,6 +31,10 @@ LIMIT_NAMES = {
     'heartbeat_timeout_ms',
     'maximum_active_connections',
     'maximum_pending_authentications',
+    'request_timeout_ms',
+    'maximum_pending_requests',
+    'maximum_open_lists',
+    'list_idle_timeout_ms',
     'authentication_failure_close_code',
     'protocol_failure_close_code',
     'session_replaced_close_code',
@@ -122,6 +126,8 @@ def validate_sources(schema, limits, diagnostics):
             raise ValueError('Protocol schema disagrees with limit protocol_version.')
         if 'sequence' in properties and properties['sequence'].get('maximum') != limits['maximum_wire_integer']:
             raise ValueError('Protocol schema disagrees with limit maximum_wire_integer.')
+    if definitions.get('RequestId', {}).get('maximum') != limits['maximum_wire_integer']:
+        raise ValueError('Protocol schema disagrees with limit maximum_wire_integer.')
     if limits['maximum_authentication_bytes'] > limits['maximum_control_bytes']:
         raise ValueError('Authentication frames cannot exceed the control limit.')
     if limits['heartbeat_interval_ms'] >= limits['heartbeat_timeout_ms']:
