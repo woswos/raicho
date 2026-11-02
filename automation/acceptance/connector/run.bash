@@ -103,6 +103,7 @@ OLD_ADDRESS="$(address "${SERVER}" connector-application)"
 "${COMPOSE[@]}" stop raicho
 "${COMPOSE[@]}" rm -f raicho
 docker run -d --name "${HOLDER}" --network "${RAICHO_PROJECT}_connector-application" \
+    --label "com.docker.compose.project=${RAICHO_PROJECT}" \
     --ip "${OLD_ADDRESS}" --read-only --user 10001:10001 --cap-drop ALL \
     --security-opt no-new-privileges:true --entrypoint sleep raicho-tools:local 600 >/dev/null
 "${COMPOSE[@]}" up -d --no-deps --wait --wait-timeout 120 raicho

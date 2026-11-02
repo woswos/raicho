@@ -431,6 +431,9 @@ synchronization dependency or establish a general background discovery strategy.
   engines reject address reservation on automatically configured networks.
   Compose adopts and removes this project-labeled network. Production network
   configuration is unchanged.
+- Rename follow-up (2026-11-02): the connector and credential runners in the
+  validation commands above are now `automation/acceptance/connector/run.bash`
+  and `automation/acceptance/credentials/run.bash`.
 - Current [architecture](../../reference/architecture.md), [runtime](../../reference/runtime.md),
   [build commands](../../reference/build-test-generate.md), and [runtime stack ADR](../../decisions/20261018-foundation-runtime-stack.md).
 - [Thunderbird 153.5.0 ESR release](https://www.thunderbird.net/en-US/thunderbird/153.5.0esr/releasenotes/),

@@ -16,7 +16,8 @@ if [[ -n ${RAICHO_CREDENTIAL_DIRECTORY:-} ]]; then
     BASE_COMPOSE+=(-f compose.credentials.yaml)
 fi
 ADMIN_COMPOSE=("${BASE_COMPOSE[@]}" -f compose.admin.yaml)
-PROBE=(docker run --rm --pull never --read-only --cap-drop ALL --security-opt no-new-privileges:true --entrypoint curl)
+PROBE=(docker run --rm --pull never --read-only --cap-drop ALL --security-opt no-new-privileges:true
+    --label "com.docker.compose.project=${COMPOSE_PROJECT_NAME}" --entrypoint curl)
 CURL_OPTIONS=(--noproxy '*' --connect-timeout 3 --max-time 5 --silent --show-error --output /dev/null)
 export RAICHO_ADMIN_PORT=0
 

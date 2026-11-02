@@ -7,7 +7,8 @@ from pathlib import Path
 from unittest import mock
 
 from protocol.generator import cli
-from protocol.generator.cli import NODE_REPORTER, ROOT, node_reporter, sync_outputs
+from protocol.generator.cli import NODE_REPORTER, ROOT, node_reporter
+from protocol.generator.outputs import DESTINATIONS, sync_outputs
 from protocol.generator.validation import validate_sources, validate_status
 
 
@@ -105,9 +106,9 @@ class ProtocolGenerationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             staging = Path(temporary) / 'staging'
             root = Path(temporary) / 'root'
-            for language in cli.DESTINATIONS:
+            for language in DESTINATIONS:
                 (staging / language).mkdir(parents=True)
-            destination = cli.DESTINATIONS['typescript']
+            destination = DESTINATIONS['typescript']
             committed = root / destination
             committed.mkdir(parents=True)
             (staging / 'typescript/contract_generated.ts').write_text('expected\n')
@@ -138,7 +139,7 @@ class ProtocolGenerationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'notes.ts'):
                 sync_outputs(staging, root, 'generate')
             self.assertEqual((committed / 'contract_generated.ts').read_text(), 'edited\n')
-            self.assertFalse((root / cli.DESTINATIONS['web'] / 'notes.ts').exists())
+            self.assertFalse((root / DESTINATIONS['web'] / 'notes.ts').exists())
 
     def test_verbose_protocol_tests_use_the_standard_reporter(self):
         for verbose, reporter in (('', NODE_REPORTER), ('1', '--test-reporter=spec')):

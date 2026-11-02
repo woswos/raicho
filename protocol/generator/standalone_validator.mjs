@@ -1,11 +1,11 @@
 import { createRequire } from 'node:module';
 
-export const qualityDirectory = '/opt/quality';
-const require = createRequire(`${qualityDirectory}/package.json`);
-const Ajv = require('ajv');
-const standaloneCode = require('ajv/dist/standalone').default;
-const { build } = require('esbuild');
-const typescript = require('typescript');
+const qualityDirectory = '/opt/quality';
+export const requireQuality = createRequire(`${qualityDirectory}/package.json`);
+const Ajv = requireQuality('ajv');
+const standaloneCode = requireQuality('ajv/dist/standalone').default;
+const { build } = requireQuality('esbuild');
+const typescript = requireQuality('typescript');
 
 function checkStandalone(node) {
   if (

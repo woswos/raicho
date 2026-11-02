@@ -26,6 +26,18 @@ wait_for_removal() {
     return 1
 }
 
+# A self-removing container can disappear between the listing and a later command. Docker then
+# reports it missing, which counts as removed. Every other error still fails.
+ignore_missing() {
+    local ERRORS STATUS=0
+    { ERRORS="$("${@}" 2>&1 >&3 3>&-)" || STATUS="${?}"; } 3>&1
+    if ((STATUS == 0)) || ! grep -qv 'No such container' <<<"${ERRORS}"; then
+        return 0
+    fi
+    echo "${ERRORS}" >&2
+    return 1
+}
+
 remove_project() {
     local PROJECT="${1}" KIND LISTED IDS SELF_REMOVING CONTAINER
     shift
@@ -36,9 +48,10 @@ remove_project() {
             continue
         fi
         if [[ ${KIND} == container ]]; then
-            LISTED="$(docker container inspect --format '{{.HostConfig.AutoRemove}} {{.Id}}' "${IDS[@]}")" || return 1
+            LISTED="$(ignore_missing docker container inspect --format '{{.HostConfig.AutoRemove}} {{.Id}}' "${IDS[@]}")" \
+                || return 1
             # A graceful stop protects the volumes that mrproper keeps.
-            docker container stop "${IDS[@]}" >/dev/null || return 1
+            ignore_missing docker container stop "${IDS[@]}" >/dev/null || return 1
             mapfile -t SELF_REMOVING < <(sed -n 's/^true //p' <<<"${LISTED}")
             for CONTAINER in "${SELF_REMOVING[@]}"; do
                 wait_for_removal "${CONTAINER}" || return 1

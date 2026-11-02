@@ -43,7 +43,8 @@ cause, fix, relevant validation, and limitations. Keep them concise and follow
 reference required by [workflow](workflow.md). Before requesting review of an
 implementation PR with a `Design:` line, run the
 [design check](workflow.md#design-first-delivery) and record its verdict.
-Review the description before publication. Body and label edits retrigger the relevant CI guards.
+Review the description before publication. Body and label edits retrigger the
+relevant CI guards.
 
 A change an operator can notice also needs a changelog entry. Put it in the
 description's Changelog section, or under `## [Unreleased]` in `CHANGELOG.md`.

@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Sourced by the connector runner and its network tests.
 
 prepare_network() {

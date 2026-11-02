@@ -38,50 +38,6 @@ stop_runner() {
     fi
 }
 
-# Compose prefixes every project network and volume with the project name. A fixture container can
-# create such a volume before Compose does, and Docker then gives it no project label.
-project_resources() {
-    local KIND="${1}" PROJECT="${2}" LISTED
-    LISTED="$(list "${KIND}" --format '{{.Name}}')" || return 1
-    awk -v prefix="${PROJECT}_" 'index($0, prefix) == 1' <<<"${LISTED}"
-}
-
-# Probe, fixture, and holder containers carry no project label but keep its networks and volumes in use.
-remove_attached_containers() {
-    local PROJECT="${1}" KIND LISTED NAMES NAME CONTAINERS='' IDS
-    for KIND in network volume; do
-        LISTED="$(project_resources "${KIND}" "${PROJECT}")" || return 1
-        mapfile -t NAMES < <(printf '%s' "${LISTED}")
-        for NAME in "${NAMES[@]}"; do
-            CONTAINERS+="$(list container --quiet --filter "${KIND}=${NAME}")"$'\n' || return 1
-        done
-    done
-    mapfile -t IDS < <(sort -u <<<"${CONTAINERS}" | sed '/^$/d')
-    if ((${#IDS[@]} > 0)); then
-        docker container rm --force "${IDS[@]}" >/dev/null || return 1
-    fi
-}
-
-remove_unlabelled_resources() {
-    local PROJECT="${1}" KIND LISTED NAMES RESULT=0
-    for KIND in volume network; do
-        if ! LISTED="$(project_resources "${KIND}" "${PROJECT}")"; then
-            RESULT=1
-            continue
-        fi
-        mapfile -t NAMES < <(printf '%s' "${LISTED}")
-        if ((${#NAMES[@]} == 0)); then
-            continue
-        fi
-        if docker "${KIND}" rm "${NAMES[@]}" >/dev/null; then
-            echo "Removed the unlabelled ${KIND}s of ${PROJECT}"
-        else
-            RESULT=1
-        fi
-    done
-    return "${RESULT}"
-}
-
 remove_project_images() {
     local PROJECT="${1}" LISTED IMAGES
     LISTED="$(docker image ls --format '{{.Repository}}:{{.Tag}}' --filter "reference=${PROJECT}:*")" || return 1
@@ -97,7 +53,7 @@ remove_state_directory() {
     if [[ -z ${STATE_DIRECTORY} || ! -e ${STATE_DIRECTORY} ]]; then
         return 0
     fi
-    if [[ -L ${STATE_DIRECTORY} || ! -d ${STATE_DIRECTORY} || ! -O ${STATE_DIRECTORY} ]]; then
+    if ! owned_directory "${STATE_DIRECTORY}"; then
         echo "FAIL: ${STATE_DIRECTORY} is not a state directory this user owns" >&2
         return 1
     fi
@@ -107,12 +63,10 @@ remove_state_directory() {
 # A failed Docker step must not leave the state directory's credentials behind, so every step runs.
 remove_recorded_project() {
     local PROJECT="${1}" STATE_DIRECTORY="${2}" RESULT=0 KIND
-    remove_attached_containers "${PROJECT}" || RESULT=1
     # remove_project stops at its first failure, so each kind gets its own call.
     for KIND in container volume network; do
         remove_project "${PROJECT}" "${KIND}" || RESULT=1
     done
-    remove_unlabelled_resources "${PROJECT}" || RESULT=1
     remove_project_images "${PROJECT}" || RESULT=1
     remove_state_directory "${STATE_DIRECTORY}" || RESULT=1
     return "${RESULT}"

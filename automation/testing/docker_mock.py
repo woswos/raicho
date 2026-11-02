@@ -18,6 +18,7 @@ configuration = json.loads((directory / 'responses.json').read_text())
 for response in configuration['responses']:
     if set(response['words']) <= set(arguments):
         sys.stdout.write(response['output'])
+        sys.stderr.write(response['error'])
         if response['terminate_parent']:
             os.kill(os.getppid(), signal.SIGTERM)
         raise SystemExit(response['status'])
@@ -30,6 +31,7 @@ class Response:
     words: tuple
     status: int = 0
     output: str = ''
+    error: str = ''
     terminate_parent: bool = False
 
 
