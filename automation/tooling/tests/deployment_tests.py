@@ -120,6 +120,12 @@ class DeploymentTests(unittest.TestCase):
                 commands = dry_run(f'deploy-connector-{command}')
                 self.assertIn(f'deploy/credentials/connector.bash {command}\n', commands)
 
+    def test_login_targets_run_the_matching_command(self):
+        for command in ('init', 'reset', 'revoke', 'status'):
+            with self.subTest(command=command):
+                commands = dry_run(f'deploy-login-{command}')
+                self.assertIn(f'deploy/credentials/login.bash {command}\n', commands)
+
     def test_images_record_the_checked_out_commit(self):
         self.assertRegex(dry_run('images'), re.compile(r'^RAICHO_COMMIT=[0-9a-f]{40}(-dirty)? ', re.MULTILINE))
         self.assertIn('RAICHO_COMMIT=custom ', dry_run('images', RAICHO_COMMIT='custom'))

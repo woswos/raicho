@@ -13,7 +13,8 @@ WRITING_TARGETS := format format-bash format-python format-javascript format-rus
     generate generate-protocol
 DEPLOYMENT_TARGETS := deploy-up deploy-admin deploy-restart deploy-down deploy-ps deploy-health \
     deploy-logs deploy-shell deploy-vnc deploy-clean \
-    $(addprefix deploy-connector-,init rotate verify status revoke reactivate)
+    $(addprefix deploy-connector-,init rotate verify status revoke reactivate) \
+    $(addprefix deploy-login-,init reset revoke status)
 HOST_TARGETS := images acceptance acceptance-runtime acceptance-connector acceptance-credentials \
     acceptance-mail shell clean mrproper $(DEPLOYMENT_TARGETS)
 

@@ -65,11 +65,11 @@ GNU Make. Add VERBOSE=1 for each tool's normal output.
 Deployment targets run on a Linux Docker host. Each acts on one deployment,
 chosen by RAICHO_PROJECT, then COMPOSE_PROJECT_NAME, then "raicho".
 RAICHO_PORT (8080), RAICHO_ADMIN_PORT (6080), and RAICHO_VNC_PORT (5900) set
-loopback ports. VERBOSE=1 also shows Docker progress.
+loopback ports. RAICHO_PUBLIC_ORIGIN names the browser address. VERBOSE=1 also shows Docker progress.
 
   make deploy-up      Build the runtime images (make images), then run
                       docker compose up -d --wait. Starts or upgrades the
-                      deployment and prints http://127.0.0.1:8080.
+                      deployment and prints http://localhost:8080.
   make deploy-admin   deploy-up plus compose.admin.yaml, which opens the
                       Thunderbird desktop in a browser on 127.0.0.1:6080 and
                       to VNC viewers on 127.0.0.1:5900. Run
@@ -99,6 +99,13 @@ loopback ports. VERBOSE=1 also shows Docker progress.
   Once .raicho/<project>/credentials/ exists, deploy-up and deploy-admin add
   compose.credentials.yaml and RAICHO_CREDENTIAL_DIRECTORY themselves.
 
+# Browser login
+  make deploy-login-<command>
+      Build the runtime images, then run
+      bash deploy/credentials/login.bash <command>, where <command> is
+      init, reset, revoke, or status. init and reset ask for the password,
+      and reset and revoke end every browser session.
+
 # Remove a deployment
   make deploy-clean   List the deployment and ask you to type its name, then
                       delete its containers, networks, volumes (including the
@@ -106,4 +113,5 @@ loopback ports. VERBOSE=1 also shows Docker progress.
                       everything make clean does.
 
 Details: docs/reference/build-test-generate.md,
-docs/operations/local-runtime.md, and docs/operations/connector-credentials.md.
+docs/operations/local-runtime.md, docs/operations/connector-credentials.md,
+and docs/operations/browser-login.md.
