@@ -123,6 +123,7 @@ class PythonSuiteRunnerTests(unittest.TestCase):
     def test_a_test_filter_that_names_nothing_fails(self):
         result = self.run_suite({'TEST': 'sample.missing_tests'}, first=PASSING)
         self.assertEqual(result.returncode, 1)
+        self.assertIn('missing_tests', result.stdout)
         self.assertNotIn('tests passed', result.stdout)
 
     def test_a_test_filter_without_tests_names_the_filter(self):

@@ -25,11 +25,14 @@ class HelpTests(unittest.TestCase):
     def test_the_guide_names_every_target_without_docker(self):
         docker = DockerMock(self.state / 'docker')
         guide = make('help', PATH=docker.environment()['PATH'])
+        commands = set(re.findall(r'^  make ([a-z-]*[a-z])', guide, re.MULTILINE))
         for target in make_list('CONTAINER_TARGETS') + make_list('HOST_TARGETS'):
             with self.subTest(target=target):
                 if target.startswith('deploy-connector-'):
                     self.assertIn(target.removeprefix('deploy-connector-'), guide)
-                else:
+                elif target not in commands:
+                    # A family member such as lint-bash may appear in its parent's list.
+                    self.assertTrue(any(target.startswith(f'{command}-') for command in commands))
                     self.assertRegex(guide, rf'(?<![\w-]){re.escape(target)}(?![\w-])')
         self.assertIn('make deploy-connector-<command>', guide)
         self.assertNotIn('make deploy ', guide)
@@ -46,6 +49,7 @@ class HelpTests(unittest.TestCase):
         ):
             self.assertIn(line, guide)
         self.assertIn('http://127.0.0.1:8081', guide)
+        self.assertIn("project            it's", make('help', RAICHO_PROJECT="it's"))
         (self.state / 'credentials').mkdir()
         self.assertIn('connector          enrolled', make('help', RAICHO_STATE_DIRECTORY=str(self.state)))
 
