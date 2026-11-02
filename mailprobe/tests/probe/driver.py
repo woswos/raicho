@@ -9,6 +9,7 @@ from mailprobe.tests.probe import (
     scenario_permissions,
     scenario_restart,
     scenario_settlement,
+    scenario_synchronization,
 )
 from mailprobe.tests.probe.client import ProbeClient, wait_until
 from mailprobe.tests.proxy.mail_inspect import ensure_mailboxes
@@ -23,12 +24,16 @@ SCENARIOS = {
     'native_verify': scenario_native.verify,
     'permission_verify': scenario_permissions.verify,
     'record_skips': scenario_permissions.record_skips,
+    'synchronization_prepare': scenario_synchronization.prepare,
+    'synchronization': scenario_synchronization.run,
 }
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('phase', choices=['prepare', 'inventory', 'evidence', 'command', *SCENARIOS])
+    parser.add_argument(
+        'phase', choices=['prepare', 'inventory', 'evidence', 'command', 'synchronization_seed', *SCENARIOS]
+    )
     parser.add_argument('--action')
     parser.add_argument('--arguments', default='{}')
     arguments = parser.parse_args()
@@ -46,6 +51,9 @@ def main():
         return
     if arguments.phase == 'evidence':
         print(json.dumps(client.evidence(), indent=2))
+        return
+    if arguments.phase == 'synchronization_seed':
+        scenario_synchronization.seed(client)
         return
     metadata = client.wait_connected()
     if arguments.phase == 'inventory':
