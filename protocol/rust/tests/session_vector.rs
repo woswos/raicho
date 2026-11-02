@@ -88,7 +88,7 @@ fn a_failed_frame_closes_the_channel() {
 fn a_frame_without_a_mac_is_invalid() {
     let vector = vector();
     let key = from_hex(vector["session_key"].as_str().unwrap()).unwrap();
-    let challenge = json!({"type": "challenge", "protocol_version": 1, "server_nonce": "f".repeat(64)});
+    let challenge = json!({"type": "challenge", "protocol_version": 2, "server_nonce": "f".repeat(64)});
     let mut client = Channel::new(key, Peer::Client);
     assert_eq!(
         client
