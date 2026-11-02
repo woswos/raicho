@@ -53,7 +53,7 @@ remove_state_directory() {
     if [[ -z ${STATE_DIRECTORY} || ! -e ${STATE_DIRECTORY} ]]; then
         return 0
     fi
-    if [[ -L ${STATE_DIRECTORY} || ! -d ${STATE_DIRECTORY} || ! -O ${STATE_DIRECTORY} ]]; then
+    if ! owned_directory "${STATE_DIRECTORY}"; then
         echo "FAIL: ${STATE_DIRECTORY} is not a state directory this user owns" >&2
         return 1
     fi

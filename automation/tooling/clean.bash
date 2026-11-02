@@ -39,6 +39,10 @@ remove_disposable_projects() {
     done
 }
 
+owned_directory() {
+    [[ -d ${1} && ! -L ${1} && -O ${1} ]]
+}
+
 # Credential directories hold files that belong to container users.
 remove_directory() {
     local DIRECTORY="${1}"
@@ -54,7 +58,7 @@ remove_directory() {
 remove_state_directories() {
     local DIRECTORY
     for DIRECTORY in "${TEMPORARY_DIRECTORY}"/raicho-*.????????; do
-        if [[ ! -d ${DIRECTORY} || -L ${DIRECTORY} || ! -O ${DIRECTORY} ]]; then
+        if ! owned_directory "${DIRECTORY}"; then
             continue
         fi
         if ! remove_directory "${DIRECTORY}"; then
