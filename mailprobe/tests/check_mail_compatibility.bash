@@ -88,7 +88,11 @@ if [[ ${NATIVE} == true ]]; then
     "${COMPOSE[@]}" run --rm driver permission_verify
     "${COMPOSE[@]}" run --rm driver delivery
 fi
-"${COMPOSE[@]}" restart thunderbird
+"${COMPOSE[@]}" run --rm driver synchronization_prepare
+"${COMPOSE[@]}" stop thunderbird
+"${COMPOSE[@]}" run --rm driver synchronization_seed
+"${COMPOSE[@]}" up -d --wait --wait-timeout 120 thunderbird
+"${COMPOSE[@]}" run --rm driver synchronization
 if [[ ${NATIVE} == true ]]; then
     echo 'After Thunderbird restarts, choose Later if it asks to send unsent messages.'
     echo 'Keep the queued fixture message in Outbox. Press Enter when the mail window is ready.'
