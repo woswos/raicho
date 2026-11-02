@@ -30,4 +30,4 @@ if [[ -n ${DEPLOYMENT_ENROLLED:-} ]]; then
 else
     row connector "${VALUE}" 'not enrolled'
 fi
-row address "${VALUE}" "http://127.0.0.1:${RAICHO_PORT:-8080}"
+row address "${VALUE}" "${RAICHO_PUBLIC_ORIGIN:-http://localhost:${RAICHO_PORT:-8080}}"
