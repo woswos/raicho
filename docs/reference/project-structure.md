@@ -12,7 +12,7 @@ compose*.yaml      Base deployment and its administration, credential, and login
 assets/brand/      Production identity masters, fonts, guides, and prototypes
 deploy/            Per-service image recipes, runtime code, configuration, and tests
 server/            Rust diagnostics, SQLite queries, migrations, and tests
-web/               TypeScript diagnostics, public files, and behavioral tests
+web/               Preact browser client, public files, and behavioral tests
 extension/         Production connector, Thunderbird adapter, packager, and tests
 mailprobe/         Mail API compatibility probe, fixtures, Compose files, and runner
 protocol/          Connector and status schemas, limits, fixtures, generators, implementations

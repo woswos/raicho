@@ -36,7 +36,7 @@ a heading that lists several kinds separated by `|`, and a bullet that starts
 with `TODO:` are ignored.
 
 Anything an operator can notice needs an entry in one of those two places.
-That includes the server, its SQL, the diagnostics page, production extension
+That includes the server, its SQL, the browser client, production extension
 manifests and source, production protocol implementations in `protocol/rust/src/`
 and `protocol/typescript/src/`, gateway runtime configuration, and the Raicho,
 Thunderbird, and gateway image recipes, excluding tests. Documentation, repository

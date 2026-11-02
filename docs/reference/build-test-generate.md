@@ -229,8 +229,10 @@ make test
 `build-web`, and `build-extension` build one component without testing it. There
 is no aggregate `build` target: `make images` builds the deliverables. The Rust
 build selection and target directory are described below. The browser build uses `tsc`, copies public files and
-the selected identity assets, then runs Node's built-in tests against compiled
-modules. The web builder is `web/build.mjs`, and extension packaging
+the selected identity assets, bundles `web/src/main.tsx` and Preact into `main.js`
+with esbuild, then runs Node's built-in tests against the compiled modules. The
+tooling image links `/node_modules` to its packages, so builds in `/workspace`
+resolve them as image builds do. The web builder is `web/build.mjs`, and extension packaging
 uses `extension/build.mjs`. Both run on Node alone. The shared dispatcher remains in
 `automation/build/application.py`. All temporary build output stays
 outside the source mount.

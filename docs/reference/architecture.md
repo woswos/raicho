@@ -11,8 +11,8 @@ from that target.
 
 ## Current state
 
-Docker Compose runs a Rust diagnostics server and an independently built
-Thunderbird container. The server serves the TypeScript diagnostics page and
+Docker Compose runs a Rust server and an independently built Thunderbird
+container. The server serves the Preact browser client and
 initializes SQLite with backend configuration and keys derived from the connector
 token. Its status reports the [product version](versioning.md) and the build
 commit. Thunderbird owns a separate profile volume. Its internal display starts without a viewer, and a
@@ -27,7 +27,8 @@ describes its networks. The browser displays authenticated connection status.
 One offline-provisioned password signs browsers in, and SQLite keeps only its hash,
 session token digests, and the theme preference. Session-protected routes list
 accounts, mailboxes, and message summaries, and they reject state changes from any
-origin other than `RAICHO_PUBLIC_ORIGIN`. The browser mailbox view remains planned.
+origin other than `RAICHO_PUBLIC_ORIGIN`. The browser shows accounts, mailboxes,
+and paginated summaries, and keeps them only in memory.
 
 A separate test-only extension and disposable GreenMail deployment exercise
 mail API compatibility. A fixed SMTP/IMAP fault proxy and test controller run
@@ -74,7 +75,7 @@ using the same tooling image locally and in CI. See the
 
 ```mermaid
 flowchart LR
-    Browser[TypeScript diagnostics] -->|Session cookie| Server[Rust HTTP server]
+    Browser[Preact browser client] -->|Session cookie| Server[Rust HTTP server]
     Server --> State[(SQLite metadata)]
     Login[Offline login command] --> State
     Provisioner[Offline credential command] --> State
