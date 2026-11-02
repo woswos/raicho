@@ -42,6 +42,8 @@ def deployed_commit(deployed, checkout, distance):
     if not deployed:
         return 'unknown'
     if deployed == checkout:
+        if deployed.endswith('-dirty'):
+            return f'{short(deployed)}, same commit as the checkout, both with uncommitted changes'
         return f'{short(deployed)}, matches the checkout'
     ahead, behind = distance or (0, 0)
     if ahead and behind:
@@ -74,12 +76,12 @@ def main(arguments):
         return 1
     try:
         status = json.loads(text)
-    except json.JSONDecodeError:
+        deployed = status['commit']
+        distance = commit_distance(deployed, checkout) if deployed and deployed != checkout else None
+        lines, healthy = report(status, checkout, distance)
+    except (ValueError, KeyError, TypeError):
         print('Raicho returned an unexpected status response.', file=sys.stderr)
         return 1
-    deployed = status['commit']
-    distance = commit_distance(deployed, checkout) if deployed and deployed != checkout else None
-    lines, healthy = report(status, checkout, distance)
     print('\n'.join(lines))
     return 0 if healthy else 1
 

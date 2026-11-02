@@ -67,6 +67,12 @@ class DeploymentHealthReportTests(unittest.TestCase):
         lines = report(status(), f'{CHECKOUT}-dirty')[0]
         self.assertIn('  Deployed commit    f9b7238, checkout is 41dad85-dirty', lines)
 
+    def test_equal_dirty_labels_do_not_claim_matching_contents(self):
+        lines = report(status(commit=f'{CHECKOUT}-dirty'), f'{CHECKOUT}-dirty')[0]
+        self.assertIn(
+            '  Deployed commit    41dad85-dirty, same commit as the checkout, both with uncommitted changes', lines
+        )
+
     def test_an_unknown_commit_is_reported(self):
         self.assertIn('  Deployed commit    unknown', report(status(commit=None), CHECKOUT)[0])
 
@@ -123,9 +129,12 @@ class DeploymentHealthCommandTests(unittest.TestCase):
         self.assertIn('make deploy-ps', result.stderr)
 
     def test_an_unreadable_response_fails(self):
-        result = self.run_health('<html>')
-        self.assertEqual(result.returncode, 1)
-        self.assertIn('unexpected status response', result.stderr)
+        for text in ('<html>', 'null', '{}', '[]', '{"status": "ready"}'):
+            with self.subTest(text=text):
+                result = self.run_health(text)
+                self.assertEqual(result.returncode, 1)
+                self.assertIn('unexpected status response', result.stderr)
+                self.assertNotIn('Traceback', result.stderr)
 
 
 if __name__ == '__main__':
