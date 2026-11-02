@@ -37,7 +37,7 @@ images:
 QUIET_DOCKER := $(if $(VERBOSE),,COMPOSE_PROGRESS=quiet BUILDKIT_PROGRESS=quiet)
 ACCEPTANCE := $(QUIET_DOCKER) $(STEP)
 
-acceptance: acceptance-runtime acceptance-connector acceptance-credentials acceptance-mail
+acceptance: acceptance-runtime acceptance-connector acceptance-credentials acceptance-browsing acceptance-mail
 
 acceptance-runtime:
 	@$(ACCEPTANCE) $@ bash $(REPOSITORY_ROOT)automation/acceptance/runtime/run.bash
@@ -47,6 +47,9 @@ acceptance-connector:
 
 acceptance-credentials:
 	@$(ACCEPTANCE) $@ bash $(REPOSITORY_ROOT)automation/acceptance/credentials/run.bash
+
+acceptance-browsing:
+	@$(ACCEPTANCE) $@ bash $(REPOSITORY_ROOT)automation/acceptance/browsing/run.bash
 
 acceptance-mail:
 	@$(ACCEPTANCE) $@ bash $(REPOSITORY_ROOT)mailprobe/tests/check_mail_compatibility.bash

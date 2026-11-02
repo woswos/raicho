@@ -1,7 +1,8 @@
 # Connector acceptance
 
 Connector acceptance runs the production connector, the credential procedure,
-and the mail compatibility experiment in disposable Docker deployments. See the
+mailbox browsing, and the mail compatibility experiment in disposable Docker
+deployments. See the
 [contract](connector-contract.md), [build commands](build-test-generate.md),
 [CI jobs](ci-cd.md), and [credential procedure](../operations/connector-credentials.md).
 The dated results of the first acceptance are in the
@@ -10,9 +11,9 @@ The dated results of the first acceptance are in the
 ## Scope
 
 Every runner uses a uniquely named disposable project, fresh Thunderbird
-profile, and generated fixture credentials. Production checks use control traffic
-and fictional rejection canaries, without mail accounts. The separate mail
-experiment uses fictional GreenMail accounts on an internal network. No personal
+profile, and generated fixture credentials. Connector checks use control traffic
+and fictional rejection canaries, without mail accounts. Browsing and the separate
+mail experiment use fictional GreenMail accounts on an internal network. No personal
 profile or provider credential is used. Each runner removes its owned containers,
 volumes, networks, temporary credentials, and fixture image tags. In CI a final
 step removes them after a cancellation or timeout, as
@@ -22,6 +23,7 @@ step removes them after a cancellation or timeout, as
 | --- | --- |
 | Production connector | Packaged XPI contents, runtime policy, one authenticated generation for ten minutes, rejected proofs and mail-canary payloads, restart and recreation of every service, network interruption, a changed Raicho address without gateway recreation, internal connector networks, browser-route and administrative isolation, a same-profile upgrade, and absence of the token and canaries from logs, diagnostics, and SQLite. |
 | Credential procedure | Provisioning, persistence, rotation interruption at both publication points, revocation and restart rejection, explicit reactivation, file access, and token exclusion. |
+| Mailbox browsing | Offline password provisioning, rejection without a session, two concurrent sessions and logout, the fixture account's identities and inbox, 120 summaries paginated newest first without overlap, cursors confined to their session, stale handles and cursors after a Thunderbird restart, session and theme persistence across a Raicho restart, revocation, and absence of mail from Raicho's logs and database files. |
 | Mail compatibility | Fixture tests, draft, identity, and attachment checks, rediscovery after restart, and fault proxy integration. Native and delivery-dependent phases report `not_run` without `--native`. |
 
 ## CI and reproduction
@@ -40,9 +42,13 @@ establish a hosted GitHub Actions result.
 
 ## Limits
 
-- Production carries authentication and heartbeat only. Browser login, mail
-  reads, mutations, and compose are planned in the
+- Production reads accounts, mailboxes, and summaries. Message bodies,
+  search, mutations, and compose are planned in the
   [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md).
+- Browsing acceptance covers the fixture's INBOX. Stale handles after a message
+  move or folder rename need Thunderbird-side changes that production permissions
+  exclude, so the [adapter tests](connector-contract.md#thunderbird-adapter) cover
+  them. The browser's rendering is checked by inspecting the running page.
 - The [mail compatibility matrix](mail-api-compatibility.md#running-the-experiment)
   records the manual send-consent, native draft-editing, and fault evidence, and
   what CI repeats.

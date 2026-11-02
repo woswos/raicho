@@ -89,8 +89,8 @@ Do not add thin compatibility wrappers or restore a flat helper directory.
 | Cross-service disposable deployment checks | `automation/acceptance/` |
 | Fixtures shared by automation tests | `automation/testing/` |
 
-Cross-service acceptance drivers use `connector/`, `credentials/`, and `runtime/`
-subpackages, each with its own `run.bash`. The connector and credential runners
+Cross-service acceptance drivers use `browsing/`, `connector/`, `credentials/`, and
+`runtime/` subpackages, each with its own `run.bash`. The connector and credential runners
 source `automation/acceptance/credential_deployment.bash` for their disposable
 project, state directory, fixture container, credential commands, and cleanup.
 The connector runner also sources `connector/network.bash`, which its tests
@@ -127,7 +127,9 @@ Thunderbird token mount, endpoint, and live verification through the
 Test overlays live with their drivers. `automation/acceptance/runtime/compose.test.yaml`
 adds the isolated runtime fixture driver, and
 `automation/acceptance/connector/compose.upgrade.yaml` mounts a version-bumped
-production XPI for the connector acceptance upgrade check. Compose resolves every
+production XPI for the connector acceptance upgrade check, and
+`automation/acceptance/browsing/compose.browsing.yaml` adds GreenMail, the
+fictional Thunderbird profile, and the browsing driver. Compose resolves every
 overlay's paths from the first file, so these overlays use repository-relative
 paths. `automation/tooling/compose.yaml` provides checks and formatting, with
 `automation/tooling/compose.ci.yaml` adding the GitHub event mount when Make sees
