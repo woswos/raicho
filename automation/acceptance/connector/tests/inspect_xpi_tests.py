@@ -14,7 +14,7 @@ class ProductionArchiveTests(unittest.TestCase):
             'manifest_version': 2,
             'version': '0.2.0',
             'browser_specific_settings': {'gecko': {'id': 'connector@raicho'}},
-            'permissions': ['storage'] if permissions is None else permissions,
+            'permissions': ['storage', 'accountsRead', 'messagesRead'] if permissions is None else permissions,
         }
         with zipfile.ZipFile(path, 'w') as archive:
             archive.writestr('manifest.json', json.dumps(manifest))
@@ -29,8 +29,15 @@ class ProductionArchiveTests(unittest.TestCase):
                 with self.assertRaises(AssertionError):
                     inspect_archive(self.archive(directory, contents), b'private-token')
 
-    def test_rejects_mail_permissions_in_the_production_archive(self):
+    def test_rejects_mail_changing_permissions_in_the_production_archive(self):
         with tempfile.TemporaryDirectory() as temporary:
-            path = self.archive(Path(temporary), permissions=['storage', 'messagesRead'])
-            with self.assertRaises(AssertionError):
-                inspect_archive(path, b'private-token')
+            for permissions in (
+                ['storage'],
+                ['storage', 'accountsRead', 'messagesRead', 'messagesMove'],
+                ['storage', 'accountsRead', 'messagesRead', 'compose'],
+            ):
+                directory = Path(temporary) / '-'.join(permissions)
+                directory.mkdir()
+                path = self.archive(directory, permissions=permissions)
+                with self.assertRaises(AssertionError):
+                    inspect_archive(path, b'private-token')

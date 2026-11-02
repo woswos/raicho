@@ -1,5 +1,7 @@
 import type { Configuration } from './configuration.js';
 import { connectorSession, type Metadata } from './connector_session.js';
+import type { MailAdapter } from './mail_adapter.js';
+import type { Operation } from '../../protocol/typescript/src/contract_generated.js';
 import { LIMITS } from '../../protocol/typescript/src/limits_generated.js';
 
 const INITIAL_RETRY_DELAY_MS = 1000;
@@ -23,6 +25,7 @@ const browserDependencies: Dependencies = {
 export function startConnectorTransport(
   configuration: Configuration,
   metadata: Metadata,
+  adapter: Pick<MailAdapter, 'execute' | 'reset'>,
   dependencies: Dependencies = browserDependencies,
 ): () => void {
   let socket: WebSocket | undefined;
@@ -78,14 +81,37 @@ export function startConnectorTransport(
         }, delay);
       };
       const send = (message: string) => {
+        // A reply may still be buffered, but a socket holding more than one frame has stalled.
         if (
           current.readyState !== WebSocket.OPEN ||
-          current.bufferedAmount !== 0 ||
+          current.bufferedAmount > LIMITS.maximum_control_bytes ||
           message.length > LIMITS.maximum_control_bytes
         ) {
           throw new Error('Connector sender is unavailable.');
         }
         current.send(message);
+      };
+      // Frame MACs count frames in order, so sealing and sending share one queue.
+      let outgoing = Promise.resolve();
+      const transmit = (message: object) => {
+        outgoing = outgoing.then(async () => {
+          if (!active()) return;
+          try {
+            send(await session.seal(message));
+          } catch {
+            if (active()) {
+              console.warn('Raicho connector could not reply to the server and will reconnect.');
+              retry();
+            }
+          }
+        });
+        return outgoing;
+      };
+      const cancelled = new Set<number>();
+      const run = async (requestId: number, operation: Operation) => {
+        const result = await adapter.execute(operation);
+        if (cancelled.delete(requestId) || !active()) return;
+        await transmit(session.reply(requestId, result));
       };
       const handle = async (data: unknown) => {
         let received;
@@ -107,6 +133,11 @@ export function startConnectorTransport(
           retry();
           return;
         }
+        if (received.action === 'welcome') adapter.reset();
+        if (received.requestId !== undefined) {
+          if (received.operation !== undefined) void run(received.requestId, received.operation);
+          else cancelled.add(received.requestId);
+        }
         try {
           if (received.reply !== undefined) send(received.reply);
           if (received.action === 'heartbeat') failures = 0;
@@ -116,7 +147,9 @@ export function startConnectorTransport(
         } catch {
           console.warn('Raicho connector could not reply to the server and will reconnect.');
           retry();
+          return;
         }
+        if (received.control !== undefined) await transmit(received.control);
       };
       let processing = Promise.resolve();
       current.onmessage = (event) => {

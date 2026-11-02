@@ -74,6 +74,17 @@ export function connectorFixture() {
     socket.receiveSealed = async (message) => socket.receive(await socket.server.seal(message));
     return socket;
   };
-  fixture.stop = startConnectorTransport(configuration, metadata, fixture.dependencies);
+  fixture.requests = [];
+  fixture.resets = 0;
+  fixture.adapter = {
+    execute: (operation) =>
+      new Promise((resolve) => {
+        fixture.requests.push({ operation, resolve });
+      }),
+    reset: () => {
+      fixture.resets += 1;
+    },
+  };
+  fixture.stop = startConnectorTransport(configuration, metadata, fixture.adapter, fixture.dependencies);
   return fixture;
 }

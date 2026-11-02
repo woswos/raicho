@@ -8,7 +8,7 @@ import {
   type AuthenticationFields,
 } from '../../protocol/typescript/src/authentication.js';
 import { createChannel, sessionKey, type Channel } from '../../protocol/typescript/src/channel.js';
-import type { Authenticate, Welcome } from '../../protocol/typescript/src/contract_generated.js';
+import type { Authenticate, Operation, Outcome, Welcome } from '../../protocol/typescript/src/contract_generated.js';
 import { decodeFrame } from '../../protocol/typescript/src/decode_frame.js';
 import { LIMITS } from '../../protocol/typescript/src/limits_generated.js';
 
@@ -18,8 +18,12 @@ export interface Metadata {
 }
 
 interface Received {
-  action: 'authenticate' | 'welcome' | 'heartbeat' | 'retry' | 'stop';
+  action: 'authenticate' | 'welcome' | 'heartbeat' | 'request' | 'cancel' | 'retry' | 'stop';
+  // A handshake reply is final, while a control reply is sealed when it is sent.
   reply?: string;
+  control?: object;
+  requestId?: number;
+  operation?: Operation;
 }
 
 export function connectorSession(configuration: Configuration, metadata: Metadata) {
@@ -68,20 +72,42 @@ export function connectorSession(configuration: Configuration, metadata: Metadat
     if (message.type === 'error') {
       return { action: message.code === 'session_replaced' ? 'stop' : 'retry' };
     }
+    if (message.type === 'request') {
+      return { action: 'request', requestId: message.request_id, operation: message.operation };
+    }
+    if (message.type === 'cancel') {
+      return { action: 'cancel', requestId: message.request_id };
+    }
     if (message.type !== 'ping' || message.sequence <= previousSequence) {
       throw new Error('Unexpected heartbeat sequence.');
     }
     previousSequence = message.sequence;
-    const reply = await current.channel.seal({
-      type: 'pong',
-      protocol_version: message.protocol_version,
-      generation: message.generation,
-      sequence: message.sequence,
-    });
-    return { action: 'heartbeat', reply };
+    return {
+      action: 'heartbeat',
+      control: {
+        type: 'pong',
+        protocol_version: message.protocol_version,
+        generation: message.generation,
+        sequence: message.sequence,
+      },
+    };
   }
 
   return {
+    reply(requestId: number, result: Outcome): object {
+      if (session === undefined) throw new Error('The session has not started.');
+      return {
+        type: 'reply',
+        protocol_version: LIMITS.protocol_version,
+        generation: session.generation,
+        request_id: requestId,
+        result,
+      };
+    },
+    seal(message: object): Promise<string> {
+      if (session === undefined) throw new Error('The session has not started.');
+      return session.channel.seal(message);
+    },
     async receive(raw: unknown): Promise<Received> {
       if (typeof raw !== 'string') throw new Error('Expected a text frame.');
       if (session !== undefined) return control(raw, session);

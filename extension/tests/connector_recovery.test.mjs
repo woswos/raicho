@@ -96,7 +96,7 @@ test('closes congested senders and handles connection and send failures', async 
   const fixture = connectorFixture();
   const socket = fixture.sockets[0];
   await socket.handshake();
-  socket.bufferedAmount = 1;
+  socket.bufferedAmount = 65537;
   await socket.receiveSealed(ping);
   assert.equal(socket.readyState, 3);
   fixture.dependencies.connect = () => {
