@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use axum::body::Body;
 use axum::http::Request;
-use raicho_server::{connector::Connector, persistence::Database, router};
+use raicho_server::persistence::Database;
 use tempfile::tempdir;
 use tower::ServiceExt;
 
@@ -12,11 +12,7 @@ async fn every_response_carries_the_security_headers() {
     let directory = tempdir().unwrap();
     fs::write(directory.path().join("index.html"), "<h1>Raicho diagnostics</h1>").unwrap();
     let database = Arc::new(Database::open(directory.path()).await.unwrap());
-    let application = router(
-        Arc::clone(&database),
-        directory.path(),
-        Connector::new(Arc::clone(&database)),
-    );
+    let application = crate::support::application(Arc::clone(&database), directory.path());
     for path in ["/", "/api/status", "/health/live", "/missing.js", "/connector/v1"] {
         let response = application
             .clone()

@@ -71,20 +71,21 @@ async fn failed_migration_rolls_back_schema_and_history() {
 #[tokio::test]
 async fn checksum_drift_missing_and_future_versions_fail_closed() {
     let directory = tempdir().unwrap();
-    let original = migrations(&[(1, "CREATE TABLE retained (value TEXT)")]);
+    // Versions above the production ones make production startup fail before it applies anything.
+    let original = migrations(&[(100, "CREATE TABLE retained (value TEXT)")]);
     let database = Database::open_with_migrations(directory.path(), &original)
         .await
         .unwrap();
     database.close().await;
     drop(database);
-    let changed = migrations(&[(1, "CREATE TABLE changed (value TEXT)")]);
+    let changed = migrations(&[(100, "CREATE TABLE changed (value TEXT)")]);
     assert!(
         Database::open_with_migrations(directory.path(), &changed)
             .await
             .is_err()
     );
     assert!(Database::open(directory.path()).await.is_err());
-    let missing = migrations(&[(2, "CREATE TABLE later (value TEXT)")]);
+    let missing = migrations(&[(101, "CREATE TABLE later (value TEXT)")]);
     assert!(
         Database::open_with_migrations(directory.path(), &missing)
             .await

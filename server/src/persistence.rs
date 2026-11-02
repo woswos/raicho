@@ -1,3 +1,4 @@
+mod browser_login;
 mod connector_credentials;
 mod instance;
 mod migrations;
@@ -11,6 +12,9 @@ use sqlx::{ConnectOptions, SqlitePool, migrate::Migrator};
 
 use crate::error::{Error, Result};
 
+pub use browser_login::{
+    MAXIMUM_SESSIONS, SESSION_IDLE_SECONDS, SESSION_LIFETIME_SECONDS, SESSION_TOUCH_SECONDS, TokenDigest,
+};
 pub use connector_credentials::CredentialStatus;
 
 pub struct Database {
