@@ -31,7 +31,7 @@ class AuditTests(unittest.TestCase):
         self.assertTrue(lockfiles)
         for path in lockfiles:
             with self.subTest(path=path):
-                self.assertIn(f' --lockfile {path}', commands)
+                self.assertIn(f' --lockfile {REPOSITORY_ROOT}/{path}', commands)
 
     def test_the_patterns_cover_the_scanner_lockfile_formats(self):
         names = (
