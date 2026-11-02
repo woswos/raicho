@@ -1,9 +1,10 @@
 # Raicho agent instructions
 
 Raicho is a browser interface for Thunderbird. Its containerized foundation
-provides Rust/SQLite diagnostics and a TypeScript page alongside Thunderbird.
-Its packaged extension connects through an authenticated control protocol and
-reports connection health. Mail commands and browser mail workflows are still planned.
+provides a Rust/SQLite server and a Preact browser client alongside Thunderbird.
+Its packaged extension connects through an authenticated protocol, and a signed-in
+browser lists accounts, mailboxes, and message summaries. Reading messages, search,
+organizing, and compose are still planned.
 
 Read the documents below before working in this repository. The `@` lines are
 file references. If your agent does not expand them automatically, open each

@@ -2,7 +2,7 @@
 
 Status: stages 1 and 2 implementation and local Docker acceptance are complete.
 Stage 2 CI integration is configured, with hosted results tracked on its implementation PR.
-Stage 3 is authorized, its gates are resolved, and its slices are in progress.
+Stage 3 implementation and local Docker acceptance are complete and await review.
 Later foundation stages require their own authorization.
 
 The accepted constraints are recorded in the
@@ -149,7 +149,7 @@ Each stage includes focused behavioral tests where applicable and ends with a re
   draft-editing, and sending-fault evidence remains separate. Programmatic draft
   replacement, synchronization behavior, and uncertain sending remain gates
   before dependent mail workflows. See [acceptance](../../reference/connector-acceptance.md).
-- [ ] Stage 3: Deliver authenticated account and mailbox browsing.
+- [x] Stage 3: Deliver authenticated account and mailbox browsing.
   Implement single-user login, session protection, the backend contract, Thunderbird adapter, mock backend, account identities, mailbox listing, and paginated message summaries in the selected UI framework. Enforce ownership/capabilities and session-scoped handles. Add SQLite migrations for login/session state and application preferences within the ownership boundary above.
   Verification: login/logout, unauthorized browser/connector access, the persisted theme preference and session revocation across restarts, concurrent browser sessions, mailbox pagination, mock-adapter substitution, stale handles after restart/message move/folder rename, disconnect status, and absence of mail data in SQLite/logs/browser persistence.
   Quality gate: containerized checks and contract/authentication tests, then browser smoke checks against disposable mail fixtures. Stop for review of the first useful mailbox view.
@@ -160,8 +160,20 @@ Each stage includes focused behavioral tests where applicable and ends with a re
   4. Browser login: password and session migrations, offline login commands, origin checks, the theme preference, and session-protected mail routes tested against a mock backend.
   5. Thunderbird adapter: `accountsRead` and `messagesRead`, transient handles invalidated by Thunderbird events, byte-bounded pages, and bounded cursors.
   6. Mailbox view: Preact login, account and mailbox selection, summaries, pagination, and explicit states.
-  7. Acceptance: a disposable browsing deployment, its CI job, and documentation reconciliation.
+  7. Acceptance: a disposable browsing deployment, its CI step, and documentation reconciliation.
   A message handle has no consumer until stage 4. Stage 3 checks message staleness, and folder staleness after a rename, move, or deletion, through adapter tests and cursor pages that drop moved messages.
+  Debrief (2026-11-03): delivered the seven slices as stacked draft pull requests. The synchronization experiment
+  found that only Thunderbird's periodic check refreshes folders other than INBOX, and only with
+  `check_all_folders_for_new`, which the policy now defaults on. Folders that exist only on the server stay
+  unknown until the desktop expands the account. Protocol version 2 carries read-only requests within the
+  64 KiB frame limit, and a session-owned queue multiplexes them with heartbeat. Login, sessions, the theme
+  preference, and protected mail routes passed their server tests against a mock backend. The adapter passed
+  tests for event-driven staleness and byte-bounded pages. `make acceptance-browsing` passed against
+  GreenMail through the production stack: 120 summaries in three pages, two sessions, stale handles after a
+  Thunderbird restart, persistence across a Raicho restart, revocation, and no mail in Raicho's logs or
+  database files. Browser inspection covered login, paging, light and dark themes, a 375-pixel layout,
+  the disconnected state, and reload after reconnect, and it found an encoding fault in mail route paths,
+  which is fixed and covered by a test. Message bodies, search, and mutations remain for stages 4 and 5.
 - [ ] Stage 4: Read messages, download attachments, and search.
   Extend the UI using the existing brand, implement safe plain/HTML message views with isolated sanitized HTML and remote content blocked by default, bounded attachment transfer, and Thunderbird-backed search with declared limitations.
   Verification: malicious HTML fixtures, blocked scripts/remote content, MIME/attachment handling, cancellation/size limits, search pagination, multi-account results, stale views, and no persisted mail cache.
