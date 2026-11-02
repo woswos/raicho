@@ -14,17 +14,17 @@ class DeploymentInspectionTests(unittest.TestCase):
         self.assertEqual(dry_run('deploy-logs'), f'{COMPOSE} logs --timestamps\n')
         self.assertEqual(
             dry_run('deploy-logs', SERVICE='thunderbird', FOLLOW='1'),
-            f'{COMPOSE} logs --timestamps --follow thunderbird\n',
+            f"{COMPOSE} logs --timestamps --follow 'thunderbird'\n",
         )
 
     def test_restart_keeps_the_containers_and_images(self):
         commands = dry_run('deploy-restart', SERVICE='raicho')
-        self.assertIn(f'deploy-restart {COMPOSE} restart raicho\n', commands)
+        self.assertIn(f"deploy-restart {COMPOSE} restart 'raicho'\n", commands)
         self.assertNotIn(' build', commands)
         self.assertNotIn(' up ', commands)
 
     def test_a_shell_opens_in_the_named_service(self):
-        self.assertEqual(dry_run('deploy-shell', SERVICE='thunderbird'), f'{COMPOSE} exec thunderbird sh\n')
+        self.assertEqual(dry_run('deploy-shell', SERVICE='thunderbird'), f"{COMPOSE} exec 'thunderbird' sh\n")
 
     def test_a_shell_needs_a_service(self):
         with tempfile.TemporaryDirectory() as directory:
