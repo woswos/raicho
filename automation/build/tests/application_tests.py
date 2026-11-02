@@ -53,14 +53,39 @@ class ApplicationTests(unittest.TestCase):
             application.cargo_test([], env={'CARGO_TERM_QUIET': 'true'})
         self.assertEqual(output.getvalue(), 'panicked at x\n')
 
-    def test_a_test_filter_reaches_cargo_test(self):
+    def test_a_test_filter_reaches_cargo_test_but_not_its_tests(self):
+        completed = subprocess.CompletedProcess([], 0, stdout=RESULT)
         with (
             mock.patch.dict(os.environ, {'TEST': 'heartbeat'}),
             mock.patch.object(sys, 'argv', ['application', 'test-server']),
-            mock.patch.object(application, 'cargo_test') as called,
+            mock.patch.object(application, 'cargo_test', return_value=completed) as called,
         ):
             application.main()
-        called.assert_called_once_with(['--workspace', '--all-targets', '--locked', '--', 'heartbeat'])
+            self.assertNotIn('TEST', os.environ)
+        called.assert_called_once_with(['--workspace', '--all-targets', '--locked', '--', 'heartbeat'], capture=True)
+
+    def test_a_test_filter_that_passes_nothing_fails(self):
+        completed = subprocess.CompletedProcess([], 0, stdout='test result: ok. 0 passed; 0 failed; 0 ignored\n')
+        errors = io.StringIO()
+        with (
+            mock.patch.dict(os.environ, {'TEST': 'no_such_test'}),
+            mock.patch.object(sys, 'argv', ['application', 'test-server']),
+            mock.patch.object(application, 'cargo_test', return_value=completed),
+            contextlib.redirect_stderr(errors),
+            self.assertRaises(SystemExit),
+        ):
+            application.main()
+        self.assertIn('FAIL: no tests matched TEST=no_such_test', errors.getvalue())
+
+    def test_a_captured_verbose_cargo_test_prints_its_output(self):
+        completed = subprocess.CompletedProcess([], 0, stdout=RESULT)
+        output = io.StringIO()
+        with (
+            mock.patch.object(application.subprocess, 'run', return_value=completed),
+            contextlib.redirect_stdout(output),
+        ):
+            application.cargo_test([], env={'CARGO_TERM_QUIET': 'false'}, capture=True)
+        self.assertEqual(output.getvalue(), RESULT)
 
     def test_extension_builds_then_tests_with_the_reporter(self):
         with mock.patch.object(application, 'run') as run:

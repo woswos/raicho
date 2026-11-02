@@ -44,6 +44,10 @@ def main():
     loader = unittest.defaultTestLoader
     if names:
         DISCOVERED[:] = [loader.loadTestsFromName(name) for name in names]
+        empty = [name for name, tests in zip(names, DISCOVERED, strict=True) if tests.countTestCases() == 0]
+        if empty:
+            print(f'FAIL: no tests matched TEST={" ".join(empty)}', file=sys.stderr)
+            return 1
     else:
         DISCOVERED[:] = loader.discover(start, pattern=pattern, top_level_dir='.')
     ran = skipped = 0
@@ -61,8 +65,7 @@ def main():
     if not successful:
         return 1
     if ran == 0:
-        selection = f'TEST={" ".join(names)}' if names else f'{pattern} in {start}'
-        print(f'FAIL: no tests matched {selection}', file=sys.stderr)
+        print(f'FAIL: no tests matched {pattern} in {start}', file=sys.stderr)
         return 1
     print(summary(start, ran, skipped))
     return 0

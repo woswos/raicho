@@ -145,8 +145,8 @@ and invocation convention.
 `TEST` narrows a test run. For `test-python` it holds space-separated `unittest`
 names, such as `make test-python TEST=automation.tooling.tests.help_tests`, and
 replaces discovery. For `test-server` it is the filter passed to `cargo test`, as
-in `make test-server TEST=heartbeat`. Other suites ignore it, and tests never see
-it.
+in `make test-server TEST=heartbeat`. A filter that matches no test fails. Other
+suites ignore it, and tests never see it.
 
 `test-python` runs one `unittest` discovery of `*_tests.py` from the repository
 root, then runs each discovered module in its own worker process, as

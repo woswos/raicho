@@ -126,6 +126,12 @@ class PythonSuiteRunnerTests(unittest.TestCase):
         self.assertIn('missing_tests', result.stdout)
         self.assertNotIn('tests passed', result.stdout)
 
+    def test_a_test_filter_rejects_each_empty_name(self):
+        result = self.run_suite({'TEST': 'sample.first_tests sample.empty_tests'}, first=PASSING, empty='')
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('FAIL: no tests matched TEST=sample.empty_tests', result.stderr)
+        self.assertNotIn('tests passed', result.stdout)
+
     def test_a_test_filter_without_tests_names_the_filter(self):
         result = self.run_suite({'TEST': 'sample.empty_tests'}, first=PASSING, empty='')
         self.assertEqual(result.returncode, 1)
