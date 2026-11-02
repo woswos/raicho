@@ -88,41 +88,25 @@ for scope and limits.
 
 ## Acceptance cleanup
 
-When GitHub cancels a run or a job times out, the runner signals only the entry
-shell of the running step. That shell exits, but the acceptance runner below it
-receives no signal and keeps running until the job ends, so its exit trap never
-removes its deployment. Each acceptance step therefore starts its Make target
-under `setsid`, which puts the runner and its Docker commands in their own
-process group. When `RAICHO_ACCEPTANCE_RECORD` names a file, every runner
-sources [project_record.bash](../../automation/acceptance/project_record.bash)
-and appends its process group, the start time of that group's leader, its own
-process ID and start time, its Compose project, and any state directory to that
-file before it creates any Docker resource. The jobs keep the record in the
-runner's temporary directory, which the runner empties at the start of each job.
-Local runs set no record.
+A cancelled or timed-out job signals only the entry shell of the running step, so
+an acceptance runner's own exit trap may never run. Each acceptance step runs its
+Make target under `setsid`. Before creating any Docker resource, every runner
+appends its process group, its own process, its Compose project, and any state
+directory to the file named by `RAICHO_ACCEPTANCE_RECORD`, which the jobs keep in
+the runner's temporary directory. Local runs set no record.
 
 The last step of each acceptance job runs
 [remove_recorded_projects.bash](../../automation/acceptance/remove_recorded_projects.bash)
-with `if: always()`, which GitHub also runs after a cancellation. For each entry
-whose group leader or runner is still running in the recorded group with its
-recorded start time, it kills the process group, so the runner cannot recreate
-anything. Checking the runner as well covers a leader that was killed on its
-own. A group with neither left is not killed, because Linux can reuse its ID.
-The step then removes the containers attached to the project's networks or
-volumes, the containers, volumes, and networks with the project's exact Compose
-label, and any remaining volumes and networks whose names start with the
-`<project>_` prefix that Compose gives them. That prefix also finds a volume
-that a fixture container created before Compose did, which has no project label.
-It then removes images in the repository named after the project, and the state
-directory. It fails when any of them remains. It refuses an entry that names its
-own process group, a project outside the disposable
-`raicho-<suite>-<timestamp>-<number>` pattern, or a state directory that is not
-a `raicho-<suite>.XXXXXXXX` directory beside the record. It therefore cannot
-stop the CI runner or reach another job's deployment. After a completed run the
-step finds nothing left to remove. Locally, `make clean` removes interrupted
-acceptance projects. The
-[decision record](../decisions/20261101-acceptance-cleanup-after-cancel.md)
-explains this design.
+with `if: always()`. For each entry it kills the recorded process group while its
+leader or runner still runs, then removes the containers, volumes, and networks
+with the project's Compose label, the images named after the project, and the
+state directory. Containers and volumes that runners create outside Compose carry
+the same label. The step refuses entries outside the disposable project and state
+directory patterns and fails when anything remains. Locally, `make clean` removes
+interrupted acceptance projects. The
+[cancel cleanup decision](../decisions/20261101-acceptance-cleanup-after-cancel.md)
+and its [labelling amendment](../decisions/20261102-label-acceptance-containers.md)
+explain the design.
 
 ## Caching
 

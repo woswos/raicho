@@ -1,6 +1,6 @@
 # Remove acceptance deployments after a cancelled job
 
-- Status: accepted
+- Status: accepted, amended by `20261102-label-acceptance-containers`
 - Date: 2026-11-01
 - Deciders: Barkin Simsek
 

@@ -14,8 +14,6 @@ RECORDER = REPOSITORY_ROOT / 'automation/acceptance/project_record.bash'
 REMOVAL = REPOSITORY_ROOT / 'automation/acceptance/remove_recorded_projects.bash'
 PROJECT = 'raicho-connector-20261101120000-42'
 PROJECT_FILTER = f'label=com.docker.compose.project={PROJECT}'
-NETWORK = f'{PROJECT}_application'
-VOLUME = f'{PROJECT}_raicho-data'
 
 
 def start_time(process):
@@ -110,18 +108,18 @@ class RecordedProjectTests(unittest.TestCase):
         runner = self.runner()
         commands, _ = self.remove(
             [entry(runner)],
-            Response(('network', 'ls', '--format'), output=f'{NETWORK}\nraicho_application\n'),
-            Response(('volume', 'ls', '--format'), output=f'{VOLUME}\nraicho_raicho-data\n'),
-            Response(('container', 'ls', f'network={NETWORK}'), output='probe\nraicho\n'),
-            Response(('container', 'ls', f'volume={VOLUME}'), output='raicho\nfixture\n'),
+            Response(('container', 'ls', '--quiet', PROJECT_FILTER), output='probe-id\nserver-id\n'),
+            Response(('container', 'inspect', '--format'), output='true probe-id\nfalse server-id\n'),
+            Response(('container', 'inspect'), status=1),
             Response(('volume', 'ls', '--quiet', PROJECT_FILTER), output='volume-id\n'),
             Response(('network', 'ls', '--quiet', PROJECT_FILTER), output='network-id\n'),
             Response(('image', 'ls'), output=f'{PROJECT}:tools\n'),
         )
         self.assertEqual(runner.wait(timeout=10), -signal.SIGKILL)
-        attached = commands.index(['container', 'rm', '--force', 'fixture', 'probe', 'raicho'])
-        self.assertLess(attached, commands.index(['volume', 'rm', 'volume-id']))
-        self.assertLess(attached, commands.index(['network', 'rm', 'network-id']))
+        containers = commands.index(['container', 'rm', 'server-id'])
+        self.assertLess(commands.index(['container', 'stop', 'probe-id', 'server-id']), containers)
+        self.assertLess(containers, commands.index(['volume', 'rm', 'volume-id']))
+        self.assertLess(containers, commands.index(['network', 'rm', 'network-id']))
         self.assertIn(['image', 'rm', f'{PROJECT}:tools'], commands)
         filters = {word for command in commands for word in command if word.startswith(('label=', 'reference='))}
         self.assertEqual(filters, {PROJECT_FILTER, f'reference={PROJECT}:*'})
@@ -177,18 +175,6 @@ class RecordedProjectTests(unittest.TestCase):
                 self.assertEqual(commands, [])
                 self.assertIsNone(runner.poll())
                 self.assertIn('FAIL', result.stderr)
-
-    def test_removes_a_project_volume_created_without_the_project_label(self):
-        runner = self.runner()
-        commands, _ = self.remove(
-            [entry(runner)],
-            Response(('volume', 'ls', '--format'), output=f'{VOLUME}\n{PROJECT}9_raicho-data\nraicho_raicho-data\n'),
-            Response(('container', 'ls', f'volume={VOLUME}'), output='fixture\n'),
-        )
-        attached = commands.index(['container', 'rm', '--force', 'fixture'])
-        self.assertLess(attached, commands.index(['volume', 'rm', VOLUME]))
-        removed = [command for command in commands if command[:2] == ['volume', 'rm']]
-        self.assertEqual(removed, [['volume', 'rm', VOLUME]])
 
     def test_removes_networks_after_a_failed_volume_removal(self):
         runner = self.runner()

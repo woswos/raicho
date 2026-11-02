@@ -14,6 +14,10 @@ prepare_credential_deployment() {
     export RAICHO_COMPOSE_TEST=1
     mkdir -m 700 "${RAICHO_CREDENTIAL_DIRECTORY}"
     record_project "${RAICHO_PROJECT}" "${RAICHO_STATE_DIRECTORY}"
+    # Project cleanup finds Docker resources only by their Compose project label.
+    HARDENED_RUN+=(--label "com.docker.compose.project=${RAICHO_PROJECT}")
+    docker volume create --label "com.docker.compose.project=${RAICHO_PROJECT}" \
+        --label com.docker.compose.volume=raicho-data "${RAICHO_PROJECT}_raicho-data" >/dev/null
     COMPOSE=(docker compose -p "${RAICHO_PROJECT}" -f compose.yaml
         -f compose.credentials.yaml -f automation/acceptance/runtime/compose.test.yaml)
 }
