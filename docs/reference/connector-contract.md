@@ -48,6 +48,10 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
   the browser's `web/src/status_generated.ts` types and bundled
   `status_validator_generated.js`, and shared documents in
   `protocol/fixtures/status/` run against the Rust and browser validators.
+- [Browser API schema](../../protocol/schema/api.schema.json): the JSON documents
+  that the mail routes return. It generates the browser's `web/src/api_generated.ts`
+  types and bundled `api_validator_generated.js`, and server tests validate real
+  responses against it. Its handles are opaque and never Thunderbird identifiers.
 - [Shared fixtures](../../protocol/fixtures/): the same accepted/rejected frames,
   phases, expected generations, and error codes run in both languages.
 - [Rust crate](../../protocol/rust/src/lib.rs): generated types and limits, and a
@@ -199,6 +203,30 @@ limit is 64 KiB even before authentication, and control frames have the same
 application send queue.
 The extension retries if its browser socket already has buffered data. Server
 shutdown closes sessions before releasing database ownership.
+
+## Requests
+
+Only the session task writes to the socket. `Connector::request` places an
+operation in that session's queue of `maximum_pending_requests`, and a full queue
+fails at once as busy. With no session, or for a handle from another generation,
+the request fails before it is queued. The session numbers requests from 1 and
+keeps at most `maximum_pending_requests` awaiting a reply, reading the queue as
+replies free room. Heartbeat, request deadlines, queued requests, and incoming
+frames share one loop, so a pending request never delays a ping.
+
+Each request has a `request_timeout_ms` deadline. When it passes, the session
+reports a timeout to the caller and sends `cancel`. A reply to a cancelled request
+is ignored, while a reply to an identifier never sent ends the session with
+`unexpected_message`. Ending the session for any reason fails every queued and
+pending request as disconnected. Request identifiers stop at
+`maximum_wire_integer`, and the server then closes the session with `server_busy`
+so the connector reconnects. No request is retried after a failure, timeout, or
+disconnect.
+
+`raicho_server::mail::ConnectorBackend` maps these results to the browser contract.
+It prefixes every handle and cursor with the session generation, so a handle from
+an earlier connection fails as stale before any frame is sent. It joins mailbox
+pages up to 1000 mailboxes per account and reports the rest as truncated.
 
 ## Versioning
 

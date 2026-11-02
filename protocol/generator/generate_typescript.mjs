@@ -57,12 +57,15 @@ const files = {
     `export type ContractErrorCode = ${diagnostics.contract_errors.map((code) => JSON.stringify(code)).join(' | ')};\n`,
   'limits_generated.ts': banner('limits.json') + `export const LIMITS = ${JSON.stringify(limits)} as const;\n`,
 };
-const webFiles = await schemaOutputs(
-  'schema/status.schema.json',
-  'ApplicationStatus',
-  'status_generated.ts',
-  'status_validator_generated.js',
-);
+const webFiles = {
+  ...(await schemaOutputs(
+    'schema/status.schema.json',
+    'ApplicationStatus',
+    'status_generated.ts',
+    'status_validator_generated.js',
+  )),
+  ...(await schemaOutputs('schema/api.schema.json', 'ApiDocument', 'api_generated.ts', 'api_validator_generated.js')),
+};
 for (const [directory, outputs] of [
   [outputDirectory, files],
   [webDirectory, webFiles],

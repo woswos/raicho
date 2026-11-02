@@ -11,6 +11,7 @@ use tokio::time::{Instant, timeout_at};
 use crate::random::random_hex;
 
 use super::handshake::Socket;
+use super::requests::Queue;
 use super::{BACKEND_KIND, Connector, failure::Failure, transport, wire};
 
 pub(super) struct Authenticated {
@@ -18,6 +19,7 @@ pub(super) struct Authenticated {
     pub replaced: watch::Receiver<bool>,
     pub server_signature: Signature,
     pub channel: Channel,
+    pub queue: Queue,
 }
 
 pub(super) async fn authenticate(
@@ -57,7 +59,7 @@ pub(super) async fn authenticate(
         .map_err(|_| Failure::new(BackendError::ServerBusy))?;
     let generation: Generation = random_value::<16, _>()?;
     let channel = Channel::new(session_key(&keys.server_key, &transcript, &generation), Peer::Server);
-    let replaced = connector
+    let (replaced, queue) = connector
         .register(generation.clone())
         .ok_or(Failure::new(BackendError::ServerBusy))?;
     Ok(Authenticated {
@@ -65,6 +67,7 @@ pub(super) async fn authenticate(
         replaced,
         server_signature,
         channel,
+        queue,
     })
 }
 
