@@ -16,6 +16,9 @@ SELECTION = (
     'RAICHO_STATE_DIRECTORY',
     'RAICHO_COMMIT',
     'VERBOSE',
+    'SERVICE',
+    'FOLLOW',
+    'TEST',
 )
 CREDENTIALS_FILE = f'-f {REPOSITORY_ROOT}/compose.credentials.yaml'
 

@@ -8,13 +8,14 @@ APPLICATION_TARGETS := build-server build-web build-extension test-server test-w
     benchmark
 PROTOCOL_TARGETS := generate-protocol check-protocol test-protocol
 CONTAINER_TARGETS := test lint generate lint-repo lint-pr test-python test-tooling coverage \
-    check-patch-coverage $(QUALITY_TARGETS) $(APPLICATION_TARGETS) $(PROTOCOL_TARGETS)
+    check-patch-coverage audit $(QUALITY_TARGETS) $(APPLICATION_TARGETS) $(PROTOCOL_TARGETS)
 WRITING_TARGETS := format format-bash format-python format-javascript format-rust format-sql format-spelling \
     generate generate-protocol
-DEPLOYMENT_TARGETS := deploy deploy-up deploy-admin deploy-down deploy-ps deploy-vnc deploy-clean \
+DEPLOYMENT_TARGETS := deploy deploy-up deploy-admin deploy-restart deploy-down deploy-ps deploy-health \
+    deploy-logs deploy-shell deploy-vnc deploy-clean \
     $(addprefix deploy-connector-,init rotate verify status revoke reactivate)
 HOST_TARGETS := images acceptance acceptance-runtime acceptance-connector acceptance-credentials \
-    acceptance-mail clean mrproper $(DEPLOYMENT_TARGETS)
+    acceptance-mail shell clean mrproper $(DEPLOYMENT_TARGETS)
 
 ifneq ($(findstring xterm,${TERM}),)
     override COLOR_RED := $(shell tput -Txterm setaf 1)
@@ -34,8 +35,11 @@ endif
 export COLOR_RED COLOR_GREEN COLOR_YELLOW COLOR_BLUE COLOR_CYAN COLOR_RESET
 STEP := bash $(REPOSITORY_ROOT)automation/tooling/step.bash
 
-.DEFAULT_GOAL := lint
-.PHONY: $(CONTAINER_TARGETS) $(HOST_TARGETS)
+.DEFAULT_GOAL := help
+.PHONY: help $(CONTAINER_TARGETS) $(HOST_TARGETS)
+
+help:
+	@bash $(REPOSITORY_ROOT)automation/tooling/guide.bash $(REPOSITORY_ROOT)automation/tooling/help.txt
 
 ifdef RAICHO_TOOLING_CONTAINER
 include $(REPOSITORY_ROOT)automation/tooling/container.mk

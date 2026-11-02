@@ -37,6 +37,10 @@ coverage:
 check-patch-coverage:
 	@$(STEP) $@ $(PYTHON) -m automation.build.patch_coverage
 
+audit:
+	@$(STEP) $@ osv-scanner scan source $(if $(VERBOSE),,--verbosity=error) --lockfile Cargo.lock \
+	    --lockfile package-lock.json --lockfile automation/tooling/requirements.txt
+
 generate-protocol:
 	@$(STEP) $@ $(PYTHON) -m protocol.generator.cli generate
 check-protocol:

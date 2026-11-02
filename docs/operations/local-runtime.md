@@ -64,8 +64,19 @@ Once a deployment has a `credentials/` directory in its state directory, the
 include both, because recreating Thunderbird without the credentials override
 disables its connector configuration.
 
-`make deploy-ps` lists the selected deployment's running containers. Inspect
-failures with `docker compose logs`. To stop while retaining both volumes:
+These targets inspect the selected deployment without changing it:
+
+- `make deploy-ps` lists its running containers and published ports.
+- `make deploy-health` summarizes `/api/status`: readiness, database, connector
+  state, last error, heartbeats, and the deployed commit against the checkout.
+  It fails unless the connector is connected.
+- `make deploy-logs` prints the logs with timestamps. Add `SERVICE=thunderbird`
+  for one service and `FOLLOW=1` to keep streaming.
+- `make deploy-shell SERVICE=thunderbird` opens `sh` inside one service.
+
+`make deploy-restart` restarts every container, or one with `SERVICE=`, without
+rebuilding images or recreating containers. Credential mounts and the
+administration override stay as they are. To stop while retaining both volumes:
 
 ```bash
 make deploy-down

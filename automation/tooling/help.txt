@@ -1,0 +1,63 @@
+# Raicho development
+
+Run these from the repository root. On the host, Make builds the tooling image
+and runs each check inside it, so the host needs only Docker, Compose, Git, and
+GNU Make. Add VERBOSE=1 for each tool's normal output.
+
+# Check
+  make lint           Repository guards, linters, spelling, formatting and
+                      type checks, and protocol generation drift.
+  make lint-<part>    One part of lint: lint-repo, lint-bash, lint-python,
+                      lint-javascript, lint-typescript, lint-rust, lint-sql,
+                      or lint-spelling.
+  make format-check   Formatting without edits. One language at a time:
+                      format-check-bash, format-check-python,
+                      format-check-javascript, format-check-rust, or
+                      format-check-sql.
+  make typecheck      The TypeScript compiler with no emitted output.
+  make check-protocol Compare the committed protocol bindings with fresh output.
+  make lint-pr        PR metadata, design or decision, and changelog policy.
+                      Locally it reads PR_BASE_SHA, PR_HEAD_SHA,
+                      PR_DESCRIPTION, and PR_LABELS.
+  make audit          Look up known advisories for Cargo.lock,
+                      package-lock.json, and the tooling requirements. Needs
+                      network access.
+
+# Fix
+  make format         Rewrite files in the formatting scope. One language at
+                      a time: format-bash, format-python, format-javascript,
+                      format-rust, or format-sql.
+  make format-spelling
+                      Apply the typos corrections, for separate review.
+  make generate       Regenerate the committed protocol outputs, as
+                      generate-protocol does.
+
+# Test
+  make test           Every source suite.
+  make test-<part>    One suite: test-python, test-tooling, test-server,
+                      test-web, test-extension, test-mailprobe, or
+                      test-protocol. TEST= names the Python modules or tests
+                      for test-python, or the cargo test filter for
+                      test-server.
+  make build-<part>   Build one component without tests: build-server,
+                      build-web, or build-extension.
+  make coverage       Line coverage of the source suites.
+  make check-patch-coverage
+                      Fail when changed lines are below the coverage
+                      threshold.
+  make benchmark      Rust benchmarks, each compared with its previous run.
+
+# Host only
+  make images         Build the runtime images.
+  make acceptance     Every disposable deployment suite. One at a time:
+                      acceptance-runtime, acceptance-connector,
+                      acceptance-credentials, or acceptance-mail.
+  make shell          Bash in the read-only tooling container, as the checks
+                      run.
+  make clean          Remove ignored build output, interrupted acceptance
+                      runs, and the tooling cache.
+  make mrproper       clean, plus every Raicho container, network, and image.
+                      Keeps deployment data.
+  make deploy         The deployment guide, with every deploy- target.
+
+Details: docs/reference/build-test-generate.md.

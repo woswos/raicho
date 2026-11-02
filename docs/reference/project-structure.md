@@ -83,7 +83,7 @@ Do not add thin compatibility wrappers or restore a flat helper directory.
 | --- | --- |
 | Agent, naming, changelog, and pull request guards | `automation/repository/` |
 | Language linting, formatting, and type checking | `automation/quality/` |
-| Development tooling image, entrypoint, Compose files, Make modes, step logs, and cleanup | `automation/tooling/` |
+| Development tooling image, entrypoint, Compose files, Make modes, target guides, deployment health, step logs, and cleanup | `automation/tooling/` |
 | Cross-component application build/test dispatch and coverage | `automation/build/` |
 | Versioning, changelogs, and release preparation | `automation/release/` |
 | Cross-service disposable deployment checks | `automation/acceptance/` |

@@ -13,10 +13,19 @@ one deployment, chosen by RAICHO_PROJECT, then COMPOSE_PROJECT_NAME, then
                       Thunderbird desktop in a browser on 127.0.0.1:6080 and
                       to VNC viewers on 127.0.0.1:5900. Run
                       make deploy-up to close it again.
+  make deploy-restart docker compose restart, for every service or for
+                      SERVICE=raicho, gateway, or thunderbird. Rebuilds and
+                      recreates nothing, so the admin desktop stays open.
   make deploy-down    docker compose down. Keeps the volumes.
 
 # Inspect
   make deploy-ps      docker compose ps. Lists the running containers.
+  make deploy-health  Read /api/status without stopping anything: readiness,
+                      connector state, heartbeats, and the deployed commit
+                      against this checkout. Fails unless connected.
+  make deploy-logs    docker compose logs with timestamps. SERVICE= picks one
+                      service and FOLLOW=1 keeps streaming.
+  make deploy-shell   A shell inside SERVICE=raicho, gateway, or thunderbird.
   make deploy-vnc     Open vncviewer on this computer to the desktop that
                       make deploy-admin publishes.
 

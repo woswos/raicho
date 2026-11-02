@@ -119,7 +119,7 @@ before formatting migration files.
 ## Versions and updates
 
 The [tooling Dockerfile](../../automation/tooling/Dockerfile) pins each source
-image by digest, and the typos release archive by SHA-256. It installs Debian
+image by digest, and the typos release archive and OSV-Scanner binary by SHA-256. It installs Debian
 Bookworm support packages from the `20261018T000000Z` snapshot.
 
 | Tool | Version |
@@ -132,6 +132,7 @@ Bookworm support packages from the `20261018T000000Z` snapshot.
 | ShellCheck | 0.11.0 |
 | shfmt | 3.14.1 |
 | typos | 1.51.1 |
+| OSV-Scanner | 2.7.0 |
 | SQLFluff | 4.4.0 |
 | coverage.py | 7.16.2 |
 | diff-cover | 10.6.0 |

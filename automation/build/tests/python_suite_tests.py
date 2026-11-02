@@ -18,6 +18,12 @@ class SampleTests(unittest.TestCase):
 """
 PASSING = 'import unittest\n\n\nclass Passing(unittest.TestCase):\n    def test_passes(self):\n        pass\n'
 FAILING = 'import unittest\n\n\nclass Failing(unittest.TestCase):\n    def test_fails(self):\n        self.fail("broken on purpose")\n'
+FILTERED = (
+    'import os\nimport unittest\n\n\n'
+    'class Filtered(unittest.TestCase):\n'
+    '    def test_runs_without_the_filter(self):\n'
+    "        self.assertNotIn('TEST', os.environ)\n"
+)
 
 
 class PythonSuiteSummaryTests(unittest.TestCase):
@@ -66,7 +72,7 @@ class PythonSuiteSummaryTests(unittest.TestCase):
 
 
 class PythonSuiteRunnerTests(unittest.TestCase):
-    def run_suite(self, **modules):
+    def run_suite(self, environment=None, **modules):
         with tempfile.TemporaryDirectory() as directory:
             package = Path(directory) / 'sample'
             package.mkdir()
@@ -76,7 +82,7 @@ class PythonSuiteRunnerTests(unittest.TestCase):
             return subprocess.run(
                 [sys.executable, '-B', '-m', 'automation.build.python_suite', 'python'],
                 cwd=directory,
-                env=os.environ | {'PYTHONPATH': str(REPOSITORY_ROOT)},
+                env=os.environ | {'PYTHONPATH': str(REPOSITORY_ROOT)} | (environment or {}),
                 capture_output=True,
                 text=True,
                 check=False,
@@ -107,6 +113,17 @@ class PythonSuiteRunnerTests(unittest.TestCase):
         result = self.run_suite(first=source)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(result.stdout, 'Python: 1 tests passed\n')
+
+    def test_a_test_filter_runs_only_the_named_tests(self):
+        names = 'sample.first_tests sample.second_tests.Filtered.test_runs_without_the_filter'
+        result = self.run_suite({'TEST': names}, first=FILTERED, second=FILTERED, third=FAILING)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stdout, 'Python: 2 tests passed\n')
+
+    def test_a_test_filter_that_names_nothing_fails(self):
+        result = self.run_suite({'TEST': 'sample.missing_tests'}, first=PASSING)
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn('tests passed', result.stdout)
 
     def test_a_module_that_cannot_import_fails_the_run(self):
         result = self.run_suite(first=PASSING, second='import missing_module_for_this_test\n')

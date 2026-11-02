@@ -75,7 +75,7 @@ make lint test
 
 Make builds the tooling image and runs each target inside it. The image provides
 the language tools and Python test fixtures, so host language toolchains are not
-required, and it does not start runtime services.
+required, and it does not start runtime services. A bare `make` lists every target.
 
 See [build, test, and generate](docs/reference/build-test-generate.md) for
 formatting, additional checks, and Git worktree setup.

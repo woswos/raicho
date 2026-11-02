@@ -53,6 +53,15 @@ class ApplicationTests(unittest.TestCase):
             application.cargo_test([], env={'CARGO_TERM_QUIET': 'true'})
         self.assertEqual(output.getvalue(), 'panicked at x\n')
 
+    def test_a_test_filter_reaches_cargo_test(self):
+        with (
+            mock.patch.dict(os.environ, {'TEST': 'heartbeat'}),
+            mock.patch.object(sys, 'argv', ['application', 'test-server']),
+            mock.patch.object(application, 'cargo_test') as called,
+        ):
+            application.main()
+        called.assert_called_once_with(['--workspace', '--all-targets', '--locked', '--', 'heartbeat'])
+
     def test_extension_builds_then_tests_with_the_reporter(self):
         with mock.patch.object(application, 'run') as run:
             application.extension(REPOSITORY_ROOT / 'extension', testing=True)

@@ -7,11 +7,7 @@ COMMAND="${COLOR_GREEN:-}"
 VALUE="${COLOR_YELLOW:-}"
 RESET="${COLOR_RESET:-}"
 
-sed -E \
-    -e "s/^# (.*)$/${HEADING}\1${RESET}/" \
-    -e "s/make [a-z<>-]+/${COMMAND}&${RESET}/g" \
-    -e "s/(RAICHO|COMPOSE)_[A-Z_]+|VERBOSE=1/${VALUE}&${RESET}/g" \
-    "$(dirname "${BASH_SOURCE[0]}")/deployment_help.txt"
+bash "$(dirname "${BASH_SOURCE[0]}")/guide.bash" "$(dirname "${BASH_SOURCE[0]}")/deployment_help.txt"
 
 row() {
     printf '  %-18s %s%s%s\n' "${1}" "${2}" "${3}" "${RESET}"

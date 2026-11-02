@@ -13,6 +13,11 @@ BENCHMARK = ['cargo', 'bench', '--workspace', '--bench', '*', '--locked']
 CARGO_WORKSPACE = ['--workspace', '--all-targets', '--locked']
 
 
+def test_filter():
+    name = os.environ.get('TEST')
+    return ['--', name] if name else []
+
+
 def run(arguments, **options):
     return subprocess.run(arguments, cwd=REPOSITORY_ROOT, check=True, **options)
 
@@ -108,7 +113,7 @@ def web(testing=False, build_arguments=(), test_arguments=None):
 # Each entry looks its function up when called, so tests can patch the module.
 TARGETS = {
     'build-server': lambda: run(['cargo', 'build', *CARGO_WORKSPACE]),
-    'test-server': lambda: cargo_test(CARGO_WORKSPACE),
+    'test-server': lambda: cargo_test([*CARGO_WORKSPACE, *test_filter()]),
     'build-web': lambda: web(testing=False),
     'test-web': lambda: web(testing=True),
     'build-extension': lambda: extension(REPOSITORY_ROOT / 'extension', testing=False),

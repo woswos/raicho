@@ -4,6 +4,7 @@ import tempfile
 import unittest
 
 from automation.paths import REPOSITORY_ROOT
+from automation.tooling.tests.deployment_tests import dry_run
 
 
 class HostMakeTests(unittest.TestCase):
@@ -27,6 +28,11 @@ class HostMakeTests(unittest.TestCase):
                 check=True,
             ).stdout
             self.assertEqual(cache, os.path.join(os.path.realpath(directory), 'cache'))
+
+    def test_a_shell_opens_in_the_read_only_tooling_container(self):
+        commands = dry_run('shell')
+        self.assertIn('/automation/tooling/compose.yaml build', commands)
+        self.assertTrue(commands.endswith(' run --rm check bash\n'), commands)
 
 
 if __name__ == '__main__':

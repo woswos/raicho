@@ -20,3 +20,10 @@ Notable changes to Raicho. The format follows
 - Publish the Thunderbird administration desktop to native VNC viewers on
   loopback port 5900, opened with `make deploy-vnc`.
 - List a deployment's running containers with `make deploy-ps`.
+- Check a running deployment without stopping it with `make deploy-health`, and
+  read logs, restart containers, or open a shell with `make deploy-logs`,
+  `make deploy-restart`, and `make deploy-shell`.
+- Print every Make target with `make help`, which a bare `make` now runs.
+- Open the tooling container with `make shell`, and run selected tests with
+  `TEST=` for `test-python` and `test-server`.
+- Check lockfiles against known security advisories with `make audit`.

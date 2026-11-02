@@ -5,7 +5,9 @@ procedure is maintained in the [showcase guide](../../assets/brand/showcase/READ
 
 ## Make
 
-Run Make from the repository root, or with `-f` from anywhere. The host needs
+Run Make from the repository root, or with `-f` from anywhere. A bare `make` runs
+`help`, which prints every target grouped by purpose from
+`automation/tooling/help.txt`. The host needs
 Docker, Compose, Git, and GNU Make, but no language toolchains. On the host, each
 target first builds the tooling image, which the Docker cache keeps quick when
 nothing changed, then runs the same target inside the tooling container as the
@@ -44,6 +46,7 @@ xterm terminal.
 
 | Target | Behavior |
 | --- | --- |
+| `help` | Print the development guide, colored on xterm terminals. The default goal |
 | `test` | Every source suite: Python, tooling fixtures, server, web, extension, mail probe, and protocol |
 | `lint` | Repository guards, language linters, spelling, formatting and type checks, and protocol generation drift |
 | `format` | Rewrite files in the documented formatting scope |
@@ -51,16 +54,22 @@ xterm terminal.
 | `coverage` | Line coverage of the source suites |
 | `check-patch-coverage` | Fail when changed lines are below the coverage threshold |
 | `benchmark` | Rust benchmarks, each compared with its previous run |
+| `audit` | Check every lockfile against known security advisories, with network access |
 | `images` | Runtime images only |
 | `deploy` | Print the deployment guide and the selected deployment's project, state directory, enrollment, and address, colored on xterm terminals |
 | `deploy-up` | Build the runtime images, then start or upgrade the deployment, on the host |
 | `deploy-admin` | `deploy-up` with the Thunderbird desktop, on the host |
+| `deploy-restart` | Restart the deployment's containers, or `SERVICE=`, without rebuilding or recreating them, on the host |
 | `deploy-down` | Stop the deployment and keep its volumes, on the host |
 | `deploy-ps` | List the deployment's running containers, on the host |
+| `deploy-health` | Summarize `/api/status` and the deployed commit against the checkout, on the host. It fails unless the connector is connected |
+| `deploy-logs` | Show the deployment's logs with timestamps, for one `SERVICE=` and with `FOLLOW=1` when set, on the host |
+| `deploy-shell` | Open `sh` inside the deployment's `SERVICE=`, on the host |
 | `deploy-vnc` | Open `vncviewer` on the desktop that `deploy-admin` publishes, on the host |
 | `deploy-clean` | After you confirm, delete the deployment with its volumes and state directory, then run `clean`, on the host |
 | `deploy-connector-<command>` | Build the runtime images, then run that [credential command](../operations/connector-credentials.md), on the host |
 | `acceptance` | Every disposable deployment suite, on the host |
+| `shell` | Open Bash in the read-only `check` tooling container, on the host |
 | `clean` | Remove ignored build output, interrupted acceptance runs, and the tooling cache, on the host |
 | `mrproper` | `clean`, plus every Raicho container, network, and image, keeping deployment data, on the host |
 | `lint-pr` | PR metadata, design/decision policy, and changelog guard |
@@ -136,6 +145,12 @@ that repository root. The Make targets above remain the normal interface.
 See [automation placement](project-structure.md#automation) for the module layout
 and invocation convention.
 
+`TEST` narrows a test run. For `test-python` it holds space-separated `unittest`
+names, such as `make test-python TEST=automation.tooling.tests.help_tests`, and
+replaces discovery. For `test-server` it is the filter passed to `cargo test`, as
+in `make test-server TEST=heartbeat`. Other suites ignore it, and tests never see
+it.
+
 `test-python` runs one `unittest` discovery of `*_tests.py` from the repository
 root, then runs each discovered module in its own worker process, as
 `automation/build/python_suite.py` schedules them. Modules therefore share no interpreter state, and a test
@@ -170,6 +185,20 @@ automatic fixes. Repository integrity checks, `lint-repo` and `test-python`,
 retain standing approval during implementation under
 [workflow](../contributing/workflow.md). A plain commit
 request does not authorize checks, formatting, or hooks.
+
+## Dependency audit
+
+```bash
+make audit
+```
+
+`audit` runs OSV-Scanner over `Cargo.lock`, `package-lock.json`, and
+`automation/tooling/requirements.txt`, and fails when a known advisory applies.
+It prints only findings unless `VERBOSE=1` is set. It queries the OSV API, so
+it needs network access and its result can change without a code change. CI
+does not run it. A tooling test requires every tracked lockfile in the command.
+The [dependency audit decision](../decisions/20261102-dependency-audit.md)
+records the choice.
 
 ## Pull request checks
 

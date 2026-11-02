@@ -30,11 +30,25 @@ deploy-admin: images
 	@echo "Thunderbird desktop: http://127.0.0.1:$${RAICHO_ADMIN_PORT:-6080}/vnc.html?autoconnect=true&resize=remote"
 	@echo "Thunderbird VNC: 127.0.0.1::$${RAICHO_VNC_PORT:-5900}, opened by make deploy-vnc"
 
+deploy-restart:
+	@$(STEP) $@ $(DEPLOYMENT_COMPOSE) restart $(SERVICE)
+
 deploy-down:
 	@$(STEP) $@ $(DEPLOYMENT_COMPOSE) down
 
 deploy-ps:
 	@$(DEPLOYMENT_COMPOSE) ps
+
+deploy-health: tooling-image
+	@$(DEPLOYMENT_COMPOSE) exec -T raicho curl --silent --show-error --max-time 5 http://127.0.0.1:8080/api/status | \
+	    $(RUN) -T check python3 -B -m automation.tooling.deployment_health $(RAICHO_COMMIT)
+
+deploy-logs:
+	@$(DEPLOYMENT_COMPOSE) logs --timestamps$(if $(FOLLOW), --follow)$(if $(SERVICE), $(SERVICE))
+
+deploy-shell:
+	@$(if $(SERVICE),,echo 'Name the service, as in make deploy-shell SERVICE=thunderbird.' >&2; exit 1)
+	@$(DEPLOYMENT_COMPOSE) exec $(SERVICE) sh
 
 deploy-vnc:
 	@command -v vncviewer >/dev/null || { echo 'make deploy-vnc needs vncviewer, such as TigerVNC.' >&2; exit 1; }

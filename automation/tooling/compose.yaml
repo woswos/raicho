@@ -20,6 +20,7 @@ x-tools: &tools
     CARGO_INCREMENTAL: '${CARGO_INCREMENTAL:-1}'
     CARGO_TERM_QUIET: '${CARGO_TERM_QUIET:-true}'
     VERBOSE: '${VERBOSE:-}'
+    TEST: '${TEST:-}'
     CARGO_HOME: /cache/cargo
     CARGO_TARGET_DIR: /cache/target
     GIT_CONFIG_COUNT: '1'
