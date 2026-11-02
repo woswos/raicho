@@ -61,7 +61,8 @@ def main():
     if not successful:
         return 1
     if ran == 0:
-        print(f'FAIL: no tests matched {pattern} in {start}', file=sys.stderr)
+        selection = f'TEST={" ".join(names)}' if names else f'{pattern} in {start}'
+        print(f'FAIL: no tests matched {selection}', file=sys.stderr)
         return 1
     print(summary(start, ran, skipped))
     return 0

@@ -72,9 +72,9 @@ These targets inspect the selected deployment without changing it:
   It fails unless the connector is connected.
 - `make deploy-logs` prints the logs with timestamps. Add `SERVICE=thunderbird`
   for one service and `FOLLOW=1` to keep streaming.
-- `make deploy-shell SERVICE=thunderbird` opens `sh` inside one service.
 
-`make deploy-restart` restarts every container, or one with `SERVICE=`, without
+`make deploy-shell SERVICE=thunderbird` opens `sh` inside one service, where
+commands can change the deployment. `make deploy-restart` restarts every container, or one with `SERVICE=`, without
 rebuilding images or recreating containers. Credential mounts and the
 administration override stay as they are. To stop while retaining both volumes:
 

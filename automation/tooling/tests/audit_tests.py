@@ -1,10 +1,11 @@
+import fnmatch
 import subprocess
 import unittest
 
 from automation.paths import REPOSITORY_ROOT
 from automation.tooling.tests.deployment_tests import dry_run
 
-LOCKFILE_NAMES = ('Cargo.lock', 'package-lock.json', 'requirements.txt')
+LOCKFILE_PATTERNS = ('*.lock', '*-lock.json', '*-lock.yaml', 'requirements*.txt')
 
 
 class AuditTests(unittest.TestCase):
@@ -12,7 +13,11 @@ class AuditTests(unittest.TestCase):
         tracked = subprocess.run(
             ['git', 'ls-files'], cwd=REPOSITORY_ROOT, capture_output=True, text=True, check=True
         ).stdout.split()
-        lockfiles = [path for path in tracked if path.rsplit('/', 1)[-1] in LOCKFILE_NAMES]
+        lockfiles = [
+            path
+            for path in tracked
+            if any(fnmatch.fnmatch(path.rsplit('/', 1)[-1], pattern) for pattern in LOCKFILE_PATTERNS)
+        ]
         commands = dry_run('audit', RAICHO_TOOLING_CONTAINER='1')
         self.assertTrue(lockfiles)
         for path in lockfiles:

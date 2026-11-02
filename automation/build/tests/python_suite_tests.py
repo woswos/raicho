@@ -125,6 +125,11 @@ class PythonSuiteRunnerTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertNotIn('tests passed', result.stdout)
 
+    def test_a_test_filter_without_tests_names_the_filter(self):
+        result = self.run_suite({'TEST': 'sample.empty_tests'}, first=PASSING, empty='')
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('FAIL: no tests matched TEST=sample.empty_tests', result.stderr)
+
     def test_a_module_that_cannot_import_fails_the_run(self):
         result = self.run_suite(first=PASSING, second='import missing_module_for_this_test\n')
         self.assertEqual(result.returncode, 1)
