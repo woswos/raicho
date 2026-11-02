@@ -2,6 +2,7 @@
 
 Status: stages 1 and 2 implementation and local Docker acceptance are complete.
 Stage 2 CI integration is configured, with hosted results tracked on its implementation PR.
+Stage 3 is authorized, its gates are resolved, and its slices are in progress.
 Later foundation stages require their own authorization.
 
 The accepted constraints are recorded in the
@@ -121,7 +122,7 @@ the stage implementation approval.
 
 - Stage 1 stack choices are resolved in the runtime decision above. ARM64 requires a separately validated packaging route.
 - Stage 2 resolves installation/upgrade, background lifetime, reconnect, credential provisioning, and administrative isolation for the pinned MV2 runtime. The [acceptance record](../../reference/connector-acceptance.md) defines the tested scope and remaining mail API limits. It does not establish MV3 behavior or future-version support.
-- Before stage 3: settle browser login/bootstrap, HTTPS deployment details, and the UI framework. Before stage 4: select the safe message-rendering approach. Ground these choices in the diagnostic client and brand assets.
+- Stage 3 gates are resolved by the [browser authentication](../../decisions/20261103-browser-authentication.md), [UI framework](../../decisions/20261103-browser-ui-framework.md), and [mail synchronization](../../decisions/20261103-mail-synchronization.md) decisions. Before stage 4: select the safe message-rendering approach. Ground that choice in the browser client and brand assets.
 - Before stages 4 and 6: record supported search, draft, and send semantics for the pinned Thunderbird version, including attachment limits and any native compose interaction. Do not claim the newest background-send API exists in an older container image.
 - These are implementation gates, not reopened product choices. Resolve each before its dependent stage. If a solution requires a mail replica, duplicated filters, a privileged Experiment, or a separate host daemon, stop and propose a revised design.
 
@@ -150,8 +151,17 @@ Each stage includes focused behavioral tests where applicable and ends with a re
   before dependent mail workflows. See [acceptance](../../reference/connector-acceptance.md).
 - [ ] Stage 3: Deliver authenticated account and mailbox browsing.
   Implement single-user login, session protection, the backend contract, Thunderbird adapter, mock backend, account identities, mailbox listing, and paginated message summaries in the selected UI framework. Enforce ownership/capabilities and session-scoped handles. Add SQLite migrations for login/session state and application preferences within the ownership boundary above.
-  Verification: login/logout, unauthorized browser/connector access, persisted settings and session revocation across restarts, concurrent browser sessions, mailbox pagination, mock-adapter substitution, stale handles after restart/message move/folder rename, disconnect status, and absence of mail data in SQLite/logs/browser persistence.
+  Verification: login/logout, unauthorized browser/connector access, the persisted theme preference and session revocation across restarts, concurrent browser sessions, mailbox pagination, mock-adapter substitution, stale handles after restart/message move/folder rename, disconnect status, and absence of mail data in SQLite/logs/browser persistence.
   Quality gate: containerized checks and contract/authentication tests, then browser smoke checks against disposable mail fixtures. Stop for review of the first useful mailbox view.
+  Implementation slices (2026-11-03), each a stacked draft pull request:
+  1. Synchronization gate: the restart experiment, the Thunderbird policy default, and the three gate decisions.
+  2. Protocol version 2: request, cancel, and reply frames for read-only operations, Unicode mail text, shared fixtures, and regenerated vectors.
+  3. Server transport: the session-owned request queue, pending replies, deadlines, cancellation, the backend contract, and the generated browser API types.
+  4. Browser login: password and session migrations, offline login commands, origin checks, the theme preference, and session-protected mail routes tested against a mock backend.
+  5. Thunderbird adapter: `accountsRead` and `messagesRead`, transient handles invalidated by Thunderbird events, byte-bounded pages, and bounded cursors.
+  6. Mailbox view: Preact login, account and mailbox selection, summaries, pagination, and explicit states.
+  7. Acceptance: a disposable browsing deployment, its CI job, and documentation reconciliation.
+  A message handle has no consumer until stage 4. Stage 3 checks message staleness, and folder staleness after a rename, move, or deletion, through adapter tests and cursor pages that drop moved messages.
 - [ ] Stage 4: Read messages, download attachments, and search.
   Extend the UI using the existing brand, implement safe plain/HTML message views with isolated sanitized HTML and remote content blocked by default, bounded attachment transfer, and Thunderbird-backed search with declared limitations.
   Verification: malicious HTML fixtures, blocked scripts/remote content, MIME/attachment handling, cancellation/size limits, search pagination, multi-account results, stale views, and no persisted mail cache.
@@ -192,6 +202,8 @@ Repository integrity checks never skip because of a label.
 - 2026-10-26 architecture review, guidance for stage 3: route mail commands over the authenticated session channel through a request channel attached to the active connection, so HTTP handlers can send a request and await its reply without owning the socket. Add a Thunderbird adapter layer in the extension that keeps Thunderbird objects behind the backend contract. Design the command messages in `protocol/schema/` and the browser mail API next to the [status contract](../../decisions/20261026-protocol-contracts.md#status-api). Treat the mail probe's dispatcher and command session as evidence about Thunderbird's APIs, not as code to promote, because they use an unauthenticated test protocol. None of this is built before stage 3, because nothing would use it yet.
 
 - 2026-10-26 protocol review, stage 3 prerequisites: the session's `Channel` has one owner, so every outbound frame must come from the session task. Send requests through a bounded queue into that task, keep a map of pending replies keyed by a request `id` carried in the mail envelope, and add the queue as a third branch of the heartbeat loop's `select!`. Settle large content before designing the mail schema: `maximum_control_bytes` (64 KiB) is both the WebSocket message limit and the schema limit, so message bodies and attachments need a separate limit or chunking. Generate the browser mail API from a schema, as the status API is, rather than writing its types by hand.
+
+- 2026-11-03 stage 3 gates: Thunderbird reports only folders it already knows, and only its periodic check refreshes folders other than INBOX. The [synchronization decision](../../decisions/20261103-mail-synchronization.md) sets `check_all_folders_for_new` as a policy default and rules out native-tab selection. Control frames keep the 64 KiB limit. Stage 3 bounds summary pages by bytes, and stage 4 sends bodies and attachments as chunks within that limit instead of raising it. Listing accounts, mailboxes, and summaries works the same for every account and mailbox, so stage 3 enforces ownership through session-scoped cursors and generation-scoped handles but advertises no capabilities. Its contract still separates `unsupported` from a disconnected backend. Per-mailbox capabilities arrive in stage 5 with the first operations that differ between mailboxes, such as move and delete.
 
 - Repository grounding: [architecture](../../reference/architecture.md), [project structure](../../reference/project-structure.md), [delivery workflow](../../contributing/workflow.md), and [brand guide](../../../assets/brand/README.md).
 - Authoritative API references: [supported Thunderbird APIs](https://developer.thunderbird.net/add-ons/mailextensions/supported-webextension-api), [messages and transient IDs](https://webextension-api.thunderbird.net/en/mv3/messages.html), [folder IDs](https://webextension-api.thunderbird.net/en/mv3/folders.html#mailfolderid), [compose API](https://webextension-api.thunderbird.net/en/mv3/compose.html), [Manifest V3 lifecycle](https://developer.thunderbird.net/add-ons/whats-new/manifest-v3), and [extension deployment policies](https://thunderbird.github.io/policy-templates/policies/esr140/#extensionsettings). Recheck against the selected release.
