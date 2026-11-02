@@ -4,12 +4,12 @@ import tempfile
 import unittest
 
 from automation.paths import REPOSITORY_ROOT
-from automation.tooling.tests.deployment_tests import dry_run
+from automation.tooling.tests.deployment_tests import SELECTION, dry_run
 
 
 class HostMakeTests(unittest.TestCase):
     def test_a_relative_cache_directory_resolves_from_the_callers_directory(self):
-        host = {name: value for name, value in os.environ.items() if name != 'RAICHO_TOOLING_CONTAINER'}
+        host = {name: value for name, value in os.environ.items() if name not in SELECTION}
         with tempfile.TemporaryDirectory() as directory:
             cache = subprocess.run(
                 [

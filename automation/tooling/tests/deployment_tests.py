@@ -17,6 +17,10 @@ SELECTION = (
     'SERVICE',
     'FOLLOW',
     'TEST',
+    # A Make that runs these tests passes its own command-line assignments on through these.
+    'MAKEFLAGS',
+    'MFLAGS',
+    'MAKELEVEL',
 )
 CREDENTIALS_FILE = f'-f {REPOSITORY_ROOT}/compose.credentials.yaml'
 
