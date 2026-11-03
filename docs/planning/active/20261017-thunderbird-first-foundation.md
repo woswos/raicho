@@ -173,7 +173,9 @@ Each stage includes focused behavioral tests where applicable and ends with a re
   Thunderbird restart, persistence across a Raicho restart, revocation, and no mail in Raicho's logs or
   database files. Browser inspection covered login, paging, light and dark themes, a 375-pixel layout,
   the disconnected state, and reload after reconnect, and it found an encoding fault in mail route paths,
-  which is fixed and covered by a test. Message bodies, search, and mutations remain for stages 4 and 5.
+  which is fixed and covered by a test. Automated acceptance does not stop Thunderbird while a browser
+  watches, so the disconnected state and the reload after reconnect rest on that inspection and the server's
+  error-category tests. Message bodies, search, and mutations remain for stages 4 and 5.
 - [ ] Stage 4: Read messages, download attachments, and search.
   Extend the UI using the existing brand, implement safe plain/HTML message views with isolated sanitized HTML and remote content blocked by default, bounded attachment transfer, and Thunderbird-backed search with declared limitations.
   Verification: malicious HTML fixtures, blocked scripts/remote content, MIME/attachment handling, cancellation/size limits, search pagination, multi-account results, stale views, and no persisted mail cache.
