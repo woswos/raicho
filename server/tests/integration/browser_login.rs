@@ -137,6 +137,34 @@ async fn mutations_require_the_public_origin_a_same_origin_fetch_and_json() {
 }
 
 #[tokio::test]
+async fn logout_needs_the_public_origin_but_no_content_type() {
+    let browser = Browser::new().await;
+    let session = browser.sign_in().await;
+    let logout = |origin: Option<&str>| {
+        let mut request = Request::builder()
+            .method(Method::DELETE)
+            .uri("/api/session")
+            .header("Cookie", &session);
+        if let Some(origin) = origin {
+            request = request.header("Origin", origin);
+        }
+        request.body(Body::empty()).unwrap()
+    };
+    let refused = browser.raw(logout(Some("https://attacker.example"))).await;
+    assert_eq!(refused.body, json!({"error": "forbidden_origin"}));
+    assert_eq!(browser.get("/api/session", &session).await.status, StatusCode::OK);
+    assert_eq!(
+        browser.raw(logout(Some(PUBLIC_ORIGIN))).await.status,
+        StatusCode::NO_CONTENT
+    );
+    assert_eq!(
+        browser.get("/api/session", &session).await.status,
+        StatusCode::UNAUTHORIZED
+    );
+    browser.finish().await;
+}
+
+#[tokio::test]
 async fn wrong_passwords_are_throttled_and_an_unconfigured_login_is_reported() {
     let browser = Browser::new().await;
     for _ in 0..5 {
