@@ -137,7 +137,7 @@ async fn mutations_require_the_public_origin_a_same_origin_fetch_and_json() {
 }
 
 #[tokio::test]
-async fn logout_needs_the_public_origin_but_no_content_type() {
+async fn only_logout_skips_the_content_type_and_it_needs_the_public_origin() {
     let browser = Browser::new().await;
     let session = browser.sign_in().await;
     let logout = |origin: Option<&str>| {
@@ -153,6 +153,14 @@ async fn logout_needs_the_public_origin_but_no_content_type() {
     let refused = browser.raw(logout(Some("https://attacker.example"))).await;
     assert_eq!(refused.body, json!({"error": "forbidden_origin"}));
     assert_eq!(browser.get("/api/session", &session).await.status, StatusCode::OK);
+    let other = Request::builder()
+        .method(Method::DELETE)
+        .uri("/api/preferences")
+        .header("Origin", PUBLIC_ORIGIN)
+        .header("Cookie", &session)
+        .body(Body::empty())
+        .unwrap();
+    assert_eq!(browser.raw(other).await.body, json!({"error": "invalid_request"}));
     assert_eq!(
         browser.raw(logout(Some(PUBLIC_ORIGIN))).await.status,
         StatusCode::NO_CONTENT
