@@ -39,6 +39,8 @@ PASSWORD="$(head -c 18 /dev/urandom | base64 | tr -d '/+=')"
 browser seed
 bash deploy/credentials/connector.bash init
 "${COMPOSE[@]}" up -d --no-deps --force-recreate --wait --wait-timeout 120 thunderbird
+# The fixture profile replaced the volume that the credential wrapper started Thunderbird on.
+docker volume rm "${RAICHO_PROJECT}_thunderbird-data" >/dev/null
 login init
 browser browse
 "${COMPOSE[@]}" restart thunderbird
