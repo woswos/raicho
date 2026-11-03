@@ -137,9 +137,10 @@ page shows the version alone when the commit is unknown. See
 port, or an `http` origin whose host is not loopback. Health and status routes are
 public. The session, preference, and mail routes require the session cookie that
 `POST /api/session` sets, and answer `401` with `{"error":"unauthenticated"}`
-without it. Every request other than `GET` or `HEAD` must carry that exact `Origin`,
-`Sec-Fetch-Site: same-origin` when present, and a JSON content type, or it fails
-with `forbidden_origin` or `invalid_request`. Request bodies are limited to 4 KiB.
+without it. Every request other than `GET` or `HEAD` must carry that exact `Origin`
+and `Sec-Fetch-Site: same-origin` when present, or it fails with `forbidden_origin`.
+Each one except the logout `DELETE`, which has no body, must also send a JSON
+content type, or it fails with `invalid_request`. Request bodies are limited to 4 KiB.
 [`protocol/schema/api.schema.json`](../../protocol/schema/api.schema.json) defines
 every document these routes return, and errors carry an enumerated code.
 
