@@ -1,8 +1,8 @@
 use futures_util::SinkExt;
 use raicho_protocol::channel::Channel;
 use raicho_protocol::contract_generated::{
-    Capabilities, Challenge, ChallengeType, Generation, Nonce, Ping, PingType, ProtocolError, ProtocolErrorType,
-    Signature, Welcome, WelcomeType,
+    Cancel, CancelType, Capabilities, Challenge, ChallengeType, Generation, Nonce, Operation, Ping, PingType,
+    ProtocolError, ProtocolErrorType, Request, RequestId, RequestType, Signature, Welcome, WelcomeType,
 };
 use raicho_protocol::limits_generated::PROTOCOL_VERSION;
 use tokio_tungstenite::tungstenite::Message;
@@ -60,6 +60,44 @@ pub(super) async fn ping(
         type_: PingType::Ping,
     };
     send_text(socket, channel.seal(&ping)).await
+}
+
+pub(super) async fn request(
+    socket: &mut Socket,
+    generation: &Generation,
+    identifier: u64,
+    operation: Operation,
+    channel: &mut Channel,
+) -> Result<(), Failure> {
+    let request = Request {
+        generation: generation.clone(),
+        mac: Channel::unsealed(),
+        operation,
+        protocol_version: protocol_version(),
+        request_id: request_identifier(identifier),
+        type_: RequestType::Request,
+    };
+    send_text(socket, channel.seal(&request)).await
+}
+
+pub(super) async fn cancel(
+    socket: &mut Socket,
+    generation: &Generation,
+    identifier: u64,
+    channel: &mut Channel,
+) -> Result<(), Failure> {
+    let cancel = Cancel {
+        generation: generation.clone(),
+        mac: Channel::unsealed(),
+        protocol_version: protocol_version(),
+        request_id: request_identifier(identifier),
+        type_: CancelType::Cancel,
+    };
+    send_text(socket, channel.seal(&cancel)).await
+}
+
+fn request_identifier(identifier: u64) -> RequestId {
+    RequestId(identifier.try_into().expect("Positive request identifier"))
 }
 
 pub(super) async fn terminate(socket: &mut Socket, session: Option<(&Generation, &mut Channel)>, failure: Failure) {

@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 from protocol.generator.outputs import sync_outputs
-from protocol.generator.validation import validate_sources, validate_status
+from protocol.generator.validation import validate_document, validate_sources, validate_status
 
 ROOT = Path(__file__).resolve().parents[2]
 NODE_REPORTER = f'--test-reporter={ROOT / "automation/build/node_reporter.mjs"}'
@@ -51,17 +51,19 @@ def run_typescript_tests(compiler_arguments=(), test_arguments=None):
 
 
 def generate(action):
-    schema, status, limits, diagnostics = (
+    schema, status, api, limits, diagnostics = (
         json.loads((ROOT / 'protocol' / name).read_text())
         for name in (
             'schema/connector.schema.json',
             'schema/status.schema.json',
+            'schema/api.schema.json',
             'limits.json',
             'diagnostics.json',
         )
     )
     validate_sources(schema, limits, diagnostics)
     validate_status(status, diagnostics)
+    validate_document(api)
     with tempfile.TemporaryDirectory(prefix='raicho-protocol-') as temporary:
         staging = Path(temporary)
         generator = Path(os.environ.get('CARGO_TARGET_DIR', ROOT / 'target')) / 'debug/raicho-protocol-generator'
