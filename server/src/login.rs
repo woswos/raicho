@@ -22,7 +22,8 @@ pub enum LoginFailure {
 /// Verifies the deployment password and issues browser sessions.
 pub struct Login {
     throttle: throttle::Throttle,
-    // Each Argon2 hash holds 19 MiB, so only one runs at a time.
+    // Each Argon2 hash holds 19 MiB, so only one runs at a time. The permit also
+    // covers the throttle check and update, so concurrent attempts cannot all pass it.
     hashing: Semaphore,
 }
 
@@ -38,25 +39,29 @@ impl Default for Login {
 impl Login {
     /// Returns a new session token when the password matches.
     pub async fn sign_in(&self, database: &Database, password: Vec<u8>) -> Result<String, LoginFailure> {
-        if let Some(wait) = self.throttle.wait() {
-            return Err(LoginFailure::Throttled(wait));
-        }
-        let stored = database
-            .login_password()
-            .await
-            .map_err(|_| LoginFailure::Unavailable)?
-            .ok_or(LoginFailure::Unconfigured)?;
         let verified = {
             let _permit = self.hashing.acquire().await.map_err(|_| LoginFailure::Unavailable)?;
-            tokio::task::spawn_blocking(move || password::verify(&password, &stored))
+            if let Some(wait) = self.throttle.wait() {
+                return Err(LoginFailure::Throttled(wait));
+            }
+            let stored = database
+                .login_password()
                 .await
                 .map_err(|_| LoginFailure::Unavailable)?
+                .ok_or(LoginFailure::Unconfigured)?;
+            let verified = tokio::task::spawn_blocking(move || password::verify(&password, &stored))
+                .await
+                .map_err(|_| LoginFailure::Unavailable)?;
+            if verified {
+                self.throttle.succeed();
+            } else {
+                self.throttle.fail();
+            }
+            verified
         };
         if !verified {
-            self.throttle.fail();
             return Err(LoginFailure::InvalidPassword);
         }
-        self.throttle.succeed();
         let token = random_hex::<32>().map_err(|_| LoginFailure::Unavailable)?;
         database
             .create_browser_session(&digest(&token), now())

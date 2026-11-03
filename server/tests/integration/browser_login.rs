@@ -237,6 +237,27 @@ async fn wrong_passwords_are_throttled_and_an_unconfigured_login_is_reported() {
 }
 
 #[tokio::test]
+async fn concurrent_wrong_passwords_share_one_throttle() {
+    let browser = Browser::new().await;
+    let attempts = (0..8).map(|_| {
+        browser.send(
+            Method::POST,
+            "/api/session",
+            None,
+            Some("{\"password\":\"wrong password!\"}"),
+        )
+    });
+    let mut errors: Vec<String> = futures_util::future::join_all(attempts)
+        .await
+        .into_iter()
+        .map(|response| response.body["error"].as_str().unwrap().to_owned())
+        .collect();
+    errors.sort();
+    assert_eq!(errors, [vec!["invalid_password"; 5], vec!["rate_limited"; 3]].concat());
+    browser.finish().await;
+}
+
+#[tokio::test]
 async fn concurrent_sessions_survive_restart_until_revoked_or_reset() {
     let browser = Browser::new().await;
     let first = browser.sign_in().await;
