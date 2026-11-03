@@ -11,6 +11,9 @@ use crate::login;
 use crate::mail::MailBackend;
 use crate::persistence::TokenDigest;
 
+// The nested API router sees paths without its `/api` prefix.
+const LOGOUT_PATH: &str = "/session";
+
 /// Rejects a request that can change state unless it comes from the deployment's own page.
 pub async fn protect_mutations<Backend: MailBackend>(
     State(state): State<ApplicationState<Backend>>,
@@ -28,7 +31,9 @@ pub async fn protect_mutations<Backend: MailBackend>(
     if !same_origin {
         return ApiError::ForbiddenOrigin.into_response();
     }
-    if request.method() != Method::DELETE && !is_json(headers) {
+    // Logout has no body, so it is the one mutation without a JSON content type.
+    let logout = request.method() == Method::DELETE && request.uri().path() == LOGOUT_PATH;
+    if !logout && !is_json(headers) {
         return ApiError::InvalidRequest.into_response();
     }
     next.run(request).await
