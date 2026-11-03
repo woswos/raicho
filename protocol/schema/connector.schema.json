@@ -19,6 +19,15 @@
     },
     {
       "$ref": "#/definitions/ProtocolError"
+    },
+    {
+      "$ref": "#/definitions/Request"
+    },
+    {
+      "$ref": "#/definitions/Cancel"
+    },
+    {
+      "$ref": "#/definitions/Reply"
     }
   ],
   "definitions": {
@@ -59,7 +68,7 @@
         },
         "protocol_version": {
           "type": "integer",
-          "enum": [1]
+          "enum": [2]
         },
         "server_nonce": {
           "$ref": "#/definitions/Nonce"
@@ -86,7 +95,7 @@
         },
         "protocol_version": {
           "type": "integer",
-          "enum": [1]
+          "enum": [2]
         },
         "backend_kind": {
           "type": "string",
@@ -128,7 +137,7 @@
         },
         "protocol_version": {
           "type": "integer",
-          "enum": [1]
+          "enum": [2]
         },
         "generation": {
           "$ref": "#/definitions/Generation"
@@ -152,7 +161,7 @@
         },
         "protocol_version": {
           "type": "integer",
-          "enum": [1]
+          "enum": [2]
         },
         "generation": {
           "$ref": "#/definitions/Generation"
@@ -178,7 +187,7 @@
         },
         "protocol_version": {
           "type": "integer",
-          "enum": [1]
+          "enum": [2]
         },
         "generation": {
           "$ref": "#/definitions/Generation"
@@ -204,7 +213,7 @@
         },
         "protocol_version": {
           "type": "integer",
-          "enum": [1]
+          "enum": [2]
         },
         "generation": {
           "$ref": "#/definitions/Generation"
@@ -227,6 +236,385 @@
           "$ref": "#/definitions/Signature"
         }
       }
+    },
+    "RequestId": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "Handle": {
+      "type": "string",
+      "minLength": 22,
+      "maxLength": 22,
+      "pattern": "^[A-Za-z0-9_-]{22}$"
+    },
+    "Request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "protocol_version", "generation", "request_id", "operation", "mac"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["request"]
+        },
+        "protocol_version": {
+          "type": "integer",
+          "enum": [2]
+        },
+        "generation": {
+          "$ref": "#/definitions/Generation"
+        },
+        "request_id": {
+          "$ref": "#/definitions/RequestId"
+        },
+        "operation": {
+          "$ref": "#/definitions/Operation"
+        },
+        "mac": {
+          "$ref": "#/definitions/Signature"
+        }
+      }
+    },
+    "Cancel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "protocol_version", "generation", "request_id", "mac"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["cancel"]
+        },
+        "protocol_version": {
+          "type": "integer",
+          "enum": [2]
+        },
+        "generation": {
+          "$ref": "#/definitions/Generation"
+        },
+        "request_id": {
+          "$ref": "#/definitions/RequestId"
+        },
+        "mac": {
+          "$ref": "#/definitions/Signature"
+        }
+      }
+    },
+    "Reply": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "protocol_version", "generation", "request_id", "result", "mac"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["reply"]
+        },
+        "protocol_version": {
+          "type": "integer",
+          "enum": [2]
+        },
+        "generation": {
+          "$ref": "#/definitions/Generation"
+        },
+        "request_id": {
+          "$ref": "#/definitions/RequestId"
+        },
+        "result": {
+          "$ref": "#/definitions/Outcome"
+        },
+        "mac": {
+          "$ref": "#/definitions/Signature"
+        }
+      }
+    },
+    "Operation": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/ListAccounts"
+        },
+        {
+          "$ref": "#/definitions/ListMailboxes"
+        },
+        {
+          "$ref": "#/definitions/ListMessages"
+        },
+        {
+          "$ref": "#/definitions/ContinueList"
+        },
+        {
+          "$ref": "#/definitions/CloseList"
+        }
+      ]
+    },
+    "ListAccounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": ["list_accounts"]
+        }
+      }
+    },
+    "ListMailboxes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "account"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": ["list_mailboxes"]
+        },
+        "account": {
+          "$ref": "#/definitions/Handle"
+        }
+      }
+    },
+    "ListMessages": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "mailbox"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": ["list_messages"]
+        },
+        "mailbox": {
+          "$ref": "#/definitions/Handle"
+        }
+      }
+    },
+    "ContinueList": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "cursor"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": ["continue_list"]
+        },
+        "cursor": {
+          "$ref": "#/definitions/Handle"
+        }
+      }
+    },
+    "CloseList": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "cursor"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": ["close_list"]
+        },
+        "cursor": {
+          "$ref": "#/definitions/Handle"
+        }
+      }
+    },
+    "Outcome": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/AccountsResult"
+        },
+        {
+          "$ref": "#/definitions/MailboxesResult"
+        },
+        {
+          "$ref": "#/definitions/MessagesResult"
+        },
+        {
+          "$ref": "#/definitions/ClosedResult"
+        },
+        {
+          "$ref": "#/definitions/FailedResult"
+        }
+      ]
+    },
+    "AccountsResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "accounts"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["accounts"]
+        },
+        "accounts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Account"
+          }
+        }
+      }
+    },
+    "Account": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "identities"],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/Handle"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "identities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Identity"
+          }
+        }
+      }
+    },
+    "Identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "email"],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/Handle"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 254
+        }
+      }
+    },
+    "MailboxesResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "mailboxes"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["mailboxes"]
+        },
+        "mailboxes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Mailbox"
+          }
+        },
+        "cursor": {
+          "$ref": "#/definitions/Handle"
+        }
+      }
+    },
+    "Mailbox": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name"],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/Handle"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "parent": {
+          "$ref": "#/definitions/Handle"
+        },
+        "role": {
+          "$ref": "#/definitions/MailboxRole"
+        }
+      }
+    },
+    "MailboxRole": {
+      "type": "string",
+      "enum": ["inbox", "drafts", "sent", "trash", "archive", "junk", "templates", "outbox"]
+    },
+    "MessagesResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "messages"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["messages"]
+        },
+        "messages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MessageSummary"
+          }
+        },
+        "cursor": {
+          "$ref": "#/definitions/Handle"
+        }
+      }
+    },
+    "MessageSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "subject", "author", "recipients", "date", "read", "flagged"],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/Handle"
+        },
+        "subject": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "author": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "recipients": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "date": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 20,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        },
+        "read": {
+          "type": "boolean"
+        },
+        "flagged": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ClosedResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["closed"]
+        }
+      }
+    },
+    "FailedResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "code"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["error"]
+        },
+        "code": {
+          "$ref": "#/definitions/MailError"
+        }
+      }
+    },
+    "MailError": {
+      "type": "string",
+      "enum": ["invalid_request", "stale_handle", "stale_cursor", "unsupported", "busy", "too_large", "failed"]
     }
   }
 }

@@ -95,7 +95,7 @@ test('a frame without a MAC is invalid', async () => {
   const receiver = createChannel(bytes(session.session_key), 'client');
   const challenge = JSON.stringify({
     type: 'challenge',
-    protocol_version: 1,
+    protocol_version: 2,
     server_nonce: 'f'.repeat(64),
   });
   await assert.rejects(receiver.open(challenge, 'challenge', session.generation), { code: 'invalid_message' });

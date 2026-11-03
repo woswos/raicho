@@ -1,0 +1,607 @@
+[
+  {
+    "name": "list accounts request",
+    "phase": "server_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "request",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "operation": {
+        "name": "list_accounts"
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "list mailboxes request",
+    "phase": "server_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "request",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "operation": {
+        "name": "list_mailboxes",
+        "account": "AAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "list messages request",
+    "phase": "server_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "request",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "operation": {
+        "name": "list_messages",
+        "mailbox": "AAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "continue list request",
+    "phase": "server_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "request",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "operation": {
+        "name": "continue_list",
+        "cursor": "AAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "close list request",
+    "phase": "server_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "request",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "operation": {
+        "name": "close_list",
+        "cursor": "AAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "cancel request",
+    "phase": "server_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "cancel",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "largest request identifier",
+    "phase": "server_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "cancel",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 2147483647,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "request identifier above the wire limit",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "cancel",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 2147483648,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "zero request identifier",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "cancel",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 0,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "request from the connector",
+    "phase": "client_control",
+    "valid": false,
+    "error": "unexpected_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "request",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "operation": {
+        "name": "list_accounts"
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "reply from the server",
+    "phase": "server_control",
+    "valid": false,
+    "error": "unexpected_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "closed"
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "request for another generation",
+    "phase": "server_control",
+    "valid": false,
+    "error": "stale_generation",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "request",
+      "protocol_version": 2,
+      "generation": "ffffffffffffffffffffffffffffffff",
+      "request_id": 1,
+      "operation": {
+        "name": "list_accounts"
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "request without a MAC",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "cancel",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1
+    }
+  },
+  {
+    "name": "unknown operation",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "request",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "operation": {
+        "name": "delete_everything"
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "operation with an extra member",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "request",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "operation": {
+        "name": "list_accounts",
+        "account": "AAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "handle with a padding character",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "request",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "operation": {
+        "name": "list_mailboxes",
+        "account": "AAAAAAAAAAAAAAAAAAAAA="
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "accounts reply",
+    "phase": "client_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "accounts",
+        "accounts": [
+          {
+            "id": "AAAAAAAAAAAAAAAAAAAAAA",
+            "name": "Arbeit — Zürich",
+            "identities": [
+              {
+                "id": "B-_9BBBBBBBBBBBBBBBBBB",
+                "name": "",
+                "email": "zoe@raicho.test"
+              }
+            ]
+          }
+        ]
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "mailboxes reply with a cursor",
+    "phase": "client_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "mailboxes",
+        "mailboxes": [
+          {
+            "id": "AAAAAAAAAAAAAAAAAAAAAA",
+            "name": "Posteingang",
+            "role": "inbox"
+          },
+          {
+            "id": "B-_9BBBBBBBBBBBBBBBBBB",
+            "name": "Projekte",
+            "parent": "AAAAAAAAAAAAAAAAAAAAAA"
+          }
+        ],
+        "cursor": "AAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "final messages reply",
+    "phase": "client_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "messages",
+        "messages": [
+          {
+            "id": "B-_9BBBBBBBBBBBBBBBBBB",
+            "subject": "Grüße aus Zürich 雷 🐦",
+            "author": "Zoë <zoe@raicho.test>",
+            "recipients": "sender@raicho.test",
+            "date": "2026-11-03T08:00:00Z",
+            "read": false,
+            "flagged": true
+          }
+        ]
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "closed reply",
+    "phase": "client_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "closed"
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "failed reply",
+    "phase": "client_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "error",
+        "code": "stale_handle"
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "unknown failure code",
+    "phase": "client_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "error",
+        "code": "mystery"
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "unknown mailbox role",
+    "phase": "client_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "mailboxes",
+        "mailboxes": [
+          {
+            "id": "AAAAAAAAAAAAAAAAAAAAAA",
+            "name": "Inbox",
+            "role": "spam"
+          }
+        ]
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "summary with a local date",
+    "phase": "client_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "messages",
+        "messages": [
+          {
+            "id": "B-_9BBBBBBBBBBBBBBBBBB",
+            "subject": "Grüße aus Zürich 雷 🐦",
+            "author": "Zoë <zoe@raicho.test>",
+            "recipients": "sender@raicho.test",
+            "date": "2026-11-03T08:00:00+01:00",
+            "read": false,
+            "flagged": true
+          }
+        ]
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "summary subject over its limit",
+    "phase": "client_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "messages",
+        "messages": [
+          {
+            "id": "B-_9BBBBBBBBBBBBBBBBBB",
+            "subject": "雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷雷",
+            "author": "Zoë <zoe@raicho.test>",
+            "recipients": "sender@raicho.test",
+            "date": "2026-11-03T08:00:00Z",
+            "read": false,
+            "flagged": true
+          }
+        ]
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "summary subject at its limit",
+    "phase": "client_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "messages",
+        "messages": [
+          {
+            "id": "B-_9BBBBBBBBBBBBBBBBBB",
+            "subject": "🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦",
+            "author": "Zoë <zoe@raicho.test>",
+            "recipients": "sender@raicho.test",
+            "date": "2026-11-03T08:00:00Z",
+            "read": false,
+            "flagged": true
+          }
+        ]
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "control character in a subject",
+    "phase": "client_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "messages",
+        "messages": [
+          {
+            "id": "B-_9BBBBBBBBBBBBBBBBBB",
+            "subject": "line\nbreak",
+            "author": "Zoë <zoe@raicho.test>",
+            "recipients": "sender@raicho.test",
+            "date": "2026-11-03T08:00:00Z",
+            "read": false,
+            "flagged": true
+          }
+        ]
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "escaped control character in a subject",
+    "phase": "client_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "{\"type\": \"reply\", \"protocol_version\": 2, \"generation\": \"0123456789abcdef0123456789abcdef\", \"request_id\": 1, \"result\": {\"kind\": \"messages\", \"messages\": [{\"id\": \"B-_9BBBBBBBBBBBBBBBBBB\", \"subject\": \"tab\\t\", \"author\": \"Zo\\u00eb <zoe@raicho.test>\", \"recipients\": \"sender@raicho.test\", \"date\": \"2026-11-03T08:00:00Z\", \"read\": false, \"flagged\": true}]}, \"mac\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+  },
+  {
+    "name": "unpaired surrogate in a subject",
+    "phase": "client_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "{\"type\": \"reply\", \"protocol_version\": 2, \"generation\": \"0123456789abcdef0123456789abcdef\", \"request_id\": 1, \"result\": {\"kind\": \"messages\", \"messages\": [{\"id\": \"B-_9BBBBBBBBBBBBBBBBBB\", \"subject\": \"\\ud800\", \"author\": \"Zo\\u00eb <zoe@raicho.test>\", \"recipients\": \"sender@raicho.test\", \"date\": \"2026-11-03T08:00:00Z\", \"read\": false, \"flagged\": true}]}, \"mac\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+  },
+  {
+    "name": "escaped non-ASCII subject",
+    "phase": "client_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "{\"type\": \"reply\", \"protocol_version\": 2, \"generation\": \"0123456789abcdef0123456789abcdef\", \"request_id\": 1, \"result\": {\"kind\": \"messages\", \"messages\": [{\"id\": \"B-_9BBBBBBBBBBBBBBBBBB\", \"subject\": \"Gr\\u00fc\\u00dfe\", \"author\": \"Zo\\u00eb <zoe@raicho.test>\", \"recipients\": \"sender@raicho.test\", \"date\": \"2026-11-03T08:00:00Z\", \"read\": false, \"flagged\": true}]}, \"mac\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+  },
+  {
+    "name": "unknown member in a summary",
+    "phase": "client_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "messages",
+        "messages": [
+          {
+            "id": "B-_9BBBBBBBBBBBBBBBBBB",
+            "subject": "Grüße aus Zürich 雷 🐦",
+            "author": "Zoë <zoe@raicho.test>",
+            "recipients": "sender@raicho.test",
+            "date": "2026-11-03T08:00:00Z",
+            "read": false,
+            "flagged": true,
+            "betreff": "x"
+          }
+        ]
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "missing summary flag",
+    "phase": "client_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "messages",
+        "messages": [
+          {
+            "id": "B-_9BBBBBBBBBBBBBBBBBB",
+            "subject": "Grüße aus Zürich 雷 🐦",
+            "author": "Zoë <zoe@raicho.test>",
+            "recipients": "sender@raicho.test",
+            "date": "2026-11-03T08:00:00Z",
+            "read": false
+          }
+        ]
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+]

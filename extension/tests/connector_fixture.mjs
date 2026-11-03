@@ -21,18 +21,18 @@ export const metadata = {
 export const generation = 'b'.repeat(32);
 export const challenge = {
   type: 'challenge',
-  protocol_version: 1,
+  protocol_version: 2,
   server_nonce: 'f'.repeat(64),
 };
 export const welcome = {
   type: 'welcome',
-  protocol_version: 1,
+  protocol_version: 2,
   generation,
   capabilities: [],
 };
 export const ping = {
   type: 'ping',
-  protocol_version: 1,
+  protocol_version: 2,
   generation,
   sequence: 1,
 };

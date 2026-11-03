@@ -4,20 +4,20 @@
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"protocol_version\":2,\"雷\":0}"
+    "raw": "{\"protocol_version\":3,\"雷\":0}"
   },
   {
     "name": "unpaired surrogate key before version check",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"protocol_version\":2,\"\\ud800\":0}"
+    "raw": "{\"protocol_version\":3,\"\\ud800\":0}"
   },
   {
     "name": "non finite value before version check",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"protocol_version\":2,\"sequence\":1e400}"
+    "raw": "{\"protocol_version\":3,\"sequence\":1e400}"
   }
 ]

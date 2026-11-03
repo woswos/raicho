@@ -6,7 +6,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "ping",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "sequence": 1,
       "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -19,7 +19,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "pong",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "sequence": 1,
       "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -32,7 +32,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "ping",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "sequence": 2147483647,
       "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -45,7 +45,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "error",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "code": "invalid_message",
       "generation": "0123456789abcdef0123456789abcdef",
       "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -59,7 +59,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "pong",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "sequence": 1,
       "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -73,7 +73,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "ping",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "sequence": 1,
       "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -87,7 +87,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "error",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "code": "invalid_message",
       "generation": "0123456789abcdef0123456789abcdef",
       "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -101,7 +101,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "authenticate",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "thunderbird",
@@ -118,7 +118,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "welcome",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "capabilities": [],
       "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
@@ -131,7 +131,7 @@
     "error": "unexpected_message",
     "message": {
       "type": "welcome",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "capabilities": [],
       "server_signature": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
@@ -144,7 +144,7 @@
     "error": "unexpected_message",
     "message": {
       "type": "authenticate",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "client_nonce": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "client_proof": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "backend_kind": "thunderbird",
@@ -161,7 +161,7 @@
     "generation": "ffffffffffffffffffffffffffffffff",
     "message": {
       "type": "ping",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "sequence": 1,
       "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -174,7 +174,7 @@
     "error": "stale_generation",
     "message": {
       "type": "ping",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "sequence": 1,
       "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -188,7 +188,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "error",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "code": "invalid_message"
     }
   },
@@ -200,7 +200,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "ping",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",
       "sequence": 1,
       "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -214,7 +214,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "ping",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "sequence": 0,
       "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -228,7 +228,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "ping",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "sequence": -1,
       "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -242,7 +242,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "ping",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "sequence": 1.1,
       "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -256,7 +256,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "ping",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "sequence": 2147483648,
       "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -270,7 +270,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "ping",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "sequence": "1",
       "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -281,7 +281,7 @@
     "phase": "server_control",
     "valid": true,
     "generation": "0123456789abcdef0123456789abcdef",
-    "raw": "{\"type\":\"ping\",\"protocol_version\":1.0,\"generation\":\"0123456789abcdef0123456789abcdef\",\"sequence\":1e0,\"mac\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+    "raw": "{\"type\":\"ping\",\"protocol_version\":2.0,\"generation\":\"0123456789abcdef0123456789abcdef\",\"sequence\":1e0,\"mac\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
   },
   {
     "name": "connected error without mac",
@@ -291,7 +291,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "error",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "code": "invalid_message",
       "generation": "0123456789abcdef0123456789abcdef"
     }
@@ -304,7 +304,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "ping",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "sequence": 1
     }
@@ -317,7 +317,7 @@
     "generation": "0123456789abcdef0123456789abcdef",
     "message": {
       "type": "pong",
-      "protocol_version": 1,
+      "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "sequence": 1,
       "mac": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
