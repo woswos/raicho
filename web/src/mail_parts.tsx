@@ -32,7 +32,9 @@ export function MailboxList({ account, mailboxes, selected, onSelect, onReload }
   return (
     <section class="account" aria-label={account.name}>
       <h2>{account.name}</h2>
-      {account.identities[0] && <p class="muted identity">{account.identities[0].email}</p>}
+      {account.identities.length > 0 && (
+        <p class="muted identity">{account.identities.map((identity) => identity.email).join(', ')}</p>
+      )}
       {(!mailboxes || mailboxes.status === 'loading') && <p class="muted">Loading mailboxes…</p>}
       {mailboxes?.status === 'failed' && (
         <Notice failure={mailboxes.failure} action="Reload mailboxes" onAction={onReload} />
