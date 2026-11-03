@@ -54,3 +54,13 @@ The kinds, the `skip-changelog` label, and the version bump rules are in
 When a merge and branch deletion are authorized, use `gh pr merge --delete-branch`.
 Repository-wide automatic branch deletion and required checks are separate
 GitHub settings. Creating workflow files does not enable those settings.
+
+## Stacked pull requests
+
+- Base each branch on the previous one. Keep the stack consistent with
+  `git commit --fixup <commit>`, then run
+  `GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash --update-refs main` on the
+  top branch, which moves every stacked branch ref at once.
+- Release and merge the stack bottom up. Push only branches the maintainer
+  releases, with `--force-with-lease` against the remote head. After a merge,
+  rebuild the next branch onto `main`.
