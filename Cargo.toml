@@ -10,7 +10,7 @@ license = "MIT"
 
 [workspace.dependencies]
 argon2 = { version = "=0.6.0", default-features = false, features = ["alloc", "password-hash"] }
-axum ={ version = "=0.8.9", default-features = false, features = ["http1", "json", "tokio"] }
+axum = { version = "=0.8.9", default-features = false, features = ["http1", "json", "tokio"] }
 criterion = { version = "=0.8.2", default-features = false, features = ["cargo_bench_support"] }
 futures-util = { version = "=0.3.34", features = ["sink"] }
 getrandom = "=0.4.3"
