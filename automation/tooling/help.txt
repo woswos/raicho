@@ -53,7 +53,8 @@ GNU Make. Add VERBOSE=1 for each tool's normal output.
   make images         Build the runtime images.
   make acceptance     Every disposable deployment suite. One at a time:
                       acceptance-runtime, acceptance-connector,
-                      acceptance-credentials, or acceptance-mail.
+                      acceptance-credentials, acceptance-browsing, or
+                      acceptance-mail.
   make shell          Bash in the read-only tooling container, as the checks
                       run.
   make clean          Remove ignored build output, interrupted acceptance

@@ -8,7 +8,7 @@ cd "${REPOSITORY_ROOT}"
 # shellcheck source=automation/tooling/project_removal.bash
 source "${SCRIPT_DIRECTORY}/project_removal.bash"
 
-DISPOSABLE_PROJECT='^raicho-[a-z]+-[0-9]+-[0-9]+$'
+DISPOSABLE_PROJECT='^raicho-[a-z]+(-[a-z]+)*-[0-9]+-[0-9]+$'
 DISPOSABLE_IMAGE='^raicho-[a-z]+-[0-9]+-[0-9]+[:-]'
 CACHE_VOLUME=raicho-tools_cache
 TEMPORARY_DIRECTORY="${TMPDIR:-/tmp}"

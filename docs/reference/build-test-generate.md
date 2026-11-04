@@ -82,7 +82,7 @@ and `-sql` variants, alongside `format-spelling` and `typecheck`. Protocol
 bindings use `generate-protocol` and `check-protocol`.
 The `-javascript` formatting variants also cover TypeScript, JSON, and YAML. The acceptance
 suites run one at a time as `acceptance-runtime`, `acceptance-connector`,
-`acceptance-credentials`, and `acceptance-mail`.
+`acceptance-credentials`, `acceptance-browsing`, and `acceptance-mail`.
 
 ## Tooling image
 

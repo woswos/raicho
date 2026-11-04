@@ -41,7 +41,8 @@ class CleanTests(CleanupFixture):
             ),
             Response(
                 ('volume', 'ls', '--format', PROJECT_FORMAT),
-                output='raicho\nraicho-mail-test\nraicho-connector-20261026120000-4\n',
+                output='raicho\nraicho-mail-test\nraicho-connector-20261026120000-4\n'
+                'raicho-connector-browsing-20261026120000-5\nraicho-tools-local\n',
             ),
             Response(
                 ('network', 'ls', '--format', PROJECT_FORMAT),
@@ -64,6 +65,14 @@ class CleanTests(CleanupFixture):
                 output='connector-volume\n',
             ),
             Response(
+                (
+                    'volume',
+                    '--quiet',
+                    f'{PROJECT_FILTER}raicho-connector-browsing-20261026120000-5',
+                ),
+                output='browsing-volume\n',
+            ),
+            Response(
                 ('network', '--quiet', f'{PROJECT_FILTER}raicho-ci-123-1'),
                 output='ci-network\n',
             ),
@@ -72,6 +81,7 @@ class CleanTests(CleanupFixture):
         self.assertIn(['container', 'stop', 'runtime-container'], commands)
         self.assertIn(['container', 'rm', 'runtime-container'], commands)
         self.assertIn(['volume', 'rm', 'connector-volume'], commands)
+        self.assertIn(['volume', 'rm', 'browsing-volume'], commands)
         self.assertIn(['network', 'rm', 'ci-network'], commands)
         self.assertEqual(
             sorted(line for line in result.stdout.splitlines() if line.startswith('Removed the ')),
@@ -79,6 +89,7 @@ class CleanTests(CleanupFixture):
                 'Removed the containers of raicho-runtime-20261026120000-123',
                 'Removed the networks of raicho-ci-123-1',
                 'Removed the volumes of raicho-connector-20261026120000-4',
+                'Removed the volumes of raicho-connector-browsing-20261026120000-5',
             ],
         )
 

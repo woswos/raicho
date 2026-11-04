@@ -1,0 +1,58 @@
+# Paths resolve from the repository root, where the base compose.yaml lives.
+x-fixture: &fixture
+  platform: linux/amd64
+  read_only: true
+  tmpfs:
+    - /tmp:mode=1777
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+
+services:
+  greenmail:
+    <<: *fixture
+    image: greenmail/standalone:2.1.14@sha256:2bcd0470f569af3c8b98509421b23f1ad11ebb2d58c3648f4233bf450f3b5e2b
+    environment:
+      GREENMAIL_OPTS: >-
+        -Dgreenmail.setup.test.smtp -Dgreenmail.setup.test.imap
+        -Dgreenmail.hostname=0.0.0.0
+        -Dgreenmail.users=sender:fixture@raicho.test,recipient:fixture@raicho.test
+    networks:
+      mail-fixture:
+        # The fictional profile names the mail proxy that the compatibility fixture uses.
+        aliases: [mail-proxy]
+
+  thunderbird:
+    entrypoint: [/usr/bin/tini, --, python3, -B, -m, mailprobe.tests.profile.start]
+    environment:
+      LD_LIBRARY_PATH: /opt/thunderbird
+      PYTHONPATH: /opt/fixture:/opt/raicho
+    volumes:
+      - fixture-profile:/config
+      - ./mailprobe/tests/profile:/opt/fixture/mailprobe/tests/profile:ro
+    networks: [thunderbird, connector-thunderbird, mail-fixture]
+
+  browser:
+    <<: *fixture
+    image: raicho-tools:local
+    profiles: [test]
+    user: '10001:10001'
+    working_dir: /workspace
+    entrypoint: [python3, -B, -m, automation.acceptance.browsing.checks]
+    volumes:
+      - .:/workspace:ro
+      - raicho-data:/fixture/raicho:ro
+      - type: bind
+        source: ${RAICHO_BROWSING_STATE:?Use automation/acceptance/browsing/run.bash}
+        target: /state
+        bind:
+          create_host_path: false
+    networks: [application, mail-fixture]
+
+networks:
+  mail-fixture:
+    internal: true
+
+volumes:
+  fixture-profile:

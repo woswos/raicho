@@ -22,7 +22,8 @@ release workflows always finish.
 - `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
   administrative network isolation and listener closure, and application readiness
   while Thunderbird is stopped, in a disposable project.
-- `connector-test`: `make acceptance-connector`, then `make acceptance-credentials`.
+- `connector-test`: `make acceptance-connector`, `make acceptance-credentials`,
+  then `make acceptance-browsing`.
   The [acceptance scope](connector-acceptance.md#scope) lists what each verifies.
 - `compatibility-test`: `make acceptance-mail`.
 - `coverage`: on PRs, `make check-patch-coverage` against the PR base. It
@@ -30,8 +31,9 @@ release workflows always finish.
   pushes to `main` it runs `make coverage` instead, which saves the coverage
   build's Cargo cache for later PRs.
 
-The acceptance jobs run `make acceptance-runtime`, `make acceptance-connector` and
-`make acceptance-credentials`, and `make acceptance-mail`, each under `setsid`.
+The acceptance jobs run `make acceptance-runtime`, `make acceptance-connector`,
+`make acceptance-credentials`, and `make acceptance-browsing`, and
+`make acceptance-mail`, each under `setsid`.
 There are no image publication or deployment jobs. Changelog
 releases are separate workflows described below. Runtime tests
 use no accounts and remove only their job-specific resources, as

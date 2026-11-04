@@ -16,7 +16,7 @@ DEPLOYMENT_TARGETS := deploy-up deploy-admin deploy-restart deploy-down deploy-p
     $(addprefix deploy-connector-,init rotate verify status revoke reactivate) \
     $(addprefix deploy-login-,init reset revoke status)
 HOST_TARGETS := images acceptance acceptance-runtime acceptance-connector acceptance-credentials \
-    acceptance-mail shell clean mrproper $(DEPLOYMENT_TARGETS)
+    acceptance-browsing acceptance-mail shell clean mrproper $(DEPLOYMENT_TARGETS)
 
 ifneq ($(findstring xterm,${TERM}),)
     override COLOR_RED := $(shell tput -Txterm setaf 1)

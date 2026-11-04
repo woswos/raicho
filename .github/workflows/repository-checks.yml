@@ -46,6 +46,7 @@ jobs:
       - name: Validate runtime configuration
         env:
           RAICHO_CREDENTIAL_DIRECTORY: /tmp/raicho-ci-credentials
+          RAICHO_BROWSING_STATE: /tmp/raicho-ci-browsing
           RAICHO_TEST_TOOLING_IMAGE: raicho-tools:local
           RAICHO_MAIL_TEST_IMAGE: raicho-thunderbird:local
         run: |
@@ -55,6 +56,7 @@ jobs:
           docker compose -f compose.yaml -f automation/acceptance/runtime/compose.test.yaml -f compose.admin.yaml config --quiet
           docker compose -f compose.yaml -f compose.credentials.yaml config --quiet
           docker compose -f compose.yaml -f compose.login.yaml --profile login config --quiet
+          docker compose -f compose.yaml -f compose.credentials.yaml -f automation/acceptance/runtime/compose.test.yaml -f automation/acceptance/browsing/compose.browsing.yaml --profile test config --quiet
           docker compose -f compose.yaml -f automation/acceptance/runtime/compose.test.yaml -f compose.admin.yaml -f compose.credentials.yaml config --quiet
           docker compose -f compose.yaml -f compose.credentials.yaml -f automation/acceptance/runtime/compose.test.yaml -f automation/acceptance/connector/compose.upgrade.yaml --profile test config --quiet
           docker compose -f mailprobe/compose.yaml --profile test config --quiet
@@ -155,6 +157,11 @@ jobs:
           TMPDIR: ${{ runner.temp }}
           RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance
         run: setsid --wait make acceptance-credentials
+      - name: Verify browser login and mailbox browsing
+        env:
+          TMPDIR: ${{ runner.temp }}
+          RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance
+        run: setsid --wait make acceptance-browsing
       - name: Remove this job's disposable deployments
         if: always()
         env:
