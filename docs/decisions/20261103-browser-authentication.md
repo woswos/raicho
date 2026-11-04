@@ -16,7 +16,7 @@ the deployment. Host access already controls the connector credential.
 ## Decision
 
 An operator sets the single login password offline. `make deploy-login-init`,
-`make deploy-login-reset`, and `make deploy-login-revoke` stop the services and run
+`make deploy-login-reset`, and `make deploy-login-revoke` stop Raicho and run
 `raicho-server login` subcommands against the database, as the connector
 credential commands do. The host prompts without echo and passes the password on
 standard input. Passwords have 12 to 1024 bytes and no composition rules. SQLite
