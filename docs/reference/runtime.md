@@ -99,7 +99,7 @@ External Thunderbird mail directories require their own explicit mounts.
 | `/api/mail/accounts/{account}/mailboxes` | One account's mailboxes |
 | `/api/mail/mailboxes/{mailbox}/messages` | The first page of a mailbox's message summaries |
 | `/api/mail/cursors/{cursor}` | The next page of summaries |
-| `/` | Static diagnostics page |
+| `/` | Static browser client |
 
 `/api` and `/health` responses use `Cache-Control: no-store`. Page files use
 `no-cache`, so browsers revalidate them after an upgrade, because their names carry
@@ -111,8 +111,16 @@ return 404, including `/connector/v1` on this listener. Stopping Thunderbird doe
 not make Raicho unready. Backend status is `unconfigured`, `disconnected`,
 `connected`, `revoked`, or `unavailable`. Diagnostics include the current session
 generation, accepted heartbeat count, and a fixed error code, never a token or
-raw socket error. The browser retains only the status and allowlisted error code
-and explains that mail is not yet available.
+raw socket error. The browser client polls status every 15 seconds while visible
+and shows the connection beside every view.
+
+The client is a Preact page bundled into `main.js`. It signs in, applies the theme
+preference, lists each account's mailboxes with special folders first, and shows
+summaries newest first with a button for older pages. Loading, empty, error, stale,
+and disconnected states each have their own message. A stale mailbox or cursor
+offers a reload instead of reusing the old handle, and a reconnect reloads the
+mailboxes. Mail lives only in the page's memory, and signing out discards it. The
+client uses no browser storage or service worker, which ESLint enforces.
 
 [`protocol/schema/status.schema.json`](../../protocol/schema/status.schema.json)
 is the response contract, including the 503 body that reports `unavailable` when

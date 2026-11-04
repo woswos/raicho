@@ -3,7 +3,7 @@ import type { BackendStatus } from './status.js';
 const descriptions = {
   unconfigured: ['Not configured', 'The Thunderbird connection has not been set up yet.'],
   disconnected: ['Disconnected', 'Raicho is waiting for Thunderbird to connect.'],
-  connected: ['Connected', 'Thunderbird is connected. Mail is not available in this interface yet.'],
+  connected: ['Connected', 'Thunderbird is connected.'],
   revoked: ['Access revoked', 'The connector credential was revoked. A new credential is required to restore access.'],
   unavailable: [
     'Unavailable',

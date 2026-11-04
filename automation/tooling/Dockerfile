@@ -38,6 +38,8 @@ COPY automation/tooling/requirements.txt ./requirements.txt
 RUN PIP_NO_CACHE_DIR=1 python3 -m pip install -r requirements.txt
 COPY package.json package-lock.json .npmrc eslint.config.mjs ./
 RUN npm ci && npm cache clean --force
+# Module resolution walks up from /workspace, so browser packages resolve as they do in image builds.
+RUN ln -s /opt/quality/node_modules /node_modules
 COPY automation/tooling/entrypoint.bash /usr/local/bin/raicho-tooling
 COPY mailprobe/tests/ /opt/raicho/mailprobe/tests/
 RUN install -d -o 10001 -g 10001 -m 0700 /config /artifact && install -d -m 1777 /cache

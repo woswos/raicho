@@ -4,6 +4,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
+import { build } from 'esbuild';
+
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const {
   positionals: [output],
@@ -33,6 +35,21 @@ execFileSync(
   },
 );
 cpSync(path.join(repositoryRoot, 'web/public'), output, { recursive: true });
+// tsc output keeps one module per source file for tests, and the page loads one bundle.
+await build({
+  entryPoints: [path.join(repositoryRoot, 'web/src/main.tsx')],
+  outfile: path.join(output, 'main.js'),
+  allowOverwrite: true,
+  bundle: true,
+  format: 'esm',
+  platform: 'browser',
+  target: 'es2022',
+  jsx: 'automatic',
+  jsxImportSource: 'preact',
+  legalComments: 'none',
+  sourcemap: sourceMap,
+  logLevel: 'warning',
+});
 for (const asset of [
   'logos/horizontal.svg',
   'logos/horizontal-dark.svg',

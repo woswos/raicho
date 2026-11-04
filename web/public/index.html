@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <meta name="description" content="Check your Raicho application and Thunderbird connection status.">
-    <title>Raicho status</title>
+    <meta name="description" content="Read the mail in your Thunderbird from a browser.">
+    <title>Raicho</title>
     <link rel="icon" href="/assets/brand/icons/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/assets/brand/fonts/fonts.css">
     <link rel="stylesheet" href="/assets/brand/tokens.css">
@@ -14,68 +14,7 @@
     <script type="module" src="/main.js"></script>
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to status</a>
-    <div class="page-shell">
-      <header class="site-header">
-        <picture>
-          <source srcset="/assets/brand/logos/horizontal-dark.svg" media="(prefers-color-scheme: dark)">
-          <img class="logo" src="/assets/brand/logos/horizontal.svg" alt="Raicho" width="192" height="48">
-        </picture>
-        <span class="header-label">Application status</span>
-      </header>
-
-      <main id="main">
-        <div class="intro">
-          <p class="eyebrow">Your Thunderbird, anywhere.</p>
-          <h1>A clear view of your connection.</h1>
-          <p class="intro-description">Check that Raicho is running and see the status of its connection to Thunderbird.</p>
-        </div>
-
-        <section class="status-summary" id="summary" data-state="loading" aria-label="Latest status">
-          <span class="status-dot" aria-hidden="true"></span>
-          <p id="summary-text">Checking Raicho…</p>
-          <button id="refresh" type="button" aria-disabled="true">Checking…</button>
-        </section>
-        <p class="visually-hidden" id="announcement" role="status" aria-live="polite" aria-atomic="true"></p>
-        <noscript><p class="notice">Enable JavaScript to check the application status.</p></noscript>
-
-        <div class="status-grid">
-          <section class="status-card" aria-labelledby="application-title">
-            <div class="card-heading">
-              <h2 id="application-title">Raicho</h2>
-              <span class="status-pill" id="server-status" data-state="loading">Checking</span>
-            </div>
-            <p class="card-description">The application serving this page.</p>
-            <dl class="details">
-              <div><dt>Application version</dt><dd id="application-version">Checking…</dd></div>
-              <div><dt>Application database</dt><dd id="database-status">Checking…</dd></div>
-              <div><dt>Database engine</dt><dd id="database-version">Checking…</dd></div>
-            </dl>
-          </section>
-
-          <section class="status-card backend-card" aria-labelledby="backend-title">
-            <div class="card-heading">
-              <h2 id="backend-title">Thunderbird</h2>
-              <span class="status-pill" id="backend-status">Checking</span>
-            </div>
-            <p class="card-description">Your mail stays in Thunderbird.</p>
-            <div class="connection-note">
-              <span class="connection-symbol" aria-hidden="true">↗</span>
-              <p id="backend-description">Waiting for Raicho to report its connection status.</p>
-            </div>
-          </section>
-        </div>
-
-        <div class="status-footnote">
-          <p id="last-checked">Waiting for the first status check.</p>
-          <p>Refreshes every 15 seconds while this tab is visible.</p>
-        </div>
-      </main>
-
-      <footer class="site-footer">
-        <span>Raicho</span>
-        <span>A browser interface for Thunderbird.</span>
-      </footer>
-    </div>
+    <div id="app"></div>
+    <noscript><p class="notice">Enable JavaScript to use Raicho.</p></noscript>
   </body>
 </html>
