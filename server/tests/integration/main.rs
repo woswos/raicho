@@ -1,5 +1,7 @@
 mod support;
 
+mod browser_login;
+mod browser_mail;
 mod configuration;
 mod connector_authentication;
 mod connector_frames;

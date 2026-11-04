@@ -1,4 +1,5 @@
 use std::ffi::OsString;
+use std::io::Read;
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -7,12 +8,21 @@ use raicho_server::credentials::{
     Credential, SERVICE_OWNER, TokenOperation, operate_token_directory, wait_for_connector,
 };
 use raicho_server::error::{Error, Result};
+use raicho_server::login::{self, MAXIMUM_PASSWORD_BYTES};
 use raicho_server::persistence::{CredentialStatus, Database};
 
 enum Operation {
     Credential(CredentialOperation),
     Files(TokenOperation, PathBuf),
     Wait,
+    Login(LoginOperation),
+}
+
+enum LoginOperation {
+    Initialize,
+    Reset,
+    Revoke,
+    Status,
 }
 
 enum CredentialOperation {
@@ -27,6 +37,13 @@ enum CredentialOperation {
 impl Operation {
     fn parse(arguments: &[OsString]) -> Result<Self> {
         match arguments {
+            [command, operation] if command == "login" => match operation.to_str() {
+                Some("init") => Ok(Self::Login(LoginOperation::Initialize)),
+                Some("reset") => Ok(Self::Login(LoginOperation::Reset)),
+                Some("revoke") => Ok(Self::Login(LoginOperation::Revoke)),
+                Some("status") => Ok(Self::Login(LoginOperation::Status)),
+                _ => Err(usage()),
+            },
             [command, operation] if command == "connector" && operation == "status" => {
                 Ok(Self::Credential(CredentialOperation::Status))
             }
@@ -78,6 +95,18 @@ pub async fn run(arguments: &[OsString]) -> Result<()> {
             println!("Authenticated Thunderbird connection and heartbeat verified");
             return Ok(());
         }
+        Operation::Login(operation) => {
+            // Reading the password first keeps the database unlocked while the operator types.
+            let password = match operation {
+                LoginOperation::Initialize | LoginOperation::Reset => Some(read_password()?),
+                LoginOperation::Revoke | LoginOperation::Status => None,
+            };
+            let database = Database::open(&Config::data_dir_from_environment()?).await?;
+            let result = execute_login(operation, password, &database).await;
+            database.close().await;
+            println!("login: {}", result?);
+            return Ok(());
+        }
     };
     let database = Database::open(&Config::data_dir_from_environment()?).await?;
     let result = execute(operation, &database).await;
@@ -122,8 +151,61 @@ async fn execute(operation: CredentialOperation, database: &Database) -> Result<
     }
 }
 
+async fn execute_login(operation: LoginOperation, password: Option<Vec<u8>>, database: &Database) -> Result<String> {
+    let now = login::now();
+    match (operation, password) {
+        (LoginOperation::Initialize, Some(password)) => {
+            if database.login_password().await?.is_some() {
+                return Err(Error::message("Login is already configured; use reset to replace it"));
+            }
+            database
+                .set_login_password(&login::hash_password(&password)?, now)
+                .await?;
+            Ok("initialized".into())
+        }
+        (LoginOperation::Reset, Some(password)) => {
+            database
+                .set_login_password(&login::hash_password(&password)?, now)
+                .await?;
+            Ok("reset, every browser session revoked".into())
+        }
+        (LoginOperation::Revoke, _) => {
+            database.revoke_browser_sessions().await?;
+            Ok("every browser session revoked".into())
+        }
+        (LoginOperation::Status, _) => {
+            let configured = if database.login_password().await?.is_some() {
+                "configured"
+            } else {
+                "unconfigured"
+            };
+            Ok(format!(
+                "{configured}, {} sessions",
+                database.browser_session_count().await?
+            ))
+        }
+        _ => Err(usage()),
+    }
+}
+
+// The password arrives on standard input, never in arguments or the environment.
+fn read_password() -> Result<Vec<u8>> {
+    let mut password = Vec::new();
+    std::io::stdin()
+        .take(MAXIMUM_PASSWORD_BYTES as u64 + 3)
+        .read_to_end(&mut password)
+        .map_err(|error| Error::new("Cannot read the password from standard input", error))?;
+    for ending in *b"\n\r" {
+        if password.last() == Some(&ending) {
+            password.pop();
+        }
+    }
+    login::validate_password(&password)?;
+    Ok(password)
+}
+
 fn usage() -> Error {
     Error::message(
-        "Usage: connector init|verify|reactivate --token-file PATH; connector rotate --token-file NEW --current-token-file OLD; connector revoke|status|wait; connector files init|rotate|reactivate|publish|finish|check DIRECTORY",
+        "Usage: connector init|verify|reactivate --token-file PATH; connector rotate --token-file NEW --current-token-file OLD; connector revoke|status|wait; connector files init|rotate|reactivate|publish|finish|check DIRECTORY; login init|reset|revoke|status",
     )
 }

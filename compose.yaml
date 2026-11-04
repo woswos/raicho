@@ -16,6 +16,8 @@ services:
       dockerfile: deploy/raicho/Dockerfile
       args:
         RAICHO_COMMIT: ${RAICHO_COMMIT:-unknown}
+    environment:
+      RAICHO_PUBLIC_ORIGIN: ${RAICHO_PUBLIC_ORIGIN:-http://localhost:${RAICHO_PORT:-8080}}
     tmpfs:
       - /tmp:mode=1777
     volumes:

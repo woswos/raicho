@@ -28,13 +28,14 @@ class HelpTests(unittest.TestCase):
         commands = set(re.findall(r'^  make ([a-z-]*[a-z])', guide, re.MULTILINE))
         for target in make_list('CONTAINER_TARGETS') + make_list('HOST_TARGETS'):
             with self.subTest(target=target):
-                if target.startswith('deploy-connector-'):
-                    self.assertIn(target.removeprefix('deploy-connector-'), guide)
+                if target.startswith(('deploy-connector-', 'deploy-login-')):
+                    self.assertIn(target.split('-', 2)[2], guide)
                 elif target not in commands:
                     # A family member such as lint-bash may appear in its parent's list.
                     self.assertTrue(any(target.startswith(f'{command}-') for command in commands))
                     self.assertRegex(guide, rf'(?<![\w-]){re.escape(target)}(?![\w-])')
         self.assertIn('make deploy-connector-<command>', guide)
+        self.assertIn('make deploy-login-<command>', guide)
         self.assertNotIn('make deploy ', guide)
         self.assertNotIn('\n# ', guide)
         self.assertEqual(docker.commands(), [])
@@ -48,7 +49,7 @@ class HelpTests(unittest.TestCase):
             'connector          not enrolled',
         ):
             self.assertIn(line, guide)
-        self.assertIn('http://127.0.0.1:8081', guide)
+        self.assertIn('http://localhost:8081', guide)
         self.assertIn("project            it's", make('help', RAICHO_PROJECT="it's"))
         (self.state / 'credentials').mkdir()
         self.assertIn('connector          enrolled', make('help', RAICHO_STATE_DIRECTORY=str(self.state)))

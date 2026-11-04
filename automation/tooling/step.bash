@@ -18,6 +18,7 @@ describe() {
         deploy-down) echo 'stopping|stopped|deployment' ;;
         deploy-clean) echo 'removing|removed|deployment' ;;
         deploy-connector-*) echo "running|ran|connector ${TARGET#deploy-connector-}" ;;
+        deploy-login-*) echo "running|ran|login ${TARGET#deploy-login-}" ;;
         tooling-image) echo 'building|built|tooling image' ;;
         images) echo 'building|built|runtime images' ;;
         test-*) echo "testing|tested|${TARGET#test-}" ;;

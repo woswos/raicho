@@ -7,8 +7,8 @@ Docker Compose 2.24 or newer is needed for the test override's reset syntax.
 Use Docker Engine 28 or newer for the
 [administrative network boundary](../reference/runtime.md#network-isolation).
 
-The base `compose.yaml` and the operator overlays `compose.admin.yaml` and
-`compose.credentials.yaml` live at the repository root.
+The base `compose.yaml` and the operator overlays `compose.admin.yaml`,
+`compose.credentials.yaml`, and `compose.login.yaml` live at the repository root.
 Run the commands below from the repository root. Configuration may come from
 shell variables. If using a repository-root `.env` file, pass `--env-file .env`
 explicitly to Compose, for example:
@@ -27,8 +27,10 @@ make deploy-up
 ```
 
 `deploy-up` builds the runtime images, then runs `docker compose up -d --wait`.
-Open <http://127.0.0.1:8080>. Expect a ready application and an unconfigured
-Thunderbird connector. No viewer is needed to start Thunderbird.
+Open <http://localhost:8080>, the default `RAICHO_PUBLIC_ORIGIN`. Expect a ready
+application and an unconfigured Thunderbird connector. No viewer is needed to
+start Thunderbird. Set the browser password with the
+[login procedure](browser-login.md) before using mail routes.
 
 Use the [credential procedure](connector-credentials.md) to provision persistent
 connector configuration. Its commands manage the matching Compose override and

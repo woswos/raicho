@@ -8,6 +8,7 @@ use std::time::Duration;
 use raicho_server::config::Config;
 use raicho_server::connector::Connector;
 use raicho_server::error::{Error, Result};
+use raicho_server::mail::ConnectorBackend;
 use raicho_server::{persistence::Database, router};
 use tokio::net::TcpListener;
 
@@ -31,7 +32,14 @@ async fn run() -> Result<()> {
     configuration.validate_web_assets()?;
     let database = Arc::new(Database::open(&configuration.data_dir).await?);
     let connector = Connector::new(Arc::clone(&database));
-    let application = router(Arc::clone(&database), &configuration.web_dir, Arc::clone(&connector));
+    let backend = Arc::new(ConnectorBackend::new(Arc::clone(&connector)));
+    let application = router(
+        Arc::clone(&database),
+        &configuration.web_dir,
+        Arc::clone(&connector),
+        backend,
+        configuration.public_origin.clone(),
+    );
     let result = async {
         let listener = TcpListener::bind(configuration.bind)
             .await
