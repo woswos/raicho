@@ -70,11 +70,15 @@ pub async fn sign_out<Backend: MailBackend>(
     State(state): State<ApplicationState<Backend>>,
     session: Result<BrowserSession, ApiError>,
 ) -> Response {
-    if let Ok(BrowserSession(digest)) = session {
-        if state.database.delete_browser_session(&digest).await.is_err() {
-            return ApiError::StorageUnavailable.into_response();
+    match session {
+        Ok(BrowserSession(digest)) => {
+            if state.database.delete_browser_session(&digest).await.is_err() {
+                return ApiError::StorageUnavailable.into_response();
+            }
+            state.close_cursors(state.cursors.end_session(&digest));
         }
-        state.close_cursors(state.cursors.end_session(&digest));
+        Err(ApiError::StorageUnavailable) => return ApiError::StorageUnavailable.into_response(),
+        Err(_) => {}
     }
     (
         StatusCode::NO_CONTENT,

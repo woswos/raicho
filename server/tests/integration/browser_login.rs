@@ -54,6 +54,18 @@ async fn login_issues_a_protected_session_cookie_and_logout_ends_it() {
 }
 
 #[tokio::test]
+async fn logout_reports_a_storage_failure_without_clearing_the_cookie() {
+    let browser = Browser::new().await;
+    let session = browser.sign_in().await;
+    browser.database.close().await;
+    let logout = browser.send(Method::DELETE, "/api/session", Some(&session), None).await;
+    assert_eq!(logout.status, StatusCode::SERVICE_UNAVAILABLE);
+    assert_eq!(logout.body, json!({"error": "storage_unavailable"}));
+    assert!(!logout.headers.contains_key("set-cookie"));
+    browser.finish().await;
+}
+
+#[tokio::test]
 async fn every_protected_route_rejects_missing_forged_and_malformed_sessions() {
     let browser = Browser::new().await;
     for path in PROTECTED
