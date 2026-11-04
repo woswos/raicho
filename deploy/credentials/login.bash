@@ -20,9 +20,9 @@ COMPOSE=(docker compose -p "${PROJECT}" -f compose.yaml -f compose.login.yaml)
 PASSWORD=''
 if [[ ${OPERATION} == init || ${OPERATION} == reset ]]; then
     if [[ -t 0 ]]; then
-        read -rsp 'New Raicho password (12 to 1024 bytes): ' PASSWORD
+        IFS= read -rsp 'New Raicho password (12 to 1024 bytes): ' PASSWORD
         echo
-        read -rsp 'Repeat the password: ' CONFIRMATION
+        IFS= read -rsp 'Repeat the password: ' CONFIRMATION
         echo
         if [[ ${PASSWORD} != "${CONFIRMATION}" ]]; then
             fail 'the passwords differ'
