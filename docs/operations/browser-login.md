@@ -34,6 +34,8 @@ The wrapper selects the deployment as the
 [credential commands](connector-credentials.md#setup-and-commands) do, and holds
 the same state directory lock. Raicho holds SQLite's instance lock, so the wrapper
 stops it for the command. It restarts Raicho only when Raicho was running before.
+The restart recreates Raicho from the current environment and the rebuilt image,
+so set `RAICHO_PORT` and `RAICHO_PUBLIC_ORIGIN` as for `make deploy-up`.
 
 ## Sign in and sessions
 
@@ -72,6 +74,9 @@ Then recreate Raicho with the matching origin:
 ```bash
 RAICHO_PUBLIC_ORIGIN=https://mail.example.org make deploy-up
 ```
+
+Set the same origin for the login and connector commands, because they recreate
+Raicho too.
 
 With an `https` origin the cookie is named `__Host-raicho_session` and carries
 `Secure`. Raicho does not read forwarded headers, and the proxy must keep the

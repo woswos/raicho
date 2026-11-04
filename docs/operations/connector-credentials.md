@@ -25,8 +25,9 @@ sit inside another deployment's state directory. The helper writes a `project`
 file naming the project into it and refuses a directory that names another one.
 Keep that
 directory and the named database volume paired. Neither `make clean` nor
-`make mrproper` removes either of them, and `make deploy-clean` removes both. Set
-`RAICHO_PORT` when the selected deployment needs a different loopback port.
+`make mrproper` removes either of them, and `make deploy-clean` removes both. The
+commands recreate Raicho from the current environment, so set `RAICHO_PORT` and
+`RAICHO_PUBLIC_ORIGIN` as for `make deploy-up` when the deployment changes either one.
 
 ```bash
 make deploy-connector-rotate
