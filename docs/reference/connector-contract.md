@@ -200,8 +200,8 @@ a close frame is recorded as `disconnected`, and a frame over the transport limi
 as `message_too_large`. The WebSocket allocation
 limit is 64 KiB even before authentication, and control frames have the same
 64 KiB limit. Writes are bounded to five seconds. Neither endpoint maintains an
-application send queue.
-The extension retries if its browser socket already has buffered data. Server
+unbounded send queue. The extension seals and sends its frames in one ordered queue,
+and it reconnects if its browser socket already buffers more than one frame. Server
 shutdown closes sessions before releasing database ownership.
 
 ## Requests
@@ -227,6 +227,30 @@ disconnect.
 It prefixes every handle and cursor with the session generation, so a handle from
 an earlier connection fails as stale before any frame is sent. It joins mailbox
 pages up to 1000 mailboxes per account and reports the rest as truncated.
+
+## Thunderbird adapter
+
+`extension/src/mail_adapter.ts` answers each request with standard Manifest V2
+APIs: `accounts.list`, `folders.query` without root, unified, tag, or virtual
+folders, and `messages.list` sorted by date descending with `continueList` and
+`abortList`. A handle is a random token in a bounded in-memory registry of 20000,
+and a new session clears it. Folder rename, move, and delete events invalidate
+handles for that folder and its descendants, an account deletion invalidates the
+account's handles, and message move and delete events invalidate those messages.
+A stale or unknown handle returns `stale_handle` and never names another object.
+
+A page holds at most 50 summaries or 200 mailboxes and stays under a byte budget
+4 KiB below the frame limit, so long Unicode text never breaks a frame. Text loses
+control characters and unpaired surrogates and is cut to the schema's code point
+limits. Dates are UTC with second precision. A messages cursor keeps
+Thunderbird's list and the summaries not yet sent. At most
+`maximum_open_lists` cursors exist, the oldest closes first, and one idle for
+`list_idle_timeout_ms` closes and aborts its Thunderbird list. A list skips
+messages that moved or were deleted after Thunderbird captured it, and a folder
+event ends the folder's lists with `stale_cursor`. Thunderbird's own
+[synchronization](mail-api-compatibility.md#synchronization-and-folder-discovery)
+decides which messages and folders a list can contain. A cancelled request sends no
+reply.
 
 ## Versioning
 

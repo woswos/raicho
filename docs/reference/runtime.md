@@ -192,9 +192,10 @@ authenticated `session_replaced`, which stops it until Thunderbird restarts, as 
 describes.
 
 The production MV2 extension shares the [declared product version](versioning.md)
-and uses only the `storage`
-permission. Its persistent background authenticates and answers heartbeat.
-No probe code enters the production XPI. The
+and uses the `storage`, `accountsRead`, and `messagesRead` permissions. Its
+persistent background authenticates, answers heartbeat, and lists accounts,
+mailboxes, and message summaries for read-only requests. It has no compose, send,
+move, or delete permission. No probe code enters the production XPI. The
 [production connector check](build-test-generate.md#production-connector) covers
 installation, managed policy, restart, and a same-profile upgrade.
 

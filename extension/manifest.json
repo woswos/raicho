@@ -9,7 +9,7 @@
       "strict_min_version": "153.0"
     }
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "accountsRead", "messagesRead"],
   "background": {
     "page": "background.html",
     "persistent": true

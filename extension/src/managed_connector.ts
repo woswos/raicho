@@ -1,8 +1,10 @@
 import { parseConfiguration, type Configuration } from './configuration.js';
 import type { Metadata } from './connector_session.js';
 import { startConnectorTransport } from './connector_transport.js';
+import { createMailAdapter } from './mail_adapter.js';
+import type { MailApi } from './mail_api.js';
 
-export interface ManagedApi {
+export interface ManagedApi extends MailApi {
   storage: { managed: { get: () => Promise<unknown> } };
   runtime: {
     getBrowserInfo: () => Promise<{ version: string }>;
@@ -12,7 +14,8 @@ export interface ManagedApi {
 
 export function startManagedConnector(
   api: ManagedApi,
-  connect: (configuration: Configuration, metadata: Metadata) => () => void = startConnectorTransport,
+  connect: (configuration: Configuration, metadata: Metadata) => () => void = (configuration, metadata) =>
+    startConnectorTransport(configuration, metadata, createMailAdapter(api)),
 ): () => void {
   let stopped = false;
   let stopConnection: (() => void) | undefined;

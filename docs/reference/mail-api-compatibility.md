@@ -4,8 +4,9 @@ This records standard Thunderbird mail API behavior observed with a separate
 probe extension, as designed in the
 [connector plan](../planning/done/20261018-foundation-stage-two-connector.md).
 Results apply to the versions below, not supported product capabilities.
-Browser compose and production mail commands
-remain outside this experiment.
+Browser compose remains outside this experiment. The production extension's
+read-only requests are described in the
+[connector contract](connector-contract.md#thunderbird-adapter).
 
 ## Versions and isolation
 

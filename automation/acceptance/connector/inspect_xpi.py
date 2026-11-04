@@ -9,7 +9,7 @@ def inspect_archive(path, token):
         manifest = json.loads(archive.read('manifest.json'))
         assert manifest['manifest_version'] == 2
         assert manifest['browser_specific_settings']['gecko']['id'] == 'connector@raicho'
-        assert manifest['permissions'] == ['storage'], 'Production gained mail permissions'
+        assert manifest['permissions'] == ['storage', 'accountsRead', 'messagesRead'], 'Production permissions changed'
         assert not manifest.get('optional_permissions')
         assert not manifest.get('experiment_apis')
         assert 'extension/src/connector_transport.js' in names, 'Production transport is missing'
@@ -24,7 +24,7 @@ def inspect_archive(path, token):
                     b'fixture@raicho.test',
                 )
             ), 'Production XPI contains secret or probe content'
-    print(f'Production XPI {manifest["version"]}: storage permission only, no secret/probe code')
+    print(f'Production XPI {manifest["version"]}: storage and read-only mail permissions, no secret/probe code')
 
 
 if __name__ == '__main__':
