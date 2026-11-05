@@ -106,6 +106,25 @@ class SynchronizationTests(unittest.TestCase):
         results = client.record.call_args.args[1]['results']
         self.assertEqual([result['found'] for result in results.values()], [False, False])
 
+    def test_run_skips_queries_once_the_deadline_has_passed(self):
+        client = Mock()
+        client.call.return_value = INVENTORY
+        clock = Mock()
+        clock.elapsed = 0
+
+        def slow_query(_action, _arguments, **_options):
+            clock.elapsed += scenario_synchronization.DEADLINE_SECONDS + 1
+            return {'ok': True, 'result': {'messages': []}}
+
+        client.command.side_effect = slow_query
+        with patch('mailprobe.tests.probe.scenario_synchronization.time.monotonic', side_effect=lambda: clock.elapsed):
+            with self.assertRaisesRegex(AssertionError, 'INBOX'):
+                scenario_synchronization.run(client)
+        self.assertEqual(client.command.call_count, 1)
+        results = client.record.call_args.args[1]['results']
+        self.assertEqual(results['Projects']['attempts'], 0)
+        self.assertFalse(results['Projects']['found'])
+
     def test_run_counts_the_deadline_from_the_restart(self):
         client = Mock()
         client.call.return_value = INVENTORY
