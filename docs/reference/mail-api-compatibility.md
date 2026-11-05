@@ -166,8 +166,9 @@ so that synchronization dependency is intermittent rather than resolved. The
 [connector plan](../planning/done/20261018-foundation-stage-two-connector.md#acceptance-evidence)
 records the individual runs.
 
-The controller stores observations only in the disposable fixture volume. Review
-its evidence before cleanup and update this matrix with actual results. A timeout
+The controller stores observations only in the disposable fixture volume. A
+failed run prints the evidence collected so far before cleanup. Review its
+evidence before cleanup and update this matrix with actual results. A timeout
 or disconnected observer remains `unknown` unless separate evidence establishes
 what happened. No scenario automatically resends an uncertain operation.
 

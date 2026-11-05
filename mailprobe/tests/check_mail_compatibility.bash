@@ -30,6 +30,7 @@ cleanup() {
     trap - EXIT
     if ((RESULT != 0)); then
         "${COMPOSE[@]}" ps --all || true
+        "${COMPOSE[@]}" run --rm driver evidence || true
     fi
     if ! "${COMPOSE[@]}" down --volumes --remove-orphans; then
         RESULT=1
