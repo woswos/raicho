@@ -78,8 +78,10 @@ def discover(client, folder, identifier, deadline):
     attempts = 0
     started = deadline - DEADLINE_SECONDS
     while True:
-        attempts += 1
         remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return {'found': False, 'attempts': attempts, 'seconds': round(time.monotonic() - started)}
+        attempts += 1
         response = client.command(
             'query',
             {'query': {'subject': subject(folder), 'folderId': identifier}},
