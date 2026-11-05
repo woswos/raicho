@@ -69,6 +69,6 @@ GitHub settings. Creating workflow files does not enable those settings.
   another worktree, which needs its own rebase.
 - Release and merge the stack from the bottom up. Push only branches the maintainer
   releases. When a rebase moved one, push it with
-  `--force-with-lease=<branch>:<remote head>`, pinned to the remote commit you last
+  `--force-with-lease=<branch>:<remote-sha>`, pinned to the remote commit you last
   reviewed, because the bare form compares with the local remote-tracking ref,
   which a fetch can move. After a merge, rebuild the next branch onto `main`.
