@@ -89,17 +89,20 @@ building mailbox discovery, rather than editing its mail database.
 ### Synchronization and folder discovery
 
 The unattended synchronization scenario stops Thunderbird, appends a message to
-INBOX and `Projects` over IMAP, starts it again, and never selects a folder. Its
-150-second deadline starts when the host script starts Thunderbird, so the time
-to connect and list folders counts against it. Thunderbird checks INBOX at login. Another folder is refreshed when the desktop
+INBOX and `Projects` over IMAP, starts it again, and never selects a folder. In
+the unattended run its 150-second deadline starts when the host script starts
+Thunderbird, so the time to connect and list folders counts against it. The
+native run starts the deadline when the driver runs, after the operator confirms
+the restarted mail window, so operator time does not count. Thunderbird checks INBOX at login. Another folder is refreshed when the desktop
 opens it, or by the periodic new-mail check when `check_all_folders_for_new` is
 true or the folder's properties mark it for new-mail checks. The forced check
 skips Trash unless it is marked, so mail that another client moves into Trash
 appears after the desktop opens that folder. The check compares the server's
 unseen count, total message count, and next UID with the local database and
-updates the folder only when one of them differs. A read or unread change alters
-the unseen count and triggers the update, while a star or tag change that leaves
-those values unchanged stays stale until the desktop opens the folder. The
+updates the folder only when one of them differs. A read or unread change triggers
+the update only when it moves the unseen count. Offsetting read and unread
+changes, and star or tag changes, leave those values unchanged and stay stale
+until the desktop opens the folder. The
 production policy sets `mail.server.default.check_all_folders_for_new` as a
 default preference. Thunderbird's account wizard writes `check_new_mail`, the
 check interval, and `login_at_startup` for each server, but not this preference,

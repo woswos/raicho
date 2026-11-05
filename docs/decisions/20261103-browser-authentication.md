@@ -37,7 +37,11 @@ at a time.
 is loopback. With an `https` origin the cookie is `__Host-raicho_session` and
 `Secure`. On loopback HTTP it is `raicho_session` without `Secure`, because
 browsers differ on `Secure` and `__Host-` cookies there. Both use `HttpOnly`,
-`SameSite=Strict`, and `Path=/`. Every request other than GET or HEAD must send
+`SameSite=Strict`, and `Path=/` without a `Domain` attribute, so the cookie is
+host-only. Browsers do not isolate cookies by port, so loopback deployments that
+share a host name share this cookie, and any service the browser contacts on
+that host receives it. Run one Raicho per host name. Every request other than GET
+or HEAD must send
 that exact `Origin` and `Sec-Fetch-Site: same-origin` when the browser sends the
 header. Each one except a body-less logout `DELETE` must also send a JSON content
 type. GET requests change no stored state except a session's last use and the

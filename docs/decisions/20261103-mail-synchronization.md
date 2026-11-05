@@ -42,10 +42,11 @@ enables, and Thunderbird skips a check while the server is busy or waits for a
 password. Every known IMAP folder except Trash is checked on that interval,
 which adds IMAP traffic for large accounts. The check compares the server's
 unseen count, total message count, and next UID with the local database and
-updates a folder only when one of them differs. A read or unread change alters
-the unseen count and triggers the update, while a star or tag change that leaves
-those values unchanged stays stale in an unopened folder until the desktop opens
-it. No preference marks Trash for the check, so it refreshes when
+updates a folder only when one of them differs. A read or unread change triggers
+the update only when it moves the unseen count. Offsetting read and unread
+changes, and star or tag changes, leave those values unchanged and stay stale in
+an unopened folder until the desktop opens it. No preference marks Trash for the
+check, so it refreshes when
 the desktop opens it or its folder properties enable new-mail checks. Folders
 created by another client appear after
 Thunderbird's desktop expands the account again, and under the default
@@ -53,7 +54,9 @@ subscription setting only once the desktop subscribes to them. Operators set up
 accounts, subscribe to new folders, and mark folders for checks in the
 administrative desktop.
 
-The unattended mail compatibility run measures INBOX and non-INBOX discovery after
-a restart without folder selection, so a Thunderbird upgrade that changes either
-behavior fails that check. A future supported refresh API would replace the wait
+The unattended mail compatibility run requires INBOX and non-INBOX discovery
+within its deadline after a restart without folder selection, so a Thunderbird
+upgrade that loses either refresh fails that check. It does not assert that INBOX
+matches on the first query after login. A future supported refresh API would
+replace the wait
 for the periodic check.
