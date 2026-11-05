@@ -7,7 +7,8 @@ from pathlib import Path
 from .managed_settings import managed_settings
 
 EXTENSION_ID = 'connector@raicho'
-# Extensions read only Thunderbird's local folder databases, so every IMAP folder must be synchronized.
+# Extensions read only Thunderbird's local folder databases, so the periodic check must cover more than INBOX.
+# Thunderbird still skips Trash unless the desktop marks it for new-mail checks.
 SYNCHRONIZATION_PREFERENCES = {
     'mail.server.default.check_all_folders_for_new': {'Value': True, 'Status': 'default'},
 }
