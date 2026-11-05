@@ -4,6 +4,9 @@ import prettierConfig from 'eslint-config-prettier/flat';
 import globals from 'globals';
 import typescriptEslint from 'typescript-eslint';
 
+const storageNames = '/^(localStorage|sessionStorage|indexedDB|caches|serviceWorker)$/';
+const rawHtmlSinks = '/^(innerHTML|outerHTML|insertAdjacentHTML)$/';
+
 export default defineConfig(
   {
     ignores: [
@@ -50,7 +53,12 @@ export default defineConfig(
       'no-restricted-syntax': [
         'error',
         {
-          selector: 'MemberExpression[property.name=/^(localStorage|sessionStorage|indexedDB|caches|serviceWorker)$/]',
+          selector: [
+            `MemberExpression[property.name=${storageNames}]`,
+            `MemberExpression[computed=true][property.value=${storageNames}]`,
+            `ObjectPattern > Property[key.name=${storageNames}]`,
+            `ObjectPattern > Property[key.value=${storageNames}]`,
+          ].join(', '),
           message: 'Mail must not persist in the browser.',
         },
         // Mail text renders as JSX text, which Preact escapes, so the client has no raw HTML sink.
@@ -59,7 +67,10 @@ export default defineConfig(
           message: 'Render mail text as JSX text instead of raw HTML.',
         },
         {
-          selector: 'MemberExpression[property.name=/^(innerHTML|outerHTML|insertAdjacentHTML)$/]',
+          selector: [
+            `MemberExpression[property.name=${rawHtmlSinks}]`,
+            `MemberExpression[computed=true][property.value=${rawHtmlSinks}]`,
+          ].join(', '),
           message: 'Render mail text as JSX text instead of raw HTML.',
         },
         {
