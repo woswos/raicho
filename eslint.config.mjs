@@ -42,5 +42,22 @@ export default defineConfig(
       },
     },
   },
+  {
+    files: ['web/src/**/*.{ts,tsx}'],
+    rules: {
+      // Mail text renders as JSX text, which Preact escapes, so the client has no raw HTML sink.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+          message: 'Render mail text as JSX text instead of raw HTML.',
+        },
+        {
+          selector: 'MemberExpression[property.name=/^(innerHTML|outerHTML|insertAdjacentHTML)$/]',
+          message: 'Render mail text as JSX text instead of raw HTML.',
+        },
+      ],
+    },
+  },
   prettierConfig,
 );
