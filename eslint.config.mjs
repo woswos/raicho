@@ -63,7 +63,11 @@ export default defineConfig(
         },
         // Mail text renders as JSX text, which Preact escapes, so the client has no raw HTML sink.
         {
-          selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+          selector: [
+            "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+            "Property[key.name='dangerouslySetInnerHTML']",
+            "Property[key.value='dangerouslySetInnerHTML']",
+          ].join(', '),
           message: 'Render mail text as JSX text instead of raw HTML.',
         },
         {
@@ -74,7 +78,10 @@ export default defineConfig(
           message: 'Render mail text as JSX text instead of raw HTML.',
         },
         {
-          selector: "CallExpression[callee.object.name='document'][callee.property.name=/^(write|writeln)$/]",
+          selector: [
+            "CallExpression[callee.object.name='document'][callee.property.name=/^(write|writeln)$/]",
+            "CallExpression[callee.object.name='document'][callee.property.value=/^(write|writeln)$/]",
+          ].join(', '),
           message: 'Render mail text as JSX text instead of raw HTML.',
         },
       ],
