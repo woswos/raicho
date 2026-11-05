@@ -143,8 +143,8 @@ generates `/tmp/raicho-runtime/policies.json` atomically with mode 0600 under a
 The policy preserves `DisableAppUpdate`, uses `force_installed`, and disables
 extension background updates. Image updates own the XPI version. It also sets
 `mail.server.default.check_all_folders_for_new` as a default, not locked,
-preference, so Thunderbird's periodic check refreshes every known IMAP folder
-except Trash. The
+preference, so Thunderbird's periodic check looks for new mail in every known
+IMAP folder except Trash. The
 [synchronization decision](../decisions/20261103-mail-synchronization.md) explains why.
 
 Without connector configuration the extension is inactive. The credentials override
