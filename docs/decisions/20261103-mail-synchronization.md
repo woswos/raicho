@@ -36,10 +36,14 @@ synchronized them, and a refresh lists them again.
 ## Consequences
 
 Mail outside INBOX can appear up to one account check interval after a restart,
-10 minutes by default. Every known IMAP folder is checked on that interval, which
-adds IMAP traffic for large accounts. Folders created by another client appear
-after Thunderbird's desktop expands the account again. Operators set up accounts
-and reveal new folders in the administrative desktop.
+10 minutes by default. Every known IMAP folder except Trash is checked on that
+interval, which adds IMAP traffic for large accounts. No preference marks Trash
+for the check, so it refreshes when the desktop opens it or its folder properties
+enable new-mail checks. Folders created by another client appear after
+Thunderbird's desktop expands the account again, and under the default
+subscription setting only once the desktop subscribes to them. Operators set up
+accounts, subscribe to new folders, and mark folders for checks in the
+administrative desktop.
 
 The unattended mail compatibility run measures INBOX and non-INBOX discovery after
 a restart without folder selection, so a Thunderbird upgrade that changes either
