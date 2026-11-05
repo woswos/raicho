@@ -108,9 +108,11 @@ default preference. Thunderbird's account wizard writes `check_new_mail`, the
 check interval, and `login_at_startup` for each server, but not this preference,
 so the default reaches new accounts. A per-account setting in the desktop still
 overrides it. Mail in a folder other than INBOX can therefore appear up to one
-check interval after a restart when the account checks for new mail, and later
-when Thunderbird skips a check because the server is busy or waits for a
-password. Thunderbird's default interval is 10 minutes.
+check interval after a restart when the account checks for new mail and keeps
+the default, and later when Thunderbird skips a check because the server is busy
+or waits for a password. An account that sets the preference to false leaves its
+unmarked folders unchecked, so their mail waits for the desktop to open them.
+Thunderbird's default interval is 10 minutes.
 
 IMAP folder discovery is a separate limit. The pinned `about3Pane.js` asks the
 server to discover mailboxes when a person expands the account in the folder pane.
