@@ -36,7 +36,9 @@ synchronized them, and a refresh lists them again.
 ## Consequences
 
 Mail outside INBOX can appear up to one account check interval after a restart,
-10 minutes by default, when the account checks for new mail. The policy leaves
+10 minutes by default, when the account checks for new mail and keeps the default
+`check_all_folders_for_new`. An account that sets it to false leaves its unmarked
+folders unchecked until the desktop opens them. The policy leaves
 `check_new_mail` and the interval to the account, which Thunderbird's wizard
 enables, and Thunderbird skips a check while the server is busy or waits for a
 password. Every known IMAP folder except Trash is checked on that interval,

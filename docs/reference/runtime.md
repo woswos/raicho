@@ -143,9 +143,10 @@ generates `/tmp/raicho-runtime/policies.json` atomically with mode 0600 under a
 The policy preserves `DisableAppUpdate`, uses `force_installed`, and disables
 extension background updates. Image updates own the XPI version. It also sets
 `mail.server.default.check_all_folders_for_new` as a default, not locked,
-preference, so the periodic check of an account that checks for new mail covers
-every known IMAP folder, and Trash only when its folder properties enable the
-check. The
+preference, so the periodic check of an account that checks for new mail and
+keeps the default covers every known IMAP folder, and Trash only when its folder
+properties enable the check. An account that sets the preference to false checks
+only INBOX and marked folders. The
 [synchronization decision](../decisions/20261103-mail-synchronization.md) explains why.
 
 Without connector configuration the extension is inactive. The credentials override
