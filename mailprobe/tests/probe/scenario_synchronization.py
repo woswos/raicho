@@ -36,11 +36,11 @@ def account_folders(inventory):
     return {name: folders[name] for name in FOLDERS}
 
 
-def listed_folders(client):
+def listed_folders(client, timeout=DEADLINE_SECONDS):
     started = time.monotonic()
     folders = wait_until(
         lambda: account_folders(client.call('inventory')),
-        DEADLINE_SECONDS,
+        timeout,
         f'Thunderbird did not list the fixture folders: {list(FOLDERS)}',
     )
     return folders, round(time.monotonic() - started)
@@ -76,7 +76,7 @@ def seed(client):
 
 def discover(client, folder, identifier, deadline):
     attempts = 0
-    started = time.monotonic()
+    started = deadline - DEADLINE_SECONDS
     while True:
         attempts += 1
         remaining = deadline - time.monotonic()
@@ -94,15 +94,19 @@ def discover(client, folder, identifier, deadline):
         time.sleep(1)
 
 
-def run(client):
+def run(client, restarted_at=None):
     client.wait_connected()
-    folders, listing_seconds = listed_folders(client)
     deadline = time.monotonic() + DEADLINE_SECONDS
+    if restarted_at is not None:
+        deadline -= time.time() - restarted_at
+    folders, listing_seconds = listed_folders(client, deadline - time.monotonic())
+    seconds_before_polling = round(time.monotonic() - (deadline - DEADLINE_SECONDS))
     results = {folder: discover(client, folder, identifier, deadline) for folder, identifier in folders.items()}
     client.record(
         'synchronization',
         {
             'deadline_seconds': DEADLINE_SECONDS,
+            'seconds_before_polling': seconds_before_polling,
             'listing_seconds': listing_seconds,
             'folder_selection': 'never',
             'results': results,

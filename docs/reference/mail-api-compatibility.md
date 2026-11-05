@@ -89,8 +89,9 @@ building mailbox discovery, rather than editing its mail database.
 ### Synchronization and folder discovery
 
 The unattended synchronization scenario stops Thunderbird, appends a message to
-INBOX and `Projects` over IMAP, starts it again, and never selects a folder.
-Thunderbird checks INBOX at login. Another folder is refreshed when the desktop
+INBOX and `Projects` over IMAP, starts it again, and never selects a folder. Its
+150-second deadline starts when the host script starts Thunderbird, so the time
+to connect and list folders counts against it. Thunderbird checks INBOX at login. Another folder is refreshed when the desktop
 opens it, or by the periodic new-mail check when `check_all_folders_for_new` is
 true or the folder's properties mark it for new-mail checks. The forced check
 skips Trash unless it is marked, so mail that another client moves into Trash
