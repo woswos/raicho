@@ -45,9 +45,15 @@ export default defineConfig(
   {
     files: ['web/src/**/*.{ts,tsx}'],
     rules: {
-      // Mail text renders as JSX text, which Preact escapes, so the client has no raw HTML sink.
+      // Mail must not persist in the browser, so the client never uses browser storage.
+      'no-restricted-globals': ['error', 'localStorage', 'sessionStorage', 'indexedDB', 'caches'],
       'no-restricted-syntax': [
         'error',
+        {
+          selector: 'MemberExpression[property.name=/^(localStorage|sessionStorage|indexedDB|caches|serviceWorker)$/]',
+          message: 'Mail must not persist in the browser.',
+        },
+        // Mail text renders as JSX text, which Preact escapes, so the client has no raw HTML sink.
         {
           selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
           message: 'Render mail text as JSX text instead of raw HTML.',
@@ -56,15 +62,10 @@ export default defineConfig(
           selector: 'MemberExpression[property.name=/^(innerHTML|outerHTML|insertAdjacentHTML)$/]',
           message: 'Render mail text as JSX text instead of raw HTML.',
         },
-      ],
-      // Mail must not persist in the browser, so the client never uses browser storage.
-      'no-restricted-globals': ['error', 'localStorage', 'sessionStorage', 'indexedDB', 'caches'],
-      'no-restricted-properties': [
-        'error',
-        { object: 'window', property: 'localStorage' },
-        { object: 'window', property: 'sessionStorage' },
-        { object: 'window', property: 'indexedDB' },
-        { object: 'navigator', property: 'serviceWorker' },
+        {
+          selector: "CallExpression[callee.object.name='document'][callee.property.name=/^(write|writeln)$/]",
+          message: 'Render mail text as JSX text instead of raw HTML.',
+        },
       ],
     },
   },
