@@ -4,8 +4,8 @@ import prettierConfig from 'eslint-config-prettier/flat';
 import globals from 'globals';
 import typescriptEslint from 'typescript-eslint';
 
-const storageNames = '/^(localStorage|sessionStorage|indexedDB|caches|serviceWorker)$/';
-const rawHtmlSinks = '/^(innerHTML|outerHTML|insertAdjacentHTML)$/';
+const storageNames = '/^(localStorage|sessionStorage|indexedDB|caches|serviceWorker|getDirectory)$/';
+const rawHtmlSinks = '/^(innerHTML|outerHTML|insertAdjacentHTML|createContextualFragment)$/';
 
 export default defineConfig(
   {
