@@ -76,3 +76,23 @@ test('folder selection uses the supported MV2 mail-tab update', async () => {
     },
   ]);
 });
+
+test('folder creation goes through Thunderbird', async () => {
+  const created = [];
+  const api = {
+    folders: {
+      create(parentIdentifier, name) {
+        created.push({ parentIdentifier, name });
+        return Promise.resolve({ id: `${parentIdentifier}${name}` });
+      },
+    },
+  };
+  assert.deepEqual(
+    await dispatchCommand(api, {
+      action: 'create_folder',
+      arguments: { parent_id: 'account1://', name: 'Projects' },
+    }),
+    { id: 'account1://Projects' },
+  );
+  assert.deepEqual(created, [{ parentIdentifier: 'account1://', name: 'Projects' }]);
+});

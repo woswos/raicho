@@ -7,6 +7,11 @@ from pathlib import Path
 from .managed_settings import managed_settings
 
 EXTENSION_ID = 'connector@raicho'
+# Extensions read only Thunderbird's local folder databases, so the periodic check must cover more than INBOX.
+# Thunderbird still skips Trash unless the desktop marks it for new-mail checks.
+SYNCHRONIZATION_PREFERENCES = {
+    'mail.server.default.check_all_folders_for_new': {'Value': True, 'Status': 'default'},
+}
 
 
 def extension_archive(extension_directory):
@@ -39,6 +44,7 @@ def write_policies(runtime_directory, extension_directory, environment):
                 'updates_disabled': True,
             }
         },
+        'Preferences': SYNCHRONIZATION_PREFERENCES,
     }
     settings = managed_settings(environment)
     if settings is not None:

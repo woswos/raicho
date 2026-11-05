@@ -1,6 +1,7 @@
 import hashlib
 import imaplib
 from email import policy
+from email.message import EmailMessage
 from email.parser import BytesParser
 
 HOST = 'greenmail'
@@ -58,6 +59,14 @@ def inspect_messages(username='recipient', folder='INBOX') -> list[dict]:
                 raise ValueError('Fixture message fetch returned no content')
             messages.append(describe_message(uid, content))
         return messages
+
+
+def append_message(username: str, folder: str, message: EmailMessage) -> None:
+    with imaplib.IMAP4(HOST, PORT, timeout=10) as client:
+        client.login(username, PASSWORD)
+        status, _result = client.append(folder, None, None, message.as_bytes())
+        if status != 'OK':
+            raise ValueError(f'Could not append a fixture message to {folder}')
 
 
 def ensure_mailboxes() -> None:

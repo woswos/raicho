@@ -178,6 +178,13 @@ User-visible changes also need a changelog entry in the description or in
 [versioning](versioning.md). Without a comparison base the local guard skips
 that check and says so.
 
+## Automated review
+
+CodeRabbit and Kilo review pull requests outside CI. `.coderabbit.yaml` turns off
+CodeRabbit's docstring coverage check, because the
+[coding standards](../coding/coding-standards.md#comments-and-prose) default to no
+comments. Its other checks keep their defaults.
+
 ## Labels
 
 | Label | Effect |

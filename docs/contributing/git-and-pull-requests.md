@@ -37,6 +37,11 @@ Create both design and implementation PRs as drafts. Convert a PR with
 approved making it ready. Passing CI or an automated review does not authorize
 that transition.
 
+Add review fixes to a pushed branch as new commits on top. Rewrite pushed history
+only for a critical problem, such as a leaked secret or a commit that must never
+reach `main`, and say so in the pull request. Rebasing a branch onto its updated
+base is not such a rewrite.
+
 Lead descriptions with the concrete problem and resulting behavior. Explain the
 cause, fix, relevant validation, and limitations. Keep them concise and follow
 [prose conventions](../coding/coding-standards.md). Include the design or decision
@@ -57,10 +62,16 @@ GitHub settings. Creating workflow files does not enable those settings.
 
 ## Stacked pull requests
 
-- Base each branch on the previous one. Keep the stack consistent with
-  `git commit --fixup <commit>`, then run
-  `GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash --update-refs main` on the
-  top branch, which moves every stacked branch ref at once.
-- Release and merge the stack bottom up. Push only branches the maintainer
-  releases, with `--force-with-lease` against the remote head. After a merge,
-  rebuild the next branch onto `main`.
+- Base each branch on the previous one. Put a fix on the lowest branch that
+  owns the change, as a new commit on top, then run
+  `git rebase --update-refs <that branch>` on the top branch, which moves every
+  branch above it onto the new head at once. It skips a branch checked out in
+  another worktree, while the top branch still receives a replay of that branch's
+  commits. Rebase the skipped branch in its own worktree, then run a `--onto`
+  rebase of the branches above it onto its new head, which replays only their
+  own commits and keeps one history in the stack.
+- Release and merge the stack from the bottom up. Push only branches the maintainer
+  releases. When a rebase moved one, push it with
+  `--force-with-lease=<branch>:<remote-sha>`, pinned to the remote commit you last
+  reviewed, because the bare form compares with the local remote-tracking ref,
+  which a fetch can move. After a merge, rebuild the next branch onto `main`.
