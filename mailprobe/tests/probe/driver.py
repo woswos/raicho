@@ -36,6 +36,7 @@ def main():
     )
     parser.add_argument('--action')
     parser.add_argument('--arguments', default='{}')
+    parser.add_argument('--restarted-at', type=float)
     arguments = parser.parse_args()
     client = ProbeClient()
     if arguments.phase == 'prepare':
@@ -66,6 +67,8 @@ def main():
                 indent=2,
             )
         )
+    elif arguments.phase == 'synchronization':
+        scenario_synchronization.run(client, arguments.restarted_at)
     else:
         SCENARIOS[arguments.phase](client)
 

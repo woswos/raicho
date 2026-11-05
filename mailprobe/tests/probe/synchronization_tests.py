@@ -106,6 +106,20 @@ class SynchronizationTests(unittest.TestCase):
         results = client.record.call_args.args[1]['results']
         self.assertEqual([result['found'] for result in results.values()], [False, False])
 
+    def test_run_counts_the_deadline_from_the_restart(self):
+        client = Mock()
+        client.call.return_value = INVENTORY
+        client.command.return_value = {'ok': True, 'result': {'messages': [{'id': 1}]}}
+        with (
+            patch('mailprobe.tests.probe.scenario_synchronization.time.time', return_value=1000.0),
+            patch('mailprobe.tests.probe.scenario_synchronization.time.monotonic', return_value=0.0),
+        ):
+            with self.assertRaisesRegex(AssertionError, 'INBOX'):
+                scenario_synchronization.run(client, restarted_at=800.0)
+        evidence = client.record.call_args.args[1]
+        self.assertEqual(evidence['seconds_before_polling'], 200)
+        self.assertFalse(evidence['results']['INBOX']['found'])
+
 
 if __name__ == '__main__':
     unittest.main()
