@@ -96,8 +96,10 @@ opens it, or by the periodic new-mail check when `check_all_folders_for_new` is
 true or the folder's properties mark it for new-mail checks. The forced check
 skips Trash unless it is marked, so mail that another client moves into Trash
 appears after the desktop opens that folder. The check compares the server's
-unseen count and next UID with the local database and updates the folder only
-when they differ, so a flag-only change in an unopened folder stays stale. The
+unseen count, total message count, and next UID with the local database and
+updates the folder only when one of them differs. A read or unread change alters
+the unseen count and triggers the update, while a star or tag change that leaves
+those values unchanged stays stale until the desktop opens the folder. The
 production policy sets `mail.server.default.check_all_folders_for_new` as a
 default preference. Thunderbird's account wizard writes `check_new_mail`, the
 check interval, and `login_at_startup` for each server, but not this preference,

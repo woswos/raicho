@@ -41,9 +41,11 @@ Mail outside INBOX can appear up to one account check interval after a restart,
 enables, and Thunderbird skips a check while the server is busy or waits for a
 password. Every known IMAP folder except Trash is checked on that interval,
 which adds IMAP traffic for large accounts. The check compares the server's
-unseen count and next UID with the local database and updates a folder only when
-they differ, so a flag-only change in an unopened folder stays stale until the
-desktop opens it. No preference marks Trash for the check, so it refreshes when
+unseen count, total message count, and next UID with the local database and
+updates a folder only when one of them differs. A read or unread change alters
+the unseen count and triggers the update, while a star or tag change that leaves
+those values unchanged stays stale in an unopened folder until the desktop opens
+it. No preference marks Trash for the check, so it refreshes when
 the desktop opens it or its folder properties enable new-mail checks. Folders
 created by another client appear after
 Thunderbird's desktop expands the account again, and under the default

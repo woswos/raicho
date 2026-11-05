@@ -67,6 +67,6 @@ GitHub settings. Creating workflow files does not enable those settings.
   `git rebase --update-refs <that branch>` on the top branch, which moves every
   branch above it onto the new head at once, except a branch checked out in
   another worktree, which needs its own rebase.
-- Release and merge the stack bottom up. Push only branches the maintainer
+- Release and merge the stack from the bottom up. Push only branches the maintainer
   releases, with `--force-with-lease` against the remote head when a rebase
   moved them. After a merge, rebuild the next branch onto `main`.
