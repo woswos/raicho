@@ -21,6 +21,8 @@ env:
 
 # Hosted runners start empty. Each job warms a BuildKit builder from the GitHub
 # Actions cache, and the later Compose and Docker builds reuse its layers.
+# Bake resolves a Compose build context from the working directory, so the
+# tooling steps name it.
 jobs:
   changes:
     runs-on: ubuntu-24.04
@@ -78,6 +80,7 @@ jobs:
           source: .
           files: automation/tooling/compose.yaml
           set: |
+            *.context=.
             *.cache-from=type=gha,scope=tooling
             *.cache-to=type=gha,scope=tooling,mode=max
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -111,6 +114,7 @@ jobs:
           source: .
           files: automation/tooling/compose.yaml
           set: |
+            *.context=.
             *.cache-from=type=gha,scope=tooling
             *.cache-to=type=gha,scope=tooling,mode=max
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -148,6 +152,7 @@ jobs:
           source: .
           files: automation/tooling/compose.yaml
           set: |
+            *.context=.
             *.cache-from=type=gha,scope=tooling
             *.cache-to=type=gha,scope=tooling,mode=max
       - id: cargo
@@ -193,6 +198,7 @@ jobs:
           source: .
           files: automation/tooling/compose.yaml
           set: |
+            *.context=.
             *.cache-from=type=gha,scope=tooling
             *.cache-to=type=gha,scope=tooling,mode=max
       - name: Restore the application image layers
@@ -235,6 +241,7 @@ jobs:
           source: .
           files: automation/tooling/compose.yaml
           set: |
+            *.context=.
             *.cache-from=type=gha,scope=tooling
             *.cache-to=type=gha,scope=tooling,mode=max
       - name: Restore the application image layers
@@ -285,6 +292,7 @@ jobs:
           source: .
           files: automation/tooling/compose.yaml
           set: |
+            *.context=.
             *.cache-from=type=gha,scope=tooling
             *.cache-to=type=gha,scope=tooling,mode=max
       - name: Restore the Thunderbird image layers
