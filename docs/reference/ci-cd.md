@@ -42,16 +42,13 @@ build the application images and use that tooling image for the smoke driver.
 Compatibility runners also use it for Python mock services, fixture unit tests,
 and the mail test extension build. Thunderbird and GreenMail retain their own
 runtime images. Sources remain read-only, with separate cache/temp storage. No
-formatter writes or lint fixes run in CI. Jobs run on the repository's
-self-hosted runners, labeled `self-hosted`, `Linux`, and `X64`. Each runner host
-provides Docker Engine 28 or newer with Compose 2.24 or newer and Buildx, Git,
-GNU Make, Bash, `flock`, `setsid`, and `timeout`. The release workflows install
-Python 3.13 with `actions/setup-python` and need the GitHub CLI. Language tools
-come from the image. Runners keep Docker images and volumes between jobs, so
-prune them occasionally. Run only one runner per Docker host, because jobs use
-fixed image tags, Compose project names, and Cargo caches. A runner in a
-container shares only its work directory with the Docker host, at the same path,
-so jobs keep bind-mounted files in the runner's temporary directory. Exact
+formatter writes or lint fixes run in CI. Jobs run on GitHub-hosted
+`ubuntu-24.04` runners, which provide Docker Engine with Compose and Buildx, Git,
+GNU Make, Bash, `flock`, `setsid`, `timeout`, and the GitHub CLI. The release
+workflows and the PR guard install Python 3.13 with `actions/setup-python`.
+Other language tools come from the image. Every job starts on a fresh machine,
+so no image, volume, or Cargo artifact survives on the runner between jobs. Jobs
+keep bind-mounted files in the runner's temporary directory. Exact
 commands and pins are in [build, test, and generate](build-test-generate.md) and
 [linting and formatting](../coding/linting-and-formatting.md).
 
