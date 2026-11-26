@@ -23,6 +23,8 @@ env:
 # Actions cache, and the later Compose and Docker builds reuse its layers.
 # Bake resolves a Compose build context from the working directory, so the
 # tooling steps name it.
+# A scope holds one target's layers, so every image has its own. The tooling
+# services share one image, so one target warms it.
 jobs:
   changes:
     runs-on: ubuntu-24.04
@@ -79,6 +81,7 @@ jobs:
         with:
           source: .
           files: automation/tooling/compose.yaml
+          targets: check
           set: |
             *.context=.
             *.cache-from=type=gha,scope=tooling
@@ -113,6 +116,7 @@ jobs:
         with:
           source: .
           files: automation/tooling/compose.yaml
+          targets: check
           set: |
             *.context=.
             *.cache-from=type=gha,scope=tooling
@@ -151,6 +155,7 @@ jobs:
         with:
           source: .
           files: automation/tooling/compose.yaml
+          targets: check
           set: |
             *.context=.
             *.cache-from=type=gha,scope=tooling
@@ -197,6 +202,7 @@ jobs:
         with:
           source: .
           files: automation/tooling/compose.yaml
+          targets: check
           set: |
             *.context=.
             *.cache-from=type=gha,scope=tooling
@@ -207,8 +213,12 @@ jobs:
           source: .
           files: compose.yaml
           set: |
-            *.cache-from=type=gha,scope=application
-            *.cache-to=type=gha,scope=application,mode=max
+            raicho.cache-from=type=gha,scope=raicho
+            raicho.cache-to=type=gha,scope=raicho,mode=max
+            gateway.cache-from=type=gha,scope=gateway
+            gateway.cache-to=type=gha,scope=gateway,mode=max
+            thunderbird.cache-from=type=gha,scope=thunderbird
+            thunderbird.cache-to=type=gha,scope=thunderbird,mode=max
       - name: Verify startup, persistence, isolation, and independent readiness
         env:
           RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance
@@ -240,6 +250,7 @@ jobs:
         with:
           source: .
           files: automation/tooling/compose.yaml
+          targets: check
           set: |
             *.context=.
             *.cache-from=type=gha,scope=tooling
@@ -250,8 +261,12 @@ jobs:
           source: .
           files: compose.yaml
           set: |
-            *.cache-from=type=gha,scope=application
-            *.cache-to=type=gha,scope=application,mode=max
+            raicho.cache-from=type=gha,scope=raicho
+            raicho.cache-to=type=gha,scope=raicho,mode=max
+            gateway.cache-from=type=gha,scope=gateway
+            gateway.cache-to=type=gha,scope=gateway,mode=max
+            thunderbird.cache-from=type=gha,scope=thunderbird
+            thunderbird.cache-to=type=gha,scope=thunderbird,mode=max
       - name: Verify production connector and idle acceptance
         env:
           TMPDIR: ${{ runner.temp }}
@@ -286,11 +301,14 @@ jobs:
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
         with:
           driver-opts: default-load=true
+          # The mail runner calls plain docker build, which must use this builder too.
+          install: true
       - name: Restore the tooling image layers
         uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
         with:
           source: .
           files: automation/tooling/compose.yaml
+          targets: check
           set: |
             *.context=.
             *.cache-from=type=gha,scope=tooling
@@ -302,8 +320,8 @@ jobs:
           files: compose.yaml
           targets: thunderbird
           set: |
-            *.cache-from=type=gha,scope=application
-            *.cache-to=type=gha,scope=application,mode=max
+            thunderbird.cache-from=type=gha,scope=thunderbird
+            thunderbird.cache-to=type=gha,scope=thunderbird,mode=max
       - name: Verify unattended mail API compatibility
         env:
           RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance

@@ -119,8 +119,9 @@ The [build caching decision](../decisions/20261026-build-caching.md) and its
 Every image-building job creates a BuildKit container builder with
 `docker/setup-buildx-action` and makes it the default. `docker/bake-action` then
 builds the tooling image, and in the acceptance jobs the application images, with
-the GitHub Actions cache as layer source and destination. The `tooling` and
-`application` cache scopes are shared by all jobs. The later Compose and `docker build`
+the GitHub Actions cache as layer source and destination. Each image has its own
+cache scope, `tooling`, `raicho`, `gateway`, or `thunderbird`, because an export
+replaces whatever its scope held. All jobs share those scopes. The later Compose and `docker build`
 commands run unchanged against the same builder, so they reuse its warm layers. The
 builder loads every image into Docker's image store.
 
