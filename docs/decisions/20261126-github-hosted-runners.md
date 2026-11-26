@@ -57,8 +57,9 @@ after eviction rebuilds cold.
 
 A draft can hide an acceptance or coverage failure until it is marked ready. A
 heartbeat fault that appears only after two idle minutes surfaces on `main`
-after the merge instead of on the PR. Both are caught before a release, because
-pushes to `main` run every job in full.
+after the merge instead of on the PR. Pushes to `main` run every job in full,
+but they do not hold a release back: `auto-release.yml` starts on the same push
+and can tag a release while those jobs still run.
 
 Standard hosted runners are free for public repositories, so these cuts shorten
 feedback rather than a bill while the repository stays public.
