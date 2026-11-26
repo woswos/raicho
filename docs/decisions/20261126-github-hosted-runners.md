@@ -47,6 +47,13 @@ Three rules trade coverage on PRs for time:
 - PRs observe two idle minutes in the connector runner. Pushes to `main` and
   local runs keep ten.
 
+The connector job spent most of its time waiting for 15-second heartbeat
+intervals, about 24 times in sequence. The credential runner moves to its own
+`credentials-test` job, which runs beside `connector-test`. Its waits stay,
+because they belong to the operator's credential command. The connector
+runner's recovery steps now wait for a new authenticated session without a
+heartbeat. Its first and final checks still wait for one.
+
 ## Consequences
 
 Jobs run in parallel instead of queueing on one runner. Nothing needs pruning,

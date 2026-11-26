@@ -25,9 +25,11 @@ release workflows always finish.
 - `runtime-test`: builds all runtime images, then checks unattended startup, HTTP isolation, SQLite/profile persistence,
   administrative network isolation and listener closure, and application readiness
   while Thunderbird is stopped, in a disposable project.
-- `connector-test`: `make acceptance-connector`, then `make acceptance-credentials`.
+- `connector-test`: `make acceptance-connector`.
   PRs set `RAICHO_IDLE_SECONDS=120`, so they observe two idle minutes. Pushes to
   `main` observe the full ten.
+- `credentials-test`: `make acceptance-credentials`. It runs beside `connector-test`,
+  because both spend most of their time waiting for production heartbeat intervals.
   The [acceptance scope](connector-acceptance.md#scope) lists what each verifies.
 - `compatibility-test`: `make acceptance-mail`.
 - `coverage`: on PRs, `make check-patch-coverage` against the PR base. It
@@ -81,7 +83,7 @@ The [credential](build-test-generate.md#credential-persistence),
 the same commands locally and in their dedicated jobs. Each owns its disposable
 project and traps exit, including failures, to remove its resources. A cancelled
 job never reaches those traps, so its final step removes them instead.
-The connector job allows 60 minutes and compatibility allows 45 minutes for cold
+The connector job allows 60 minutes, and credentials and compatibility allow 45 minutes, for cold
 builds and runtime checks.
 The [compatibility matrix](mail-api-compatibility.md#running-the-experiment) lists
 the mail checks that stay manual. See [acceptance evidence](connector-acceptance.md)
@@ -196,14 +198,14 @@ that check and says so.
 | --- | --- |
 | `design` | Validates planning-only changes and exempts the reference check. |
 | `skip-design-check` | Bypasses the design-link requirement. Does not bypass planning-only enforcement on a `design` PR. |
-| `skip-test` | Skips application, runtime, connector, compatibility, and coverage jobs. |
+| `skip-test` | Skips application, runtime, connector, credentials, compatibility, and coverage jobs. |
 | `skip-coverage-check` | Skips only the coverage job. |
 | `skip-changelog` | Skips the changelog entry check. Does not skip design, build, or test checks. |
 
 ## Skipped jobs
 
 - A draft PR runs `changes`, `lint`, `pr-guards`, and `application-test`. It skips the
-  three acceptance jobs and `coverage`. Marking the PR ready for review starts a full run.
+  four acceptance jobs and `coverage`. Marking the PR ready for review starts a full run.
 - A PR that changes only files whose names end in `.md` runs `changes`, `lint`, and
   `pr-guards`. This matches the guard's documentation exemption.
 - Pushes to `main` run every job, so a merged change is always fully checked.
@@ -213,7 +215,7 @@ skips or restores other jobs takes effect on the next push. After a retarget, th
 other checks run against the new base when a commit is pushed or the PR is closed and
 reopened; re-running an earlier run reuses its original merge commit.
 
-The `design` label also skips all four application jobs and the coverage job. Each
+The `design` label also skips all five application jobs and the coverage job. Each
 test job builds its own prerequisites. The labels
 do not bypass language linting, guard regression tests, or runner fixtures.
 

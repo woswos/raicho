@@ -20,7 +20,7 @@ SOURCE_SUITES = (
     'test-mailprobe',
     'test-protocol',
 )
-ACCEPTANCE_JOBS = ('runtime-test', 'connector-test', 'compatibility-test')
+ACCEPTANCE_JOBS = ('runtime-test', 'connector-test', 'credentials-test', 'compatibility-test')
 CACHE_DIRECTORY = '${{ runner.temp }}/raicho-cache'
 ACCEPTANCE_RECORD = '${{ runner.temp }}/raicho-acceptance'
 CODE_EVENTS = {'opened', 'synchronize', 'reopened'}
@@ -69,7 +69,8 @@ class WorkflowCoverageTests(unittest.TestCase):
                 self.assertEqual(job['needs'], 'changes')
 
     def test_acceptance_state_stays_where_the_docker_host_can_bind_it(self):
-        for step in self.jobs['connector-test']['steps']:
+        steps = self.jobs['connector-test']['steps'] + self.jobs['credentials-test']['steps']
+        for step in steps:
             if 'make acceptance-' in step.get('run', ''):
                 with self.subTest(step=step['name']):
                     self.assertEqual(step.get('env', {}).get('TMPDIR'), '${{ runner.temp }}')

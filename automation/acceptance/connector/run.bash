@@ -53,6 +53,12 @@ connected() {
     echo 'Production connector is authenticated and heartbeating'
 }
 
+# Recovery steps prove a new session. The first and last checks also wait a heartbeat interval.
+reauthenticated() {
+    GENERATION="$(check wait --previous-generation "${GENERATION}" --minimum-heartbeats 0)"
+    echo 'Production connector authenticated a new session'
+}
+
 thunderbird_check() {
     "${COMPOSE[@]}" exec -T thunderbird python3 -B - "${@}" \
         <"${REPOSITORY_ROOT}/automation/acceptance/connector/thunderbird_checks.py"
@@ -85,9 +91,9 @@ fi
 
 for SERVICE in thunderbird gateway raicho; do
     "${COMPOSE[@]}" restart "${SERVICE}"
-    connected
+    reauthenticated
     "${COMPOSE[@]}" up -d --no-deps --force-recreate --wait --wait-timeout 120 "${SERVICE}"
-    connected
+    reauthenticated
 done
 thunderbird_check persist
 
@@ -95,7 +101,7 @@ THUNDERBIRD="$("${COMPOSE[@]}" ps -q thunderbird)"
 docker network disconnect "${RAICHO_PROJECT}_connector-thunderbird" "${THUNDERBIRD}"
 check wait --status disconnected --timeout 75
 docker network connect --alias thunderbird "${RAICHO_PROJECT}_connector-thunderbird" "${THUNDERBIRD}"
-connected
+reauthenticated
 
 SERVER="$("${COMPOSE[@]}" ps -q raicho)"
 GATEWAY="$("${COMPOSE[@]}" ps -q gateway)"
@@ -113,12 +119,12 @@ if [[ ${NEW_ADDRESS} == "${OLD_ADDRESS}" || $("${COMPOSE[@]}" ps -q gateway) != 
     echo 'FAIL: DNS recovery requires a changed Raicho address and unchanged gateway' >&2
     exit 1
 fi
-connected
+reauthenticated
 docker rm -f "${HOLDER}" >/dev/null
 echo 'Gateway dynamically resolved a recreated Raicho container at a different address'
 
 COMPOSE_PROJECT_NAME="${RAICHO_PROJECT}" bash automation/acceptance/runtime/check_admin_isolation.bash
-connected
+reauthenticated
 
 COMPOSE+=(-f automation/acceptance/connector/compose.upgrade.yaml)
 "${COMPOSE[@]}" run --rm upgrade-extension

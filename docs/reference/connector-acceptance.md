@@ -53,5 +53,9 @@ establish a hosted GitHub Actions result.
   and are never automatically replayed.
 - The idle observation lasts ten minutes locally and on pushes to `main`. PRs
   observe two minutes, as [CI](ci-cd.md#jobs) describes.
+- The connector runner requires a heartbeat on its first and final connection
+  checks, during the idle observation, and after the rejected proofs. After each
+  restart, recreation, and network recovery it requires only a new authenticated
+  session, so those steps do not each wait a heartbeat interval.
 - The ten-minute observation is bounded evidence for this pinned runtime and
   persistent MV2 background. It is not evidence for MV3 or future releases.

@@ -423,7 +423,7 @@ rejects unexpected application tables. It checks the Thunderbird runtime policy
 and a profile sentinel across restarts. Finally it builds the production XPI as
 version 65535.0.0 into a disposable volume, mounts it over the image's extension
 directory, and requires the same profile to activate that version and reconnect.
-It runs unchanged in CI's `connector-test` job alongside the credential runner. See [acceptance evidence](connector-acceptance.md).
+It runs unchanged in CI's `connector-test` job, and the credential runner in `credentials-test`. See [acceptance evidence](connector-acceptance.md).
 
 The connector runner takes about 20 minutes because of its ten-minute idle
 observation. `RAICHO_IDLE_SECONDS` shortens that observation, as CI does on PRs. The
