@@ -20,7 +20,7 @@ step removes them after a cancellation or timeout, as
 
 | Runner | Verifies |
 | --- | --- |
-| Production connector | Packaged XPI contents, runtime policy, one authenticated generation for ten minutes, rejected proofs and mail-canary payloads, restart and recreation of every service, network interruption, a changed Raicho address without gateway recreation, internal connector networks, browser-route and administrative isolation, a same-profile upgrade, and absence of the token and canaries from logs, diagnostics, and SQLite. |
+| Production connector | Packaged XPI contents, runtime policy, one authenticated generation through the idle observation, rejected proofs and mail-canary payloads, restart and recreation of every service, network interruption, a changed Raicho address without gateway recreation, internal connector networks, browser-route and administrative isolation, a same-profile upgrade, and absence of the token and canaries from logs, diagnostics, and SQLite. |
 | Credential procedure | Provisioning, persistence, rotation interruption at both publication points, revocation and restart rejection, explicit reactivation, file access, and token exclusion. |
 | Mail compatibility | Fixture tests, draft, identity, and attachment checks, rediscovery after restart, and fault proxy integration. Native and delivery-dependent phases report `not_run` without `--native`. |
 
@@ -51,5 +51,7 @@ establish a hosted GitHub Actions result.
   folder selection. Resolve these gates before dependent mail workflows.
 - A send result does not prove Sent-copy success. Lost results remain `unknown`
   and are never automatically replayed.
+- The idle observation lasts ten minutes locally and on pushes to `main`. PRs
+  observe two minutes, as [CI](ci-cd.md#jobs) describes.
 - The ten-minute observation is bounded evidence for this pinned runtime and
   persistent MV2 background. It is not evidence for MV3 or future releases.

@@ -3,8 +3,10 @@ name: Repository checks
 on:
   push:
     branches: [main]
-  # Description, label, base, and draft changes only rerun pull-request-guards.yml.
+  # Description, label, and base changes only rerun pull-request-guards.yml.
+  # Leaving draft starts the jobs that drafts skip.
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
@@ -16,6 +18,31 @@ concurrency:
 # Hosted runners start empty. Each job warms a BuildKit builder from the GitHub
 # Actions cache, and the later Compose and Docker builds reuse its layers.
 jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.paths.outputs.code }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Look for changes outside Markdown
+        id: paths
+        env:
+          BASE_COMMIT: ${{ github.event.pull_request.base.sha }}
+          HEAD_COMMIT: ${{ github.event.pull_request.head.sha }}
+        run: |
+          code=true
+          if [ -n "${BASE_COMMIT}" ]; then
+            paths="$(git diff --name-only --no-renames "${BASE_COMMIT}...${HEAD_COMMIT}")"
+            if ! printf '%s\n' "${paths}" | grep -qv '\.md$'; then
+              code=false
+            fi
+          fi
+          echo "code=${code}" >> "$GITHUB_OUTPUT"
+
   lint:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -60,7 +87,9 @@ jobs:
         run: make lint test-python test-tooling
 
   application-test:
+    needs: changes
     if: >-
+      needs.changes.outputs.code == 'true' &&
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-test')
     runs-on: ubuntu-24.04
@@ -92,7 +121,10 @@ jobs:
         run: make test-server test-web test-extension test-mailprobe test-protocol
 
   coverage:
+    needs: changes
     if: >-
+      needs.changes.outputs.code == 'true' &&
+      !github.event.pull_request.draft &&
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-test') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-coverage-check')
@@ -133,7 +165,10 @@ jobs:
         run: make coverage
 
   runtime-test:
+    needs: changes
     if: >-
+      needs.changes.outputs.code == 'true' &&
+      !github.event.pull_request.draft &&
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-test')
     runs-on: ubuntu-24.04
@@ -175,7 +210,10 @@ jobs:
         run: bash automation/acceptance/remove_recorded_projects.bash
 
   connector-test:
+    needs: changes
     if: >-
+      needs.changes.outputs.code == 'true' &&
+      !github.event.pull_request.draft &&
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-test')
     runs-on: ubuntu-24.04
@@ -203,9 +241,11 @@ jobs:
           set: |
             *.cache-from=type=gha,scope=application
             *.cache-to=type=gha,scope=application,mode=max
-      - name: Verify production connector and ten-minute idle acceptance
+      - name: Verify production connector and idle acceptance
         env:
           TMPDIR: ${{ runner.temp }}
+          # Pull requests observe two idle minutes. Pushes to main keep the full ten.
+          RAICHO_IDLE_SECONDS: ${{ github.event_name == 'pull_request' && '120' || '600' }}
           RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance
         run: setsid --wait make acceptance-connector
       - name: Verify credential rotation, recovery, and revocation
@@ -220,7 +260,10 @@ jobs:
         run: bash automation/acceptance/remove_recorded_projects.bash
 
   compatibility-test:
+    needs: changes
     if: >-
+      needs.changes.outputs.code == 'true' &&
+      !github.event.pull_request.draft &&
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-test')
     runs-on: ubuntu-24.04

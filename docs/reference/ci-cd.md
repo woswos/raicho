@@ -1,16 +1,19 @@
 # Continuous integration
 
 [repository-checks.yml](../../.github/workflows/repository-checks.yml) runs on
-pushes to `main` and when a PR is opened, synchronized, or reopened.
+pushes to `main` and when a PR is opened, synchronized, reopened, or marked ready
+for review.
 [pull-request-guards.yml](../../.github/workflows/pull-request-guards.yml) runs the
-PR guard on the same PR events and again when the description, labels, or draft
-state change, so those edits rerun only the guard. Both workflows use a read-only
+PR guard on the same PR events and again when the description or labels change or
+the PR returns to draft, so those edits rerun only the guard. Both workflows use a read-only
 token and do not retain checkout credentials. A newer run of either workflow for the
 same pull request cancels its older one, while runs for pushes to `main` and the
 release workflows always finish.
 
 ## Jobs
 
+- `changes`: reports whether a PR changes anything other than Markdown files. The
+  jobs below `pr-guards` in this list need its answer. Pushes to `main` always count as code.
 - `lint`: repository integrity, every Python unit suite, language linting,
   formatting checks, TypeScript type checking, and runner fixture tests on
   pushes and PRs, including designs. `make lint` also checks protocol generation drift.
@@ -23,6 +26,8 @@ release workflows always finish.
   administrative network isolation and listener closure, and application readiness
   while Thunderbird is stopped, in a disposable project.
 - `connector-test`: `make acceptance-connector`, then `make acceptance-credentials`.
+  PRs set `RAICHO_IDLE_SECONDS=120`, so they observe two idle minutes. Pushes to
+  `main` observe the full ten.
   The [acceptance scope](connector-acceptance.md#scope) lists what each verifies.
 - `compatibility-test`: `make acceptance-mail`.
 - `coverage`: on PRs, `make check-patch-coverage` against the PR base. It
@@ -193,6 +198,14 @@ that check and says so.
 | `skip-test` | Skips application, runtime, connector, compatibility, and coverage jobs. |
 | `skip-coverage-check` | Skips only the coverage job. |
 | `skip-changelog` | Skips the changelog entry check. Does not skip design, build, or test checks. |
+
+## Skipped jobs
+
+- A draft PR runs `changes`, `lint`, `pr-guards`, and `application-test`. It skips the
+  three acceptance jobs and `coverage`. Marking the PR ready for review starts a full run.
+- A PR that changes only files whose names end in `.md` runs `changes`, `lint`, and
+  `pr-guards`. This matches the guard's documentation exemption.
+- Pushes to `main` run every job, so a merged change is always fully checked.
 
 Label changes and a change of the PR's base branch rerun only the guard. A label that
 skips or restores other jobs takes effect on the next push. After a retarget, the

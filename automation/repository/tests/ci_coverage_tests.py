@@ -25,6 +25,7 @@ CACHE_DIRECTORY = '${{ runner.temp }}/raicho-cache'
 ACCEPTANCE_RECORD = '${{ runner.temp }}/raicho-acceptance'
 CODE_EVENTS = {'opened', 'synchronize', 'reopened'}
 METADATA_EVENTS = {'edited', 'labeled', 'unlabeled', 'ready_for_review', 'converted_to_draft'}
+DRAFT_SKIPPING_JOBS = (*ACCEPTANCE_JOBS, 'coverage')
 
 
 def pull_request_events(workflow):
@@ -65,7 +66,7 @@ class WorkflowCoverageTests(unittest.TestCase):
             with self.subTest(job=name):
                 job = self.jobs[name]
                 self.assertEqual(job['if'], self.jobs['runtime-test']['if'])
-                self.assertNotIn('needs', job)
+                self.assertEqual(job['needs'], 'changes')
 
     def test_acceptance_state_stays_where_the_docker_host_can_bind_it(self):
         for step in self.jobs['connector-test']['steps']:
@@ -112,8 +113,12 @@ class WorkflowCoverageTests(unittest.TestCase):
     def test_image_building_jobs_restore_their_layers_before_building(self):
         for name, job in self.jobs.items():
             steps = job['steps']
-            first_make = next(index for index, step in enumerate(steps) if 'make ' in step.get('run', ''))
-            restored = [step['with'] for step in steps[:first_make] if step.get('uses', '').startswith('docker/bake-action@')]
+            first_make = next((index for index, step in enumerate(steps) if 'make ' in step.get('run', '')), None)
+            if first_make is None:
+                continue
+            restored = [
+                step['with'] for step in steps[:first_make] if step.get('uses', '').startswith('docker/bake-action@')
+            ]
             with self.subTest(job=name):
                 self.assertIn('automation/tooling/compose.yaml', [layers['files'] for layers in restored])
                 for layers in restored:
@@ -137,8 +142,28 @@ class WorkflowCoverageTests(unittest.TestCase):
         guard = yaml.load(GUARD_WORKFLOW.read_text(), Loader=yaml.BaseLoader)
         self.assertEqual(set(guard['jobs']), {'pr-guards'})
         self.assertEqual(pull_request_events(guard), CODE_EVENTS | METADATA_EVENTS)
-        self.assertEqual(pull_request_events(self.workflow), CODE_EVENTS)
+        # Leaving draft starts the jobs that drafts skip.
+        self.assertEqual(pull_request_events(self.workflow), CODE_EVENTS | {'ready_for_review'})
         self.assertNotIn('pr-guards', self.jobs)
+
+    def test_drafts_and_documentation_changes_skip_the_expensive_jobs(self):
+        self.assertNotIn('if', self.jobs['lint'])
+        self.assertNotIn('needs', self.jobs['lint'])
+        for name in (*DRAFT_SKIPPING_JOBS, 'application-test'):
+            with self.subTest(job=name):
+                job = self.jobs[name]
+                self.assertEqual(job['needs'], 'changes')
+                self.assertIn("needs.changes.outputs.code == 'true'", job['if'])
+                skips_drafts = '!github.event.pull_request.draft' in job['if']
+                self.assertEqual(skips_drafts, name in DRAFT_SKIPPING_JOBS)
+
+    def test_pull_requests_shorten_only_the_idle_observation(self):
+        seconds = {
+            step['env']['RAICHO_IDLE_SECONDS']
+            for step in self.jobs['connector-test']['steps']
+            if 'RAICHO_IDLE_SECONDS' in step.get('env', {})
+        }
+        self.assertEqual(seconds, {"${{ github.event_name == 'pull_request' && '120' || '600' }}"})
 
     def test_lint_job_runs_every_python_suite(self):
         self.assertIn('test-python', self.script('lint').split())

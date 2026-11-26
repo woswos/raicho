@@ -49,20 +49,22 @@ CHECKS = {
     'browser': browser_route,
     'deployment': deployment,
     'snapshot': snapshot,
-    'idle': observe_idle,
 }
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=('wait', *CHECKS))
+    parser.add_argument('mode', choices=('wait', 'idle', *CHECKS))
     parser.add_argument('--status', default='connected')
     parser.add_argument('--previous-generation')
     parser.add_argument('--minimum-heartbeats', type=int, default=1)
     parser.add_argument('--timeout', type=int, default=120)
+    parser.add_argument('--seconds', type=int, default=600)
     arguments = parser.parse_args()
     if arguments.mode == 'wait':
         wait_for_status(arguments)
+    elif arguments.mode == 'idle':
+        observe_idle(arguments.seconds)
     else:
         CHECKS[arguments.mode]()
 

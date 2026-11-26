@@ -35,4 +35,4 @@ def observe_idle(seconds=600, sample=status, clock=time.monotonic, pause=time.sl
             )
             next_report += 60
     assert previous > baseline['heartbeat_count'], 'Connector heartbeat did not advance'
-    report('Production connector passed ten-minute idle acceptance', flush=True)
+    report(f'Production connector passed {seconds}-second idle acceptance', flush=True)

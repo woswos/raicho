@@ -73,7 +73,7 @@ docker inspect "${SERVER}" "${THUNDERBIRD}" | fixture mounts
 fixture database --revision 1
 "${COMPOSE[@]}" exec -T thunderbird python3 -B - <"${REPOSITORY_ROOT}/automation/acceptance/connector/inspect_xpi.py"
 thunderbird_check seed
-check idle
+check idle --seconds "${RAICHO_IDLE_SECONDS:-600}"
 check browser
 probe connector-thunderbird checks routes
 probe connector-thunderbird rejection
@@ -130,4 +130,4 @@ fixture database --revision 1
 "${COMPOSE[@]}" logs --no-color raicho thunderbird gateway | privacy logs
 privacy diagnostics
 privacy database
-echo 'Connector passed: ten-minute idle, authentication, recovery, DNS refresh, isolation, upgrade, and privacy'
+echo 'Connector passed: idle, authentication, recovery, DNS refresh, isolation, upgrade, and privacy'

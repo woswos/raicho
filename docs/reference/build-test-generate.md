@@ -425,7 +425,8 @@ version 65535.0.0 into a disposable volume, mounts it over the image's extension
 directory, and requires the same profile to activate that version and reconnect.
 It runs unchanged in CI's `connector-test` job alongside the credential runner. See [acceptance evidence](connector-acceptance.md).
 
-The connector runner takes about 20 minutes because of its idle observation. The
+The connector runner takes about 20 minutes because of its ten-minute idle
+observation. `RAICHO_IDLE_SECONDS` shortens that observation, as CI does on PRs. The
 credential runner takes about 6 minutes and the mail runner about 3, after cached
 image builds. Each owns a uniquely named project and networks, so they can run
 concurrently. They run unchanged from a linked worktree, which tests a fixed
