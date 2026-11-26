@@ -15,6 +15,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+env:
+  # A provenance attestation turns each image into a manifest list, which Docker cannot load.
+  BUILDX_NO_DEFAULT_ATTESTATIONS: '1'
+
 # Hosted runners start empty. Each job warms a BuildKit builder from the GitHub
 # Actions cache, and the later Compose and Docker builds reuse its layers.
 jobs:
