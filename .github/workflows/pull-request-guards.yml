@@ -20,5 +20,9 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+      # The guard needs only Python and Git, so it skips the tooling image build.
       - name: Check pull request policy
-        run: make lint-pr
+        run: python3 -B -m automation.repository.check_pr

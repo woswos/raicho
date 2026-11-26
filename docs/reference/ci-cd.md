@@ -14,12 +14,12 @@ release workflows always finish.
 - `lint`: repository integrity, every Python unit suite, language linting,
   formatting checks, TypeScript type checking, and runner fixture tests on
   pushes and PRs, including designs. `make lint` also checks protocol generation drift.
+  It first validates every runtime and fixture Compose configuration.
 - `pr-guards`, in `pull-request-guards.yml`: PR context checks, including the
   changelog entry required for user-visible changes.
-- `application-build`: runtime and fixture Compose validation and all runtime images.
-- `application-test`: `make test`, which builds and tests the Rust, browser,
-  extension, mail probe, and shared protocol sources and reruns the Python suites.
-- `runtime-test`: unattended startup, HTTP isolation, SQLite/profile persistence,
+- `application-test`: the `test-server`, `test-web`, `test-extension`, `test-mailprobe`,
+  and `test-protocol` suites. `lint` runs the Python suites, so this job leaves them out.
+- `runtime-test`: builds all runtime images, then checks unattended startup, HTTP isolation, SQLite/profile persistence,
   administrative network isolation and listener closure, and application readiness
   while Thunderbird is stopped, in a disposable project.
 - `connector-test`: `make acceptance-connector`, then `make acceptance-credentials`.
@@ -77,7 +77,7 @@ the same commands locally and in their dedicated jobs. Each owns its disposable
 project and traps exit, including failures, to remove its resources. A cancelled
 job never reaches those traps, so its final step removes them instead.
 The connector job allows 60 minutes and compatibility allows 45 minutes for cold
-builds and runtime checks. They have no dependencies on the optional build job.
+builds and runtime checks.
 The [compatibility matrix](mail-api-compatibility.md#running-the-experiment) lists
 the mail checks that stay manual. See [acceptance evidence](connector-acceptance.md)
 for scope and limits.
@@ -108,9 +108,16 @@ explain the design.
 
 ## Caching
 
-The [build caching decision](../decisions/20261026-build-caching.md) records why CI caches as it does. Images build with
-Docker's default builder and its layer cache on the runner's Docker host. CI uses
-no GitHub Actions image cache.
+The [build caching decision](../decisions/20261026-build-caching.md) and its
+[hosted runner amendment](../decisions/20261126-github-hosted-runners.md) record why CI caches as it does.
+
+Every image-building job creates a BuildKit container builder with
+`docker/setup-buildx-action` and makes it the default. `docker/bake-action` then
+builds the tooling image, and in the acceptance jobs the application images, with
+the GitHub Actions cache as layer source and destination. The `tooling` and
+`application` cache scopes are shared by all jobs. The later Compose and `docker build`
+commands run unchanged against the same builder, so they reuse its warm layers. The
+builder loads every image into Docker's image store.
 
 `lint`, `application-test`, and `coverage` restore a Cargo cache with
 `actions/cache`, keyed by job, `Cargo.lock`, and `rust-toolchain.toml`, into
@@ -120,8 +127,9 @@ no GitHub Actions image cache.
 turns off incremental compilation. Every job that restores a Cargo cache also runs
 on pushes to `main`, where `coverage` builds only when no cache matches its key.
 
-GitHub keeps about 10 GB of caches per repository and evicts the least recently
-used, so a run after eviction rebuilds cold and saves again.
+GitHub keeps about 10 GB of caches per repository, shared by the Cargo caches and
+the image layers, and evicts the least recently used, so a run after eviction
+rebuilds cold and saves again.
 
 ## Repository integrity
 
@@ -144,11 +152,12 @@ fails the job.
 
 ## PR context guards
 
-`make lint-pr` reads PR metadata from GitHub's event JSON as data. It uses explicit
+The guard reads PR metadata from GitHub's event JSON as data. It uses explicit
 base/head commit hashes, not the synthetic merge commit at `GITHUB_SHA`.
-A full checkout supplies those objects, including fork history. Make adds the
-`automation/tooling/compose.ci.yaml` override, which mounts the event JSON
-read-only at `/tmp/github-event.json`. Body, labels, and commit IDs are parsed as data and
+A full checkout supplies those objects, including fork history. The job runs
+`python3 -B -m automation.repository.check_pr` with the runner's Python 3.13, because
+the guard needs only Python and Git and a tooling image build would dominate its
+runtime. `make lint-pr` runs the same module in the tooling image. Body, labels, and commit IDs are parsed as data and
 never interpolated into shell commands. The changed-path
 comparison uses `base...head`, disables rename detection to inspect both sides
 of moves, and includes deletions. Missing or invalid context fails closed.
@@ -181,7 +190,6 @@ that check and says so.
 | --- | --- |
 | `design` | Validates planning-only changes and exempts the reference check. |
 | `skip-design-check` | Bypasses the design-link requirement. Does not bypass planning-only enforcement on a `design` PR. |
-| `skip-build` | Skips the dedicated application image build job. |
 | `skip-test` | Skips application, runtime, connector, compatibility, and coverage jobs. |
 | `skip-coverage-check` | Skips only the coverage job. |
 | `skip-changelog` | Skips the changelog entry check. Does not skip design, build, or test checks. |
@@ -191,9 +199,8 @@ skips or restores other jobs takes effect on the next push. After a retarget, th
 other checks run against the new base when a commit is pushed or the PR is closed and
 reopened; re-running an earlier run reuses its original merge commit.
 
-The `design` label also skips all five application jobs and the coverage job. Jobs are independent,
-so a skipped build does not leave invalid test dependencies. Test jobs still
-compile/build their test prerequisites when `skip-build` is present. The labels
+The `design` label also skips all four application jobs and the coverage job. Each
+test job builds its own prerequisites. The labels
 do not bypass language linting, guard regression tests, or runner fixtures.
 
 Repository integrity checks never skip because of a label. GitHub labels must

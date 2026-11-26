@@ -13,32 +13,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# Hosted runners start empty. Each job warms a BuildKit builder from the GitHub
+# Actions cache, and the later Compose and Docker builds reuse its layers.
 jobs:
   lint:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ runner.temp }}/raicho-cache
-          key: rust-${{ github.job }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
-          restore-keys: rust-${{ github.job }}-
-      - name: Check repository and languages
-        env:
-          RAICHO_CACHE_DIRECTORY: ${{ runner.temp }}/raicho-cache
-        run: make lint test-python test-tooling
-
-  application-build:
-    if: >-
-      !contains(github.event.pull_request.labels.*.name, 'design') &&
-      !contains(github.event.pull_request.labels.*.name, 'skip-build')
-    runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    env:
-      RAICHO_COMMIT: ${{ github.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -58,8 +38,26 @@ jobs:
           docker compose -f compose.yaml -f compose.credentials.yaml -f automation/acceptance/runtime/compose.test.yaml -f automation/acceptance/connector/compose.upgrade.yaml --profile test config --quiet
           docker compose -f mailprobe/compose.yaml --profile test config --quiet
           docker compose -f mailprobe/compose.yaml -f mailprobe/compose.admin.yaml --profile test config --quiet
-      - name: Build application images
-        run: make images
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver-opts: default-load=true
+      - name: Restore the tooling image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: automation/tooling/compose.yaml
+          set: |
+            *.cache-from=type=gha,scope=tooling
+            *.cache-to=type=gha,scope=tooling,mode=max
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/raicho-cache
+          key: rust-${{ github.job }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
+          restore-keys: rust-${{ github.job }}-
+      - name: Check repository and languages
+        env:
+          RAICHO_CACHE_DIRECTORY: ${{ runner.temp }}/raicho-cache
+        run: make lint test-python test-tooling
 
   application-test:
     if: >-
@@ -71,15 +69,27 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver-opts: default-load=true
+      - name: Restore the tooling image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: automation/tooling/compose.yaml
+          set: |
+            *.cache-from=type=gha,scope=tooling
+            *.cache-to=type=gha,scope=tooling,mode=max
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/raicho-cache
           key: rust-${{ github.job }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
           restore-keys: rust-${{ github.job }}-
+      # The lint job already runs the Python and tooling suites.
       - name: Build and test application sources
         env:
           RAICHO_CACHE_DIRECTORY: ${{ runner.temp }}/raicho-cache
-        run: make test
+        run: make test-server test-web test-extension test-mailprobe test-protocol
 
   coverage:
     if: >-
@@ -93,6 +103,17 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver-opts: default-load=true
+      - name: Restore the tooling image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: automation/tooling/compose.yaml
+          set: |
+            *.cache-from=type=gha,scope=tooling
+            *.cache-to=type=gha,scope=tooling,mode=max
       - id: cargo
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -124,6 +145,25 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver-opts: default-load=true
+      - name: Restore the tooling image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: automation/tooling/compose.yaml
+          set: |
+            *.cache-from=type=gha,scope=tooling
+            *.cache-to=type=gha,scope=tooling,mode=max
+      - name: Restore the application image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: compose.yaml
+          set: |
+            *.cache-from=type=gha,scope=application
+            *.cache-to=type=gha,scope=application,mode=max
       - name: Verify startup, persistence, isolation, and independent readiness
         env:
           RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance
@@ -144,6 +184,25 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver-opts: default-load=true
+      - name: Restore the tooling image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: automation/tooling/compose.yaml
+          set: |
+            *.cache-from=type=gha,scope=tooling
+            *.cache-to=type=gha,scope=tooling,mode=max
+      - name: Restore the application image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: compose.yaml
+          set: |
+            *.cache-from=type=gha,scope=application
+            *.cache-to=type=gha,scope=application,mode=max
       - name: Verify production connector and ten-minute idle acceptance
         env:
           TMPDIR: ${{ runner.temp }}
@@ -170,6 +229,26 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver-opts: default-load=true
+      - name: Restore the tooling image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: automation/tooling/compose.yaml
+          set: |
+            *.cache-from=type=gha,scope=tooling
+            *.cache-to=type=gha,scope=tooling,mode=max
+      - name: Restore the Thunderbird image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: compose.yaml
+          targets: thunderbird
+          set: |
+            *.cache-from=type=gha,scope=application
+            *.cache-to=type=gha,scope=application,mode=max
       - name: Verify unattended mail API compatibility
         env:
           RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance

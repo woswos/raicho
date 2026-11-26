@@ -99,12 +99,28 @@ class WorkflowCoverageTests(unittest.TestCase):
             with self.subTest(file=path):
                 self.assertIn(f'-f {path}', commands)
 
-    def test_application_job_runs_every_source_suite(self):
-        self.assertIn('make test', self.script('application-test'))
+    def test_lint_and_application_jobs_run_every_source_suite_once(self):
+        scripts = self.script('lint', 'application-test').split()
         aggregate = next(line for line in CONTAINER_MAKEFILE.read_text().splitlines() if line.startswith('test:'))
+        # The aggregate would rerun the suites the other job already ran.
+        self.assertNotIn('make test\n', self.script('lint', 'application-test') + '\n')
         for target in SOURCE_SUITES:
             with self.subTest(target=target):
                 self.assertIn(target, aggregate.split())
+                self.assertEqual(scripts.count(target), 1)
+
+    def test_image_building_jobs_restore_their_layers_before_building(self):
+        for name, job in self.jobs.items():
+            steps = job['steps']
+            first_make = next(index for index, step in enumerate(steps) if 'make ' in step.get('run', ''))
+            restored = [step['with'] for step in steps[:first_make] if step.get('uses', '').startswith('docker/bake-action@')]
+            with self.subTest(job=name):
+                self.assertIn('automation/tooling/compose.yaml', [layers['files'] for layers in restored])
+                for layers in restored:
+                    # Bake reads its definition from Git unless told to use the checkout.
+                    self.assertEqual(layers['source'], '.')
+                    self.assertIn('cache-from=type=gha', layers['set'])
+                    self.assertIn('cache-to=type=gha', layers['set'])
 
     def test_newer_pull_request_runs_cancel_older_ones(self):
         for path in sorted(WORKFLOW.parent.glob('*.yml')):
