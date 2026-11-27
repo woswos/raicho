@@ -197,12 +197,12 @@ that check and says so.
 CodeRabbit and Kilo review pull requests outside CI. `.coderabbit.yaml` turns off
 CodeRabbit's docstring coverage check, because the
 [coding standards](../coding/coding-standards.md#comments-and-prose) default to no
-comments. It also turns on automatic approvals, so CodeRabbit requests changes
-for blocking findings and approves once its threads are resolved and its checks
-pass. That approval satisfies the one approving review that `main` requires.
-Approvals are off by default, and without this setting
-`@coderabbitai approve` replies that approval is disabled. Its other checks keep
-their defaults.
+comments. It also turns on CodeRabbit approvals (`reviews.auto_approvals.enabled`,
+which replaces the deprecated `request_changes_workflow`). CodeRabbit then
+requests changes for blocking findings and approves when its threads are
+resolved and its checks pass. A top-level `@coderabbitai approve` comment also
+approves, including from the pull request author. Either approval satisfies the
+one approving review that `main` requires. Its other checks keep their defaults.
 
 ## Labels
 
