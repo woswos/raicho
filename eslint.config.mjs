@@ -5,7 +5,8 @@ import globals from 'globals';
 import typescriptEslint from 'typescript-eslint';
 
 const storageNames = '/^(localStorage|sessionStorage|indexedDB|caches|serviceWorker|getDirectory)$/';
-const rawHtmlSinks = '/^(innerHTML|outerHTML|insertAdjacentHTML|createContextualFragment)$/';
+const rawHtmlSinks =
+  '/^(innerHTML|outerHTML|insertAdjacentHTML|createContextualFragment|parseFromString|setHTMLUnsafe|parseHTMLUnsafe)$/';
 
 export default defineConfig(
   {
