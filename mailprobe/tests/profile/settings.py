@@ -33,6 +33,10 @@ def preferences():
         'mail.smtpserver.smtp1.try_ssl': 0,
         'mail.smtpserver.smtp1.authMethod': 1,
         'mail.smtpserver.smtp1.username': 'sender',
+        # The internal fixture network has no default route, which Gecko reports as a link loss that drops IMAP.
+        # Thunderbird applies offline.autoDetect over the Gecko preference after startup.
+        'network.manage-offline-status': False,
+        'offline.autoDetect': False,
         'mail.shell.checkDefaultClient': False,
         'mail.rights.override': True,
         'mailnews.start_page.enabled': False,
