@@ -30,6 +30,9 @@ cleanup() {
     trap - EXIT
     if ((RESULT != 0)); then
         "${COMPOSE[@]}" ps --all || true
+        "${COMPOSE[@]}" run --rm driver evidence || true
+        "${COMPOSE[@]}" logs --timestamps --no-color mail-proxy greenmail || true
+        "${COMPOSE[@]}" run --rm --no-deps --entrypoint python3 thunderbird -B -m mailprobe.tests.profile.moz_log || true
     fi
     if ! "${COMPOSE[@]}" down --volumes --remove-orphans; then
         RESULT=1
@@ -88,11 +91,18 @@ if [[ ${NATIVE} == true ]]; then
     "${COMPOSE[@]}" run --rm driver permission_verify
     "${COMPOSE[@]}" run --rm driver delivery
 fi
-"${COMPOSE[@]}" restart thunderbird
+"${COMPOSE[@]}" run --rm driver synchronization_prepare
+"${COMPOSE[@]}" stop thunderbird
+"${COMPOSE[@]}" run --rm driver synchronization_seed
+RESTARTED_AT="$(date +%s)"
+"${COMPOSE[@]}" up -d --wait --wait-timeout 120 thunderbird
 if [[ ${NATIVE} == true ]]; then
     echo 'After Thunderbird restarts, choose Later if it asks to send unsent messages.'
     echo 'Keep the queued fixture message in Outbox. Press Enter when the mail window is ready.'
     read -r
+    "${COMPOSE[@]}" run --rm driver synchronization
+else
+    "${COMPOSE[@]}" run --rm driver synchronization --restarted-at "${RESTARTED_AT}"
 fi
 "${COMPOSE[@]}" run --rm driver restart
 

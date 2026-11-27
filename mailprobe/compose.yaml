@@ -62,6 +62,8 @@ services:
       RAICHO_CONNECTOR_TOKEN_FILE: /fixture/token
       LD_LIBRARY_PATH: /opt/thunderbird
       PYTHONPATH: /opt/fixture:/opt/raicho
+      MOZ_LOG: IMAP:4,MsgBiff:5,timestamp,sync
+      MOZ_LOG_FILE: /config/thunderbird-log
     volumes:
       - profile:/config
       - fixture:/fixture:ro

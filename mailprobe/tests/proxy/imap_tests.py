@@ -38,6 +38,20 @@ class ImapProxyTests(unittest.TestCase):
         content = b'one APPEND Sent {4}\r\nbody\r\ntwo NOOP\r\n'
         self.assertEqual(self.relay(content)[0], content)
 
+    def test_logs_command_names_without_arguments_or_credentials(self):
+        names = []
+        content = (
+            b'one LOGIN sender fixture\r\ntwo AUTHENTICATE PLAIN\r\nAHNlbmRlcgBmaXh0dXJl\r\nthree UID FETCH 1:*\r\n'
+        )
+        relay_commands(io.BytesIO(content), io.BytesIO(), [].append, MockState('normal'), names.append)
+        self.assertEqual(names, ['LOGIN', 'AUTHENTICATE', 'continuation', 'UID'])
+
+    def test_logs_literal_continuations_without_their_words(self):
+        names = []
+        content = b'four LOGIN {6}\r\nsender "alpha secret omega"\r\nfive NOOP\r\n'
+        relay_commands(io.BytesIO(content), io.BytesIO(), [].append, MockState('normal'), names.append)
+        self.assertEqual(names, ['LOGIN', 'continuation', 'NOOP'])
+
     def test_incomplete_literal_fails(self):
         with self.assertRaises(ValueError):
             self.relay(b'one APPEND Drafts {20}\r\nshort')

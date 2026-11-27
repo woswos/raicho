@@ -24,6 +24,8 @@ export async function dispatchCommand(api: MailApi, command: Command): Promise<u
           sendMessage: typeof api.messages.sendMessage,
         },
       };
+    case 'create_folder':
+      return api.folders.create(stringValue(parameters.parent_id), stringValue(parameters.name));
     case 'save':
       return api.messages.saveMessage(messageDetails(parameters.details), {
         mode: 'draft',

@@ -9,6 +9,7 @@ from mailprobe.tests.probe import (
     scenario_permissions,
     scenario_restart,
     scenario_settlement,
+    scenario_synchronization,
 )
 from mailprobe.tests.probe.client import ProbeClient, wait_until
 from mailprobe.tests.proxy.mail_inspect import ensure_mailboxes
@@ -23,14 +24,19 @@ SCENARIOS = {
     'native_verify': scenario_native.verify,
     'permission_verify': scenario_permissions.verify,
     'record_skips': scenario_permissions.record_skips,
+    'synchronization_prepare': scenario_synchronization.prepare,
+    'synchronization': scenario_synchronization.run,
 }
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('phase', choices=['prepare', 'inventory', 'evidence', 'command', *SCENARIOS])
+    parser.add_argument(
+        'phase', choices=['prepare', 'inventory', 'evidence', 'command', 'synchronization_seed', *SCENARIOS]
+    )
     parser.add_argument('--action')
     parser.add_argument('--arguments', default='{}')
+    parser.add_argument('--restarted-at', type=float)
     arguments = parser.parse_args()
     client = ProbeClient()
     if arguments.phase == 'prepare':
@@ -47,6 +53,9 @@ def main():
     if arguments.phase == 'evidence':
         print(json.dumps(client.evidence(), indent=2))
         return
+    if arguments.phase == 'synchronization_seed':
+        scenario_synchronization.seed(client)
+        return
     metadata = client.wait_connected()
     if arguments.phase == 'inventory':
         client.record('runtime', metadata)
@@ -58,6 +67,8 @@ def main():
                 indent=2,
             )
         )
+    elif arguments.phase == 'synchronization':
+        scenario_synchronization.run(client, arguments.restarted_at)
     else:
         SCENARIOS[arguments.phase](client)
 
