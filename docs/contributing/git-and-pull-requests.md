@@ -65,9 +65,13 @@ GitHub settings. Creating workflow files does not enable those settings.
 - Base each branch on the previous one. Put a fix on the lowest branch that
   owns the change, as a new commit on top, then run
   `git rebase --update-refs <that branch>` on the top branch, which moves every
-  branch above it onto the new head at once. It skips a branch checked out in
-  another worktree, while the top branch still receives a replay of that branch's
-  commits. Rebase the skipped branch in its own worktree, then run a `--onto`
+  branch above it onto the new head at once. It also moves any other local
+  branch that points at a replayed commit, such as a backup branch.
+  `git branch --merged <top branch> --no-merged <that branch>` lists every
+  branch it will move, so check that list first and keep backups as tags. It
+  skips a branch checked out in another worktree, while the top branch still
+  receives a replay of that branch's commits. Rebase the skipped branch in its
+  own worktree, then run a `--onto`
   rebase of the branches above it onto its new head, which replays only their
   own commits and keeps one history in the stack.
 - Release and merge the stack from the bottom up. Push only branches the maintainer
