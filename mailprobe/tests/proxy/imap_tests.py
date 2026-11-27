@@ -40,7 +40,9 @@ class ImapProxyTests(unittest.TestCase):
 
     def test_logs_command_names_without_arguments_or_credentials(self):
         names = []
-        content = b'one LOGIN sender fixture\r\ntwo AUTHENTICATE PLAIN\r\nAHNlbmRlcgBmaXh0dXJl\r\nthree UID FETCH 1:*\r\n'
+        content = (
+            b'one LOGIN sender fixture\r\ntwo AUTHENTICATE PLAIN\r\nAHNlbmRlcgBmaXh0dXJl\r\nthree UID FETCH 1:*\r\n'
+        )
         relay_commands(io.BytesIO(content), io.BytesIO(), [].append, MockState('normal'), names.append)
         self.assertEqual(names, ['LOGIN', 'AUTHENTICATE', 'continuation', 'UID'])
 
