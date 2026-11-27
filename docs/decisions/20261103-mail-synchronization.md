@@ -21,6 +21,10 @@ preference explicitly false, the folder stayed empty for the 150-second
 deadline. Folders that existed only on the server stayed unknown, because IMAP
 folder discovery runs when the desktop folder pane expands an account.
 
+In 10 CI runs from 2026-11-04 to 2026-11-27, 8 matched `Projects` within 65
+seconds. Two runs on 2026-11-05 on the former self-hosted runner found INBOX but
+not `Projects` within 150 seconds, and their cause is unknown.
+
 ## Decision
 
 The managed Thunderbird policy sets `mail.server.default.check_all_folders_for_new`
