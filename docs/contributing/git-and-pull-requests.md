@@ -74,6 +74,8 @@ GitHub settings. Creating workflow files does not enable those settings.
   own worktree, then run a `--onto`
   rebase of the branches above it onto its new head, which replays only their
   own commits and keeps one history in the stack.
+- Keep stacked branches linear. Bring base changes in by rebasing, never by
+  merging, because a rebase drops merge commits and any change made in them.
 - Release and merge the stack from the bottom up. Push only branches the maintainer
   releases. When a rebase moved one, push it with
   `--force-with-lease=<branch>:<remote-sha>`, pinned to the remote commit you last
