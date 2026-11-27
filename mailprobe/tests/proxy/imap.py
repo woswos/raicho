@@ -18,8 +18,18 @@ def read_literal(stream, size: int) -> bytes:
     return content
 
 
-def relay_commands(client, upstream, reply, state) -> None:
+def command_name(line: bytes) -> str:
+    # Authentication continuations carry credentials as one bare token.
+    parts = line.split(maxsplit=2)
+    if len(parts) >= 2 and parts[1].isalpha():
+        return parts[1].decode('ascii').upper()
+    return 'continuation'
+
+
+def relay_commands(client, upstream, reply, state, log=None) -> None:
     while line := read_line(client):
+        if log is not None:
+            log(command_name(line))
         literal = LITERAL.search(line)
         append = APPEND.match(line)
         if append is not None and state.setting('imap') == 'reject_sent_append':
@@ -39,6 +49,18 @@ class ImapHandler(socketserver.StreamRequestHandler):
     timeout = 120
 
     def handle(self):
+        connection = self.client_address[1]
+
+        def log(event):
+            print(f'IMAP connection {connection} {event}', flush=True)
+
+        log('open')
+        try:
+            self.relay(log)
+        finally:
+            log('closed')
+
+    def relay(self, log):
         reply_lock = threading.Lock()
 
         def reply(content):
@@ -60,7 +82,7 @@ class ImapHandler(socketserver.StreamRequestHandler):
             response_thread.start()
             try:
                 with remote.makefile('wb') as upstream:
-                    relay_commands(self.rfile, upstream, reply, self.server.state)
+                    relay_commands(self.rfile, upstream, reply, self.server.state, log)
             finally:
                 remote.shutdown(socket.SHUT_RDWR)
                 response_thread.join(timeout=5)

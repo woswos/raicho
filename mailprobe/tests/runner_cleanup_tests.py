@@ -10,8 +10,12 @@ class RunnerCleanupTests(unittest.TestCase):
     def test_ci_termination_removes_the_owned_project_and_image_tags(self):
         commands = [' '.join(command) for command in self.interrupt_runner()]
         evidence_index = next(index for index, line in enumerate(commands) if line.endswith('run --rm driver evidence'))
+        logs_index = next(index for index, line in enumerate(commands) if ' logs --timestamps ' in line)
+        thunderbird_log_index = next(
+            index for index, line in enumerate(commands) if line.endswith('mailprobe.tests.profile.moz_log')
+        )
         teardown_index = next(index for index, line in enumerate(commands) if 'down --volumes --remove-orphans' in line)
-        self.assertLess(evidence_index, teardown_index)
+        self.assertLess(max(evidence_index, logs_index, thunderbird_log_index), teardown_index)
         removal = next(line for line in commands if line.startswith('image rm '))
         images = removal.split()[2:]
         self.assertEqual(len(images), 2)

@@ -31,6 +31,8 @@ cleanup() {
     if ((RESULT != 0)); then
         "${COMPOSE[@]}" ps --all || true
         "${COMPOSE[@]}" run --rm driver evidence || true
+        "${COMPOSE[@]}" logs --timestamps --no-color mail-proxy greenmail || true
+        "${COMPOSE[@]}" exec -T thunderbird python3 -B -m mailprobe.tests.profile.moz_log || true
     fi
     if ! "${COMPOSE[@]}" down --volumes --remove-orphans; then
         RESULT=1

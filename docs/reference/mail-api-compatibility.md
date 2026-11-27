@@ -167,7 +167,10 @@ so that synchronization dependency is intermittent rather than resolved. The
 records the individual runs.
 
 The controller stores observations only in the disposable fixture volume. A
-failed run prints the evidence collected so far before cleanup. Review its
+failed run prints the evidence collected so far before cleanup, with the mail
+proxy and GreenMail logs and Thunderbird's IMAP and new-mail check log without
+authentication lines. The proxy logs only connection events and command names.
+Review its
 evidence before cleanup and update this matrix with actual results. A timeout
 or disconnected observer remains `unknown` unless separate evidence establishes
 what happened. No scenario automatically resends an uncertain operation.
