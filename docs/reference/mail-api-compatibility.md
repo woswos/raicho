@@ -51,7 +51,7 @@ boundary. This deployment is not a production mail backend or connector protocol
 | Repeated save in the same compose tab | One edited draft after two saves, with the second body stored. The first saved numeric ID then returned `Message not found`. |
 | Draft rediscovery after Thunderbird restart | Folder plus RFC Message-ID located drafts. Numeric IDs changed. The unattended run needed one native-tab folder selection through the standard API after its initial query returned empty. |
 | Folder discovery | `Sent` and `Trash` existed on the server before Thunderbird first started, and the extension never saw them. Thunderbird listed only folders it had created or opened, such as `Drafts` and a folder made through `folders.create`. |
-| Background synchronization after restart | Mail appended to INBOX and `Projects` while Thunderbird was stopped. INBOX matched on the first query after restart. With `check_all_folders_for_new`, `Projects` matched after 56 seconds under a one-minute check interval. With the preference explicitly false, `Projects` stayed empty for 150 seconds. No folder was selected. In 10 CI runs from 2026-11-04 to 2026-11-27, 8 matched `Projects` within 65 seconds. Two runs on 2026-11-05 on the former self-hosted runner found INBOX but not `Projects` within 150 seconds, and their cause is unknown. |
+| Background synchronization after restart | Mail appended to INBOX and `Projects` while Thunderbird was stopped, and again while it ran. No folder was selected. Three runs per setting under a one-minute check interval. After restart, both folders matched within 7 seconds with `check_all_folders_for_new`, and `Projects` within 16 seconds through offline auto-sync without it. With offline download also off, `Projects` stayed empty for 150 seconds. While Thunderbird ran, a folder with an idle IMAP connection matched within 1 second, and other folders within 56 seconds through the periodic check. Without `check_all_folders_for_new`, `Projects` stayed empty for 330 seconds. Earlier runs, including two CI failures, lost folder updates to the fixture network's link loss. |
 | Native reopen, edit, and resave | Native Edit opened type `draft`. Editing Subject/body and pressing Ctrl+S left one replacement and zero original-subject drafts. The alias and attachment digest were preserved. |
 | Permission to send | `messages.send` is optional-only in this runtime and requires an explicit native permission grant. Force installation does not grant it. |
 | `sendLater` and Thunderbird-owned queue | Message remained in Local Folders/Outbox across restart. No recipient delivery. Startup asked whether to send unsent mail, and the native check chose Later. |
@@ -93,9 +93,16 @@ INBOX and `Projects` over IMAP, starts it again, and never selects a folder. In
 the unattended run its 150-second deadline starts when the host script starts
 Thunderbird, so the time to connect and list folders counts against it. The
 native run starts the deadline when the driver runs, after the operator confirms
-the restarted mail window, so operator time does not count. Thunderbird checks INBOX at login. Another folder is refreshed when the desktop
-opens it, or by the periodic new-mail check when `check_all_folders_for_new` is
-true or the folder's properties mark it for new-mail checks. The forced check
+the restarted mail window, so operator time does not count.
+
+Thunderbird checks INBOX at login, and every other checked folder at the same
+time. A folder counts as checked when `check_all_folders_for_new` is true or the
+folder's properties mark it for new-mail checks. While Thunderbird runs, a
+cached connection that waits in IMAP IDLE reports new mail in its selected
+folder at once. Another folder is refreshed when the desktop opens it, or by the
+periodic new-mail check when it is checked. Offline auto-sync, which Thunderbird
+enables by default with offline download, also updates every offline folder
+once after startup. It did not run again in 330 seconds while Thunderbird ran. The forced check
 skips Trash unless it is marked, so mail that another client moves into Trash
 appears after the desktop opens that folder. The check compares the server's
 unseen count, total message count, and next UID with the local database and
@@ -107,12 +114,22 @@ production policy sets `mail.server.default.check_all_folders_for_new` as a
 default preference. Thunderbird's account wizard writes `check_new_mail`, the
 check interval, and `login_at_startup` for each server, but not this preference,
 so the default reaches new accounts. A per-account setting in the desktop still
-overrides it. Mail in a folder other than INBOX can therefore appear up to one
-check interval after a restart when the account checks for new mail and keeps
-the default, and later when Thunderbird skips a check because the server is busy
-or waits for a password. An account that sets the preference to false leaves its
-unmarked folders unchecked, so their mail waits for the desktop to open them.
-Thunderbird's default interval is 10 minutes.
+overrides it. Mail that reaches a folder other than INBOX while Thunderbird runs
+can therefore appear up to one check interval later when the account checks for
+new mail and keeps the default, and later when Thunderbird skips a check because
+the server is busy or waits for a password. An account that sets the preference
+to false leaves its unmarked folders unchecked after the startup auto-sync, so
+their later mail waits for the desktop to open them. Thunderbird's default
+interval is 10 minutes.
+
+The fixture network has no default route. Gecko reports that as a link loss
+about one second after each start and, while it manages offline status, aborts
+every IMAP connection. A folder update cut off after Thunderbird recorded the
+server's counts stays stale, because later checks see no change. The fixture
+profile therefore turns off `network.manage-offline-status` and
+`offline.autoDetect`. Thunderbird applies the second over the first after
+startup, so both are needed. Production Thunderbird keeps provider internet
+access, so its network has a default route.
 
 IMAP folder discovery is a separate limit. The pinned `about3Pane.js` asks the
 server to discover mailboxes when a person expands the account in the folder pane.

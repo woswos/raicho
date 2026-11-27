@@ -13,17 +13,30 @@ new folders. The earlier draft experiment sometimes needed a native mail tab to
 select a folder before restarted drafts became queryable.
 
 The [compatibility matrix](../reference/mail-api-compatibility.md#synchronization-and-folder-discovery)
-describes the unattended synchronization scenario. In its 2026-11-03 run, mail
-delivered to INBOX while Thunderbird was stopped was visible at once after
-restart. Mail delivered to `Projects` appeared after 56 seconds under a
-one-minute check interval, and only with `check_all_folders_for_new`. With the
-preference explicitly false, the folder stayed empty for the 150-second
-deadline. Folders that existed only on the server stayed unknown, because IMAP
-folder discovery runs when the desktop folder pane expands an account.
+describes the unattended synchronization scenario. Its runs before 2026-11-27,
+including two CI failures, measured a fixture fault. The fixture network has no
+default route, so Gecko reported a link loss shortly after each start and
+aborted every IMAP connection. A folder update cut off by the abort stayed
+stale.
 
-In 10 CI runs from 2026-11-04 to 2026-11-27, 8 matched `Projects` within 65
-seconds. Two runs on 2026-11-05 on the former self-hosted runner found INBOX but
-not `Projects` within 150 seconds, and their cause is unknown.
+With the fault removed, a 2026-11-27 experiment ran each combination of
+`check_all_folders_for_new` and offline download three times under a
+one-minute check interval, without selecting a folder:
+
+- **After a restart:** the check at login found mail in INBOX and `Projects`
+  within 7 seconds when `check_all_folders_for_new` was true. With the
+  preference false, offline auto-sync found `Projects` within 16 seconds. With
+  offline download also off, `Projects` stayed empty for 150 seconds.
+- **While Thunderbird ran:** mail appeared within 1 second in a folder where a
+  cached connection waited in IMAP IDLE. Other folders waited for the periodic
+  check, which found them within 56 seconds when `check_all_folders_for_new` was
+  true. With the preference false, `Projects` stayed empty for 330 seconds,
+  because auto-sync ran only at startup.
+
+Thunderbird enables offline download and auto-sync by default, but not
+`check_all_folders_for_new`. Folders that existed only on the server stayed
+unknown, because IMAP folder discovery runs when the desktop folder pane expands
+an account.
 
 ## Decision
 
@@ -39,9 +52,12 @@ synchronized them, and a refresh lists them again.
 
 ## Consequences
 
-Mail outside INBOX can appear up to one account check interval after a restart,
-10 minutes by default, when the account checks for new mail and keeps the default
-`check_all_folders_for_new`. An account that sets it to false leaves its unmarked
+When the account checks for new mail and keeps the default
+`check_all_folders_for_new`, Thunderbird refreshes every known folder at login.
+Later mail outside INBOX appears at once in a folder that holds an idle
+connection, and otherwise within one account check interval, 10 minutes by
+default. An account that sets the preference to false gets one refresh from
+auto-sync at startup, when offline download is on, and then leaves its unmarked
 folders unchecked until the desktop opens them. The policy leaves
 `check_new_mail` and the interval to the account, which Thunderbird's wizard
 enables, and Thunderbird skips a check while the server is busy or waits for a
@@ -62,7 +78,7 @@ administrative desktop.
 
 The unattended mail compatibility run requires INBOX and non-INBOX discovery
 within its deadline after a restart without folder selection, so a Thunderbird
-upgrade that loses either refresh fails that check. It does not assert that INBOX
-matches on the first query after login. A future supported refresh API would
-replace the wait
-for the periodic check.
+upgrade that loses either refresh fails that check. The check at login satisfies
+it, so the run does not cover the periodic check while Thunderbird runs. It does
+not assert that INBOX matches on the first query after login. A future supported
+refresh API would replace the wait for the periodic check.
