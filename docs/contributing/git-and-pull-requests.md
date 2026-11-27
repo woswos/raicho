@@ -13,8 +13,8 @@ Use the actual PR base branch when reviewing a PR that targets another branch.
 
 ## Commits
 
-- Use concise Conventional Commits, with an imperative subject of at most
-  50 characters. Wrap an optional explanatory body at approximately 72 columns.
+- Use concise Conventional Commits with an imperative subject. Wrap an optional
+  explanatory body at approximately 72 columns.
 - Review the full relevant diff and stage exact paths within the approved scope.
   Do not use blanket `git add -A`.
 - When implementation commits are requested, split work into meaningful units.

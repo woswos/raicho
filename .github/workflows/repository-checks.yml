@@ -3,8 +3,10 @@ name: Repository checks
 on:
   push:
     branches: [main]
-  # Description, label, base, and draft changes only rerun pull-request-guards.yml.
+  # Description, label, and base changes only rerun pull-request-guards.yml.
+  # Leaving draft starts the jobs that drafts skip.
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
@@ -13,32 +15,45 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+env:
+  # A provenance attestation turns each image into a manifest list, which Docker cannot load.
+  BUILDX_NO_DEFAULT_ATTESTATIONS: '1'
+
+# Hosted runners start empty. Each job warms a BuildKit builder from the GitHub
+# Actions cache, and the later Compose and Docker builds reuse its layers.
+# Bake resolves a Compose build context from the working directory, so the
+# tooling steps name it.
+# A scope holds one target's layers, so every image has its own. The tooling
+# services share one image, so one target warms it.
 jobs:
-  lint:
-    runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 30
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.paths.outputs.code }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ runner.temp }}/raicho-cache
-          key: rust-${{ github.job }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
-          restore-keys: rust-${{ github.job }}-
-      - name: Check repository and languages
+      - name: Look for changes outside Markdown
+        id: paths
         env:
-          RAICHO_CACHE_DIRECTORY: ${{ runner.temp }}/raicho-cache
-        run: make lint test-python test-tooling
+          BASE_COMMIT: ${{ github.event.pull_request.base.sha }}
+          HEAD_COMMIT: ${{ github.event.pull_request.head.sha }}
+        run: |
+          code=true
+          if [ -n "${BASE_COMMIT}" ]; then
+            paths="$(git diff --name-only --no-renames "${BASE_COMMIT}...${HEAD_COMMIT}")"
+            if ! printf '%s\n' "${paths}" | grep -qv '\.md$'; then
+              code=false
+            fi
+          fi
+          echo "code=${code}" >> "$GITHUB_OUTPUT"
 
-  application-build:
-    if: >-
-      !contains(github.event.pull_request.labels.*.name, 'design') &&
-      !contains(github.event.pull_request.labels.*.name, 'skip-build')
-    runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 45
-    env:
-      RAICHO_COMMIT: ${{ github.sha }}
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -58,41 +73,93 @@ jobs:
           docker compose -f compose.yaml -f compose.credentials.yaml -f automation/acceptance/runtime/compose.test.yaml -f automation/acceptance/connector/compose.upgrade.yaml --profile test config --quiet
           docker compose -f mailprobe/compose.yaml --profile test config --quiet
           docker compose -f mailprobe/compose.yaml -f mailprobe/compose.admin.yaml --profile test config --quiet
-      - name: Build application images
-        run: make images
-
-  application-test:
-    if: >-
-      !contains(github.event.pull_request.labels.*.name, 'design') &&
-      !contains(github.event.pull_request.labels.*.name, 'skip-test')
-    runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
         with:
-          persist-credentials: false
+          driver-opts: default-load=true
+      - name: Restore the tooling image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: automation/tooling/compose.yaml
+          targets: check
+          set: |
+            *.context=.
+            *.cache-from=type=gha,scope=tooling
+            *.cache-to=type=gha,scope=tooling,mode=max
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/raicho-cache
           key: rust-${{ github.job }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
           restore-keys: rust-${{ github.job }}-
+      - name: Check repository and languages
+        env:
+          RAICHO_CACHE_DIRECTORY: ${{ runner.temp }}/raicho-cache
+        run: make lint test-python test-tooling
+
+  application-test:
+    needs: changes
+    if: >-
+      needs.changes.outputs.code == 'true' &&
+      !contains(github.event.pull_request.labels.*.name, 'design') &&
+      !contains(github.event.pull_request.labels.*.name, 'skip-test')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver-opts: default-load=true
+      - name: Restore the tooling image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: automation/tooling/compose.yaml
+          targets: check
+          set: |
+            *.context=.
+            *.cache-from=type=gha,scope=tooling
+            *.cache-to=type=gha,scope=tooling,mode=max
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/raicho-cache
+          key: rust-${{ github.job }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
+          restore-keys: rust-${{ github.job }}-
+      # The lint job already runs the Python and tooling suites.
       - name: Build and test application sources
         env:
           RAICHO_CACHE_DIRECTORY: ${{ runner.temp }}/raicho-cache
-        run: make test
+        run: make test-server test-web test-extension test-mailprobe test-protocol
 
   coverage:
+    needs: changes
     if: >-
+      needs.changes.outputs.code == 'true' &&
+      !github.event.pull_request.draft &&
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-test') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-coverage-check')
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver-opts: default-load=true
+      - name: Restore the tooling image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: automation/tooling/compose.yaml
+          targets: check
+          set: |
+            *.context=.
+            *.cache-from=type=gha,scope=tooling
+            *.cache-to=type=gha,scope=tooling,mode=max
       - id: cargo
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -112,10 +179,13 @@ jobs:
         run: make coverage
 
   runtime-test:
+    needs: changes
     if: >-
+      needs.changes.outputs.code == 'true' &&
+      !github.event.pull_request.draft &&
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-test')
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
       COMPOSE_PROJECT_NAME: raicho-ci-${{ github.run_id }}-${{ github.run_attempt }}
@@ -124,6 +194,31 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver-opts: default-load=true
+      - name: Restore the tooling image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: automation/tooling/compose.yaml
+          targets: check
+          set: |
+            *.context=.
+            *.cache-from=type=gha,scope=tooling
+            *.cache-to=type=gha,scope=tooling,mode=max
+      - name: Restore the application image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: compose.yaml
+          set: |
+            raicho.cache-from=type=gha,scope=raicho
+            raicho.cache-to=type=gha,scope=raicho,mode=max
+            gateway.cache-from=type=gha,scope=gateway
+            gateway.cache-to=type=gha,scope=gateway,mode=max
+            thunderbird.cache-from=type=gha,scope=thunderbird
+            thunderbird.cache-to=type=gha,scope=thunderbird,mode=max
       - name: Verify startup, persistence, isolation, and independent readiness
         env:
           RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance
@@ -135,20 +230,94 @@ jobs:
         run: bash automation/acceptance/remove_recorded_projects.bash
 
   connector-test:
+    needs: changes
     if: >-
+      needs.changes.outputs.code == 'true' &&
+      !github.event.pull_request.draft &&
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-test')
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Verify production connector and ten-minute idle acceptance
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver-opts: default-load=true
+      - name: Restore the tooling image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: automation/tooling/compose.yaml
+          targets: check
+          set: |
+            *.context=.
+            *.cache-from=type=gha,scope=tooling
+            *.cache-to=type=gha,scope=tooling,mode=max
+      - name: Restore the application image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: compose.yaml
+          set: |
+            raicho.cache-from=type=gha,scope=raicho
+            raicho.cache-to=type=gha,scope=raicho,mode=max
+            gateway.cache-from=type=gha,scope=gateway
+            gateway.cache-to=type=gha,scope=gateway,mode=max
+            thunderbird.cache-from=type=gha,scope=thunderbird
+            thunderbird.cache-to=type=gha,scope=thunderbird,mode=max
+      - name: Verify production connector and idle acceptance
         env:
           TMPDIR: ${{ runner.temp }}
+          # Pull requests observe two idle minutes. Pushes to main keep the full ten.
+          RAICHO_IDLE_SECONDS: ${{ github.event_name == 'pull_request' && '120' || '600' }}
           RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance
         run: setsid --wait make acceptance-connector
+      - name: Remove this job's disposable deployments
+        if: always()
+        env:
+          RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance
+        run: bash automation/acceptance/remove_recorded_projects.bash
+
+  credentials-test:
+    needs: changes
+    if: >-
+      needs.changes.outputs.code == 'true' &&
+      !github.event.pull_request.draft &&
+      !contains(github.event.pull_request.labels.*.name, 'design') &&
+      !contains(github.event.pull_request.labels.*.name, 'skip-test')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver-opts: default-load=true
+      - name: Restore the tooling image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: automation/tooling/compose.yaml
+          targets: check
+          set: |
+            *.context=.
+            *.cache-from=type=gha,scope=tooling
+            *.cache-to=type=gha,scope=tooling,mode=max
+      - name: Restore the application image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: compose.yaml
+          set: |
+            raicho.cache-from=type=gha,scope=raicho
+            raicho.cache-to=type=gha,scope=raicho,mode=max
+            gateway.cache-from=type=gha,scope=gateway
+            gateway.cache-to=type=gha,scope=gateway,mode=max
+            thunderbird.cache-from=type=gha,scope=thunderbird
+            thunderbird.cache-to=type=gha,scope=thunderbird,mode=max
       - name: Verify credential rotation, recovery, and revocation
         env:
           TMPDIR: ${{ runner.temp }}
@@ -161,17 +330,45 @@ jobs:
         run: bash automation/acceptance/remove_recorded_projects.bash
 
   compatibility-test:
+    needs: changes
     if: >-
+      needs.changes.outputs.code == 'true' &&
+      !github.event.pull_request.draft &&
       !contains(github.event.pull_request.labels.*.name, 'design') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-test')
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - id: builder
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver-opts: default-load=true
+      - name: Restore the tooling image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: automation/tooling/compose.yaml
+          targets: check
+          set: |
+            *.context=.
+            *.cache-from=type=gha,scope=tooling
+            *.cache-to=type=gha,scope=tooling,mode=max
+      - name: Restore the Thunderbird image layers
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: compose.yaml
+          targets: thunderbird
+          set: |
+            thunderbird.cache-from=type=gha,scope=thunderbird
+            thunderbird.cache-to=type=gha,scope=thunderbird,mode=max
       - name: Verify unattended mail API compatibility
         env:
+          # The mail runner calls plain docker build, which must use the warmed builder too.
+          BUILDX_BUILDER: ${{ steps.builder.outputs.name }}
           RAICHO_ACCEPTANCE_RECORD: ${{ runner.temp }}/raicho-acceptance
         run: setsid --wait make acceptance-mail
       - name: Remove this job's disposable deployments

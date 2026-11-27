@@ -1,6 +1,6 @@
 # Cache Rust builds and images
 
-- Status: accepted
+- Status: accepted, amended by `20261126-github-hosted-runners`
 - Date: 2026-10-26
 - Deciders: Barkin Simsek
 

@@ -20,11 +20,12 @@ SOURCE_SUITES = (
     'test-mailprobe',
     'test-protocol',
 )
-ACCEPTANCE_JOBS = ('runtime-test', 'connector-test', 'compatibility-test')
+ACCEPTANCE_JOBS = ('runtime-test', 'connector-test', 'credentials-test', 'compatibility-test')
 CACHE_DIRECTORY = '${{ runner.temp }}/raicho-cache'
 ACCEPTANCE_RECORD = '${{ runner.temp }}/raicho-acceptance'
 CODE_EVENTS = {'opened', 'synchronize', 'reopened'}
 METADATA_EVENTS = {'edited', 'labeled', 'unlabeled', 'ready_for_review', 'converted_to_draft'}
+DRAFT_SKIPPING_JOBS = (*ACCEPTANCE_JOBS, 'coverage')
 
 
 def pull_request_events(workflow):
@@ -65,10 +66,11 @@ class WorkflowCoverageTests(unittest.TestCase):
             with self.subTest(job=name):
                 job = self.jobs[name]
                 self.assertEqual(job['if'], self.jobs['runtime-test']['if'])
-                self.assertNotIn('needs', job)
+                self.assertEqual(job['needs'], 'changes')
 
     def test_acceptance_state_stays_where_the_docker_host_can_bind_it(self):
-        for step in self.jobs['connector-test']['steps']:
+        steps = self.jobs['connector-test']['steps'] + self.jobs['credentials-test']['steps']
+        for step in steps:
             if 'make acceptance-' in step.get('run', ''):
                 with self.subTest(step=step['name']):
                     self.assertEqual(step.get('env', {}).get('TMPDIR'), '${{ runner.temp }}')
@@ -99,12 +101,32 @@ class WorkflowCoverageTests(unittest.TestCase):
             with self.subTest(file=path):
                 self.assertIn(f'-f {path}', commands)
 
-    def test_application_job_runs_every_source_suite(self):
-        self.assertIn('make test', self.script('application-test'))
+    def test_lint_and_application_jobs_run_every_source_suite_once(self):
+        scripts = self.script('lint', 'application-test').split()
         aggregate = next(line for line in CONTAINER_MAKEFILE.read_text().splitlines() if line.startswith('test:'))
+        # The aggregate would rerun the suites the other job already ran.
+        self.assertNotIn('make test\n', self.script('lint', 'application-test') + '\n')
         for target in SOURCE_SUITES:
             with self.subTest(target=target):
                 self.assertIn(target, aggregate.split())
+                self.assertEqual(scripts.count(target), 1)
+
+    def test_image_building_jobs_restore_their_layers_before_building(self):
+        for name, job in self.jobs.items():
+            steps = job['steps']
+            first_make = next((index for index, step in enumerate(steps) if 'make ' in step.get('run', '')), None)
+            if first_make is None:
+                continue
+            restored = [
+                step['with'] for step in steps[:first_make] if step.get('uses', '').startswith('docker/bake-action@')
+            ]
+            with self.subTest(job=name):
+                self.assertIn('automation/tooling/compose.yaml', [layers['files'] for layers in restored])
+                for layers in restored:
+                    # Bake reads its definition from Git unless told to use the checkout.
+                    self.assertEqual(layers['source'], '.')
+                    self.assertIn('cache-from=type=gha', layers['set'])
+                    self.assertIn('cache-to=type=gha', layers['set'])
 
     def test_newer_pull_request_runs_cancel_older_ones(self):
         for path in sorted(WORKFLOW.parent.glob('*.yml')):
@@ -121,8 +143,28 @@ class WorkflowCoverageTests(unittest.TestCase):
         guard = yaml.load(GUARD_WORKFLOW.read_text(), Loader=yaml.BaseLoader)
         self.assertEqual(set(guard['jobs']), {'pr-guards'})
         self.assertEqual(pull_request_events(guard), CODE_EVENTS | METADATA_EVENTS)
-        self.assertEqual(pull_request_events(self.workflow), CODE_EVENTS)
+        # Leaving draft starts the jobs that drafts skip.
+        self.assertEqual(pull_request_events(self.workflow), CODE_EVENTS | {'ready_for_review'})
         self.assertNotIn('pr-guards', self.jobs)
+
+    def test_drafts_and_documentation_changes_skip_the_expensive_jobs(self):
+        self.assertNotIn('if', self.jobs['lint'])
+        self.assertNotIn('needs', self.jobs['lint'])
+        for name in (*DRAFT_SKIPPING_JOBS, 'application-test'):
+            with self.subTest(job=name):
+                job = self.jobs[name]
+                self.assertEqual(job['needs'], 'changes')
+                self.assertIn("needs.changes.outputs.code == 'true'", job['if'])
+                skips_drafts = '!github.event.pull_request.draft' in job['if']
+                self.assertEqual(skips_drafts, name in DRAFT_SKIPPING_JOBS)
+
+    def test_pull_requests_shorten_only_the_idle_observation(self):
+        seconds = {
+            step['env']['RAICHO_IDLE_SECONDS']
+            for step in self.jobs['connector-test']['steps']
+            if 'RAICHO_IDLE_SECONDS' in step.get('env', {})
+        }
+        self.assertEqual(seconds, {"${{ github.event_name == 'pull_request' && '120' || '600' }}"})
 
     def test_lint_job_runs_every_python_suite(self):
         self.assertIn('test-python', self.script('lint').split())

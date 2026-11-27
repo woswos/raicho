@@ -186,7 +186,10 @@ digest in `deploy/gateway/Dockerfile`.
 
 GitHub checkout stays at v7.0.1, pinned to
 `3d3c42e5aac5ba805825da76410c181273ba90b1`, and setup-python at
-v7.1.0, pinned to `6d4fd22b20465ccc0f7354476588e8df7c9ca0e0`. The self-hosted
+v7.1.0, pinned to `6d4fd22b20465ccc0f7354476588e8df7c9ca0e0`. Docker's
+setup-buildx-action stays at v4.4.1, pinned to
+`f87e5991a6d7451dcb8d9637bfbc97413f497069`, and bake-action at v7.5.0, pinned to
+`59cb1203cd42bcefd40a1b6d73b589e48c86040e`. The GitHub-hosted
 runners provide Docker and Compose, not the language-tool versions. Rebuild the tooling
 image after changing pins, then run the same check suite locally and in CI.
 

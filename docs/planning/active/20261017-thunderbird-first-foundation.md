@@ -178,7 +178,6 @@ are specified in the [versioning reference](../../reference/versioning.md).
 Use the same commands locally and in CI, and do not add empty jobs.
 
 - `design` pull requests skip future application build, test, coverage, and release jobs. Repository integrity checks still run.
-- `skip-build` skips the application build job when the diff cannot affect it.
 - `skip-test` skips test jobs and jobs that depend on them.
 - `skip-coverage-check` skips only the patch-coverage gate.
 - Expose patch coverage through `make check-patch-coverage`. Require 90% of changed executable lines, excluding tests, generated files, and vendored code.

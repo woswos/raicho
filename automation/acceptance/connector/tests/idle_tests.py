@@ -16,9 +16,9 @@ class ConnectorIdleTests(unittest.TestCase):
     def pause(self, seconds):
         self.elapsed += seconds
 
-    def observe(self, sample):
+    def observe(self, sample, seconds=600):
         return observe_idle(
-            seconds=600,
+            seconds=seconds,
             sample=sample,
             clock=lambda: self.elapsed,
             pause=self.pause,
@@ -31,6 +31,13 @@ class ConnectorIdleTests(unittest.TestCase):
 
         self.observe(sample)
         self.assertEqual(self.elapsed, 600)
+
+    def test_observes_only_the_requested_duration(self):
+        def sample():
+            return self.sample | {'heartbeat_count': 1 + self.elapsed // 15}
+
+        self.observe(sample, seconds=120)
+        self.assertEqual(self.elapsed, 120)
 
     def test_reconnection_cannot_pass_as_persistent_background_activity(self):
         def sample():
