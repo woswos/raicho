@@ -79,9 +79,10 @@ export default defineConfig(
         },
         {
           selector: [
-            "CallExpression[callee.object.name='document'][callee.property.name=/^(write|writeln)$/]",
-            "CallExpression[callee.object.name='document'][callee.property.value=/^(write|writeln)$/]",
-          ].join(', '),
+            'CallExpression > MemberExpression.callee',
+            ":matches([object.name='document'], [object.property.name='document'], [object.property.value='document'])",
+            ':matches([property.name=/^(write|writeln)$/], [property.value=/^(write|writeln)$/])',
+          ].join(''),
           message: 'Render mail text as JSX text instead of raw HTML.',
         },
       ],
