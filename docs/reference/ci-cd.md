@@ -197,8 +197,8 @@ that check and says so.
 CodeRabbit and Kilo review pull requests outside CI. `.coderabbit.yaml` turns on
 CodeRabbit approvals (`reviews.auto_approvals.enabled`,
 which replaces the deprecated `request_changes_workflow`). CodeRabbit then
-requests changes for blocking findings and approves when its threads are
-resolved and its checks pass. A top-level `@coderabbitai approve` comment also
+requests changes for blocking findings and approves once it has reviewed the
+latest commit, its threads are resolved, and its checks pass. A top-level `@coderabbitai approve` comment also
 approves, including from the pull request author. Either approval satisfies the
 one approving review that `main` requires. Its other checks keep their defaults.
 
