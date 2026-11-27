@@ -15,6 +15,7 @@ class RunnerCleanupTests(unittest.TestCase):
             index for index, line in enumerate(commands) if line.endswith('mailprobe.tests.profile.moz_log')
         )
         teardown_index = next(index for index, line in enumerate(commands) if 'down --volumes --remove-orphans' in line)
+        self.assertIn(' run --rm --no-deps ', commands[thunderbird_log_index])
         self.assertLess(max(evidence_index, logs_index, thunderbird_log_index), teardown_index)
         removal = next(line for line in commands if line.startswith('image rm '))
         images = removal.split()[2:]
