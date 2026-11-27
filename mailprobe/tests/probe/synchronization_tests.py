@@ -139,6 +139,21 @@ class SynchronizationTests(unittest.TestCase):
         self.assertEqual(evidence['seconds_before_polling'], 200)
         self.assertFalse(evidence['results']['INBOX']['found'])
 
+    def test_run_records_evidence_when_listing_misses_an_expired_deadline(self):
+        client = Mock()
+        client.call.return_value = BEFORE_CREATION
+        with (
+            patch('mailprobe.tests.probe.scenario_synchronization.time.time', return_value=1000.0),
+            patch('mailprobe.tests.probe.scenario_synchronization.time.monotonic', return_value=0.0),
+        ):
+            with self.assertRaisesRegex(AssertionError, 'did not list'):
+                scenario_synchronization.run(client, restarted_at=800.0)
+        client.command.assert_not_called()
+        self.assertEqual(client.record.call_args.args[0], 'synchronization')
+        evidence = client.record.call_args.args[1]
+        self.assertIsNone(evidence['listing_seconds'])
+        self.assertEqual(evidence['results'], {})
+
 
 if __name__ == '__main__':
     unittest.main()

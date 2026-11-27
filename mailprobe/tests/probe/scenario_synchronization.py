@@ -101,18 +101,19 @@ def run(client, restarted_at=None):
     deadline = time.monotonic() + DEADLINE_SECONDS
     if restarted_at is not None:
         deadline -= time.time() - restarted_at
-    folders, listing_seconds = listed_folders(client, deadline - time.monotonic())
-    seconds_before_polling = round(time.monotonic() - (deadline - DEADLINE_SECONDS))
-    results = {folder: discover(client, folder, identifier, deadline) for folder, identifier in folders.items()}
-    client.record(
-        'synchronization',
-        {
-            'deadline_seconds': DEADLINE_SECONDS,
-            'seconds_before_polling': seconds_before_polling,
-            'listing_seconds': listing_seconds,
-            'folder_selection': 'never',
-            'results': results,
-        },
-    )
-    missing = [folder for folder, result in results.items() if not result['found']]
+    evidence = {
+        'deadline_seconds': DEADLINE_SECONDS,
+        'seconds_before_polling': None,
+        'listing_seconds': None,
+        'folder_selection': 'never',
+        'results': {},
+    }
+    try:
+        folders, evidence['listing_seconds'] = listed_folders(client, deadline - time.monotonic())
+        evidence['seconds_before_polling'] = round(time.monotonic() - (deadline - DEADLINE_SECONDS))
+        for folder, identifier in folders.items():
+            evidence['results'][folder] = discover(client, folder, identifier, deadline)
+    finally:
+        client.record('synchronization', evidence)
+    missing = [folder for folder, result in evidence['results'].items() if not result['found']]
     assert not missing, f'Messages delivered while Thunderbird was stopped were not discovered: {missing}'
