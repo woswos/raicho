@@ -27,10 +27,12 @@ def command_name(line: bytes) -> str:
 
 
 def relay_commands(client, upstream, reply, state, log=None) -> None:
+    continued = False
     while line := read_line(client):
         if log is not None:
-            log(command_name(line))
+            log('continuation' if continued else command_name(line))
         literal = LITERAL.search(line)
+        continued = literal is not None
         append = APPEND.match(line)
         if append is not None and state.setting('imap') == 'reject_sent_append':
             if literal is not None and literal.group(2):
@@ -39,6 +41,7 @@ def relay_commands(client, upstream, reply, state, log=None) -> None:
                     raise ValueError('Invalid fixture IMAP APPEND terminator')
             reply(append.group(1) + b' NO [OVERQUOTA] Fixture rejects Sent APPEND\r\n')
             state.record('sent_append_rejected')
+            continued = False
             continue
         write(upstream, line)
         if literal is not None:
