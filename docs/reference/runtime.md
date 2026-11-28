@@ -145,11 +145,13 @@ and a larger body or a path that is not UTF-8 also fails with `invalid_request`.
 [`protocol/schema/api.schema.json`](../../protocol/schema/api.schema.json) defines
 every document these routes return, and errors carry an enumerated code.
 
-Mail routes pass opaque handles to the backend. A summary page returns a cursor
-that only its own session can use once, and a session keeps at most 4 of them
-among 16 overall, each for 5 minutes. Logout closes that session's cursors. Mail
-in a response is never written to SQLite or logs. The
-[login runbook](../operations/browser-login.md) covers cookies, expiry, and HTTPS.
+Mail routes pass opaque handles to the backend. A summary page replaces the
+backend's cursor with a random 32-character lowercase hex cursor that only its own
+session can use once, and a session keeps at most 4 of them among 16 overall,
+each for 5 minutes. Logout closes that session's cursors, and a page request that
+fails closes the backend cursor it used. Mail in a response is never written to
+SQLite or logs. The [login runbook](../operations/browser-login.md) covers
+cookies, expiry, and HTTPS.
 
 `RAICHO_CONNECTOR_BIND` defaults to `0.0.0.0:8082` and serves only the internal
 WebSocket route `/connector/v1`. Compose never publishes it. Authentication and

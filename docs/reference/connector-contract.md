@@ -49,11 +49,10 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
   `status_validator_generated.js`, and shared documents in
   `protocol/fixtures/status/` run against the Rust and browser validators.
 - [Browser API schema](../../protocol/schema/api.schema.json): the JSON documents
-  that the mail routes return. It generates the browser's `web/src/api_generated.ts`
-  types and bundled `api_validator_generated.js`. No route returns these documents
-  yet, and stage 3 of the [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md#stages)
-  adds the routes and their response validation. Its handles are opaque and never
-  Thunderbird identifiers.
+  that the session, preference, and mail routes return. It generates the browser's
+  `web/src/api_generated.ts` types and bundled `api_validator_generated.js`. The
+  server's route tests check every response body against its route's document.
+  Its handles are opaque and never Thunderbird identifiers.
 - [Shared fixtures](../../protocol/fixtures/): the same accepted/rejected frames,
   phases, expected generations, and error codes run in both languages.
 - [Rust crate](../../protocol/rust/src/lib.rs): generated types and limits, and a
@@ -234,15 +233,17 @@ pending request as disconnected. Request identifiers stop at
 so the connector reconnects. No request is retried after a failure, timeout, or
 disconnect.
 
-`raicho_server::mail::ConnectorBackend` maps these results to the browser contract.
-It prefixes every handle and cursor with the session generation, so a handle from
-an earlier connection fails as stale before any frame is sent. It joins mailbox
-pages up to 1000 mailboxes per account and reports the rest as truncated. A
-mailbox page with a cursor must carry at least one mailbox. Otherwise the backend
-fails the listing, and it also fails a listing whose continuation fails. In both
-cases it requests a close of the list it was reading. That close is not retried,
-so a close that fails, for example as busy, leaves the list open until the
-connector's idle limit.
+`raicho_server::mail::ConnectorBackend` maps these results to the backend-neutral
+mail contract. It prefixes every handle and cursor with the session generation, so
+a handle from an earlier connection fails as stale before any frame is sent. The
+HTTP routes pass handles to the browser unchanged but keep backend cursors on the
+server, as the [runtime reference](runtime.md#http-and-configuration) describes.
+The backend joins mailbox pages up to 1000 mailboxes per account and reports the
+rest as truncated. A mailbox page with a cursor must carry at least one mailbox.
+Otherwise the backend fails the listing, and it also fails a listing whose
+continuation fails. In both cases it requests a close of the list it was reading.
+That close is not retried, so a close that fails, for example as busy, leaves the
+list open until the connector's idle limit.
 
 ## Versioning
 
