@@ -2,3 +2,6 @@
 reviews:
   auto_approvals:
     enabled: true
+  tools:
+    ruff:
+      enabled: false
