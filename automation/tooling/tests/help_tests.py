@@ -29,7 +29,9 @@ class HelpTests(unittest.TestCase):
         for target in make_list('CONTAINER_TARGETS') + make_list('HOST_TARGETS'):
             with self.subTest(target=target):
                 if target.startswith(('deploy-connector-', 'deploy-login-')):
-                    self.assertIn(target.split('-', 2)[2], guide)
+                    heading = 'Connector credentials' if target.startswith('deploy-connector-') else 'Browser login'
+                    section = guide.split(f'\n{heading}\n', 1)[1].split('\n\n', 1)[0]
+                    self.assertRegex(section, rf'(?<![\w-]){re.escape(target.split("-", 2)[2])}(?![\w-])')
                 elif target not in commands:
                     # A family member such as lint-bash may appear in its parent's list.
                     self.assertTrue(any(target.startswith(f'{command}-') for command in commands))
