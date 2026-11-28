@@ -29,7 +29,9 @@ pub(super) async fn send_text(socket: &mut (impl Sink<Message> + Unpin), text: S
         .map_err(|_| Failure::new(BackendError::Disconnected))
 }
 
-// A draining peer leaves at most a request and a cancel per pending request unwritten, beside one ping.
+// Each pending request leaves at most its request and its cancel queued, beside one ping. A slot
+// frees when its reply arrives or its deadline passes, so for a peer that answers only requests it
+// has read, a full queue means frames waited longer than a request deadline.
 const OUTBOX_FRAMES: usize = 2 * MAXIMUM_PENDING_REQUESTS + 1;
 
 /// Sealed frames that the session's one writer sends in order while reads continue.
