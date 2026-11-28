@@ -59,10 +59,25 @@ fn check_schema_bounds(message: &Value) -> Result<(), ContractError> {
     if capabilities.is_some_and(|capabilities| !capabilities.is_empty())
         || oversized("sequence")
         || oversized("request_id")
+        || contains_null(message)
     {
         return Err(ContractError::InvalidMessage);
     }
     Ok(())
+}
+
+// The schema allows no null, but Serde reads one as an omitted optional member.
+fn contains_null(message: &Value) -> bool {
+    let mut pending = vec![message];
+    while let Some(value) = pending.pop() {
+        match value {
+            Value::Null => return true,
+            Value::Array(values) => pending.extend(values),
+            Value::Object(properties) => pending.extend(properties.values()),
+            _ => {}
+        }
+    }
+    false
 }
 
 fn check_wire_values(message: &Value) -> Result<(), ContractError> {
@@ -72,8 +87,6 @@ fn check_wire_values(message: &Value) -> Result<(), ContractError> {
             return Err(ContractError::InvalidMessage);
         }
         match value {
-            // The schema allows no null, but Serde reads one as an omitted optional member.
-            Value::Null => return Err(ContractError::InvalidMessage),
             Value::String(text) if text.chars().any(is_c0_control) => {
                 return Err(ContractError::InvalidMessage);
             }

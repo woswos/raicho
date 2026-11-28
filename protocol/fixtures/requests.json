@@ -413,6 +413,24 @@
     }
   },
   {
+    "name": "later version with a null member",
+    "phase": "server_control",
+    "valid": false,
+    "error": "incompatible_version",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "request",
+      "protocol_version": 3,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "operation": {
+        "name": "list_accounts",
+        "account": null
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
     "name": "closed reply",
     "phase": "client_control",
     "valid": true,
