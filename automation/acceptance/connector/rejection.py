@@ -69,7 +69,7 @@ def reject(mail=False):
         assert json.loads(contents)['type'] == 'challenge'
         payload = {
             'type': 'authenticate',
-            'protocol_version': 1,
+            'protocol_version': 2,
             'client_nonce': secrets.token_hex(32),
             'client_proof': secrets.token_hex(32),
             'backend_kind': 'thunderbird',

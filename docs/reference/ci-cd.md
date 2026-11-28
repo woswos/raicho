@@ -200,7 +200,10 @@ which replaces the deprecated `request_changes_workflow`). CodeRabbit then
 requests changes for blocking findings and approves once it has reviewed the
 latest commit, its threads are resolved, and its checks pass. A top-level `@coderabbitai approve` comment also
 approves, including from the pull request author. Either approval satisfies the
-one approving review that `main` requires. Its other checks keep their defaults.
+one approving review that `main` requires. CodeRabbit's Ruff is off because
+CodeRabbit runs a newer Ruff than the `required-version` pin in `pyproject.toml`
+allows, so it fails without results. The `lint` job runs Ruff at the pinned
+version. Its other checks keep their defaults.
 
 ## Labels
 

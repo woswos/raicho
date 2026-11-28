@@ -93,7 +93,7 @@ impl Fixture {
 
 pub fn authentication(character: &str, server_nonce: &str) -> Value {
     let token = character.repeat(64);
-    let mut message = json!({"type":"authenticate", "protocol_version":1,
+    let mut message = json!({"type":"authenticate", "protocol_version":2,
         "backend_kind":"thunderbird", "backend_version":"140.4.0",
         "connector_version":"0.1.0", "capabilities":[],
         "client_nonce":"c".repeat(64), "client_proof":"0".repeat(64)});

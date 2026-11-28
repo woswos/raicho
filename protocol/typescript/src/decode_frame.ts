@@ -15,12 +15,13 @@ export class ContractError extends Error {
   }
 }
 
+// Without C0 controls or unpaired surrogates, canonical JSON escapes only quotation marks and backslashes.
 function hasValidWireValues(value: unknown): boolean {
   const pending: unknown[] = [value];
   while (pending.length !== 0) {
     const current = pending.pop();
     if (typeof current === 'string') {
-      if (/[^\x20-\x7e]/u.test(current)) return false;
+      if (/\p{Cs}/u.test(current) || [...current].some((character) => character < ' ')) return false;
     } else if (typeof current === 'number') {
       if (!Number.isFinite(current)) return false;
     } else if (current !== null && typeof current === 'object') {
@@ -60,8 +61,8 @@ function checkPhase(message: ConnectorMessage, phase: Phase, generation: string 
     authentication: ['authenticate'],
     challenge: ['challenge', 'error'],
     handshake: ['welcome', 'error'],
-    client_control: ['pong'],
-    server_control: ['ping', 'error'],
+    client_control: ['pong', 'reply'],
+    server_control: ['ping', 'error', 'request', 'cancel'],
   };
   if (!accepted[phase].includes(message.type)) {
     throw new ContractError('unexpected_message');

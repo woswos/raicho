@@ -4,69 +4,69 @@
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[],\"connector_version\":\"0.1.0\"}"
+    "raw": "{\"type\":\"authenticate\",\"protocol_version\":2,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[],\"connector_version\":\"0.1.0\"}"
   },
   {
     "name": "escaped duplicate key",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[],\"connector_versio\\u006e\":\"0.1.0\"}"
+    "raw": "{\"type\":\"authenticate\",\"protocol_version\":2,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[],\"connector_versio\\u006e\":\"0.1.0\"}"
   },
   {
     "name": "overwritten unpaired surrogate",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"connector_version\":\"\\ud800\",\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
+    "raw": "{\"connector_version\":\"\\ud800\",\"type\":\"authenticate\",\"protocol_version\":2,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
   },
   {
     "name": "overwritten non finite number",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"connector_version\":1e400,\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
+    "raw": "{\"connector_version\":1e400,\"type\":\"authenticate\",\"protocol_version\":2,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
   },
   {
     "name": "overwritten deep value",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"connector_version\":[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[0]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]],\"type\":\"authenticate\",\"protocol_version\":1,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
+    "raw": "{\"connector_version\":[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[0]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]],\"type\":\"authenticate\",\"protocol_version\":2,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
   },
   {
     "name": "duplicate before unsupported version",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"protocol_version\":1,\"protocol_version\":2}"
+    "raw": "{\"protocol_version\":2,\"protocol_version\":3}"
   },
   {
     "name": "nested duplicate key in an object",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"protocol_version\":2,\"extra\":{\"member\":1,\"member\":2}}"
+    "raw": "{\"protocol_version\":3,\"extra\":{\"member\":1,\"member\":2}}"
   },
   {
     "name": "nested duplicate key in an array",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"protocol_version\":2,\"extra\":[{\"member\":1,\"member\":2}]}"
+    "raw": "{\"protocol_version\":3,\"extra\":[{\"member\":1,\"member\":2}]}"
   },
   {
     "name": "near integer decimal rounds consistently",
     "phase": "authentication",
     "valid": true,
-    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1.00000000000000011102230246251565404236316680908203125,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
+    "raw": "{\"type\":\"authenticate\",\"protocol_version\":2.0000000000000002220446049250313080847263336181640625,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
   },
   {
     "name": "decimal above midpoint is fractional",
     "phase": "authentication",
     "valid": false,
     "error": "invalid_message",
-    "raw": "{\"type\":\"authenticate\",\"protocol_version\":1.00000000000000011102230246251565404236316680908203126,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
+    "raw": "{\"type\":\"authenticate\",\"protocol_version\":2.0000000000000002220446049250313080847263336181640626,\"client_nonce\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"client_proof\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"backend_kind\":\"thunderbird\",\"backend_version\":\"153.5.0\",\"connector_version\":\"0.1.0\",\"capabilities\":[]}"
   },
   {
     "name": "duplicate control protocol version",
@@ -74,7 +74,7 @@
     "valid": false,
     "error": "invalid_message",
     "generation": "0123456789abcdef0123456789abcdef",
-    "raw": "{\"type\":\"ping\",\"protocol_version\":1,\"protocol_version\":1,\"generation\":\"0123456789abcdef0123456789abcdef\",\"sequence\":1}"
+    "raw": "{\"type\":\"ping\",\"protocol_version\":2,\"protocol_version\":2,\"generation\":\"0123456789abcdef0123456789abcdef\",\"sequence\":1}"
   },
   {
     "name": "escaped duplicate control sequence",
@@ -82,6 +82,6 @@
     "valid": false,
     "error": "invalid_message",
     "generation": "0123456789abcdef0123456789abcdef",
-    "raw": "{\"type\":\"ping\",\"protocol_version\":1,\"generation\":\"0123456789abcdef0123456789abcdef\",\"sequence\":1,\"\\u0073equence\":1}"
+    "raw": "{\"type\":\"ping\",\"protocol_version\":2,\"generation\":\"0123456789abcdef0123456789abcdef\",\"sequence\":1,\"\\u0073equence\":1}"
   }
 ]

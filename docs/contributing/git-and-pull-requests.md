@@ -37,7 +37,9 @@ Create both design and implementation PRs as drafts. Convert a PR with
 approved making it ready. Passing CI or an automated review does not authorize
 that transition.
 
-Add review fixes to a pushed branch as new commits on top. Rewrite pushed history
+Add review fixes to a pushed branch as new commits on top.
+[Review findings](workflow.md#review-findings) says when a fix needs approval.
+Rewrite pushed history
 only for a critical problem, such as a leaked secret or a commit that must never
 reach `main`, and say so in the pull request. Rebasing a branch onto its updated
 base is not such a rewrite.

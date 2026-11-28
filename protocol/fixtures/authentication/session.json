@@ -1,47 +1,105 @@
 {
   "server_key": "576859f066a9591fc73a3b4c960f746947d5f9c0a3599da9e86c5ef7a5807a53",
-  "transcript": "raicho-connector-authentication\n1\n1111111111111111111111111111111122222222222222222222222222222222\n3333333333333333333333333333333344444444444444444444444444444444\nthunderbird\n153.5.0\n0.1.0\n0",
+  "transcript": "raicho-connector-authentication\n2\n1111111111111111111111111111111122222222222222222222222222222222\n3333333333333333333333333333333344444444444444444444444444444444\nthunderbird\n153.5.0\n0.1.0\n0",
   "generation": "0123456789abcdef0123456789abcdef",
-  "session_key": "b45eb947e68a9975c324e4cf3de1b0c1b2d1876053efe0461f1eac25f52fef41",
+  "session_key": "c2b7bc86dfdf7dd043722001c67e8bd6890a48516c7e36565348c12892e9f7f6",
   "frames": [
     {
       "sender": "server",
       "counter": 0,
       "message": {
         "type": "ping",
-        "protocol_version": 1,
+        "protocol_version": 2,
         "generation": "0123456789abcdef0123456789abcdef",
         "sequence": 1,
-        "mac": "729c88c93a579cc86fc2aad93bc831358f0998983ec86dec5284bc69931eaeeb"
+        "mac": "519a94f7b17b8bfa5648e27ef2e10212940ae88fe59f33abed6b7e1134f7c798"
       },
-      "canonical": "{\"generation\":\"0123456789abcdef0123456789abcdef\",\"protocol_version\":1,\"sequence\":1,\"type\":\"ping\"}",
-      "mac": "729c88c93a579cc86fc2aad93bc831358f0998983ec86dec5284bc69931eaeeb"
+      "canonical": "{\"generation\":\"0123456789abcdef0123456789abcdef\",\"protocol_version\":2,\"sequence\":1,\"type\":\"ping\"}",
+      "mac": "519a94f7b17b8bfa5648e27ef2e10212940ae88fe59f33abed6b7e1134f7c798"
     },
     {
       "sender": "client",
       "counter": 0,
       "message": {
         "type": "pong",
-        "protocol_version": 1,
+        "protocol_version": 2,
         "generation": "0123456789abcdef0123456789abcdef",
         "sequence": 1,
-        "mac": "f8c04ba7c6f6cdaa0d2a13389719b50b9d53b15238b5cad7e772801722003462"
+        "mac": "3f020c9dfff60be51268f7422aeef0d4737efbb241f891b0a2b703dba18675bd"
       },
-      "canonical": "{\"generation\":\"0123456789abcdef0123456789abcdef\",\"protocol_version\":1,\"sequence\":1,\"type\":\"pong\"}",
-      "mac": "f8c04ba7c6f6cdaa0d2a13389719b50b9d53b15238b5cad7e772801722003462"
+      "canonical": "{\"generation\":\"0123456789abcdef0123456789abcdef\",\"protocol_version\":2,\"sequence\":1,\"type\":\"pong\"}",
+      "mac": "3f020c9dfff60be51268f7422aeef0d4737efbb241f891b0a2b703dba18675bd"
     },
     {
       "sender": "server",
       "counter": 1,
       "message": {
         "type": "error",
-        "protocol_version": 1,
+        "protocol_version": 2,
         "generation": "0123456789abcdef0123456789abcdef",
         "code": "session_replaced",
-        "mac": "cb963064dd4766dfb84ea799f7ac250b2f3754fbbb8246e5571d13e6f6756848"
+        "mac": "07a1a20e1789528600b487dee5f43fe8c5b21e97af03c0740aee5b6da142b5cd"
       },
-      "canonical": "{\"code\":\"session_replaced\",\"generation\":\"0123456789abcdef0123456789abcdef\",\"protocol_version\":1,\"type\":\"error\"}",
-      "mac": "cb963064dd4766dfb84ea799f7ac250b2f3754fbbb8246e5571d13e6f6756848"
+      "canonical": "{\"code\":\"session_replaced\",\"generation\":\"0123456789abcdef0123456789abcdef\",\"protocol_version\":2,\"type\":\"error\"}",
+      "mac": "07a1a20e1789528600b487dee5f43fe8c5b21e97af03c0740aee5b6da142b5cd"
+    },
+    {
+      "sender": "server",
+      "counter": 2,
+      "message": {
+        "type": "request",
+        "protocol_version": 2,
+        "generation": "0123456789abcdef0123456789abcdef",
+        "request_id": 1,
+        "operation": {
+          "name": "list_messages",
+          "mailbox": "AAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "mac": "8b7a6e2483dd7375bf4d1b5709dd092bb051912d90c1db4a91094d17f795996b"
+      },
+      "canonical": "{\"generation\":\"0123456789abcdef0123456789abcdef\",\"operation\":{\"mailbox\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"name\":\"list_messages\"},\"protocol_version\":2,\"request_id\":1,\"type\":\"request\"}",
+      "mac": "8b7a6e2483dd7375bf4d1b5709dd092bb051912d90c1db4a91094d17f795996b"
+    },
+    {
+      "sender": "client",
+      "counter": 1,
+      "message": {
+        "type": "reply",
+        "protocol_version": 2,
+        "generation": "0123456789abcdef0123456789abcdef",
+        "request_id": 1,
+        "result": {
+          "kind": "messages",
+          "messages": [
+            {
+              "id": "BBBBBBBBBBBBBBBBBBBBBB",
+              "subject": "Grüße   雷 🐦 \"quoted\" \\ slash / ",
+              "author": "Zoë <zoe@raicho.test>",
+              "recipients": "",
+              "date": "2026-11-03T08:00:00Z",
+              "read": false,
+              "flagged": true
+            }
+          ],
+          "cursor": "CCCCCCCCCCCCCCCCCCCCCC"
+        },
+        "mac": "c2fb0f26a32326d3f2b19170e51b67e173812ce460150e1da075ec9270ab1e21"
+      },
+      "canonical": "{\"generation\":\"0123456789abcdef0123456789abcdef\",\"protocol_version\":2,\"request_id\":1,\"result\":{\"cursor\":\"CCCCCCCCCCCCCCCCCCCCCC\",\"kind\":\"messages\",\"messages\":[{\"author\":\"Zoë <zoe@raicho.test>\",\"date\":\"2026-11-03T08:00:00Z\",\"flagged\":true,\"id\":\"BBBBBBBBBBBBBBBBBBBBBB\",\"read\":false,\"recipients\":\"\",\"subject\":\"Grüße   雷 🐦 \\\"quoted\\\" \\\\ slash / \"}]},\"type\":\"reply\"}",
+      "mac": "c2fb0f26a32326d3f2b19170e51b67e173812ce460150e1da075ec9270ab1e21"
+    },
+    {
+      "sender": "server",
+      "counter": 3,
+      "message": {
+        "type": "cancel",
+        "protocol_version": 2,
+        "generation": "0123456789abcdef0123456789abcdef",
+        "request_id": 1,
+        "mac": "8eefba5cf524cddb111854cae36a92fd7830372ee41dab66d993bc26e05b080b"
+      },
+      "canonical": "{\"generation\":\"0123456789abcdef0123456789abcdef\",\"protocol_version\":2,\"request_id\":1,\"type\":\"cancel\"}",
+      "mac": "8eefba5cf524cddb111854cae36a92fd7830372ee41dab66d993bc26e05b080b"
     }
   ],
   "canonical": [
@@ -64,6 +122,12 @@
         }
       },
       "canonical": "{\"nested\":{\"mac\":1}}"
+    },
+    {
+      "value": {
+        "text": "Grüße   🐦 "
+      },
+      "canonical": "{\"text\":\"Grüße   🐦 \"}"
     }
   ]
 }

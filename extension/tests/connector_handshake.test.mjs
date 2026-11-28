@@ -24,7 +24,7 @@ test('answers the challenge with a proof, never the token, and accepts a proven 
     { ...authenticate, client_nonce: '', client_proof: '' },
     {
       type: 'authenticate',
-      protocol_version: 1,
+      protocol_version: 2,
       backend_kind: 'thunderbird',
       backend_version: '153.5.0',
       connector_version: '0.2.0',
@@ -71,7 +71,7 @@ for (const message of [
   new Uint8Array([1]),
   welcome,
   ping,
-  { type: 'error', protocol_version: 1, code: 'authentication_failed' },
+  { type: 'error', protocol_version: 2, code: 'authentication_failed' },
 ]) {
   test(`retries an unproven server before its challenge: ${String(message).slice(0, 20)}`, async () => {
     const fixture = connectorFixture();
@@ -84,7 +84,7 @@ for (const message of [
 
 for (const [name, change] of [
   ['forged signature', (message) => ({ ...message, server_signature: 'e'.repeat(64) })],
-  ['another protocol version', (message) => ({ ...message, protocol_version: 2 })],
+  ['another protocol version', (message) => ({ ...message, protocol_version: 3 })],
   ['removed heartbeat field', (message) => ({ ...message, heartbeat_timeout_ms: 45000 })],
   ['mail capability', (message) => ({ ...message, capabilities: ['mail'] })],
   ['invalid generation', (message) => ({ ...message, generation: 'bad' })],
@@ -121,7 +121,7 @@ for (const code of [
     await socket.handshake();
     await socket.receiveSealed({
       type: 'error',
-      protocol_version: 1,
+      protocol_version: 2,
       code,
       generation,
     });
@@ -136,7 +136,7 @@ test('retries an unproven replacement but stops on an authenticated one', async 
   await pending.receive(challenge);
   await pending.receive({
     type: 'error',
-    protocol_version: 1,
+    protocol_version: 2,
     code: 'session_replaced',
   });
   assertRetried(unproven, pending);
@@ -145,7 +145,7 @@ test('retries an unproven replacement but stops on an authenticated one', async 
   await socket.handshake();
   await socket.receiveSealed({
     type: 'error',
-    protocol_version: 1,
+    protocol_version: 2,
     code: 'session_replaced',
     generation,
   });
@@ -163,7 +163,7 @@ test('retries every frame it cannot authenticate after proof', async () => {
     (socket) =>
       socket.receiveSealed({
         type: 'error',
-        protocol_version: 1,
+        protocol_version: 2,
         code: 'session_replaced',
         generation: 'c'.repeat(32),
       }),

@@ -139,7 +139,7 @@ async fn route_requires_exact_path_origin_and_no_query_or_subprotocol() {
 async fn authentication_rejects_version_direction_duplicate_and_oversized_messages() {
     let fixture = Fixture::new().await;
     let mut unsupported = authentication("a", &"0".repeat(64));
-    unsupported["protocol_version"] = json!(2);
+    unsupported["protocol_version"] = json!(3);
     for (frame, expected) in [
         (unsupported.to_string(), "incompatible_version"),
         (
@@ -148,7 +148,7 @@ async fn authentication_rejects_version_direction_duplicate_and_oversized_messag
         ),
         (" ".repeat(4097), "message_too_large"),
         (
-            json!({"type":"pong","protocol_version":1,"generation":"0".repeat(32),
+            json!({"type":"pong","protocol_version":2,"generation":"0".repeat(32),
                 "sequence":1,"mac":"0".repeat(64)})
             .to_string(),
             "unexpected_message",
