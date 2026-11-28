@@ -1,3 +1,5 @@
+use std::net::Ipv4Addr;
+
 use crate::error::{Error, Result};
 
 const LOOPBACK_HOSTS: [&str; 3] = ["localhost", "127.0.0.1", "[::1]"];
@@ -57,6 +59,13 @@ impl PublicOrigin {
 }
 
 fn valid_host(host: &str) -> bool {
+    // Browsers parse a host ending in a numeric label as IPv4 and send its dotted decimal form.
+    let last_label = host.rsplit('.').next().unwrap_or_default();
+    if last_label.bytes().all(|byte| byte.is_ascii_digit()) || last_label.starts_with("0x") {
+        return host
+            .parse::<Ipv4Addr>()
+            .is_ok_and(|address| address.to_string() == host);
+    }
     host == "[::1]"
         || (!host.is_empty()
             && host.len() <= 253
@@ -90,6 +99,7 @@ mod tests {
             ("http://localhost:8080", false),
             ("http://127.0.0.1:8080", false),
             ("http://[::1]:8080", false),
+            ("https://192.168.1.2:8443", true),
         ] {
             let origin = PublicOrigin::parse(value).unwrap();
             assert_eq!(origin.as_str(), value.to_ascii_lowercase());
@@ -121,6 +131,11 @@ mod tests {
             "ftp://mail.example.org",
             "mail.example.org",
             "https://",
+            "https://127.000.000.001",
+            "https://0x7f.0.0.1",
+            "https://2130706433",
+            "http://127.1:8080",
+            "https://mail.example.123",
         ] {
             assert!(PublicOrigin::parse(value).is_err(), "{value}");
         }
