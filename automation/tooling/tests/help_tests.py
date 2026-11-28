@@ -54,6 +54,16 @@ class HelpTests(unittest.TestCase):
         (self.state / 'credentials').mkdir()
         self.assertIn('connector          enrolled', make('help', RAICHO_STATE_DIRECTORY=str(self.state)))
 
+    def test_the_address_follows_the_shell_then_the_env_file(self):
+        environment = self.state / '.env'
+        environment.write_text('RAICHO_PORT=9000\n')
+        self.assertIn('http://localhost:9000', make('help', DEPLOYMENT_ENV_FILE=str(environment)))
+        environment.write_text('RAICHO_PORT=9000\nRAICHO_PUBLIC_ORIGIN="https://mail.example.test"\n')
+        self.assertIn('https://mail.example.test', make('help', DEPLOYMENT_ENV_FILE=str(environment)))
+        guide = make('help', DEPLOYMENT_ENV_FILE=str(environment), RAICHO_PUBLIC_ORIGIN='https://shell.example.test')
+        self.assertIn('https://shell.example.test', guide)
+        self.assertIn('http://localhost:8080', make('help'))
+
     def test_the_container_guide_omits_the_deployment_settings(self):
         guide = make('help', RAICHO_TOOLING_CONTAINER='1')
         self.assertIn('make deploy-up', guide)

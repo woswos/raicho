@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from automation.paths import REPOSITORY_ROOT
+from automation.testing.docker_mock import DockerMock, Response
 
 SELECTION = (
     'RAICHO_TOOLING_CONTAINER',
@@ -13,6 +14,8 @@ SELECTION = (
     'COMPOSE_PROJECT_NAME',
     'RAICHO_STATE_DIRECTORY',
     'RAICHO_COMMIT',
+    'RAICHO_PORT',
+    'RAICHO_PUBLIC_ORIGIN',
     'VERBOSE',
     'SERVICE',
     'FOLLOW',
@@ -29,7 +32,7 @@ def run_make(*arguments, **environment):
     host = {name: value for name, value in os.environ.items() if name not in SELECTION}
     return subprocess.run(
         ['make', '--no-print-directory', '-f', str(REPOSITORY_ROOT / 'Makefile'), *arguments],
-        env=host | {'TERM': 'dumb'} | environment,
+        env=host | {'TERM': 'dumb', 'DEPLOYMENT_ENV_FILE': os.devnull} | environment,
         capture_output=True,
         text=True,
     )
@@ -59,6 +62,21 @@ class DeploymentTests(unittest.TestCase):
         self.assertNotIn('compose.credentials.yaml', commands)
         self.assertNotIn('RAICHO_CREDENTIAL_DIRECTORY', commands)
         self.assertIn('compose.yaml build', commands)
+
+    def test_a_started_deployment_prints_the_origin_its_server_uses(self):
+        docker = DockerMock(
+            self.state / 'docker',
+            [Response(('printenv', 'RAICHO_PUBLIC_ORIGIN'), output='https://mail.example.test\n')],
+        )
+        for target in ('deploy-up', 'deploy-admin'):
+            with self.subTest(target=target):
+                result = run_make(target, RAICHO_STATE_DIRECTORY=str(self.state), PATH=docker.environment()['PATH'])
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn('Raicho: https://mail.example.test\n', result.stdout)
+        self.assertIn(
+            ['exec', '-T', 'raicho', 'printenv', 'RAICHO_PUBLIC_ORIGIN'],
+            [command[-5:] for command in docker.commands()],
+        )
 
     def test_an_enrolled_deployment_always_mounts_its_token(self):
         credentials = self.state / 'credentials'

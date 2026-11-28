@@ -69,7 +69,7 @@ loopback ports. RAICHO_PUBLIC_ORIGIN names the browser address. VERBOSE=1 also s
 
   make deploy-up      Build the runtime images (make images), then run
                       docker compose up -d --wait. Starts or upgrades the
-                      deployment and prints http://localhost:8080.
+                      deployment and prints the origin Raicho serves.
   make deploy-admin   deploy-up plus compose.admin.yaml, which opens the
                       Thunderbird desktop in a browser on 127.0.0.1:6080 and
                       to VNC viewers on 127.0.0.1:5900. Run

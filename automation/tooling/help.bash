@@ -30,4 +30,19 @@ if [[ -n ${DEPLOYMENT_ENROLLED:-} ]]; then
 else
     row connector "${VALUE}" 'not enrolled'
 fi
-row address "${VALUE}" "${RAICHO_PUBLIC_ORIGIN:-http://localhost:${RAICHO_PORT:-8080}}"
+# Compose prefers the shell over the .env file, then its own default.
+setting() {
+    local name="${1}"
+    local value
+    if [[ -n ${!name:-} ]]; then
+        value="${!name}"
+    elif [[ -f ${DEPLOYMENT_ENV_FILE:-} ]] && grep -q "^${name}=" "${DEPLOYMENT_ENV_FILE}"; then
+        value="$(sed -n "s/^${name}=//p" "${DEPLOYMENT_ENV_FILE}" | tail -n 1)"
+        value="${value#[\"\']}"
+        value="${value%[\"\']}"
+    else
+        value="${2}"
+    fi
+    printf '%s' "${value}"
+}
+row address "${VALUE}" "$(setting RAICHO_PUBLIC_ORIGIN "http://localhost:$(setting RAICHO_PORT 8080)")"
