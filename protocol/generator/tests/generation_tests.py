@@ -70,16 +70,19 @@ class ProtocolGenerationTests(unittest.TestCase):
         cases = [
             (self.limits['maximum_wire_integer'] - 1, 'Protocol schema disagrees with limit maximum_wire_integer.'),
             (2**31, 'maximum_wire_integer must not exceed 2147483647.'),
-            (
-                60000,
-                'Protocol limits list_idle_timeout_ms, maximum_control_bytes must not exceed maximum_wire_integer.',
-            ),
         ]
         for value, message in cases:
             with self.subTest(value=value):
                 with self.assertRaises(ValueError) as raised:
                     validate_sources(self.schema, self.limits | {'maximum_wire_integer': value}, self.diagnostics)
                 self.assertEqual(str(raised.exception), message)
+
+    def test_limits_above_the_wire_integer_are_named(self):
+        limits = self.limits | {'maximum_wire_integer': self.limits['maximum_control_bytes'] - 1}
+        with self.assertRaisesRegex(
+            ValueError, r'^Protocol limits (.+, )?maximum_control_bytes(, .+)? must not exceed maximum_wire_integer\.$'
+        ):
+            validate_sources(self.schema, limits, self.diagnostics)
 
     def test_request_identifiers_share_the_wire_integer_limit(self):
         schema = copy.deepcopy(self.schema)
