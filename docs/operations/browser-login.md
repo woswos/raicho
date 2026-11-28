@@ -15,10 +15,10 @@ make deploy-login-init
 ```
 
 The command builds the runtime images and asks for the password twice without
-echoing it. A password has 12 to 1024 bytes. Without a terminal, it reads one line
-from standard input instead. The password reaches the one-off `login` service from
-`compose.login.yaml` on standard input, never in an argument or the environment.
-SQLite keeps only its Argon2id hash.
+echoing it. A password has 12 to 1024 bytes of UTF-8 text. Without a terminal,
+it reads one line from standard input instead. The password reaches the one-off
+`login` service from `compose.login.yaml` on standard input, never in an argument
+or the environment. SQLite keeps only its Argon2id hash.
 
 Each `make deploy-login-<command>` target runs
 `bash deploy/credentials/login.bash <command>`:

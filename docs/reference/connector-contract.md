@@ -51,8 +51,10 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
 - [Browser API schema](../../protocol/schema/api.schema.json): the JSON documents
   that the session, preference, and mail routes return. It generates the browser's
   `web/src/api_generated.ts` types and bundled `api_validator_generated.js`. The
-  server's route tests check every response body against its route's document.
-  Its handles are opaque and never Thunderbird identifiers.
+  server's route tests check every success body against its route's document and
+  every error body against `ErrorDocument`. Only HEAD requests and 204, 404, and
+  405 responses may have no body. Its handles are opaque and never Thunderbird
+  identifiers.
 - [Shared fixtures](../../protocol/fixtures/): the same accepted/rejected frames,
   phases, expected generations, and error codes run in both languages.
 - [Rust crate](../../protocol/rust/src/lib.rs): generated types and limits, and a
