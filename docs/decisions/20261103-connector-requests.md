@@ -19,9 +19,9 @@ Protocol version 2 adds three frames to the signed session. The server sends
 `request` with a positive request identifier and one operation, and `cancel` to
 abandon a request. The connector answers with `reply`, which carries the same
 identifier and one result. The operations are `list_accounts`, `list_mailboxes`,
-`list_messages`, `continue_list`, and `close_list`. Results are accounts,
-mailboxes, or messages, each list with an optional cursor, `closed`, or an
-enumerated error. Handles and cursors are random 22-character tokens that the
+`list_messages`, `continue_list`, and `close_list`. Results are accounts with
+their identities, mailboxes, or message summaries, the last two with an optional
+cursor, `closed`, or an enumerated error. Handles and cursors are random 22-character tokens that the
 connector issues.
 
 String values may hold any Unicode text without C0 control characters or unpaired
