@@ -135,10 +135,12 @@ page shows the version alone when the commit is unknown. See
 `RAICHO_PUBLIC_ORIGIN` is the browser origin, which Compose defaults to
 `http://localhost:${RAICHO_PORT}`. Startup rejects a path, a scheme's default
 port, or an `http` origin whose host is not loopback. Health and status routes are
-public. The session, preference, and mail routes require the session cookie that
-`POST /api/session` sets, and answer `401` with `{"error":"unauthenticated"}`
-without it. Every request other than `GET` or `HEAD` must carry that exact `Origin`
-and `Sec-Fetch-Site: same-origin` when present, or it fails with `forbidden_origin`.
+public. `POST /api/session` signs in without a cookie, and logout succeeds without
+a current session. The other session, preference, and mail routes require the
+session cookie that sign-in sets, and answer `401` with
+`{"error":"unauthenticated"}` without it. Every request other than `GET` or
+`HEAD` must carry that exact `Origin` and `Sec-Fetch-Site: same-origin` when
+present, or it fails with `forbidden_origin`.
 Each one except the logout `DELETE`, which has no body, must also send a JSON
 content type, or it fails with `invalid_request`. Request bodies are limited to 8 KiB,
 and a larger body or a path that is not UTF-8 also fails with `invalid_request`.

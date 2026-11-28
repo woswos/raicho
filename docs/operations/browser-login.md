@@ -40,12 +40,16 @@ so set `RAICHO_PORT` and `RAICHO_PUBLIC_ORIGIN` as for `make deploy-up`.
 
 ## Sign in and sessions
 
-Open the deployment's origin, by default <http://localhost:8080>, and enter the
-password. A successful login sets an `HttpOnly`, `SameSite=Strict` cookie that
-lasts 30 days. A session also ends after 7 days without use, at logout, or after
-`reset` or `revoke`. Each browser keeps its own session, and at most 32 exist at
-once, so a new login ends the oldest. Five failed logins within a minute block
-further attempts until the oldest failure is a minute old.
+The browser page has no sign-in form yet. Slice 6 of the
+[foundation plan](../planning/active/20261017-thunderbird-first-foundation.md#stages)
+adds it. Until then, sign in with a direct `POST /api/session` request to the
+deployment's origin, by default <http://localhost:8080>. It needs an `Origin`
+header with that exact origin, `Content-Type: application/json`, and the body
+`{"password":"..."}`. A successful login sets an `HttpOnly`, `SameSite=Strict`
+cookie that lasts 30 days. A session also ends after 7 days without use, at
+logout, or after `reset` or `revoke`. Each browser keeps its own session, and at
+most 32 exist at once, so a new login ends the oldest. Five failed logins within
+a minute block further attempts until the oldest failure is a minute old.
 
 There is no email or question-based recovery. A forgotten password is replaced
 with `make deploy-login-reset` on the host.

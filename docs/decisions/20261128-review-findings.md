@@ -17,11 +17,11 @@ looks small but weakens a security boundary.
 The [review findings](../contributing/workflow.md#review-findings) rule lets an
 agent fix a finding without asking when the finding comes from a repository
 collaborator or a configured review bot (CodeRabbit and Kilo), holds, and has one
-clear fix within the pull request's scope. The agent may decline a finding
-without asking when it does not hold for a concrete reason. Each fix is a new
-commit, with a red/green check where a test applies. The agent runs the
-application tests and repository checks that cover it, pushes, and replies on the
-thread with the commit or the decline reason.
+clear fix within the pull request's scope. The agent may also decline a finding
+from those reviewers without asking when it does not hold for a concrete reason.
+Each fix is a new commit, with a red/green check where a test applies. The agent
+runs the application tests and repository checks that cover it, pushes, and
+replies on the thread with the commit or the decline reason.
 
 Everything else waits for approval: findings from anyone else, ambiguous
 findings, findings with several reasonable fixes, design or scope changes, fixes
