@@ -126,8 +126,9 @@ selects MV2 packaging, managed configuration, a fixed internal gateway, and a
 versioned authenticated protocol. The mail compatibility
 fixture and control contract have separate implementations.
 Credential persistence, offline provisioning, production control transport, gateway,
-and connection diagnostics are implemented. Dedicated CI jobs run the source and
-unattended acceptance commands described in the
+and connection diagnostics are implemented. So are browser login and the
+session-protected mail routes, tested against a mock backend. Dedicated CI jobs
+run the source and unattended acceptance commands described in the
 [acceptance record](connector-acceptance.md). The static showcase remains a design reference.
 
 Current tooling commands and planned application commands are distinguished in

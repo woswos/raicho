@@ -40,8 +40,9 @@ establish a hosted GitHub Actions result.
 
 ## Limits
 
-- Production carries authentication and heartbeat only. Browser login, mail
-  reads, mutations, and compose are planned in the
+- Production carries authentication and heartbeat only. Browser login is tested
+  against a mock backend, not in these deployments. Mail reads through
+  Thunderbird, mutations, and compose are planned in the
   [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md).
 - The [mail compatibility matrix](mail-api-compatibility.md#running-the-experiment)
   records the manual send-consent, native draft-editing, and fault evidence, and

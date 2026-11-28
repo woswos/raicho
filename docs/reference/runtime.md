@@ -167,7 +167,7 @@ default 5900, for native viewers. This administrative interface has no applicati
 authentication or VNC password. Keep it local, close it by recreating Thunderbird
 without the override, and use the Raicho page for diagnostics. The
 [native VNC decision](../decisions/20261102-native-vnc-administration.md) records
-the second port. Remote deployment and browser login are planned
+the second port. Remote deployment and the browser sign-in page are planned
 in the [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md).
 
 ## Extension installation

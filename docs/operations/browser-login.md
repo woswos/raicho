@@ -28,7 +28,7 @@ Each `make deploy-login-<command>` target runs
 | `init` | Sets the first password. It fails when one exists |
 | `reset` | Replaces the password and ends every browser session |
 | `revoke` | Ends every browser session and keeps the password |
-| `status` | Prints whether a password exists and how many sessions remain |
+| `status` | Prints whether a password exists and how many sessions are stored, including expired ones not yet removed |
 
 The wrapper selects the deployment as the
 [credential commands](connector-credentials.md#setup-and-commands) do, and holds
