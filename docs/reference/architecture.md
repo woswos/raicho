@@ -40,8 +40,8 @@ schema, generated Rust/TypeScript bindings, and bounded decoders under
 `protocol/rust/` and `protocol/typescript/`, used by the
 server and production extension. It carries authentication, heartbeat, and
 read-only mail requests, and every frame after the handshake carries a MAC under a
-per-session key. The session task is the only socket writer: HTTP handlers queue
-requests to it and await replies. The server's `mail` module defines a
+per-session key. The session task is the only socket writer: mail backend callers
+queue requests to it and await replies. The server's `mail` module defines a
 backend-neutral contract, and its connector backend scopes every handle to the
 session generation. The separate mail probe remains a test artifact.
 

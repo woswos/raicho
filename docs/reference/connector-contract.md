@@ -50,8 +50,10 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
   `protocol/fixtures/status/` run against the Rust and browser validators.
 - [Browser API schema](../../protocol/schema/api.schema.json): the JSON documents
   that the mail routes return. It generates the browser's `web/src/api_generated.ts`
-  types and bundled `api_validator_generated.js`, and server tests validate real
-  responses against it. Its handles are opaque and never Thunderbird identifiers.
+  types and bundled `api_validator_generated.js`. No route returns these documents
+  yet, and stage 3 of the [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md#stages)
+  adds the routes and their response validation. Its handles are opaque and never
+  Thunderbird identifiers.
 - [Shared fixtures](../../protocol/fixtures/): the same accepted/rejected frames,
   phases, expected generations, and error codes run in both languages.
 - [Rust crate](../../protocol/rust/src/lib.rs): generated types and limits, and a
