@@ -204,8 +204,8 @@ as `message_too_large`. The WebSocket allocation
 limit is 64 KiB even before authentication, and control frames have the same
 64 KiB limit. Writes are bounded to five seconds. The server's session task seals
 frames into a queue of 33, two per pending request and one ping, and one writer
-sends them in order while reads and deadlines continue. A full queue ends the
-session as `disconnected`. The extension maintains no application send queue.
+sends them in order while reads and deadlines continue. A push that finds the
+queue full ends the session as `disconnected`. The extension maintains no application send queue.
 The extension retries if its browser socket already has buffered data. Server
 shutdown closes sessions before releasing database ownership.
 
@@ -234,7 +234,9 @@ an earlier connection fails as stale before any frame is sent. It joins mailbox
 pages up to 1000 mailboxes per account and reports the rest as truncated. A
 mailbox page with a cursor must carry at least one mailbox. Otherwise the backend
 closes the list and fails the listing, so a connector cannot hold it open. A
-continuation that fails also closes the list it was reading.
+continuation that fails also requests a close of the list it was reading. That
+close is not retried, so a close that fails, for example as busy, leaves the list
+open until the connector's idle limit.
 
 ## Versioning
 
