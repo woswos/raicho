@@ -1,6 +1,6 @@
 use std::future::pending;
 
-use futures_util::{Sink, Stream, StreamExt};
+use futures_util::{Sink, Stream};
 use raicho_protocol::Phase;
 use raicho_protocol::channel::Channel;
 use raicho_protocol::contract_generated::{ConnectorMessage, Generation};
@@ -9,19 +9,21 @@ use tokio::time::{Instant, sleep_until};
 use tokio_tungstenite::tungstenite::{Error, Message, Utf8Bytes};
 
 use super::heartbeat::Heartbeat;
+use super::outbox::{Outbox, Outgoing};
 use super::requests::{Queue, Requests};
-use super::{Connector, failure::Failure, transport};
+use super::transport;
+use super::{Connector, failure::Failure};
 
 pub(super) async fn run(
-    socket: &mut (impl Stream<Item = Result<Message, Error>> + Sink<Message> + Unpin),
+    reader: &mut (impl Stream<Item = Result<Message, Error>> + Unpin),
     connector: &Connector,
     generation: &Generation,
     channel: &mut Channel,
     queue: &mut Queue,
+    outbox: &Outbox,
+    outgoing: &mut Outgoing<impl Sink<Message> + Unpin>,
 ) -> Failure {
-    let (mut sink, mut stream) = socket.split();
-    let (outbox, frames) = transport::outbox();
-    let writer = transport::write_all(&mut sink, frames);
+    let writer = outgoing.write_all();
     tokio::pin!(writer);
     let mut heartbeat = Heartbeat::new();
     let mut requests = Requests::new();
@@ -32,12 +34,12 @@ pub(super) async fn run(
         let result = tokio::select! {
             biased;
             failure = &mut writer => Err(failure),
-            received = transport::receive_text(&mut stream) => {
+            received = transport::receive_text(reader) => {
                 accept(received, connector, generation, channel, &mut heartbeat, &mut requests)
             },
-            _ = sleep_until(heartbeat.deadline) => heartbeat.send_ping(&outbox, generation, channel),
-            _ = expiry(request_deadline) => requests.expire(&outbox, generation, channel),
-            Some(exchange) = queue.recv(), if has_room => requests.send(&outbox, generation, channel, exchange),
+            _ = sleep_until(heartbeat.deadline) => heartbeat.send_ping(outbox, generation, channel),
+            _ = expiry(request_deadline) => requests.expire(outbox, generation, channel),
+            Some(exchange) = queue.recv(), if has_room => requests.send(outbox, generation, channel, exchange),
         };
         if let Err(failure) = result {
             return failure;

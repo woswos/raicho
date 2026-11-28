@@ -205,7 +205,10 @@ limit is 64 KiB even before authentication, and control frames have the same
 64 KiB limit. Writes are bounded to five seconds. The server's session task seals
 frames into a queue of 33, two per pending request and one ping, and one writer
 sends them in order while reads and deadlines continue. A push that finds the
-queue full ends the session as `disconnected`. The extension maintains no application send queue.
+queue full ends the session as `disconnected`. When a session ends, the server sends
+the frames already sealed before its error frame, within the same five seconds, so
+the connector can authenticate the error frame's counter. The extension maintains no
+application send queue.
 The extension retries if its browser socket already has buffered data. Server
 shutdown closes sessions before releasing database ownership.
 

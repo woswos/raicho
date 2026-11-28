@@ -1,11 +1,8 @@
-use std::future::pending;
 use std::time::Duration;
 
 use futures_util::{Sink, SinkExt, Stream, StreamExt};
 use raicho_protocol::diagnostics_generated::BackendError;
-use raicho_protocol::limits_generated::MAXIMUM_PENDING_REQUESTS;
 use serde::Serialize;
-use tokio::sync::mpsc;
 use tokio_tungstenite::tungstenite::error::{Error, ProtocolError};
 use tokio_tungstenite::tungstenite::{Message, Utf8Bytes};
 
@@ -27,40 +24,6 @@ pub(super) async fn send_text(socket: &mut (impl Sink<Message> + Unpin), text: S
         .await
         .map_err(|_| Failure::new(BackendError::Disconnected))?
         .map_err(|_| Failure::new(BackendError::Disconnected))
-}
-
-// Each pending request leaves at most its request and its cancel queued, beside one ping. Frames
-// leave in order, so for a peer that answers only requests it has read, a slot queues a third frame
-// only after one of its requests waited unsent past its deadline. A push that finds the queue full
-// therefore means a frame waited longer than a request deadline.
-const OUTBOX_FRAMES: usize = 2 * MAXIMUM_PENDING_REQUESTS + 1;
-
-/// Sealed frames that the session's one writer sends in order while reads continue.
-pub(super) struct Outbox(mpsc::Sender<String>);
-
-impl Outbox {
-    pub fn push(&self, text: String) -> Result<(), Failure> {
-        self.0
-            .try_send(text)
-            .map_err(|_| Failure::new(BackendError::Disconnected))
-    }
-}
-
-pub(super) fn outbox() -> (Outbox, mpsc::Receiver<String>) {
-    let (sender, receiver) = mpsc::channel(OUTBOX_FRAMES);
-    (Outbox(sender), receiver)
-}
-
-pub(super) async fn write_all(
-    socket: &mut (impl Sink<Message> + Unpin),
-    mut frames: mpsc::Receiver<String>,
-) -> Failure {
-    while let Some(text) = frames.recv().await {
-        if let Err(failure) = send_text(socket, text).await {
-            return failure;
-        }
-    }
-    pending().await
 }
 
 pub(super) async fn receive_text(

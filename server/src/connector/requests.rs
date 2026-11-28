@@ -8,7 +8,7 @@ use raicho_protocol::limits_generated::{MAXIMUM_PENDING_REQUESTS, MAXIMUM_WIRE_I
 use tokio::sync::{mpsc, oneshot};
 use tokio::time::Instant;
 
-use super::transport::Outbox;
+use super::outbox::Outbox;
 use super::{Connector, failure::Failure, wire};
 
 pub const REQUEST_TIMEOUT: Duration = Duration::from_millis(REQUEST_TIMEOUT_MS as u64);

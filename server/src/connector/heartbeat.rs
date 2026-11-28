@@ -6,7 +6,7 @@ use raicho_protocol::diagnostics_generated::BackendError;
 use raicho_protocol::limits_generated::{HEARTBEAT_INTERVAL_MS, HEARTBEAT_TIMEOUT_MS, MAXIMUM_WIRE_INTEGER};
 use tokio::time::Instant;
 
-use super::transport::Outbox;
+use super::outbox::Outbox;
 use super::{Connector, failure::Failure, wire};
 
 pub(super) struct Heartbeat {

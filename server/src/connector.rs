@@ -5,6 +5,7 @@ mod handshake;
 mod handshake_limit;
 mod heartbeat;
 mod listener;
+mod outbox;
 mod requests;
 mod session;
 mod state;
