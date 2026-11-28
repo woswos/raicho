@@ -59,12 +59,10 @@ impl PublicOrigin {
 }
 
 fn valid_host(host: &str) -> bool {
-    // Browsers send IPv6 in compressed lowercase form, and IPv4-mapped tails as hexadecimal.
     if let Some(address) = host.strip_prefix('[').and_then(|rest| rest.strip_suffix(']')) {
-        return !address.contains('.')
-            && address
-                .parse::<Ipv6Addr>()
-                .is_ok_and(|parsed| parsed.to_string() == address);
+        return address
+            .parse::<Ipv6Addr>()
+            .is_ok_and(|parsed| browser_form(parsed) == address);
     }
     // Browsers parse a host ending in a numeric label as IPv4 and send its dotted decimal form.
     let last_label = host.rsplit('.').next().unwrap_or_default();
@@ -82,6 +80,40 @@ fn valid_host(host: &str) -> bool {
                 && !label.ends_with('-')
                 && label.bytes().all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
         })
+}
+
+/// The IPv6 form a browser's `Origin` header uses: lowercase hexadecimal pieces with the first
+/// longest run of two or more zero pieces compressed. Unlike `Ipv6Addr`'s `Display`, it never
+/// writes an IPv4-mapped tail in dotted form.
+fn browser_form(address: Ipv6Addr) -> String {
+    let pieces = address.segments();
+    let (mut run_start, mut run_length) = (0, 0);
+    let mut index = 0;
+    while index < pieces.len() {
+        let start = index;
+        while index < pieces.len() && pieces[index] == 0 {
+            index += 1;
+        }
+        if index - start > run_length {
+            (run_start, run_length) = (start, index - start);
+        }
+        index = index.max(start + 1);
+    }
+    let join = |pieces: &[u16]| {
+        pieces
+            .iter()
+            .map(|piece| format!("{piece:x}"))
+            .collect::<Vec<_>>()
+            .join(":")
+    };
+    if run_length < 2 {
+        return join(&pieces);
+    }
+    format!(
+        "{}::{}",
+        join(&pieces[..run_start]),
+        join(&pieces[run_start + run_length..])
+    )
 }
 
 // Browsers omit a scheme's default port from Origin, so a configured default port would never match.
@@ -108,6 +140,10 @@ mod tests {
             ("https://192.168.1.2:8443", true),
             ("https://[2001:db8::1]:8443", true),
             ("https://[2001:DB8::1]", true),
+            ("https://[::ffff:7f00:1]", true),
+            ("https://[2001:db8::1:0:0:1]", true),
+            ("https://[1:0:0:2::3]", true),
+            ("https://[::]", true),
         ] {
             let origin = PublicOrigin::parse(value).unwrap();
             assert_eq!(origin.as_str(), value.to_ascii_lowercase());
@@ -147,6 +183,8 @@ mod tests {
             "http://[2001:db8::1]:8080",
             "https://[2001:db8:0:0:0:0:0:1]",
             "https://[::ffff:127.0.0.1]",
+            "https://[2001:db8:0:0:1::1]",
+            "https://[2001:db8::0001]",
             "https://[mail.example.org]",
             "https://[::1",
         ] {
