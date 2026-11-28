@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::{Arc, LazyLock};
 
 use axum::Router;
@@ -6,7 +7,7 @@ use axum::http::{HeaderMap, Method, Request, StatusCode};
 use raicho_server::connector::Connector;
 use raicho_server::persistence::Database;
 use raicho_server::public_origin::PublicOrigin;
-use serde_json::Value;
+use serde_json::{Value, json};
 use tempfile::TempDir;
 use tower::ServiceExt;
 
@@ -15,13 +16,45 @@ use super::mock_backend::MockBackend;
 
 pub const PASSWORD: &str = "correct horse battery";
 
-static SCHEMA: LazyLock<jsonschema::Validator> = LazyLock::new(|| {
+const DOCUMENTS: [&str; 6] = [
+    "SessionDocument",
+    "PreferencesDocument",
+    "AccountsDocument",
+    "MailboxesDocument",
+    "MessagesDocument",
+    "ErrorDocument",
+];
+
+static VALIDATORS: LazyLock<HashMap<&str, jsonschema::Validator>> = LazyLock::new(|| {
     let schema: Value = serde_json::from_str(include_str!("../../../../protocol/schema/api.schema.json")).unwrap();
-    jsonschema::options()
-        .with_draft(jsonschema::Draft::Draft7)
-        .build(&schema)
-        .unwrap()
+    DOCUMENTS
+        .into_iter()
+        .map(|document| {
+            let definition = json!({
+                "definitions": schema["definitions"],
+                "allOf": [{ "$ref": format!("#/definitions/{document}") }],
+            });
+            let validator = jsonschema::options()
+                .with_draft(jsonschema::Draft::Draft7)
+                .build(&definition)
+                .unwrap();
+            (document, validator)
+        })
+        .collect()
 });
+
+/// The API schema document that a successful response from this path must match.
+fn document(path: &str) -> &'static str {
+    match path {
+        "/api/session" => "SessionDocument",
+        "/api/preferences" => "PreferencesDocument",
+        "/api/mail/accounts" => "AccountsDocument",
+        path if path.starts_with("/api/mail/accounts/") && path.ends_with("/mailboxes") => "MailboxesDocument",
+        path if path.starts_with("/api/mail/mailboxes/") && path.ends_with("/messages") => "MessagesDocument",
+        path if path.starts_with("/api/mail/cursors/") => "MessagesDocument",
+        path => panic!("{path} returns no API document"),
+    }
+}
 
 pub struct Response {
     pub status: StatusCode,
@@ -93,6 +126,7 @@ impl Browser {
     }
 
     pub async fn raw(&self, request: Request<Body>) -> Response {
+        let path = request.uri().path().to_owned();
         let response = self.router.clone().oneshot(request).await.unwrap();
         let status = response.status();
         let headers = response.headers().clone();
@@ -103,7 +137,15 @@ impl Browser {
             serde_json::from_slice(&bytes).unwrap()
         };
         if !body.is_null() {
-            assert!(SCHEMA.is_valid(&body), "{body} violates the API schema");
+            let document = if status.is_success() {
+                document(&path)
+            } else {
+                "ErrorDocument"
+            };
+            assert!(
+                VALIDATORS[document].is_valid(&body),
+                "{path} returned {body}, not a {document}"
+            );
         }
         Response { status, headers, body }
     }
