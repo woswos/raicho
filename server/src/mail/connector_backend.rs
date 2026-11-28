@@ -91,9 +91,16 @@ impl MailBackend for ConnectorBackend {
             name: ListMailboxesName::ListMailboxes,
         });
         let mut mailboxes = Vec::new();
+        let mut held: Option<Handle> = None;
         loop {
-            let (_, Outcome::MailboxesResult(result)) = self.request(Some(&generation), operation).await? else {
-                return Err(MailFailure::BackendFailed);
+            let result = match self.request(Some(&generation), operation).await {
+                Ok((_, Outcome::MailboxesResult(result))) => result,
+                response => {
+                    if let Some(cursor) = &held {
+                        self.close(&scoped(&generation, cursor)).await;
+                    }
+                    return Err(response.err().unwrap_or(MailFailure::BackendFailed));
+                }
             };
             if let (true, Some(cursor)) = (result.mailboxes.is_empty(), &result.cursor) {
                 self.close(&scoped(&generation, cursor)).await;
@@ -107,6 +114,7 @@ impl MailBackend for ConnectorBackend {
             }));
             match result.cursor {
                 Some(cursor) if mailboxes.len() < MAXIMUM_MAILBOXES => {
+                    held = Some(cursor.clone());
                     operation = Operation::ContinueList(ContinueList {
                         cursor,
                         name: ContinueListName::ContinueList,

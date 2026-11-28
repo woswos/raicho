@@ -254,6 +254,18 @@ async fn mailbox_listing_stops_past_the_limit_or_without_progress() {
         json!({"name":"close_list","cursor":handle('C')})
     );
     assert_eq!(listing.await.unwrap().err(), Some(MailFailure::BackendFailed));
+    let listing = tokio::spawn({
+        let backend = Arc::clone(&backend);
+        let account = account.clone();
+        async move { backend.mailboxes(&account).await }
+    });
+    connection.answer(page(0, 1, false)).await;
+    connection.answer(json!({"kind":"error","code":"busy"})).await;
+    assert_eq!(
+        connection.answer(json!({"kind":"closed"})).await,
+        json!({"name":"close_list","cursor":handle('C')})
+    );
+    assert_eq!(listing.await.unwrap().err(), Some(MailFailure::BackendBusy));
     // A finished list is not closed, so the next frame is the next request.
     let accounts = tokio::spawn({
         let backend = Arc::clone(&backend);
