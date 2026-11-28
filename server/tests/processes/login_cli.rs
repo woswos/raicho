@@ -16,7 +16,10 @@ fn login_command(directory: &Path, operation: &str, input: &[u8]) -> Output {
         .stderr(Stdio::piped())
         .spawn()
         .unwrap();
-    child.stdin.take().unwrap().write_all(input).unwrap();
+    // A rejected command can exit before it reads standard input.
+    if let Err(err) = child.stdin.take().unwrap().write_all(input) {
+        assert_eq!(err.kind(), std::io::ErrorKind::BrokenPipe, "{err}");
+    }
     child.wait_with_output().unwrap()
 }
 
