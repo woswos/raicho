@@ -97,3 +97,4 @@ verifies remote HTTPS operation end to end.
 | `forbidden_origin` | The page's address differs from `RAICHO_PUBLIC_ORIGIN`. Open the configured address, or recreate Raicho with the right origin |
 | `rate_limited` | Too many failed logins. Wait for the time in `Retry-After` |
 | `unauthenticated` | The session expired, was revoked, or belongs to another origin. Sign in again |
+| `unsupported` | Mail routes answer this until the Thunderbird adapter ships in stage 3 slice 5 |

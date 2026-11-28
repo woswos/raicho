@@ -2,7 +2,9 @@
 
 The connector contract defines connection control and read-only mail requests.
 The production Rust listener and TypeScript extension use its generated bindings
-and boundary decoders for authentication, heartbeat, and request frames. The
+and boundary decoders for authentication, heartbeat, and request frames. Until
+the Thunderbird adapter of stage 3 slice 5, the production extension rejects
+request frames and the production server sends none. The
 [acceptance record](connector-acceptance.md) describes production validation and
 the [connector plan](../planning/done/20261018-foundation-stage-two-connector.md)
 records the approved design.
@@ -240,7 +242,8 @@ mail contract. It prefixes every handle and cursor with the session generation, 
 a handle from an earlier connection fails as stale before any frame is sent. The
 HTTP routes pass handles to the browser unchanged but keep backend cursors on the
 server, as the [runtime reference](runtime.md#http-and-configuration) describes.
-The backend joins mailbox pages up to 1000 mailboxes per account and reports the
+The production server switches to this backend in slice 5 and answers mail
+requests `unsupported` until then. The backend joins mailbox pages up to 1000 mailboxes per account and reports the
 rest as truncated. A mailbox page with a cursor must carry at least one mailbox.
 Otherwise the backend fails the listing, and it also fails a listing whose
 continuation fails. In both cases it requests a close of the list it was reading.

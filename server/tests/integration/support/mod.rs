@@ -134,7 +134,8 @@ pub async fn elapse(milliseconds: usize) {
 
 pub const PUBLIC_ORIGIN: &str = "http://localhost:8080";
 
-/// The production router, with the connector backend and the default loopback origin.
+/// The router with the connector backend, which production uses from stage 3 slice 5, and the
+/// default loopback origin.
 pub fn application(database: Arc<Database>, web_dir: &std::path::Path) -> Router {
     let connector = Connector::new(Arc::clone(&database));
     let backend = Arc::new(ConnectorBackend::new(Arc::clone(&connector)));
