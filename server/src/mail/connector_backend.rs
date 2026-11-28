@@ -95,6 +95,10 @@ impl MailBackend for ConnectorBackend {
             let (_, Outcome::MailboxesResult(result)) = self.request(Some(&generation), operation).await? else {
                 return Err(MailFailure::BackendFailed);
             };
+            if let (true, Some(cursor)) = (result.mailboxes.is_empty(), &result.cursor) {
+                self.close(&scoped(&generation, cursor)).await;
+                return Err(MailFailure::BackendFailed);
+            }
             mailboxes.extend(result.mailboxes.into_iter().map(|mailbox| Mailbox {
                 id: scoped(&generation, &mailbox.id),
                 name: mailbox.name.to_string(),

@@ -229,7 +229,9 @@ disconnect.
 `raicho_server::mail::ConnectorBackend` maps these results to the browser contract.
 It prefixes every handle and cursor with the session generation, so a handle from
 an earlier connection fails as stale before any frame is sent. It joins mailbox
-pages up to 1000 mailboxes per account and reports the rest as truncated.
+pages up to 1000 mailboxes per account and reports the rest as truncated. A
+mailbox page with a cursor must carry at least one mailbox. Otherwise the backend
+closes the list and fails the listing, so a connector cannot hold it open.
 
 ## Versioning
 

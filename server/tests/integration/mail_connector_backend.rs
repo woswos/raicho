@@ -212,7 +212,7 @@ async fn mailbox_pages_stop_at_the_limit_and_close_the_list() {
 }
 
 #[tokio::test]
-async fn a_final_mailbox_page_past_the_limit_is_truncated() {
+async fn mailbox_listing_stops_past_the_limit_or_without_progress() {
     let fixture = Fixture::new().await;
     let backend = Arc::new(ConnectorBackend::new(Arc::clone(&fixture.connector)));
     let mut connection = Connection::open(&fixture).await;
@@ -227,7 +227,10 @@ async fn a_final_mailbox_page_past_the_limit_is_truncated() {
         }
         result
     };
-    for (pages, expected_truncated) in [(vec![(0, 600, false), (600, 400, true)], false), (vec![(0, 600, false), (600, 600, true)], true)] {
+    for (pages, expected_truncated) in [
+        (vec![(0, 600, false), (600, 400, true)], false),
+        (vec![(0, 600, false), (600, 600, true)], true),
+    ] {
         let listing = tokio::spawn({
             let backend = Arc::clone(&backend);
             let account = account.clone();
@@ -240,6 +243,17 @@ async fn a_final_mailbox_page_past_the_limit_is_truncated() {
         assert_eq!(mailboxes.mailboxes.len(), 1000);
         assert_eq!(mailboxes.truncated, expected_truncated);
     }
+    let listing = tokio::spawn({
+        let backend = Arc::clone(&backend);
+        let account = account.clone();
+        async move { backend.mailboxes(&account).await }
+    });
+    connection.answer(page(0, 0, false)).await;
+    assert_eq!(
+        connection.answer(json!({"kind":"closed"})).await,
+        json!({"name":"close_list","cursor":handle('C')})
+    );
+    assert_eq!(listing.await.unwrap().err(), Some(MailFailure::BackendFailed));
     // A finished list is not closed, so the next frame is the next request.
     let accounts = tokio::spawn({
         let backend = Arc::clone(&backend);
