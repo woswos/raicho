@@ -33,7 +33,8 @@ Each `make deploy-login-<command>` target runs
 The wrapper selects the deployment as the
 [credential commands](connector-credentials.md#setup-and-commands) do, and holds
 the same state directory lock. Raicho holds SQLite's instance lock, so the wrapper
-stops it for the command. It restarts Raicho only when Raicho was running before.
+stops it for the command. It restarts Raicho only when Raicho was running before,
+also after a failed command, and then exits with the command's status.
 The restart recreates Raicho from the current environment and the rebuilt image,
 so set `RAICHO_PORT` and `RAICHO_PUBLIC_ORIGIN` as for `make deploy-up`.
 

@@ -35,10 +35,12 @@ fi
 # The server holds SQLite's instance lock, so it stops for the command and restarts if it was running.
 RUNNING="$("${COMPOSE[@]}" ps --quiet --status running raicho)"
 "${COMPOSE[@]}" stop raicho
-printf '%s\n' "${PASSWORD}" | "${COMPOSE[@]}" run --rm --no-deps -T login "${OPERATION}"
+STATUS=0
+printf '%s\n' "${PASSWORD}" | "${COMPOSE[@]}" run --rm --no-deps -T login "${OPERATION}" || STATUS=${?}
 if [[ -n ${RUNNING} ]]; then
     "${COMPOSE[@]}" up -d --no-deps --wait --wait-timeout 120 raicho
     echo 'Raicho restarted.'
 else
     echo 'Raicho remains stopped.'
 fi
+exit "${STATUS}"

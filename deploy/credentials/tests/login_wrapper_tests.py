@@ -18,8 +18,11 @@ class LoginWrapperTests(unittest.TestCase):
         self.state = self.directory / 'state'
         self.state.mkdir(mode=0o700)
 
-    def run_wrapper(self, operation, running='', standard_input=f'{PASSWORD}\n'):
-        self.docker = DockerMock(self.directory / 'commands', [Response(('ps',), output=running)])
+    def run_wrapper(self, operation, running='', standard_input=f'{PASSWORD}\n', login_status=0):
+        self.docker = DockerMock(
+            self.directory / 'commands',
+            [Response(('ps',), output=running), Response(('run', 'login'), status=login_status)],
+        )
         result = subprocess.run(
             ['bash', str(WRAPPER), operation],
             env=self.docker.environment(
@@ -48,6 +51,12 @@ class LoginWrapperTests(unittest.TestCase):
         self.assertTrue(commands[3].endswith('up -d --no-deps --wait --wait-timeout 120 raicho'))
         self.assertFalse(any(PASSWORD in command for command in commands))
         self.assertNotIn(PASSWORD, result.stdout + result.stderr)
+        self.assertIn('Raicho restarted.', result.stdout)
+
+    def test_a_failed_command_still_restarts_a_running_server(self):
+        result, commands = self.run_wrapper('init', running='container\n', login_status=3)
+        self.assertEqual(result.returncode, 3, result.stderr)
+        self.assertTrue(commands[-1].endswith('up -d --no-deps --wait --wait-timeout 120 raicho'))
         self.assertIn('Raicho restarted.', result.stdout)
 
     def test_a_stopped_server_stays_stopped(self):
