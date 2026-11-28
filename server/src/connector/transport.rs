@@ -1,13 +1,15 @@
+use std::future::pending;
 use std::time::Duration;
 
-use futures_util::{Sink, SinkExt, StreamExt};
+use futures_util::{Sink, SinkExt, Stream, StreamExt};
 use raicho_protocol::diagnostics_generated::BackendError;
+use raicho_protocol::limits_generated::MAXIMUM_PENDING_REQUESTS;
 use serde::Serialize;
+use tokio::sync::mpsc;
 use tokio_tungstenite::tungstenite::error::{Error, ProtocolError};
 use tokio_tungstenite::tungstenite::{Message, Utf8Bytes};
 
 use super::failure::Failure;
-use super::handshake::Socket;
 
 // A peer that stops reading must not hold a session open indefinitely.
 pub(super) const WRITE_TIMEOUT: Duration = Duration::from_secs(5);
@@ -27,7 +29,40 @@ pub(super) async fn send_text(socket: &mut (impl Sink<Message> + Unpin), text: S
         .map_err(|_| Failure::new(BackendError::Disconnected))
 }
 
-pub(super) async fn receive_text(socket: &mut Socket) -> Result<Utf8Bytes, Failure> {
+// A draining peer leaves at most a request and a cancel per pending request unwritten, beside one ping.
+const OUTBOX_FRAMES: usize = 2 * MAXIMUM_PENDING_REQUESTS + 1;
+
+/// Sealed frames that the session's one writer sends in order while reads continue.
+pub(super) struct Outbox(mpsc::Sender<String>);
+
+impl Outbox {
+    pub fn push(&self, text: String) -> Result<(), Failure> {
+        self.0
+            .try_send(text)
+            .map_err(|_| Failure::new(BackendError::Disconnected))
+    }
+}
+
+pub(super) fn outbox() -> (Outbox, mpsc::Receiver<String>) {
+    let (sender, receiver) = mpsc::channel(OUTBOX_FRAMES);
+    (Outbox(sender), receiver)
+}
+
+pub(super) async fn write_all(
+    socket: &mut (impl Sink<Message> + Unpin),
+    mut frames: mpsc::Receiver<String>,
+) -> Failure {
+    while let Some(text) = frames.recv().await {
+        if let Err(failure) = send_text(socket, text).await {
+            return failure;
+        }
+    }
+    pending().await
+}
+
+pub(super) async fn receive_text(
+    socket: &mut (impl Stream<Item = Result<Message, Error>> + Unpin),
+) -> Result<Utf8Bytes, Failure> {
     loop {
         match socket.next().await {
             Some(Ok(Message::Text(text))) => return Ok(text),

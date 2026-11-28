@@ -6,7 +6,7 @@ use raicho_protocol::diagnostics_generated::BackendError;
 use raicho_protocol::limits_generated::{HEARTBEAT_INTERVAL_MS, HEARTBEAT_TIMEOUT_MS, MAXIMUM_WIRE_INTEGER};
 use tokio::time::Instant;
 
-use super::handshake::Socket;
+use super::transport::Outbox;
 use super::{Connector, failure::Failure, wire};
 
 pub(super) struct Heartbeat {
@@ -24,9 +24,9 @@ impl Heartbeat {
         }
     }
 
-    pub async fn send_ping(
+    pub fn send_ping(
         &mut self,
-        socket: &mut Socket,
+        outbox: &Outbox,
         generation: &Generation,
         channel: &mut Channel,
     ) -> Result<(), Failure> {
@@ -36,7 +36,7 @@ impl Heartbeat {
         if self.next_sequence > MAXIMUM_WIRE_INTEGER as u64 {
             return Err(Failure::new(BackendError::ServerBusy));
         }
-        wire::ping(socket, generation, self.next_sequence, channel).await?;
+        outbox.push(wire::ping(generation, self.next_sequence, channel))?;
         self.outstanding = Some(self.next_sequence);
         self.next_sequence += 1;
         self.deadline = after(HEARTBEAT_TIMEOUT_MS);

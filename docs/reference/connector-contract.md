@@ -202,8 +202,10 @@ retryable `server_busy` instead of an authentication rejection. A connection los
 a close frame is recorded as `disconnected`, and a frame over the transport limit
 as `message_too_large`. The WebSocket allocation
 limit is 64 KiB even before authentication, and control frames have the same
-64 KiB limit. Writes are bounded to five seconds. Neither endpoint maintains an
-application send queue.
+64 KiB limit. Writes are bounded to five seconds. The server's session task seals
+frames into a queue of 33, two per pending request and one ping, and one writer
+sends them in order while reads and deadlines continue. A full queue ends the
+session as `disconnected`. The extension maintains no application send queue.
 The extension retries if its browser socket already has buffered data. Server
 shutdown closes sessions before releasing database ownership.
 

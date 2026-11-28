@@ -46,12 +46,7 @@ pub(super) async fn welcome(
     .await
 }
 
-pub(super) async fn ping(
-    socket: &mut Socket,
-    generation: &Generation,
-    sequence: u64,
-    channel: &mut Channel,
-) -> Result<(), Failure> {
+pub(super) fn ping(generation: &Generation, sequence: u64, channel: &mut Channel) -> String {
     let ping = Ping {
         generation: generation.clone(),
         mac: Channel::unsealed(),
@@ -59,16 +54,10 @@ pub(super) async fn ping(
         sequence: sequence.try_into().expect("Positive heartbeat sequence"),
         type_: PingType::Ping,
     };
-    send_text(socket, channel.seal(&ping)).await
+    channel.seal(&ping)
 }
 
-pub(super) async fn request(
-    socket: &mut Socket,
-    generation: &Generation,
-    identifier: u64,
-    operation: Operation,
-    channel: &mut Channel,
-) -> Result<(), Failure> {
+pub(super) fn request(generation: &Generation, identifier: u64, operation: Operation, channel: &mut Channel) -> String {
     let request = Request {
         generation: generation.clone(),
         mac: Channel::unsealed(),
@@ -77,15 +66,10 @@ pub(super) async fn request(
         request_id: request_identifier(identifier),
         type_: RequestType::Request,
     };
-    send_text(socket, channel.seal(&request)).await
+    channel.seal(&request)
 }
 
-pub(super) async fn cancel(
-    socket: &mut Socket,
-    generation: &Generation,
-    identifier: u64,
-    channel: &mut Channel,
-) -> Result<(), Failure> {
+pub(super) fn cancel(generation: &Generation, identifier: u64, channel: &mut Channel) -> String {
     let cancel = Cancel {
         generation: generation.clone(),
         mac: Channel::unsealed(),
@@ -93,7 +77,7 @@ pub(super) async fn cancel(
         request_id: request_identifier(identifier),
         type_: CancelType::Cancel,
     };
-    send_text(socket, channel.seal(&cancel)).await
+    channel.seal(&cancel)
 }
 
 fn request_identifier(identifier: u64) -> RequestId {

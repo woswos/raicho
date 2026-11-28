@@ -1,39 +1,43 @@
 use std::future::pending;
 
+use futures_util::{Sink, Stream, StreamExt};
 use raicho_protocol::Phase;
 use raicho_protocol::channel::Channel;
 use raicho_protocol::contract_generated::{ConnectorMessage, Generation};
 use raicho_protocol::diagnostics_generated::BackendError;
 use tokio::time::{Instant, sleep_until};
-use tokio_tungstenite::tungstenite::Utf8Bytes;
+use tokio_tungstenite::tungstenite::{Error, Message, Utf8Bytes};
 
-use super::handshake::Socket;
 use super::heartbeat::Heartbeat;
 use super::requests::{Queue, Requests};
 use super::{Connector, failure::Failure, transport};
 
 pub(super) async fn run(
-    socket: &mut Socket,
+    socket: &mut (impl Stream<Item = Result<Message, Error>> + Sink<Message> + Unpin),
     connector: &Connector,
     generation: &Generation,
     channel: &mut Channel,
     queue: &mut Queue,
 ) -> Failure {
+    let (mut sink, mut stream) = socket.split();
+    let (outbox, frames) = transport::outbox();
+    let writer = transport::write_all(&mut sink, frames);
+    tokio::pin!(writer);
     let mut heartbeat = Heartbeat::new();
     let mut requests = Requests::new();
     loop {
         let has_room = requests.has_room();
         let request_deadline = requests.deadline();
+        // A frame that arrived while a write was pending is read before any deadline fires.
         let result = tokio::select! {
             biased;
-            _ = sleep_until(heartbeat.deadline) => heartbeat.send_ping(socket, generation, channel).await,
-            _ = expiry(request_deadline) => requests.expire(socket, generation, channel).await,
-            received = transport::receive_text(socket) => {
+            failure = &mut writer => Err(failure),
+            received = transport::receive_text(&mut stream) => {
                 accept(received, connector, generation, channel, &mut heartbeat, &mut requests)
             },
-            Some(exchange) = queue.recv(), if has_room => {
-                requests.send(socket, generation, channel, exchange).await
-            },
+            _ = sleep_until(heartbeat.deadline) => heartbeat.send_ping(&outbox, generation, channel),
+            _ = expiry(request_deadline) => requests.expire(&outbox, generation, channel),
+            Some(exchange) = queue.recv(), if has_room => requests.send(&outbox, generation, channel, exchange),
         };
         if let Err(failure) = result {
             return failure;
@@ -62,3 +66,6 @@ fn accept(
         _ => Err(Failure::new(BackendError::UnexpectedMessage)),
     }
 }
+
+#[cfg(test)]
+mod tests;

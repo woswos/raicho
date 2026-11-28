@@ -8,7 +8,7 @@ use raicho_protocol::limits_generated::{MAXIMUM_PENDING_REQUESTS, MAXIMUM_WIRE_I
 use tokio::sync::{mpsc, oneshot};
 use tokio::time::Instant;
 
-use super::handshake::Socket;
+use super::transport::Outbox;
 use super::{Connector, failure::Failure, wire};
 
 pub const REQUEST_TIMEOUT: Duration = Duration::from_millis(REQUEST_TIMEOUT_MS as u64);
@@ -59,9 +59,9 @@ impl Requests {
         self.pending.values().map(|pending| pending.deadline).min()
     }
 
-    pub async fn send(
+    pub fn send(
         &mut self,
-        socket: &mut Socket,
+        outbox: &Outbox,
         generation: &Generation,
         channel: &mut Channel,
         exchange: Exchange,
@@ -75,7 +75,7 @@ impl Requests {
         }
         let identifier = self.next_identifier;
         self.next_identifier += 1;
-        wire::request(socket, generation, identifier, exchange.operation, channel).await?;
+        outbox.push(wire::request(generation, identifier, exchange.operation, channel))?;
         self.pending.insert(
             identifier,
             Pending {
@@ -86,12 +86,7 @@ impl Requests {
         Ok(())
     }
 
-    pub async fn expire(
-        &mut self,
-        socket: &mut Socket,
-        generation: &Generation,
-        channel: &mut Channel,
-    ) -> Result<(), Failure> {
+    pub fn expire(&mut self, outbox: &Outbox, generation: &Generation, channel: &mut Channel) -> Result<(), Failure> {
         let now = Instant::now();
         let expired: Vec<u64> = self
             .pending
@@ -105,7 +100,7 @@ impl Requests {
             }
         }
         for identifier in expired {
-            wire::cancel(socket, generation, identifier, channel).await?;
+            outbox.push(wire::cancel(generation, identifier, channel))?;
         }
         Ok(())
     }
