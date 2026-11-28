@@ -403,3 +403,27 @@ async fn the_longest_escaped_password_fits_the_body_limit() {
     assert_eq!(response.status, StatusCode::OK, "{}", response.body);
     browser.finish().await;
 }
+
+#[tokio::test]
+async fn a_late_touch_never_moves_the_last_use_backward() {
+    let browser = Browser::new().await;
+    let database = &browser.database;
+    let digest = login::digest(&"c".repeat(64));
+    database.create_browser_session(&digest, 1_000).await.unwrap();
+    let latest = 1_000 + SESSION_TOUCH_SECONDS + 10;
+    assert!(database.use_browser_session(&digest, latest).await.unwrap());
+    // An overlapping request that read the session before that touch writes an older time.
+    sqlx::query(include_str!("../../queries/touch_browser_session.sql"))
+        .bind(latest - 10)
+        .bind(digest.as_slice())
+        .execute(database.pool())
+        .await
+        .unwrap();
+    let last_used: i64 = sqlx::query_scalar("SELECT last_used_at FROM browser_sessions WHERE token_digest = ?")
+        .bind(digest.as_slice())
+        .fetch_one(database.pool())
+        .await
+        .unwrap();
+    assert_eq!(last_used, latest);
+    browser.finish().await;
+}
