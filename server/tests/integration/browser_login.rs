@@ -320,19 +320,14 @@ async fn sessions_expire_when_idle_or_old_and_the_oldest_are_removed() {
             .await
             .unwrap()
     );
-    let touched = 1_000 + SESSION_TOUCH_SECONDS;
-    assert!(
-        database
-            .use_browser_session(&digest, touched + SESSION_IDLE_SECONDS - 1)
-            .await
-            .unwrap()
-    );
-    assert!(
-        !database
-            .use_browser_session(&digest, 1_000 + SESSION_LIFETIME_SECONDS)
-            .await
-            .unwrap()
-    );
+    let mut used = 1_000 + SESSION_TOUCH_SECONDS;
+    let expiry = 1_000 + SESSION_LIFETIME_SECONDS;
+    while used + SESSION_IDLE_SECONDS - 1 < expiry {
+        used += SESSION_IDLE_SECONDS - 1;
+        assert!(database.use_browser_session(&digest, used).await.unwrap());
+    }
+    assert!(database.use_browser_session(&digest, expiry - 1).await.unwrap());
+    assert!(!database.use_browser_session(&digest, expiry).await.unwrap());
     assert_eq!(database.browser_session_count().await.unwrap(), 0);
 
     database.create_browser_session(&digest, 1_000).await.unwrap();
