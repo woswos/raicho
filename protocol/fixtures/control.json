@@ -13,6 +13,20 @@
     }
   },
   {
+    "name": "server ping from the previous protocol version",
+    "phase": "server_control",
+    "valid": false,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "ping",
+      "protocol_version": 1,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "sequence": 1,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "error": "incompatible_version"
+  },
+  {
     "name": "client pong",
     "phase": "client_control",
     "valid": true,
