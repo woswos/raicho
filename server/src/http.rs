@@ -28,8 +28,8 @@ use crate::public_origin::PublicOrigin;
 
 const POLICY: &str =
     "default-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'";
-// Login and preference bodies are small, and mail routes take no body.
-const MAXIMUM_BODY_BYTES: usize = 4096;
+// A 1024-byte password of control characters escapes to about 6 KiB of JSON. Mail routes take no body.
+const MAXIMUM_BODY_BYTES: usize = 8192;
 
 #[derive(Serialize)]
 struct Health {

@@ -228,7 +228,7 @@ async fn wrong_passwords_are_throttled_and_an_unconfigured_login_is_reported() {
     let oversized = format!("{{\"password\":\"{}\"}}", "a".repeat(1025));
     let response = browser.send(Method::POST, "/api/session", None, Some(&oversized)).await;
     assert_eq!(response.body, json!({"error": "invalid_password"}));
-    let over_limit = format!("{{\"password\":\"{}\"}}", "a".repeat(4096));
+    let over_limit = format!("{{\"password\":\"{}\"}}", "a".repeat(8192));
     let response = browser
         .send(Method::POST, "/api/session", None, Some(&over_limit))
         .await;
@@ -380,7 +380,7 @@ async fn the_theme_preference_persists_across_restarts() {
             .await;
         assert_eq!(rejected.body, json!({"error": "invalid_request"}), "{body}");
     }
-    let over_limit = format!("{{\"theme\":\"{}\"}}", "a".repeat(4096));
+    let over_limit = format!("{{\"theme\":\"{}\"}}", "a".repeat(8192));
     let rejected = browser
         .send(Method::PUT, "/api/preferences", Some(&session), Some(&over_limit))
         .await;
@@ -393,5 +393,18 @@ async fn the_theme_preference_persists_across_restarts() {
         browser.get("/api/preferences", &session).await.body,
         json!({"theme": "dark"})
     );
+    browser.finish().await;
+}
+
+#[tokio::test]
+async fn the_longest_escaped_password_fits_the_body_limit() {
+    let browser = Browser::new().await;
+    let password = "\u{1}".repeat(login::MAXIMUM_PASSWORD_BYTES);
+    let hash = login::hash_password(password.as_bytes()).unwrap();
+    browser.database.set_login_password(&hash, login::now()).await.unwrap();
+    let body = json!({ "password": password }).to_string();
+    assert!(body.len() > 6 * login::MAXIMUM_PASSWORD_BYTES);
+    let response = browser.send(Method::POST, "/api/session", None, Some(&body)).await;
+    assert_eq!(response.status, StatusCode::OK, "{}", response.body);
     browser.finish().await;
 }
