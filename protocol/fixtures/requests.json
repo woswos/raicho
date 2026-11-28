@@ -155,6 +155,20 @@
     }
   },
   {
+    "name": "cancel from the connector",
+    "phase": "client_control",
+    "valid": false,
+    "error": "unexpected_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "cancel",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
     "name": "reply from the server",
     "phase": "server_control",
     "valid": false,
@@ -189,7 +203,7 @@
     }
   },
   {
-    "name": "request without a MAC",
+    "name": "cancel without a MAC",
     "phase": "server_control",
     "valid": false,
     "error": "invalid_message",
@@ -199,6 +213,22 @@
       "protocol_version": 2,
       "generation": "0123456789abcdef0123456789abcdef",
       "request_id": 1
+    }
+  },
+  {
+    "name": "request without a MAC",
+    "phase": "server_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "request",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "operation": {
+        "name": "list_accounts"
+      }
     }
   },
   {
