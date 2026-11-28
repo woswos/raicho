@@ -47,6 +47,7 @@ class StepTests(unittest.TestCase):
             'format-check-bash': ('checking bash formatting', 'checked bash formatting'),
             'format-sql': ('formatting sql', 'formatted sql'),
             'deploy-connector-init': ('running connector init', 'ran connector init'),
+            'deploy-login-reset': ('running login reset', 'ran login reset'),
             'other': ('running other', 'ran other'),
         }
         for target, (started, finished) in cases.items():

@@ -1,6 +1,6 @@
 # Authenticate one browser user with an offline password
 
-- Status: accepted
+- Status: accepted, amended by `20261128-login-commands-stop-raicho`
 - Date: 2026-11-03
 - Deciders: Barkin Simsek
 

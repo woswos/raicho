@@ -17,43 +17,7 @@ select_deployment
 if [[ ${RAICHO_COMPOSE_TEST:-0} != 0 && ${PROJECT} != raicho-credentials-* && ${PROJECT} != raicho-connector-* ]]; then
     fail 'the test override requires a disposable raicho-credentials- or raicho-connector- project'
 fi
-require_private_directory "${STATE_DIRECTORY}"
-umask 077
-lock_state_layout
-# make deploy-clean deletes everything inside a deployment's state directory, so state cannot nest.
-# The walk follows the physical path, so a symlinked parent cannot hide another deployment.
-PARENT="$(dirname -- "$(realpath -m -- "${STATE_DIRECTORY}")")"
-while [[ ${PARENT} != / ]]; do
-    if [[ -e ${PARENT}/operation.lock ]]; then
-        fail "${STATE_DIRECTORY} is inside another deployment's state directory ${PARENT}"
-    fi
-    PARENT="$(dirname -- "${PARENT}")"
-done
-if [[ ! -e ${STATE_DIRECTORY} ]]; then
-    mkdir -p -- "${STATE_DIRECTORY}"
-    # A default ACL overrides the umask, so set the mode explicitly.
-    chmod 700 -- "${STATE_DIRECTORY}"
-fi
-LOCK_PATH="${STATE_DIRECTORY}/operation.lock"
-require_private_file "${LOCK_PATH}"
-exec {LOCK_DESCRIPTOR}>>"${LOCK_PATH}"
-# A default ACL overrides the umask, so set the lock mode explicitly.
-chmod 600 -- "${LOCK_PATH}"
-if ! flock --exclusive --nonblock "${LOCK_DESCRIPTOR}"; then
-    fail 'another credential operation is running'
-fi
-# make deploy-clean deletes a state directory only when this marker names its project.
-PROJECT_MARKER="${STATE_DIRECTORY}/project"
-if [[ -L ${PROJECT_MARKER} ]] || { [[ -e ${PROJECT_MARKER} ]] && [[ ! -f ${PROJECT_MARKER} ]]; }; then
-    fail 'the project marker must be a regular file'
-fi
-if [[ ! -e ${PROJECT_MARKER} ]]; then
-    printf '%s\n' "${PROJECT}" >"${PROJECT_MARKER}"
-elif [[ $(<"${PROJECT_MARKER}") != "${PROJECT}" ]]; then
-    fail "${STATE_DIRECTORY} belongs to project $(<"${PROJECT_MARKER}"), not ${PROJECT}"
-fi
-unlock_state_layout
-STATE_DIRECTORY="$(cd "${STATE_DIRECTORY}" && pwd -P)"
+claim_state_directory
 export RAICHO_CREDENTIAL_DIRECTORY="${STATE_DIRECTORY}/credentials"
 if [[ -L ${RAICHO_CREDENTIAL_DIRECTORY} ]]; then
     fail 'credential directory must not be a symbolic link'

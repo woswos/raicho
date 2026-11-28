@@ -24,7 +24,13 @@ configuration. With provisioned credentials it connects outbound through a fixed
 Nginx gateway to a separate Rust WebSocket listener. The gateway is the only path
 between the two services; [network isolation](runtime.md#network-isolation)
 describes its networks. The browser displays authenticated connection status.
-Browser login and mail operations remain planned.
+One offline-provisioned password signs browsers in, and SQLite keeps only its hash,
+session token digests, and the theme preference. Session-protected routes list
+accounts, mailboxes, and message summaries, and they reject state changes from any
+origin other than `RAICHO_PUBLIC_ORIGIN`. Until the Thunderbird adapter ships, the
+production mail backend answers every mail request with `unsupported` and sends
+no mail request frames.
+The browser mailbox view remains planned.
 
 A separate test-only extension and disposable GreenMail deployment exercise
 mail API compatibility. A fixed SMTP/IMAP fault proxy and test controller run
@@ -70,8 +76,9 @@ using the same tooling image locally and in CI. See the
 
 ```mermaid
 flowchart LR
-    Browser[TypeScript diagnostics] --> Server[Rust HTTP server]
+    Browser[TypeScript diagnostics] -->|Session cookie| Server[Rust HTTP server]
     Server --> State[(SQLite metadata)]
+    Login[Offline login command] --> State
     Provisioner[Offline credential command] --> State
     Token[Private host token] --> Provisioner
     Token --> Thunderbird
@@ -122,8 +129,11 @@ selects MV2 packaging, managed configuration, a fixed internal gateway, and a
 versioned authenticated protocol. The mail compatibility
 fixture and control contract have separate implementations.
 Credential persistence, offline provisioning, production control transport, gateway,
-and connection diagnostics are implemented. Dedicated CI jobs run the source and
-unattended acceptance commands described in the
+and connection diagnostics are implemented. So are browser login and the
+session-protected mail routes, tested against a mock backend. Until the
+Thunderbird adapter, the production mail backend answers every request
+`unsupported`. Dedicated CI jobs
+run the source and unattended acceptance commands described in the
 [acceptance record](connector-acceptance.md). The static showcase remains a design reference.
 
 Current tooling commands and planned application commands are distinguished in

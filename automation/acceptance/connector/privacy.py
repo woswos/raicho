@@ -8,6 +8,7 @@ from pathlib import Path
 from automation.acceptance.connector.endpoints import STATUS_URL
 from automation.acceptance.credentials.files import read_token, stored_files
 
+APPLICATION_TABLES = {'_sqlx_migrations', 'connector_credentials', 'login_password', 'browser_sessions', 'preferences'}
 MAIL_CANARIES = (
     b'raicho-private-subject-acceptance',
     b'raicho-private-body-acceptance',
@@ -22,7 +23,7 @@ def check_payload(contents, token):
 def check_database(directory, token):
     with closing(sqlite3.connect(f'file:{directory}/raicho.sqlite3?mode=ro', uri=True)) as connection:
         tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-        assert tables <= {'_sqlx_migrations', 'connector_credentials'}, 'Unexpected application table'
+        assert tables <= APPLICATION_TABLES, 'Unexpected application table'
         check_payload('\n'.join(connection.iterdump()).encode(), token)
     for contents in stored_files(directory):
         check_payload(contents, token)

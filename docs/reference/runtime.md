@@ -1,8 +1,9 @@
 # Foundation runtime
 
-Raicho provides diagnostics, persistent application initialization, and an
-authenticated control connection to the packaged Thunderbird extension.
-The connector carries no mail operations. Mail operations are planned in the
+Raicho provides diagnostics, persistent application initialization, browser
+login, and an authenticated connection to the packaged Thunderbird extension.
+Session-protected routes list accounts, mailboxes, and message summaries through
+a backend-neutral contract. Later mail operations are planned in the
 [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md).
 
 See [architecture](architecture.md) for ownership,
@@ -51,6 +52,11 @@ their use.
 
 The database subcommands read `RAICHO_DATA_DIR`, and `wait` polls `raicho:8080`.
 
+`raicho-server login` takes `init`, `reset`, `revoke`, or `status`. `init` and
+`reset` read the password from standard input, and `reset` and `revoke` end every
+browser session. The [login runbook](../operations/browser-login.md) runs them
+through `compose.login.yaml`.
+
 Base images use digests, support packages use the 20261018 Debian snapshot, and
 downloaded application assets use checksums. Installed OS packages are recorded
 in `/opt/raicho/packages.tsv` inside the Raicho and Thunderbird images. Runtime
@@ -87,6 +93,12 @@ External Thunderbird mail directories require their own explicit mounts.
 | `/health/live` | HTTP process responds |
 | `/health/ready` | Initialization succeeded and the application database responds |
 | `/api/status` | Readiness, product version, build commit, database status, and connector diagnostics |
+| `/api/session` | `POST` signs in, `GET` reports the session, and `DELETE` signs out |
+| `/api/preferences` | `GET` and `PUT` the deployment's theme |
+| `/api/mail/accounts` | Accounts and their identities |
+| `/api/mail/accounts/{account}/mailboxes` | One account's mailboxes |
+| `/api/mail/mailboxes/{mailbox}/messages` | The first page of a mailbox's message summaries |
+| `/api/mail/cursors/{cursor}` | The next page of summaries |
 | `/` | Static diagnostics page |
 
 `/api` and `/health` responses use `Cache-Control: no-store`. Page files use
@@ -118,7 +130,39 @@ page shows the version alone when the commit is unknown. See
 `RAICHO_BIND` defaults to `0.0.0.0:8080` inside the container,
 `RAICHO_DATA_DIR` to `/var/lib/raicho`, and `RAICHO_WEB_DIR` to
 `/usr/share/raicho/web`. Compose publishes Raicho on host loopback using
-`RAICHO_PORT`, default 8080. The browser page is diagnostics only and has no login.
+`RAICHO_PORT`, default 8080.
+
+`RAICHO_PUBLIC_ORIGIN` is the browser origin, which Compose defaults to
+`http://localhost:${RAICHO_PORT}`. Startup rejects a path, a scheme's default
+port, an IP address host in another form than the canonical one browsers send,
+or an `http` origin whose host is not loopback. Health and status routes are
+public. `POST /api/session` signs in without a cookie, and logout succeeds without
+a current session. The other session, preference, and mail routes require the
+session cookie that sign-in sets, and answer `401` with
+`{"error":"unauthenticated"}` without it. Every request other than `GET` or
+`HEAD` must carry that exact `Origin`, and `Sec-Fetch-Site: same-origin` when it
+sends that header, or it fails with `forbidden_origin`.
+Each one except the logout `DELETE`, which has no body, must also send a JSON
+content type, or it fails with `invalid_request`. Request bodies are limited to 8 KiB,
+and a larger body or a path that is not UTF-8 also fails with `invalid_request`.
+[`protocol/schema/api.schema.json`](../../protocol/schema/api.schema.json) defines
+every document these routes return, and errors carry an enumerated code.
+
+Until the Thunderbird adapter of stage 3 slice 5, the production mail backend
+answers every mail request with `unsupported`. The accounts, mailboxes, and first
+summary page routes therefore answer `unsupported`, a cursor route answers
+`stale_cursor` because no cursor is ever issued, and a malformed handle still
+answers `invalid_request`. The production extension does not handle mail requests
+yet and would end its session on one. Route tests run against a mock backend
+instead.
+
+Mail routes pass opaque handles to the backend. A summary page replaces the
+backend's cursor with a random 32-character lowercase hex cursor that only its own
+session can use once, and a session keeps at most 4 of them among 16 overall,
+each for 5 minutes. Logout closes that session's cursors, and a page request that
+fails closes the backend cursor it used. Mail in a response is never written to
+SQLite or logs. The [login runbook](../operations/browser-login.md) covers
+cookies, expiry, and HTTPS.
 
 `RAICHO_CONNECTOR_BIND` defaults to `0.0.0.0:8082` and serves only the internal
 WebSocket route `/connector/v1`. Compose never publishes it. Authentication and
@@ -131,7 +175,7 @@ default 5900, for native viewers. This administrative interface has no applicati
 authentication or VNC password. Keep it local, close it by recreating Thunderbird
 without the override, and use the Raicho page for diagnostics. The
 [native VNC decision](../decisions/20261102-native-vnc-administration.md) records
-the second port. Remote deployment and browser login are planned
+the second port. Remote deployment and the browser sign-in page are planned
 in the [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md).
 
 ## Extension installation
@@ -205,7 +249,9 @@ a general SQL execution deadline. Never hold a connection while awaiting a mail
 backend. The instance lock stays held for the process lifetime.
 
 The connector migration records backend configuration and credential state.
-No mail data is stored. Add versioned SQL files under
+The browser login migration adds the password's Argon2id hash, session token
+digests with their creation, use, and expiry times, and the theme preference. No
+mail data is stored. Add versioned SQL files under
 `server/migrations/` with the feature that uses them, following the
 [sequential filename convention](../coding/coding-standards.md#source-filenames),
 and list each one in `server/src/persistence/migrations.rs` with its version and

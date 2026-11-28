@@ -13,7 +13,8 @@ WRITING_TARGETS := format format-bash format-python format-javascript format-rus
     generate generate-protocol
 DEPLOYMENT_TARGETS := deploy-up deploy-admin deploy-restart deploy-down deploy-ps deploy-health \
     deploy-logs deploy-shell deploy-vnc deploy-clean \
-    $(addprefix deploy-connector-,init rotate verify status revoke reactivate)
+    $(addprefix deploy-connector-,init rotate verify status revoke reactivate) \
+    $(addprefix deploy-login-,init reset revoke status)
 HOST_TARGETS := images acceptance acceptance-runtime acceptance-connector acceptance-credentials \
     acceptance-mail shell clean mrproper $(DEPLOYMENT_TARGETS)
 
@@ -41,7 +42,8 @@ STEP := bash $(REPOSITORY_ROOT)automation/tooling/step.bash
 # Only the host loads deployment.mk, so the container's guide leaves out the selected deployment.
 help:
 	@DEPLOYMENT_PROJECT=$(QUOTED_PROJECT) DEPLOYMENT_STATE=$(call shell_quote,$(DEPLOYMENT_STATE)) \
-	    DEPLOYMENT_ENROLLED='$(ENROLLED)' bash $(REPOSITORY_ROOT)automation/tooling/help.bash
+	    DEPLOYMENT_ENROLLED='$(ENROLLED)' DEPLOYMENT_ENV_FILE=$(call shell_quote,$(DEPLOYMENT_ENV_FILE)) \
+	    bash $(REPOSITORY_ROOT)automation/tooling/help.bash
 
 ifdef RAICHO_TOOLING_CONTAINER
 include $(REPOSITORY_ROOT)automation/tooling/container.mk

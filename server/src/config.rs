@@ -3,17 +3,20 @@ use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 
 use crate::error::{Error, Result};
+use crate::public_origin::PublicOrigin;
 
 const DEFAULT_BIND: &str = "0.0.0.0:8080";
 const DEFAULT_CONNECTOR_BIND: &str = "0.0.0.0:8082";
 const DEFAULT_DATA_DIR: &str = "/var/lib/raicho";
 const DEFAULT_WEB_DIR: &str = "/usr/share/raicho/web";
+const DEFAULT_PUBLIC_ORIGIN: &str = "http://localhost:8080";
 
 pub struct Config {
     pub bind: SocketAddr,
     pub connector_bind: SocketAddr,
     pub data_dir: PathBuf,
     pub web_dir: PathBuf,
+    pub public_origin: PublicOrigin,
 }
 
 impl Config {
@@ -24,11 +27,17 @@ impl Config {
             DEFAULT_CONNECTOR_BIND,
             "RAICHO_CONNECTOR_BIND must contain valid Unicode",
         )?;
+        let public_origin = text_variable(
+            "RAICHO_PUBLIC_ORIGIN",
+            DEFAULT_PUBLIC_ORIGIN,
+            "RAICHO_PUBLIC_ORIGIN must contain valid Unicode",
+        )?;
         Self::parse(
             &bind,
             &connector_bind,
             &path_variable("RAICHO_DATA_DIR", DEFAULT_DATA_DIR),
             &path_variable("RAICHO_WEB_DIR", DEFAULT_WEB_DIR),
+            &public_origin,
         )
     }
 
@@ -36,7 +45,13 @@ impl Config {
         absolute_data_dir(&path_variable("RAICHO_DATA_DIR", DEFAULT_DATA_DIR))
     }
 
-    pub fn parse(bind: &str, connector_bind: &str, data_dir: &Path, web_dir: &Path) -> Result<Self> {
+    pub fn parse(
+        bind: &str,
+        connector_bind: &str,
+        data_dir: &Path,
+        web_dir: &Path,
+        public_origin: &str,
+    ) -> Result<Self> {
         let bind = bind
             .parse()
             .map_err(|error| Error::new("RAICHO_BIND must be an IP address and port", error))?;
@@ -51,6 +66,7 @@ impl Config {
             connector_bind,
             data_dir: absolute_data_dir(data_dir)?,
             web_dir: web_dir.into(),
+            public_origin: PublicOrigin::parse(public_origin)?,
         })
     }
 

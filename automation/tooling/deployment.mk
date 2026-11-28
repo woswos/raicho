@@ -13,7 +13,10 @@ DEPLOYMENT_COMPOSE := docker compose --progress $(PROGRESS) -p $(QUOTED_PROJECT)
 # strip would also squeeze repeated spaces inside the quoted path, so it covers only STEP.
 DEPLOYMENT = $(if $(ENROLLED),RAICHO_CREDENTIAL_DIRECTORY=$(QUOTED_CREDENTIALS) )$(strip $(STEP))
 DEPLOYED_COMPOSE = $(strip $(DEPLOYMENT_COMPOSE) $(if $(ENROLLED),-f $(REPOSITORY_ROOT)compose.credentials.yaml))
-APPLICATION_ADDRESS := echo "Raicho: http://127.0.0.1:$${RAICHO_PORT:-8080}"
+# Compose resolves the origin from the shell, a .env file, or its default, so ask the running server.
+APPLICATION_ADDRESS := printf 'Raicho: %s\n' "$$($(DEPLOYMENT_COMPOSE) exec -T raicho printenv RAICHO_PUBLIC_ORIGIN)"
+# The help guide cannot ask Docker, so it reads the .env file that Compose loads from the repository root.
+DEPLOYMENT_ENV_FILE ?= $(REPOSITORY_ROOT).env
 
 deploy-up: images
 	@$(DEPLOYMENT) $@ $(DEPLOYED_COMPOSE) up -d --wait
@@ -53,3 +56,6 @@ deploy-clean: tooling-image
 
 $(filter deploy-connector-%,$(DEPLOYMENT_TARGETS)): images
 	@$(QUIET_DOCKER) $(STEP) $@ bash $(REPOSITORY_ROOT)deploy/credentials/connector.bash $(@:deploy-connector-%=%)
+
+$(filter deploy-login-%,$(DEPLOYMENT_TARGETS)): images
+	@$(QUIET_DOCKER) $(STEP) $@ bash $(REPOSITORY_ROOT)deploy/credentials/login.bash $(@:deploy-login-%=%)

@@ -1,10 +1,12 @@
 mod connector_backend;
 mod contract;
+mod unsupported_backend;
 
 use std::future::Future;
 
 pub use connector_backend::ConnectorBackend;
 pub use contract::{Account, Identity, MailFailure, Mailbox, MailboxRole, Mailboxes, MessagePage, MessageSummary};
+pub use unsupported_backend::UnsupportedBackend;
 
 /// A mail backend that browser routes use without knowing its implementation.
 ///

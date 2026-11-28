@@ -28,13 +28,16 @@ class HelpTests(unittest.TestCase):
         commands = set(re.findall(r'^  make ([a-z-]*[a-z])', guide, re.MULTILINE))
         for target in make_list('CONTAINER_TARGETS') + make_list('HOST_TARGETS'):
             with self.subTest(target=target):
-                if target.startswith('deploy-connector-'):
-                    self.assertIn(target.removeprefix('deploy-connector-'), guide)
+                if target.startswith(('deploy-connector-', 'deploy-login-')):
+                    heading = 'Connector credentials' if target.startswith('deploy-connector-') else 'Browser login'
+                    section = guide.split(f'\n{heading}\n', 1)[1].split('\n\n', 1)[0]
+                    self.assertRegex(section, rf'(?<![\w-]){re.escape(target.split("-", 2)[2])}(?![\w-])')
                 elif target not in commands:
                     # A family member such as lint-bash may appear in its parent's list.
                     self.assertTrue(any(target.startswith(f'{command}-') for command in commands))
                     self.assertRegex(guide, rf'(?<![\w-]){re.escape(target)}(?![\w-])')
         self.assertIn('make deploy-connector-<command>', guide)
+        self.assertIn('make deploy-login-<command>', guide)
         self.assertNotIn('make deploy ', guide)
         self.assertNotIn('\n# ', guide)
         self.assertEqual(docker.commands(), [])
@@ -48,10 +51,20 @@ class HelpTests(unittest.TestCase):
             'connector          not enrolled',
         ):
             self.assertIn(line, guide)
-        self.assertIn('http://127.0.0.1:8081', guide)
+        self.assertIn('http://localhost:8081', guide)
         self.assertIn("project            it's", make('help', RAICHO_PROJECT="it's"))
         (self.state / 'credentials').mkdir()
         self.assertIn('connector          enrolled', make('help', RAICHO_STATE_DIRECTORY=str(self.state)))
+
+    def test_the_address_follows_the_shell_then_the_env_file(self):
+        environment = self.state / '.env'
+        environment.write_text('RAICHO_PORT=9000\n')
+        self.assertIn('http://localhost:9000', make('help', DEPLOYMENT_ENV_FILE=str(environment)))
+        environment.write_text('RAICHO_PORT=9000\nRAICHO_PUBLIC_ORIGIN="https://mail.example.test"\n')
+        self.assertIn('https://mail.example.test', make('help', DEPLOYMENT_ENV_FILE=str(environment)))
+        guide = make('help', DEPLOYMENT_ENV_FILE=str(environment), RAICHO_PUBLIC_ORIGIN='https://shell.example.test')
+        self.assertIn('https://shell.example.test', guide)
+        self.assertIn('http://localhost:8080', make('help'))
 
     def test_the_container_guide_omits_the_deployment_settings(self):
         guide = make('help', RAICHO_TOOLING_CONTAINER='1')

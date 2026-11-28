@@ -2,10 +2,24 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ApiDocument",
   "oneOf": [
-    { "$ref": "#/definitions/AccountsDocument" },
-    { "$ref": "#/definitions/MailboxesDocument" },
-    { "$ref": "#/definitions/MessagesDocument" },
-    { "$ref": "#/definitions/ErrorDocument" }
+    {
+      "$ref": "#/definitions/SessionDocument"
+    },
+    {
+      "$ref": "#/definitions/PreferencesDocument"
+    },
+    {
+      "$ref": "#/definitions/AccountsDocument"
+    },
+    {
+      "$ref": "#/definitions/MailboxesDocument"
+    },
+    {
+      "$ref": "#/definitions/MessagesDocument"
+    },
+    {
+      "$ref": "#/definitions/ErrorDocument"
+    }
   ],
   "definitions": {
     "Handle": {
@@ -16,9 +30,34 @@
     },
     "Cursor": {
       "type": "string",
-      "minLength": 22,
-      "maxLength": 22,
-      "pattern": "^[A-Za-z0-9_-]{22}$"
+      "minLength": 32,
+      "maxLength": 32,
+      "pattern": "^[a-f0-9]{32}$"
+    },
+    "SessionDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authenticated"],
+      "properties": {
+        "authenticated": {
+          "type": "boolean",
+          "enum": [true]
+        }
+      }
+    },
+    "PreferencesDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["theme"],
+      "properties": {
+        "theme": {
+          "$ref": "#/definitions/Theme"
+        }
+      }
+    },
+    "Theme": {
+      "type": "string",
+      "enum": ["system", "light", "dark"]
     },
     "AccountsDocument": {
       "type": "object",
@@ -27,7 +66,9 @@
       "properties": {
         "accounts": {
           "type": "array",
-          "items": { "$ref": "#/definitions/Account" }
+          "items": {
+            "$ref": "#/definitions/Account"
+          }
         }
       }
     },
@@ -36,11 +77,19 @@
       "additionalProperties": false,
       "required": ["id", "name", "identities"],
       "properties": {
-        "id": { "$ref": "#/definitions/Handle" },
-        "name": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "id": {
+          "$ref": "#/definitions/Handle"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
         "identities": {
           "type": "array",
-          "items": { "$ref": "#/definitions/Identity" }
+          "items": {
+            "$ref": "#/definitions/Identity"
+          }
         }
       }
     },
@@ -49,9 +98,18 @@
       "additionalProperties": false,
       "required": ["id", "name", "email"],
       "properties": {
-        "id": { "$ref": "#/definitions/Handle" },
-        "name": { "type": "string", "maxLength": 128 },
-        "email": { "type": "string", "minLength": 1, "maxLength": 254 }
+        "id": {
+          "$ref": "#/definitions/Handle"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 254
+        }
       }
     },
     "MailboxesDocument": {
@@ -61,9 +119,13 @@
       "properties": {
         "mailboxes": {
           "type": "array",
-          "items": { "$ref": "#/definitions/Mailbox" }
+          "items": {
+            "$ref": "#/definitions/Mailbox"
+          }
         },
-        "truncated": { "type": "boolean" }
+        "truncated": {
+          "type": "boolean"
+        }
       }
     },
     "Mailbox": {
@@ -71,10 +133,20 @@
       "additionalProperties": false,
       "required": ["id", "name"],
       "properties": {
-        "id": { "$ref": "#/definitions/Handle" },
-        "name": { "type": "string", "minLength": 1, "maxLength": 255 },
-        "parent": { "$ref": "#/definitions/Handle" },
-        "role": { "$ref": "#/definitions/MailboxRole" }
+        "id": {
+          "$ref": "#/definitions/Handle"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "parent": {
+          "$ref": "#/definitions/Handle"
+        },
+        "role": {
+          "$ref": "#/definitions/MailboxRole"
+        }
       }
     },
     "MailboxRole": {
@@ -88,9 +160,13 @@
       "properties": {
         "messages": {
           "type": "array",
-          "items": { "$ref": "#/definitions/MessageSummary" }
+          "items": {
+            "$ref": "#/definitions/MessageSummary"
+          }
         },
-        "cursor": { "$ref": "#/definitions/Cursor" }
+        "cursor": {
+          "$ref": "#/definitions/Cursor"
+        }
       }
     },
     "MessageSummary": {
@@ -98,18 +174,33 @@
       "additionalProperties": false,
       "required": ["id", "subject", "author", "recipients", "date", "read", "flagged"],
       "properties": {
-        "id": { "$ref": "#/definitions/Handle" },
-        "subject": { "type": "string", "maxLength": 300 },
-        "author": { "type": "string", "maxLength": 300 },
-        "recipients": { "type": "string", "maxLength": 300 },
+        "id": {
+          "$ref": "#/definitions/Handle"
+        },
+        "subject": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "author": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "recipients": {
+          "type": "string",
+          "maxLength": 300
+        },
         "date": {
           "type": "string",
           "minLength": 20,
           "maxLength": 20,
           "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
         },
-        "read": { "type": "boolean" },
-        "flagged": { "type": "boolean" }
+        "read": {
+          "type": "boolean"
+        },
+        "flagged": {
+          "type": "boolean"
+        }
       }
     },
     "ErrorDocument": {
@@ -117,13 +208,21 @@
       "additionalProperties": false,
       "required": ["error"],
       "properties": {
-        "error": { "$ref": "#/definitions/ApiError" }
+        "error": {
+          "$ref": "#/definitions/ApiError"
+        }
       }
     },
     "ApiError": {
       "type": "string",
       "enum": [
+        "unauthenticated",
+        "forbidden_origin",
         "invalid_request",
+        "rate_limited",
+        "invalid_password",
+        "login_unconfigured",
+        "storage_unavailable",
         "backend_disconnected",
         "backend_busy",
         "backend_timeout",
