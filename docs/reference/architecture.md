@@ -28,7 +28,8 @@ One offline-provisioned password signs browsers in, and SQLite keeps only its ha
 session token digests, and the theme preference. Session-protected routes list
 accounts, mailboxes, and message summaries, and they reject state changes from any
 origin other than `RAICHO_PUBLIC_ORIGIN`. Until the Thunderbird adapter ships, the
-production server answers them `unsupported` and sends no mail request frames.
+production mail backend answers every mail request with `unsupported` and sends
+no mail request frames.
 The browser mailbox view remains planned.
 
 A separate test-only extension and disposable GreenMail deployment exercise
@@ -129,8 +130,9 @@ versioned authenticated protocol. The mail compatibility
 fixture and control contract have separate implementations.
 Credential persistence, offline provisioning, production control transport, gateway,
 and connection diagnostics are implemented. So are browser login and the
-session-protected mail routes, tested against a mock backend and answered
-`unsupported` in production until the Thunderbird adapter. Dedicated CI jobs
+session-protected mail routes, tested against a mock backend. Until the
+Thunderbird adapter, the production mail backend answers every request
+`unsupported`. Dedicated CI jobs
 run the source and unattended acceptance commands described in the
 [acceptance record](connector-acceptance.md). The static showcase remains a design reference.
 

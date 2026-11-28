@@ -148,10 +148,13 @@ and a larger body or a path that is not UTF-8 also fails with `invalid_request`.
 [`protocol/schema/api.schema.json`](../../protocol/schema/api.schema.json) defines
 every document these routes return, and errors carry an enumerated code.
 
-Until the Thunderbird adapter of stage 3 slice 5, the production server answers
-every mail route with `unsupported`. The production extension does not handle mail
-requests yet and would end its session on one. Route tests run against a mock
-backend instead.
+Until the Thunderbird adapter of stage 3 slice 5, the production mail backend
+answers every mail request with `unsupported`. The accounts, mailboxes, and first
+summary page routes therefore answer `unsupported`, a cursor route answers
+`stale_cursor` because no cursor is ever issued, and a malformed handle still
+answers `invalid_request`. The production extension does not handle mail requests
+yet and would end its session on one. Route tests run against a mock backend
+instead.
 
 Mail routes pass opaque handles to the backend. A summary page replaces the
 backend's cursor with a random 32-character lowercase hex cursor that only its own
