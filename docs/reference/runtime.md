@@ -134,7 +134,8 @@ page shows the version alone when the commit is unknown. See
 
 `RAICHO_PUBLIC_ORIGIN` is the browser origin, which Compose defaults to
 `http://localhost:${RAICHO_PORT}`. Startup rejects a path, a scheme's default
-port, or an `http` origin whose host is not loopback. Health and status routes are
+port, an IP address host in another form than the canonical one browsers send,
+or an `http` origin whose host is not loopback. Health and status routes are
 public. `POST /api/session` signs in without a cookie, and logout succeeds without
 a current session. The other session, preference, and mail routes require the
 session cookie that sign-in sets, and answer `401` with

@@ -1,4 +1,4 @@
-use std::net::Ipv4Addr;
+use std::net::{Ipv4Addr, Ipv6Addr};
 
 use crate::error::{Error, Result};
 
@@ -59,6 +59,13 @@ impl PublicOrigin {
 }
 
 fn valid_host(host: &str) -> bool {
+    // Browsers send IPv6 in compressed lowercase form, and IPv4-mapped tails as hexadecimal.
+    if let Some(address) = host.strip_prefix('[').and_then(|rest| rest.strip_suffix(']')) {
+        return !address.contains('.')
+            && address
+                .parse::<Ipv6Addr>()
+                .is_ok_and(|parsed| parsed.to_string() == address);
+    }
     // Browsers parse a host ending in a numeric label as IPv4 and send its dotted decimal form.
     let last_label = host.rsplit('.').next().unwrap_or_default();
     if last_label.bytes().all(|byte| byte.is_ascii_digit()) || last_label.starts_with("0x") {
@@ -66,16 +73,15 @@ fn valid_host(host: &str) -> bool {
             .parse::<Ipv4Addr>()
             .is_ok_and(|address| address.to_string() == host);
     }
-    host == "[::1]"
-        || (!host.is_empty()
-            && host.len() <= 253
-            && host.split('.').all(|label| {
-                !label.is_empty()
-                    && label.len() <= 63
-                    && !label.starts_with('-')
-                    && !label.ends_with('-')
-                    && label.bytes().all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
-            }))
+    !host.is_empty()
+        && host.len() <= 253
+        && host.split('.').all(|label| {
+            !label.is_empty()
+                && label.len() <= 63
+                && !label.starts_with('-')
+                && !label.ends_with('-')
+                && label.bytes().all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
+        })
 }
 
 // Browsers omit a scheme's default port from Origin, so a configured default port would never match.
@@ -100,6 +106,8 @@ mod tests {
             ("http://127.0.0.1:8080", false),
             ("http://[::1]:8080", false),
             ("https://192.168.1.2:8443", true),
+            ("https://[2001:db8::1]:8443", true),
+            ("https://[2001:DB8::1]", true),
         ] {
             let origin = PublicOrigin::parse(value).unwrap();
             assert_eq!(origin.as_str(), value.to_ascii_lowercase());
@@ -136,6 +144,11 @@ mod tests {
             "https://2130706433",
             "http://127.1:8080",
             "https://mail.example.123",
+            "http://[2001:db8::1]:8080",
+            "https://[2001:db8:0:0:0:0:0:1]",
+            "https://[::ffff:127.0.0.1]",
+            "https://[mail.example.org]",
+            "https://[::1",
         ] {
             assert!(PublicOrigin::parse(value).is_err(), "{value}");
         }
