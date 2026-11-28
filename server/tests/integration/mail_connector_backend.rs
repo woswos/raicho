@@ -212,6 +212,48 @@ async fn mailbox_pages_stop_at_the_limit_and_close_the_list() {
 }
 
 #[tokio::test]
+async fn a_final_mailbox_page_past_the_limit_is_truncated() {
+    let fixture = Fixture::new().await;
+    let backend = Arc::new(ConnectorBackend::new(Arc::clone(&fixture.connector)));
+    let mut connection = Connection::open(&fixture).await;
+    let account = format!("{}.{}", connection.generation, handle('A'));
+    let page = |offset: usize, count: usize, last: bool| {
+        let mailboxes: Vec<Value> = (offset..offset + count)
+            .map(|index| json!({"id": format!("{index:022}"), "name": format!("Folder {index}")}))
+            .collect();
+        let mut result = json!({"kind":"mailboxes","mailboxes":mailboxes});
+        if !last {
+            result["cursor"] = json!(handle('C'));
+        }
+        result
+    };
+    for (pages, expected_truncated) in [(vec![(0, 600, false), (600, 400, true)], false), (vec![(0, 600, false), (600, 600, true)], true)] {
+        let listing = tokio::spawn({
+            let backend = Arc::clone(&backend);
+            let account = account.clone();
+            async move { backend.mailboxes(&account).await }
+        });
+        for (offset, count, last) in pages {
+            connection.answer(page(offset, count, last)).await;
+        }
+        let mailboxes = listing.await.unwrap().ok().unwrap();
+        assert_eq!(mailboxes.mailboxes.len(), 1000);
+        assert_eq!(mailboxes.truncated, expected_truncated);
+    }
+    // A finished list is not closed, so the next frame is the next request.
+    let accounts = tokio::spawn({
+        let backend = Arc::clone(&backend);
+        async move { backend.accounts().await }
+    });
+    assert_eq!(
+        connection.answer(json!({"kind":"accounts","accounts":[]})).await,
+        json!({"name":"list_accounts"})
+    );
+    assert!(accounts.await.unwrap().unwrap().is_empty());
+    fixture.finish().await;
+}
+
+#[tokio::test]
 async fn results_of_the_wrong_kind_fail_and_remaining_codes_map_to_failures() {
     let fixture = Fixture::new().await;
     let backend = Arc::new(ConnectorBackend::new(Arc::clone(&fixture.connector)));

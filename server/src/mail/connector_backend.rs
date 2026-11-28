@@ -101,24 +101,22 @@ impl MailBackend for ConnectorBackend {
                 parent: mailbox.parent.map(|parent| scoped(&generation, &parent)),
                 role: mailbox.role.map(mailbox_role),
             }));
-            let Some(cursor) = result.cursor else {
-                return Ok(Mailboxes {
-                    mailboxes,
-                    truncated: false,
-                });
-            };
-            if mailboxes.len() >= MAXIMUM_MAILBOXES {
-                mailboxes.truncate(MAXIMUM_MAILBOXES);
-                self.close(&scoped(&generation, &cursor)).await;
-                return Ok(Mailboxes {
-                    mailboxes,
-                    truncated: true,
-                });
+            match result.cursor {
+                Some(cursor) if mailboxes.len() < MAXIMUM_MAILBOXES => {
+                    operation = Operation::ContinueList(ContinueList {
+                        cursor,
+                        name: ContinueListName::ContinueList,
+                    });
+                }
+                cursor => {
+                    let truncated = cursor.is_some() || mailboxes.len() > MAXIMUM_MAILBOXES;
+                    mailboxes.truncate(MAXIMUM_MAILBOXES);
+                    if let Some(cursor) = cursor {
+                        self.close(&scoped(&generation, &cursor)).await;
+                    }
+                    return Ok(Mailboxes { mailboxes, truncated });
+                }
             }
-            operation = Operation::ContinueList(ContinueList {
-                cursor,
-                name: ContinueListName::ContinueList,
-            });
         }
     }
 
