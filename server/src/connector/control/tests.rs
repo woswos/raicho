@@ -11,6 +11,7 @@ use serde_json::json;
 use tokio::sync::mpsc;
 use tokio_tungstenite::tungstenite::Message;
 
+mod read_flood;
 mod stalled_socket;
 
 use stalled_socket::{Gate, StalledSocket, set_stalled, settle};

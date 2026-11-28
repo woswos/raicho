@@ -75,7 +75,9 @@ impl Requests {
         }
         let identifier = self.next_identifier;
         self.next_identifier += 1;
-        outbox.push(wire::request(generation, identifier, exchange.operation, channel))?;
+        outbox
+            .reserve()?
+            .send(wire::request(generation, identifier, exchange.operation, channel));
         self.pending.insert(
             identifier,
             Pending {
@@ -100,7 +102,7 @@ impl Requests {
             }
         }
         for identifier in expired {
-            outbox.push(wire::cancel(generation, identifier, channel))?;
+            outbox.reserve()?.send(wire::cancel(generation, identifier, channel));
         }
         Ok(())
     }

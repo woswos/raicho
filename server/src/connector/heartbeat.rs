@@ -36,7 +36,9 @@ impl Heartbeat {
         if self.next_sequence > MAXIMUM_WIRE_INTEGER as u64 {
             return Err(Failure::new(BackendError::ServerBusy));
         }
-        outbox.push(wire::ping(generation, self.next_sequence, channel))?;
+        outbox
+            .reserve()?
+            .send(wire::ping(generation, self.next_sequence, channel));
         self.outstanding = Some(self.next_sequence);
         self.next_sequence += 1;
         self.deadline = after(HEARTBEAT_TIMEOUT_MS);

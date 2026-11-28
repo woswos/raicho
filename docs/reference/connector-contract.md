@@ -204,8 +204,9 @@ as `message_too_large`. The WebSocket allocation
 limit is 64 KiB even before authentication, and control frames have the same
 64 KiB limit. Writes are bounded to five seconds. The server's session task seals
 frames into a queue of 33, two per pending request and one ping, and one writer
-sends them in order while reads and deadlines continue. A push that finds the
-queue full ends the session as `disconnected`. When a session ends, the server sends
+sends them in order while reads and deadlines continue. Each frame takes a queue
+slot before it is sealed, and a frame that finds the queue full ends the session as
+`disconnected` without consuming a MAC counter. When a session ends, the server sends
 the frames already sealed before its error frame, within the same five seconds, so
 the connector can authenticate the error frame's counter. The extension maintains no
 application send queue.
@@ -220,7 +221,9 @@ fails at once as busy. With no session, or for a handle from another generation,
 the request fails before it is queued. The session numbers requests from 1 and
 keeps at most `maximum_pending_requests` awaiting a reply, reading the queue as
 replies free room. Heartbeat, request deadlines, queued requests, and incoming
-frames share one loop, so a pending request never delays a ping.
+frames share one loop, so a pending request never delays a ping. A buffered frame is
+read before a deadline fires, and after 16 reads in a row the loop serves due
+deadlines and queued requests before it reads again.
 
 Each request has a `request_timeout_ms` deadline. When it passes, the session
 reports a timeout to the caller and sends `cancel`. A reply to a cancelled request

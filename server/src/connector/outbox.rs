@@ -11,7 +11,7 @@ use super::transport::WRITE_TIMEOUT;
 
 // Each pending request leaves at most its request and its cancel queued, beside one ping. Frames
 // leave in order, so for a peer that answers only requests it has read, a slot queues a third frame
-// only after one of its requests waited unsent past its deadline. A push that finds the queue full
+// only after one of its requests waited unsent past its deadline. A reservation that finds the queue full
 // therefore means a frame waited longer than a request deadline.
 const OUTBOX_FRAMES: usize = 2 * MAXIMUM_PENDING_REQUESTS + 1;
 
@@ -19,9 +19,10 @@ const OUTBOX_FRAMES: usize = 2 * MAXIMUM_PENDING_REQUESTS + 1;
 pub(super) struct Outbox(mpsc::Sender<String>);
 
 impl Outbox {
-    pub fn push(&self, text: String) -> Result<(), Failure> {
+    /// Takes a queue slot before the caller seals its frame, so a full queue never consumes a MAC counter.
+    pub fn reserve(&self) -> Result<mpsc::Permit<'_, String>, Failure> {
         self.0
-            .try_send(text)
+            .try_reserve()
             .map_err(|_| Failure::new(BackendError::Disconnected))
     }
 }
@@ -94,3 +95,6 @@ async fn write_held(socket: &mut (impl Sink<Message> + Unpin), held: &mut Option
 fn disconnected<Cause>(_: Cause) -> Failure {
     Failure::new(BackendError::Disconnected)
 }
+
+#[cfg(test)]
+mod tests;
