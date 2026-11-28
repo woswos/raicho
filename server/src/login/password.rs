@@ -24,6 +24,10 @@ pub fn validate(password: &[u8]) -> Result<()> {
     if !(MINIMUM_PASSWORD_BYTES..=MAXIMUM_PASSWORD_BYTES).contains(&password.len()) {
         return Err(Error::message("The password must contain 12 to 1024 bytes"));
     }
+    // Sign-in carries the password in a JSON string, which holds only UTF-8 text.
+    if std::str::from_utf8(password).is_err() {
+        return Err(Error::message("The password must be UTF-8 text"));
+    }
     Ok(())
 }
 
@@ -63,6 +67,8 @@ mod tests {
         assert!(validate(&[b'a'; 12]).is_ok());
         assert!(validate(&[b'a'; 1024]).is_ok());
         assert!(validate(&[b'a'; 1025]).is_err());
+        assert!(validate(&[0xff; 12]).is_err());
+        assert!(validate("Grüße, 你好吗！".as_bytes()).is_ok());
         assert!(hash(b"short").is_err());
     }
 }
