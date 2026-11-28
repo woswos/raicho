@@ -1,4 +1,5 @@
 use axum::Json;
+use axum::extract::rejection::PathRejection;
 use axum::extract::{Path, State};
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
@@ -21,7 +22,10 @@ pub struct MessagesDocument {
 }
 
 // Backends issue opaque handles, so the route checks only their shape before passing them on.
-fn handle(value: &str) -> Result<&str, ApiError> {
+fn handle(path: Result<Path<String>, PathRejection>) -> Result<String, ApiError> {
+    let Ok(Path(value)) = path else {
+        return Err(ApiError::InvalidRequest);
+    };
     if (1..=128).contains(&value.len())
         && value
             .bytes()
@@ -45,25 +49,28 @@ pub async fn accounts<Backend: MailBackend>(
 pub async fn mailboxes<Backend: MailBackend>(
     State(state): State<ApplicationState<Backend>>,
     _session: BrowserSession,
-    Path(account): Path<String>,
+    account: Result<Path<String>, PathRejection>,
 ) -> Result<Response, ApiError> {
-    Ok(Json(state.backend.mailboxes(handle(&account)?).await?).into_response())
+    Ok(Json(state.backend.mailboxes(&handle(account)?).await?).into_response())
 }
 
 pub async fn messages<Backend: MailBackend>(
     State(state): State<ApplicationState<Backend>>,
     BrowserSession(session): BrowserSession,
-    Path(mailbox): Path<String>,
+    mailbox: Result<Path<String>, PathRejection>,
 ) -> Result<Json<MessagesDocument>, ApiError> {
-    let page = state.backend.messages(handle(&mailbox)?).await?;
+    let page = state.backend.messages(&handle(mailbox)?).await?;
     document(&state, &session, page)
 }
 
 pub async fn next_page<Backend: MailBackend>(
     State(state): State<ApplicationState<Backend>>,
     BrowserSession(session): BrowserSession,
-    Path(cursor): Path<String>,
+    cursor: Result<Path<String>, PathRejection>,
 ) -> Result<Json<MessagesDocument>, ApiError> {
+    let Ok(Path(cursor)) = cursor else {
+        return Err(ApiError::InvalidRequest);
+    };
     let (backend_cursor, released) = state.cursors.take(&session, &cursor);
     state.close_cursors(released);
     let backend_cursor = backend_cursor.ok_or(ApiError::StaleCursor)?;

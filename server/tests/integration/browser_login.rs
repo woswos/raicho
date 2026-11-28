@@ -228,6 +228,14 @@ async fn wrong_passwords_are_throttled_and_an_unconfigured_login_is_reported() {
     let oversized = format!("{{\"password\":\"{}\"}}", "a".repeat(1025));
     let response = browser.send(Method::POST, "/api/session", None, Some(&oversized)).await;
     assert_eq!(response.body, json!({"error": "invalid_password"}));
+    let over_limit = format!("{{\"password\":\"{}\"}}", "a".repeat(4096));
+    let response = browser
+        .send(Method::POST, "/api/session", None, Some(&over_limit))
+        .await;
+    assert_eq!(
+        (response.status, response.body),
+        (StatusCode::BAD_REQUEST, json!({"error": "invalid_request"}))
+    );
 
     let browser = browser.restart().await;
     browser.database.revoke_browser_sessions().await.unwrap();
@@ -372,6 +380,14 @@ async fn the_theme_preference_persists_across_restarts() {
             .await;
         assert_eq!(rejected.body, json!({"error": "invalid_request"}), "{body}");
     }
+    let over_limit = format!("{{\"theme\":\"{}\"}}", "a".repeat(4096));
+    let rejected = browser
+        .send(Method::PUT, "/api/preferences", Some(&session), Some(&over_limit))
+        .await;
+    assert_eq!(
+        (rejected.status, rejected.body),
+        (StatusCode::BAD_REQUEST, json!({"error": "invalid_request"}))
+    );
     let browser = browser.restart().await;
     assert_eq!(
         browser.get("/api/preferences", &session).await.body,

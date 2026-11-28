@@ -1,6 +1,7 @@
 use axum::Json;
 use axum::body::Bytes;
 use axum::extract::State;
+use axum::extract::rejection::BytesRejection;
 use axum::http::StatusCode;
 use axum::http::header::SET_COOKIE;
 use axum::response::{IntoResponse, Response};
@@ -43,8 +44,11 @@ pub async fn current(_session: BrowserSession) -> Json<Value> {
     authenticated()
 }
 
-pub async fn sign_in<Backend: MailBackend>(State(state): State<ApplicationState<Backend>>, body: Bytes) -> Response {
-    let Ok(SignIn { password }) = serde_json::from_slice(&body) else {
+pub async fn sign_in<Backend: MailBackend>(
+    State(state): State<ApplicationState<Backend>>,
+    body: Result<Bytes, BytesRejection>,
+) -> Response {
+    let Some(SignIn { password }) = body.ok().and_then(|body| serde_json::from_slice(&body).ok()) else {
         return ApiError::InvalidRequest.into_response();
     };
     if password.len() > MAXIMUM_PASSWORD_BYTES {
@@ -113,9 +117,12 @@ pub async fn read_preferences<Backend: MailBackend>(
 pub async fn write_preferences<Backend: MailBackend>(
     State(state): State<ApplicationState<Backend>>,
     _session: BrowserSession,
-    body: Bytes,
+    body: Result<Bytes, BytesRejection>,
 ) -> Response {
-    let Ok(preferences) = serde_json::from_slice::<Preferences>(&body) else {
+    let Some(preferences) = body
+        .ok()
+        .and_then(|body| serde_json::from_slice::<Preferences>(&body).ok())
+    else {
         return ApiError::InvalidRequest.into_response();
     };
     let Ok(Value::String(theme)) = serde_json::to_value(preferences.theme) else {

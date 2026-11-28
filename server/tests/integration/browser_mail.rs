@@ -146,3 +146,22 @@ async fn a_failed_page_closes_its_backend_cursor() {
     assert_eq!(*browser.backend.closed.lock().unwrap(), [SECOND_PAGE]);
     browser.finish().await;
 }
+
+#[tokio::test]
+async fn paths_that_are_not_utf_8_are_invalid_requests() {
+    let browser = Browser::new().await;
+    let session = browser.sign_in().await;
+    for path in [
+        "/api/mail/accounts/%FF/mailboxes",
+        "/api/mail/mailboxes/%FF/messages",
+        "/api/mail/cursors/%FF",
+    ] {
+        let response = browser.get(path, &session).await;
+        assert_eq!(
+            (response.status, response.body),
+            (StatusCode::BAD_REQUEST, json!({"error": "invalid_request"})),
+            "{path}"
+        );
+    }
+    browser.finish().await;
+}
