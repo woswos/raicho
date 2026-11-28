@@ -43,6 +43,13 @@ static VALIDATORS: LazyLock<HashMap<&str, jsonschema::Validator>> = LazyLock::ne
         .collect()
 });
 
+// Logout answers 204, and unknown paths and methods fall through to axum's empty 404 and 405.
+const BODYLESS: [StatusCode; 3] = [
+    StatusCode::NO_CONTENT,
+    StatusCode::NOT_FOUND,
+    StatusCode::METHOD_NOT_ALLOWED,
+];
+
 /// The API schema document that a successful response from this path must match.
 fn document(path: &str) -> &'static str {
     match path {
@@ -127,26 +134,32 @@ impl Browser {
 
     pub async fn raw(&self, request: Request<Body>) -> Response {
         let path = request.uri().path().to_owned();
+        let method = request.method().clone();
         let response = self.router.clone().oneshot(request).await.unwrap();
         let status = response.status();
         let headers = response.headers().clone();
         let bytes = to_bytes(response.into_body(), 1 << 20).await.unwrap();
-        let body = if bytes.is_empty() {
-            Value::Null
-        } else {
-            serde_json::from_slice(&bytes).unwrap()
-        };
-        if !body.is_null() {
-            let document = if status.is_success() {
-                document(&path)
-            } else {
-                "ErrorDocument"
-            };
+        if bytes.is_empty() {
             assert!(
-                VALIDATORS[document].is_valid(&body),
-                "{path} returned {body}, not a {document}"
+                method == Method::HEAD || BODYLESS.contains(&status),
+                "{path} returned {status} without a body"
             );
+            return Response {
+                status,
+                headers,
+                body: Value::Null,
+            };
         }
+        let body = serde_json::from_slice(&bytes).unwrap();
+        let document = if status.is_success() {
+            document(&path)
+        } else {
+            "ErrorDocument"
+        };
+        assert!(
+            VALIDATORS[document].is_valid(&body),
+            "{path} returned {body}, not a {document}"
+        );
         Response { status, headers, body }
     }
 
