@@ -99,10 +99,12 @@ impl Requests {
             .filter(|(_, pending)| pending.deadline <= now)
             .map(|(identifier, _)| *identifier)
             .collect();
-        for identifier in expired {
-            if let Some(pending) = self.pending.remove(&identifier) {
+        for identifier in &expired {
+            if let Some(pending) = self.pending.remove(identifier) {
                 let _ = pending.reply.send(Err(RequestFailure::Timeout));
             }
+        }
+        for identifier in expired {
             wire::cancel(socket, generation, identifier, channel).await?;
         }
         Ok(())
