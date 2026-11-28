@@ -69,6 +69,23 @@ fn channels_accept_each_frame_once_in_order_from_the_other_peer() {
 }
 
 #[test]
+fn channels_open_every_vector_frame_in_order() {
+    let vector = vector();
+    let key = from_hex(vector["session_key"].as_str().unwrap()).unwrap();
+    let generation = vector["generation"].as_str().unwrap();
+    let mut client = Channel::new(key, Peer::Client);
+    let mut server = Channel::new(key, Peer::Server);
+    for frame in vector["frames"].as_array().unwrap() {
+        let raw = frame["message"].to_string();
+        let opened = match peer(&frame["sender"]) {
+            Peer::Server => client.open(&raw, Phase::ServerControl, generation),
+            Peer::Client => server.open(&raw, Phase::ClientControl, generation),
+        };
+        assert_eq!(opened.err(), None, "{} frame", frame["message"]["type"]);
+    }
+}
+
+#[test]
 fn a_failed_frame_closes_the_channel() {
     let vector = vector();
     let key = from_hex(vector["session_key"].as_str().unwrap()).unwrap();

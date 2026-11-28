@@ -4,6 +4,7 @@ use serde::Serialize;
 use tokio::sync::watch;
 
 use super::Connector;
+use super::requests::{Exchange, Queue, queue};
 
 #[derive(Clone, Debug, Serialize)]
 pub struct BackendStatus {
@@ -23,25 +24,28 @@ pub(super) struct ConnectionState {
 
 pub(super) struct ActiveConnection {
     pub generation: Generation,
+    pub requests: tokio::sync::mpsc::Sender<Exchange>,
     replacement: watch::Sender<bool>,
 }
 
 impl Connector {
-    pub(super) fn register(&self, generation: Generation) -> Option<watch::Receiver<bool>> {
+    pub(super) fn register(&self, generation: Generation) -> Option<(watch::Receiver<bool>, Queue)> {
         let mut state = self.state.lock().expect("Connector state lock poisoned");
         if *self.shutdown.borrow() {
             return None;
         }
         let (replacement, receiver) = watch::channel(false);
+        let (requests, queued) = queue();
         if let Some(previous) = state.active.replace(ActiveConnection {
             generation,
+            requests,
             replacement,
         }) {
             previous.replacement.send_replace(true);
         }
         state.last_error = None;
         state.heartbeat_count = 0;
-        Some(receiver)
+        Some((receiver, queued))
     }
 
     pub(super) fn reject(&self, reason: BackendError) {

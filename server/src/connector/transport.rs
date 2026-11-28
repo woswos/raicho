@@ -1,13 +1,12 @@
 use std::time::Duration;
 
-use futures_util::{Sink, SinkExt, StreamExt};
+use futures_util::{Sink, SinkExt, Stream, StreamExt};
 use raicho_protocol::diagnostics_generated::BackendError;
 use serde::Serialize;
 use tokio_tungstenite::tungstenite::error::{Error, ProtocolError};
 use tokio_tungstenite::tungstenite::{Message, Utf8Bytes};
 
 use super::failure::Failure;
-use super::handshake::Socket;
 
 // A peer that stops reading must not hold a session open indefinitely.
 pub(super) const WRITE_TIMEOUT: Duration = Duration::from_secs(5);
@@ -27,7 +26,9 @@ pub(super) async fn send_text(socket: &mut (impl Sink<Message> + Unpin), text: S
         .map_err(|_| Failure::new(BackendError::Disconnected))
 }
 
-pub(super) async fn receive_text(socket: &mut Socket) -> Result<Utf8Bytes, Failure> {
+pub(super) async fn receive_text(
+    socket: &mut (impl Stream<Item = Result<Message, Error>> + Unpin),
+) -> Result<Utf8Bytes, Failure> {
     loop {
         match socket.next().await {
             Some(Ok(Message::Text(text))) => return Ok(text),

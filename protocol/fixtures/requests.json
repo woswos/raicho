@@ -589,7 +589,7 @@
     }
   },
   {
-    "name": "control character in a subject",
+    "name": "unit separator in a subject",
     "phase": "client_control",
     "valid": false,
     "error": "invalid_message",
@@ -604,7 +604,7 @@
         "messages": [
           {
             "id": "B-_9BBBBBBBBBBBBBBBBBB",
-            "subject": "line\nbreak",
+            "subject": "unit\u001fseparator",
             "author": "Zoë <zoe@raicho.test>",
             "recipients": "sender@raicho.test",
             "date": "2026-11-03T08:00:00Z",
@@ -638,6 +638,40 @@
     "valid": true,
     "generation": "0123456789abcdef0123456789abcdef",
     "raw": "{\"type\": \"reply\", \"protocol_version\": 2, \"generation\": \"0123456789abcdef0123456789abcdef\", \"request_id\": 1, \"result\": {\"kind\": \"messages\", \"messages\": [{\"id\": \"B-_9BBBBBBBBBBBBBBBBBB\", \"subject\": \"Gr\\u00fc\\u00dfe\", \"author\": \"Zo\\u00eb <zoe@raicho.test>\", \"recipients\": \"sender@raicho.test\", \"date\": \"2026-11-03T08:00:00Z\", \"read\": false, \"flagged\": true}]}, \"mac\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+  },
+  {
+    "name": "DEL, C1, and line separator in a subject",
+    "phase": "client_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "messages",
+        "messages": [
+          {
+            "id": "B-_9BBBBBBBBBBBBBBBBBB",
+            "subject": "del csi line  bird🐦",
+            "author": "Zoë <zoe@raicho.test>",
+            "recipients": "sender@raicho.test",
+            "date": "2026-11-03T08:00:00Z",
+            "read": false,
+            "flagged": true
+          }
+        ]
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "escaped DEL, C1, line separator, and surrogate pair",
+    "phase": "client_control",
+    "valid": true,
+    "generation": "0123456789abcdef0123456789abcdef",
+    "raw": "{\"type\": \"reply\", \"protocol_version\": 2, \"generation\": \"0123456789abcdef0123456789abcdef\", \"request_id\": 1, \"result\": {\"kind\": \"messages\", \"messages\": [{\"id\": \"B-_9BBBBBBBBBBBBBBBBBB\", \"subject\": \"\\u007f\\u009b\\u2028\\ud83d\\udc26\", \"author\": \"Zo\\u00eb <zoe@raicho.test>\", \"recipients\": \"sender@raicho.test\", \"date\": \"2026-11-03T08:00:00Z\", \"read\": false, \"flagged\": true}]}, \"mac\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
   },
   {
     "name": "unknown member in a summary",

@@ -48,6 +48,12 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
   the browser's `web/src/status_generated.ts` types and bundled
   `status_validator_generated.js`, and shared documents in
   `protocol/fixtures/status/` run against the Rust and browser validators.
+- [Browser API schema](../../protocol/schema/api.schema.json): the JSON documents
+  that the mail routes return. It generates the browser's `web/src/api_generated.ts`
+  types and bundled `api_validator_generated.js`. No route returns these documents
+  yet, and stage 3 of the [foundation plan](../planning/active/20261017-thunderbird-first-foundation.md#stages)
+  adds the routes and their response validation. Its handles are opaque and never
+  Thunderbird identifiers.
 - [Shared fixtures](../../protocol/fixtures/): the same accepted/rejected frames,
   phases, expected generations, and error codes run in both languages.
 - [Rust crate](../../protocol/rust/src/lib.rs): generated types and limits, and a
@@ -196,10 +202,47 @@ retryable `server_busy` instead of an authentication rejection. A connection los
 a close frame is recorded as `disconnected`, and a frame over the transport limit
 as `message_too_large`. The WebSocket allocation
 limit is 64 KiB even before authentication, and control frames have the same
-64 KiB limit. Writes are bounded to five seconds. Neither endpoint maintains an
+64 KiB limit. Writes are bounded to five seconds. The server's session task seals
+frames into a queue of 33, two per pending request and one ping, and one writer
+sends them in order while reads and deadlines continue. Each frame takes a queue
+slot before it is sealed, and a frame that finds the queue full ends the session as
+`disconnected` without consuming a MAC counter. When a session ends, the server sends
+the frames already sealed before its error frame, within the same five seconds, so
+the connector can authenticate the error frame's counter. The extension maintains no
 application send queue.
 The extension retries if its browser socket already has buffered data. Server
 shutdown closes sessions before releasing database ownership.
+
+## Requests
+
+Only the session task writes to the socket. `Connector::request` places an
+operation in that session's queue of `maximum_pending_requests`, and a full queue
+fails at once as busy. With no session, or for a handle from another generation,
+the request fails before it is queued. The session numbers requests from 1 and
+keeps at most `maximum_pending_requests` awaiting a reply, reading the queue as
+replies free room. Heartbeat, request deadlines, queued requests, and incoming
+frames share one loop, so a pending request never delays a ping. A buffered frame is
+read before a deadline fires, and after 16 reads in a row the loop serves due
+deadlines and queued requests before it reads again.
+
+Each request has a `request_timeout_ms` deadline. When it passes, the session
+reports a timeout to the caller and sends `cancel`. A reply to a cancelled request
+is ignored, while a reply to an identifier never sent ends the session with
+`unexpected_message`. Ending the session for any reason fails every queued and
+pending request as disconnected. Request identifiers stop at
+`maximum_wire_integer`, and the server then closes the session with `server_busy`
+so the connector reconnects. No request is retried after a failure, timeout, or
+disconnect.
+
+`raicho_server::mail::ConnectorBackend` maps these results to the browser contract.
+It prefixes every handle and cursor with the session generation, so a handle from
+an earlier connection fails as stale before any frame is sent. It joins mailbox
+pages up to 1000 mailboxes per account and reports the rest as truncated. A
+mailbox page with a cursor must carry at least one mailbox. Otherwise the backend
+fails the listing, and it also fails a listing whose continuation fails. In both
+cases it requests a close of the list it was reading. That close is not retried,
+so a close that fails, for example as busy, leaves the list open until the
+connector's idle limit.
 
 ## Versioning
 
@@ -217,8 +260,11 @@ Frame budgets count UTF-8 bytes, including whitespace, before JSON decoding.
 The authentication phase uses its smaller budget. Every object key must be
 printable ASCII. String values may contain any Unicode text except C0 control
 characters (U+0000 to U+001F) and unpaired surrogates, whether written literally or
-as escapes. Control fields keep their ASCII patterns in the schema. The connector
-replaces control characters in mail text before sending it.
+as escapes. Control fields keep their ASCII patterns in the schema. Either
+character ends the session, so the connector replaces C0 controls and unpaired
+surrogates in mail text before sending it, and truncates text by code points.
+Mail text can still hold DEL, C1 controls, and bidirectional controls. Consumers
+treat it as untrusted display text and escape or isolate it for their output.
 
 Native WebSocket Ping/Pong frames are handled separately. They neither
 authenticate a connection nor satisfy or extend the application heartbeat.

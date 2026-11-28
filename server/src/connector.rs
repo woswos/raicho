@@ -1,9 +1,12 @@
 mod authentication;
+mod control;
 mod failure;
 mod handshake;
 mod handshake_limit;
 mod heartbeat;
 mod listener;
+mod outbox;
+mod requests;
 mod session;
 mod state;
 mod transport;
@@ -17,6 +20,7 @@ use tokio::sync::{Semaphore, watch};
 
 use crate::persistence::{CredentialStatus, Database};
 
+pub use requests::{REQUEST_TIMEOUT, RequestFailure};
 pub use state::BackendStatus;
 
 pub const BACKEND_KIND: &str = "thunderbird";

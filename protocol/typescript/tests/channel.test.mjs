@@ -51,6 +51,15 @@ test('channels accept each frame once, in order, from the other peer', async () 
   assert.deepEqual(JSON.parse(await sealing.seal(session.frames[0].message)), session.frames[0].message);
 });
 
+test('channels open every vector frame in order', async () => {
+  const key = bytes(session.session_key);
+  const receivers = { server: createChannel(key, 'client'), client: createChannel(key, 'server') };
+  const phases = { server: 'server_control', client: 'client_control' };
+  for (const frame of session.frames) {
+    await receivers[frame.sender].open(JSON.stringify(frame.message), phases[frame.sender], session.generation);
+  }
+});
+
 function sealedPings(key) {
   const sender = createChannel(key, 'server');
   const ping = session.frames[0].message;
