@@ -72,6 +72,8 @@ fn check_wire_values(message: &Value) -> Result<(), ContractError> {
             return Err(ContractError::InvalidMessage);
         }
         match value {
+            // The schema allows no null, but Serde reads one as an omitted optional member.
+            Value::Null => return Err(ContractError::InvalidMessage),
             Value::String(text) if text.chars().any(is_c0_control) => {
                 return Err(ContractError::InvalidMessage);
             }

@@ -340,6 +340,49 @@
     }
   },
   {
+    "name": "messages reply with a null cursor",
+    "phase": "client_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "messages",
+        "messages": [],
+        "cursor": null
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "name": "mailbox with a null parent",
+    "phase": "client_control",
+    "valid": false,
+    "error": "invalid_message",
+    "generation": "0123456789abcdef0123456789abcdef",
+    "message": {
+      "type": "reply",
+      "protocol_version": 2,
+      "generation": "0123456789abcdef0123456789abcdef",
+      "request_id": 1,
+      "result": {
+        "kind": "mailboxes",
+        "mailboxes": [
+          {
+            "id": "AAAAAAAAAAAAAAAAAAAAAA",
+            "name": "Projekte",
+            "parent": null
+          }
+        ]
+      },
+      "mac": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
     "name": "closed reply",
     "phase": "client_control",
     "valid": true,

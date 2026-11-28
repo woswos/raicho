@@ -52,8 +52,9 @@ the [frame authentication decision](../decisions/20261026-thunderbird-connector.
   phases, expected generations, and error codes run in both languages.
 - [Rust crate](../../protocol/rust/src/lib.rs): generated types and limits, and a
   boundary decoder. The decoder relies on the generated types, which enforce the
-  schema's types, lengths, patterns, and unknown-field rules, and checks the two
-  bounds they miss itself: empty `capabilities` and the `sequence` maximum. The
+  schema's types, lengths, patterns, and unknown-field rules, and checks the rules
+  they miss itself: empty `capabilities`, the `sequence` and `request_id` maximums,
+  and no `null` values, which Serde would read as an omitted optional member. The
   Rust fixture test also runs every shared fixture through offline `jsonschema`
   validation, which is a test-only dependency, and fails when a frame that the schema
   rejects decodes.
