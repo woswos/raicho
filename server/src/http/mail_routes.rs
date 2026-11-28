@@ -67,8 +67,13 @@ pub async fn next_page<Backend: MailBackend>(
     let (backend_cursor, released) = state.cursors.take(&session, &cursor);
     state.close_cursors(released);
     let backend_cursor = backend_cursor.ok_or(ApiError::StaleCursor)?;
-    let page = state.backend.continue_messages(&backend_cursor).await?;
-    document(&state, &session, page)
+    match state.backend.continue_messages(&backend_cursor).await {
+        Ok(page) => document(&state, &session, page),
+        Err(failure) => {
+            state.close_cursors(vec![backend_cursor]);
+            Err(failure.into())
+        }
+    }
 }
 
 fn document<Backend: MailBackend>(
@@ -78,10 +83,10 @@ fn document<Backend: MailBackend>(
 ) -> Result<Json<MessagesDocument>, ApiError> {
     let cursor = match page.cursor {
         Some(backend_cursor) => {
-            let (cursor, released) = state
-                .cursors
-                .issue(session, backend_cursor)
-                .ok_or(ApiError::BackendFailed)?;
+            let Some((cursor, released)) = state.cursors.issue(session, backend_cursor.clone()) else {
+                state.close_cursors(vec![backend_cursor]);
+                return Err(ApiError::BackendFailed);
+            };
             state.close_cursors(released);
             Some(cursor)
         }

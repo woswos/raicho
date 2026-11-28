@@ -131,3 +131,18 @@ async fn mail_returned_to_the_browser_never_reaches_the_database() {
     }
     browser.finish().await;
 }
+
+#[tokio::test]
+async fn a_failed_page_closes_its_backend_cursor() {
+    let browser = Browser::new().await;
+    let session = browser.sign_in().await;
+    let page = browser.get("/api/mail/mailboxes/mock.inbox/messages", &session).await;
+    let cursor = page.body["cursor"].as_str().unwrap().to_owned();
+    browser.backend.disconnected.store(true, Ordering::SeqCst);
+    let failed = browser.get(&format!("/api/mail/cursors/{cursor}"), &session).await;
+    assert_eq!(failed.body, json!({"error": "backend_disconnected"}));
+    tokio::task::yield_now().await;
+    tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+    assert_eq!(*browser.backend.closed.lock().unwrap(), [SECOND_PAGE]);
+    browser.finish().await;
+}
