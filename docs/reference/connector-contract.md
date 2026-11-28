@@ -245,8 +245,11 @@ Frame budgets count UTF-8 bytes, including whitespace, before JSON decoding.
 The authentication phase uses its smaller budget. Every object key must be
 printable ASCII. String values may contain any Unicode text except C0 control
 characters (U+0000 to U+001F) and unpaired surrogates, whether written literally or
-as escapes. Control fields keep their ASCII patterns in the schema. The connector
-replaces control characters in mail text before sending it.
+as escapes. Control fields keep their ASCII patterns in the schema. Either
+character ends the session, so the connector replaces C0 controls and unpaired
+surrogates in mail text before sending it, and truncates text by code points.
+Mail text can still hold DEL, C1 controls, and bidirectional controls. Consumers
+treat it as untrusted display text and escape or isolate it for their output.
 
 Native WebSocket Ping/Pong frames are handled separately. They neither
 authenticate a connection nor satisfy or extend the application heartbeat.
