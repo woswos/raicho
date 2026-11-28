@@ -113,8 +113,12 @@ mod tests {
         for _ in 0..MAXIMUM_FAILURES {
             {
                 let mut attempt = pin!(login.sign_in(&database, b"wrong password!".to_vec()));
-                while login.hashing.available_permits() == 1 {
+                // Stop at the poll that takes the permit, before the hash can finish and release it.
+                loop {
                     assert!(futures_util::poll!(attempt.as_mut()).is_pending());
+                    if login.hashing.available_permits() == 0 {
+                        break;
+                    }
                     tokio::task::yield_now().await;
                 }
             }
