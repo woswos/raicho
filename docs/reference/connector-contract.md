@@ -233,10 +233,10 @@ It prefixes every handle and cursor with the session generation, so a handle fro
 an earlier connection fails as stale before any frame is sent. It joins mailbox
 pages up to 1000 mailboxes per account and reports the rest as truncated. A
 mailbox page with a cursor must carry at least one mailbox. Otherwise the backend
-closes the list and fails the listing, so a connector cannot hold it open. A
-continuation that fails also requests a close of the list it was reading. That
-close is not retried, so a close that fails, for example as busy, leaves the list
-open until the connector's idle limit.
+fails the listing, and it also fails a listing whose continuation fails. In both
+cases it requests a close of the list it was reading. That close is not retried,
+so a close that fails, for example as busy, leaves the list open until the
+connector's idle limit.
 
 ## Versioning
 
